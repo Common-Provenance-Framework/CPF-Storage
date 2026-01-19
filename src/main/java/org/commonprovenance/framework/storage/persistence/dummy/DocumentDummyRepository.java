@@ -2,7 +2,6 @@ package org.commonprovenance.framework.storage.persistence.dummy;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 import java.util.UUID;
 
 import org.springframework.context.annotation.Profile;
@@ -24,7 +23,14 @@ public class DocumentDummyRepository implements DocumentRepository {
   @Override
   @NotNull
   public Mono<Document> create(@NotNull Document document) {
-    return Mono.just(documents.put(document.getIdentifier().toString(), document));
+    if (document == null)
+      return Mono.error(new InternalApplicationException("Illegal argument!",
+          new IllegalArgumentException("Document can not be 'null'!")));
+
+    String identifier = document.getIdentifier().toString();
+    System.out.println("*** Store doucment with id ***: " + identifier);
+    documents.put(identifier, document);
+    return Mono.just(documents.get(identifier));
   }
 
   @Override
@@ -36,29 +42,27 @@ public class DocumentDummyRepository implements DocumentRepository {
   @Override
   @NotNull
   public Mono<Document> getById(@NotNull UUID identifier) {
-    try {
-      return Mono.just(documents.get(Objects.requireNonNull(
-          identifier.toString(),
-          "Identifier can not be 'null'!")));
-    } catch (NullPointerException nullPointerException) {
-      return Mono.error(new InternalApplicationException("Wrong identifier!", nullPointerException));
-    } catch (Exception exception) {
-      return Mono.error(new InternalApplicationException(exception));
-    }
+    if (identifier == null)
+      return Mono.error(new InternalApplicationException(
+          "DocumentNeo4jRepository - Error while reading document",
+          new IllegalArgumentException(
+              "Identifier can not be 'null'!")));
+    if (!documents.containsKey(identifier.toString()))
+      return Mono.empty();
+
+    return Mono.just(documents.get(identifier.toString()));
   }
 
   @Override
   @NotNull
   public Mono<Void> deleteById(@NotNull UUID identifier) {
-    try {
-      return Mono.just(documents.remove(Objects.requireNonNull(
-          identifier.toString(),
-          "Identifier can not be 'null'!")))
-          .then();
-    } catch (NullPointerException nullPointerException) {
-      return Mono.error(new InternalApplicationException("Wrong identifier!", nullPointerException));
-    } catch (Exception exception) {
-      return Mono.error(new InternalApplicationException(exception));
-    }
+    if (identifier == null)
+      return Mono.error(new InternalApplicationException(
+          "DocumentNeo4jRepository - Error while deleting document",
+          new IllegalArgumentException(
+              "Identifier can not be 'null'!")));
+    if (!documents.containsKey(identifier.toString()))
+      return Mono.empty().then();
+    return Mono.just(documents.remove(identifier.toString())).then();
   }
 }

@@ -20,7 +20,6 @@ class EntityMapperTest {
     String base64StringGraph = "AAAAQQAAAGIAAAByAAAAYQAAAGsAAABhAAAAIAAAAEQAAABhAAAAYgAAAHIAAABhAAAALgAAAC4=";
     String format = "JSON";
 
-    System.out.println(testId.toString());
     Document document = new Document(
         UUID.fromString(testId),
         base64StringGraph,
