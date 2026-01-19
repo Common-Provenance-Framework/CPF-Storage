@@ -1,1 +1,2 @@
 spring.application.name=cpf-storage
+spring.profiles.active=neo4j
