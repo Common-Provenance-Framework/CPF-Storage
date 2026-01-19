@@ -66,7 +66,6 @@ public class DocumentNeo4jRepository implements DocumentRepository {
           : documentRepository.findById(Objects.requireNonNull(
               identifier.toString(),
               "Identifier can not be 'null'!"))
-              // return documentRepository.findById(identifier.toString())
               .onErrorResume(ex -> Mono.error(new InternalApplicationException(
                   "DocumentNeo4jRepository - Error while reading document",
                   ex)))

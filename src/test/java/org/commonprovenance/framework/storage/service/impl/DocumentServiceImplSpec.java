@@ -3,16 +3,13 @@ package org.commonprovenance.framework.storage.service.impl;
 import org.commonprovenance.framework.storage.model.Document;
 import org.commonprovenance.framework.storage.model.Format;
 import org.commonprovenance.framework.storage.persistence.DocumentRepository;
-import org.commonprovenance.framework.storage.persistence.neo4j.entities.DocumentEntity;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.yaml.snakeyaml.events.Event.ID;
 
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -97,29 +94,43 @@ class DocumentServiceImplSpec {
         .getAll();
   }
 
-  // @Test
-  // void getDocumentById_shouldReturnDocument() {
-  // UUID id = UUID.randomUUID();
-  // Document document = new Document();
-  // when(documentRepository.getById(id)).thenReturn(Mono.just(document));
+  @Test
+  void getDocumentById_shouldReturnDocument() {
+    Document document = new Document(IDENTIFIER_1, BASE64_STRING_GRAPH_1, FORMAT_1);
+    when(documentRepository.getById(IDENTIFIER_1)).thenReturn(Mono.just(document));
 
-  // Mono<Document> result = documentService.getDocumentById(id);
+    StepVerifier.create(documentService.getDocumentById(IDENTIFIER_1))
+        .expectNext(document)
+        .verifyComplete();
 
-  // StepVerifier.create(result)
-  // .expectNext(document)
-  // .verifyComplete();
-  // verify(documentRepository).getById(id);
-  // }
+    ArgumentCaptor<UUID> captor = ArgumentCaptor.forClass(UUID.class);
+    verify(
+        documentRepository,
+        times(1)
+            .description("Repository getAll method should be invoked once"))
+        .getById(captor.capture());
 
-  // @Test
-  // void deleteDocumentById_shouldDeleteDocument() {
-  // UUID id = UUID.randomUUID();
-  // when(documentRepository.deleteById(id)).thenReturn(Mono.empty());
+    UUID capturedId = captor.getValue();
+    assertTrue(capturedId.equals(IDENTIFIER_1),
+        "should be called with exact id");
+  }
 
-  // Mono<Void> result = documentService.deleteDocumentById(id);
+  @Test
+  void deleteDocumentById_shouldDeleteDocument() {
+    when(documentRepository.deleteById(IDENTIFIER_1)).thenReturn(Mono.empty().then());
 
-  // StepVerifier.create(result)
-  // .verifyComplete();
-  // verify(documentRepository).deleteById(id);
-  // }
+    StepVerifier.create(documentService.deleteDocumentById(IDENTIFIER_1))
+        .verifyComplete();
+
+    ArgumentCaptor<UUID> captor = ArgumentCaptor.forClass(UUID.class);
+    verify(
+        documentRepository,
+        times(1)
+            .description("Repository deleteById method should be invoked once"))
+        .deleteById(captor.capture());
+
+    UUID capturedId = captor.getValue();
+    assertTrue(capturedId.equals(IDENTIFIER_1),
+        "should be called with exact id");
+  }
 }
