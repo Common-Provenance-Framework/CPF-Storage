@@ -27,7 +27,7 @@ import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 @ExtendWith(MockitoExtension.class)
-@DisplayName("Neo4j Repository - DocumentNeo4jRepository")
+@DisplayName("Neo4j Repository - DocumentNeo4jRepository Specification")
 class DocumentNeo4jRepositorySpec {
 
   @Mock

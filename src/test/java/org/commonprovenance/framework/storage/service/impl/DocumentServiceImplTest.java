@@ -9,11 +9,7 @@ import org.commonprovenance.framework.storage.model.Format;
 import org.commonprovenance.framework.storage.persistence.DocumentRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.MethodOrderer;
-import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestMethodOrder;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -21,8 +17,7 @@ import reactor.test.StepVerifier;
 
 import java.util.UUID;
 
-@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-@DisplayName("Service - DocumentServiceImpl")
+@DisplayName("Service - DocumentServiceImpl UnitTest")
 
 class DocumentServiceImplTest {
   private class DocumentRepositoryStub implements DocumentRepository {
@@ -80,7 +75,6 @@ class DocumentServiceImplTest {
 
   private DocumentServiceImpl documentService;
 
-  @Autowired
   public DocumentServiceImplTest() {
     this.documentRepository = new DocumentRepositoryStub();
   }
@@ -91,7 +85,6 @@ class DocumentServiceImplTest {
   }
 
   @Test
-  @Order(1)
   @DisplayName("HappyPath - storeDocument - should return new Document which has been stored.")
   void storeDocument_return_new_document() {
 
@@ -110,7 +103,6 @@ class DocumentServiceImplTest {
   }
 
   @Test
-  @Order(2)
   @DisplayName("ErrorPath - storeDocument - should propagate exception from repository, if any.")
   void storeDocument_propagete_exception_from_repository() {
     StepVerifier.create(documentService.storeDocument(null))
@@ -135,7 +127,6 @@ class DocumentServiceImplTest {
   }
 
   @Test
-  @Order(3)
   @DisplayName("HappyPath - getAllDocuments - should return Flux with all documents from repository.")
   void getAllDocuments_should_return_all_documents() {
 
@@ -152,7 +143,6 @@ class DocumentServiceImplTest {
   }
 
   @Test
-  @Order(4)
   @DisplayName("HappyPath - getDocumentById - should return Mono with exact document from repository.")
   void getDocumentById_should_return_mono_with_exact_document() {
 
@@ -165,7 +155,6 @@ class DocumentServiceImplTest {
   }
 
   @Test
-  @Order(5)
   @DisplayName("HappyPath - getDocumentById - should return empty Mono.")
   void getDocumentById_should_return_empty_mono() {
 
@@ -175,7 +164,6 @@ class DocumentServiceImplTest {
   }
 
   @Test
-  @Order(6)
   @DisplayName("ErrorPath - getDocumentById - should propagate exception from repository, if any.")
   void getDocumentById_propagete_exception_from_repository() {
 
@@ -201,7 +189,6 @@ class DocumentServiceImplTest {
   }
 
   @Test
-  @Order(7)
   @DisplayName("HappyPath - deleteById - should return empty Mono.")
 
   void deleteDocumentById_should_delete_document() {
