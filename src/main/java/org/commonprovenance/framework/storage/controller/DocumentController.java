@@ -1,6 +1,7 @@
 package org.commonprovenance.framework.storage.controller;
 
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -14,6 +15,8 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 
 import org.commonprovenance.framework.storage.controller.dto.form.DocumentFormDTO;
+
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @Validated
@@ -32,6 +35,12 @@ public class DocumentController {
     return DomainMapper.toDomain(body)
         .flatMap(this.documentService::storeDocument)
         .flatMap(DTOMapper::toDTO);
+  }
 
+  @GetMapping()
+  @NotNull
+  public Flux<DocumentResponseDTO> getAllProvDocuments() {
+    return this.documentService.getAllDocuments()
+        .flatMap(DTOMapper::toDTO);
   }
 }
