@@ -1,7 +1,7 @@
 package org.commonprovenance.framework.storage.controller.dto.form;
 
-import org.commonprovenance.framework.storage.common.validator.ValueOfBase64String;
-import org.commonprovenance.framework.storage.common.validator.ValueOfEnum;
+import org.commonprovenance.framework.storage.controller.validator.ValueOfBase64String;
+import org.commonprovenance.framework.storage.controller.validator.ValueOfEnum;
 import org.commonprovenance.framework.storage.model.Format;
 import jakarta.validation.constraints.NotBlank;
 
