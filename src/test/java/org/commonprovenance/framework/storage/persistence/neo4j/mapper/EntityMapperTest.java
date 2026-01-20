@@ -14,7 +14,7 @@ import org.junit.jupiter.api.DisplayName;
 class EntityMapperTest {
 
   @Test
-  @DisplayName("HappyPath - should return Mono with Document")
+  @DisplayName("HappyPath - should return Mono with DocumentEntity")
   void should_map_Document_to_DocumentEntity() {
     String testId = "6ee9d79b-0615-4cb1-b0f3-2303d10c8cff";
     String base64StringGraph = "AAAAQQAAAGIAAAByAAAAYQAAAGsAAABhAAAAIAAAAEQAAABhAAAAYgAAAHIAAABhAAAALgAAAC4=";
