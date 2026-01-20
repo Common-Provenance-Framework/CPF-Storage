@@ -30,4 +30,21 @@ public class DomainMapper {
         document.getGraph(),
         optFormat.get()));
   }
+
+  @NotNull
+  public static Mono<UUID> toDomain(@NotNull String uuidString) {
+    if (uuidString == null)
+      return Mono.error(new InternalApplicationException(
+          "Can not convert to UUID",
+          new IllegalArgumentException("UUID String can not be null!")));
+    try {
+      return Mono.just(UUID.fromString(uuidString));
+    } catch (IllegalArgumentException illegalArgumentException) {
+      return Mono.error(new InternalApplicationException(
+          "Can not convert to UUID",
+          new IllegalArgumentException("Not valid UUID string: " + uuidString)));
+    } catch (Exception exception) {
+      return Mono.error(new InternalApplicationException(exception));
+    }
+  }
 }
