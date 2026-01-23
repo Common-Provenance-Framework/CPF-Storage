@@ -5,10 +5,10 @@ import jakarta.validation.Payload;
 import java.lang.annotation.*;
 
 @Documented
-@Constraint(validatedBy = ValueOfEnumValidator.class)
+@Constraint(validatedBy = IsValueOfEnumValidator.class)
 @Target({ ElementType.FIELD, ElementType.PARAMETER })
 @Retention(RetentionPolicy.RUNTIME)
-public @interface ValueOfEnum {
+public @interface IsValueOfEnum {
   String message() default "must be any of the enum values";
 
   Class<?>[] groups() default {};
