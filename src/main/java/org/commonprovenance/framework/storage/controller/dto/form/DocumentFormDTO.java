@@ -1,5 +1,6 @@
 package org.commonprovenance.framework.storage.controller.dto.form;
 
+import org.commonprovenance.framework.storage.controller.validator.IsJsonBase64;
 import org.commonprovenance.framework.storage.controller.validator.ValueOfBase64String;
 import org.commonprovenance.framework.storage.controller.validator.ValueOfEnum;
 import org.commonprovenance.framework.storage.model.Format;
@@ -8,7 +9,8 @@ import jakarta.validation.constraints.NotBlank;
 public class DocumentFormDTO {
 
   @NotBlank(message = "Graph should not be null or empty.")
-  @ValueOfBase64String( message = "Graph should be base64 string.")
+  @ValueOfBase64String(message = "Graph should be Base64 string.")
+  @IsJsonBase64(message = "Grap should be Base64 json string")
   private final String graph;
 
   @NotBlank(message = "Format should not be null or empty.")
