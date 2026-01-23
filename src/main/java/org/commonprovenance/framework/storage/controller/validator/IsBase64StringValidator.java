@@ -5,12 +5,12 @@ import jakarta.validation.ConstraintValidatorContext;
 import java.util.Base64;
 import java.util.regex.Pattern;
 
-public class ValueOfBase64StringValidator implements ConstraintValidator<ValueOfBase64String, String> {
+public class IsBase64StringValidator implements ConstraintValidator<IsBase64String, String> {
   private static final Pattern B64 = Pattern.compile("^[A-Za-z0-9+/]+={0,2}$");
   private boolean url;
 
   @Override
-  public void initialize(ValueOfBase64String annotation) {
+  public void initialize(IsBase64String annotation) {
     this.url = annotation.url();
   }
 

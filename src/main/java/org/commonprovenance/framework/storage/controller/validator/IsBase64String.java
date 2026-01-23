@@ -5,10 +5,10 @@ import jakarta.validation.Payload;
 import java.lang.annotation.*;
 
 @Documented
-@Constraint(validatedBy = ValueOfBase64StringValidator.class)
+@Constraint(validatedBy = IsBase64StringValidator.class)
 @Target({ ElementType.FIELD, ElementType.PARAMETER })
 @Retention(RetentionPolicy.RUNTIME)
-public @interface ValueOfBase64String {
+public @interface IsBase64String {
   String message() default "must be a valid Base64 encoded string";
 
   Class<?>[] groups() default {};
