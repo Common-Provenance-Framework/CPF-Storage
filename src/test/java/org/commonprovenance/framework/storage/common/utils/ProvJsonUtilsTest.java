@@ -11,7 +11,6 @@ import org.junit.jupiter.api.Test;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 
-
 @DisplayName("Provenance JSON Utils Test")
 public class ProvJsonUtilsTest {
   private final String DOCUMENT = "{\"prefix\":{\"xsd\":\"http://www.w3.org/2001/XMLSchema#\",\"ex\":\"www.example.com/\",\"blank\":\"https://openprovenance.org/blank/\",\"prov\":\"http://www.w3.org/ns/prov#\"},\"bundle\":{\"ex:bundleA\":{\"entity\":{\"blank:entity1\":{\"ex:version\":2,\"ex:byteSize\":{\"$\":1034,\"type\":\"xsd:positiveInteger\"},\"ex:compression\":{\"$\":0.825,\"type\":\"xsd:double\"},\"ex:content\":{\"$\":\"Y29udGVudCBoZXJl\",\"type\":\"xsd:base64Binary\"}}},\"activity\":{\"blank:activity1\":{\"prov:startTime\":\"2025-08-16T12:00:00.000+02:00\",\"prov:endTime\":\"2025-08-16T13:00:00.000+02:00\",\"ex:host\":\"server.example.org\",\"prov:type\":{\"$\":\"ex:edit\",\"type\":\"xsd:QName\"}}},\"agent\":{\"blank:agent1\":{\"ex:employee\":1234,\"ex:name\":\"Alice\",\"prov:type\":{\"$\":\"prov:Person\",\"type\":\"xsd:QName\"}}},\"wasAssociatedWith\":{\"blank:assoc\":{\"prov:activity\":\"blank:activity1\",\"prov:agent\":\"blank:agent1\"}},\"wasAttributedTo\":{\"blank:attr\":{\"prov:entity\":\"blank:entity1\",\"prov:agent\":\"blank:agent1\"}},\"wasGeneratedBy\":{\"blank:gen\":{\"prov:entity\":\"blank:entity1\",\"prov:activity\":\"blank:activity1\"}}}}}";
@@ -163,7 +162,6 @@ public class ProvJsonUtilsTest {
 
       putStringValuesInArray.setAccessible(true);
       JsonNode output = (JsonNode) putStringValuesInArray.invoke(null, input, mapper, false);
-      System.out.println(mapper.writeValueAsString(output));
 
       assertEquals(
           this.DOCUMENT_WITH_ARRAY_STRING,
@@ -176,11 +174,25 @@ public class ProvJsonUtilsTest {
   }
 
   @Test
+  @DisplayName("should preprocess incompatible json before serialization")
+  public void shouldPreprocessIncompatibleJsonBeforeSerialization() {
+    try {
+      assertEquals(
+          this.DOCUMENT_PREPROCESSED,
+          ProvJsonUtils.preprocessIncompatibleJsonForDeserialization(this.DOCUMENT, false),
+          "should stringify numeric value");
+    } catch (Exception e) {
+      System.err.println(e.getMessage());
+      fail(e.getMessage(), e.getCause());
+    }
+  }
+
+  @Test
   @DisplayName("should preprocess json before serialization")
   public void shouldPreprocessJsonBeforeSerialization() {
     try {
       assertEquals(
-          this.DOCUMENT_PREPROCESSED,
+          this.DOCUMENT_WITH_EXPLICIT_BUNDLE_ID,
           ProvJsonUtils.preprocessJsonForDeserialization(this.DOCUMENT, false),
           "should stringify numeric value");
     } catch (Exception e) {
