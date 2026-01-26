@@ -93,7 +93,7 @@ class DocumentNeo4jRepositorySpec {
 
   @Test
   @DisplayName("GetById - should call findById method with exact parameters")
-  void getById_should_call_finById_method_with_exact_paramters() {
+  void getById_should_call_findById_method_with_exact_paramters() {
     when(documentRepository.findById(anyString())).thenReturn(Mono.empty());
 
     StepVerifier.create(repository.getById(UUID.fromString(TEST_ID_1)))
