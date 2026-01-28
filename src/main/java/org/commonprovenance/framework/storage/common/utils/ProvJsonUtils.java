@@ -21,6 +21,25 @@ public class ProvJsonUtils {
       JsonNode root = mapper.readTree(json);
 
       root = addExplicitBundleId(root);
+
+      return prettyPring
+          ? mapper.writerWithDefaultPrettyPrinter().writeValueAsString(root)
+          : mapper.writeValueAsString(root);
+    } catch (JacksonException e) {
+      throw new RuntimeException("Failed to preprocess JSON for deserialization", e);
+    }
+  }
+
+  public static String preprocessIncompatibleJsonForDeserialization(String json) {
+    return preprocessJsonForDeserialization(json, true);
+  }
+
+  public static String preprocessIncompatibleJsonForDeserialization(String json, boolean prettyPring) {
+    try {
+      ObjectMapper mapper = new ObjectMapper();
+      JsonNode root = mapper.readTree(json);
+
+      root = addExplicitBundleId(root);
       root = putTypedObjectsInArrays(root, mapper);
       root = putStringValuesInArray(root, mapper, false);
       root = stringifyValues(root, mapper);
@@ -48,9 +67,7 @@ public class ProvJsonUtils {
       return prettyPring
           ? mapper.writerWithDefaultPrettyPrinter().writeValueAsString(root)
           : mapper.writeValueAsString(root);
-    } catch (
-
-    JacksonException e) {
+    } catch (JacksonException e) {
       throw new RuntimeException("Failed to preprocess JSON after serialization", e);
     }
 

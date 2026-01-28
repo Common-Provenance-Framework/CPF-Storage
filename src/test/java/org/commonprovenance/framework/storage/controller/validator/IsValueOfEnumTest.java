@@ -12,14 +12,14 @@ import org.junit.jupiter.api.Test;
 import jakarta.validation.ConstraintViolation;
 
 @DisplayName("Validator - ValueOfEnum")
-public class ValueOfEnumTest {
+public class IsValueOfEnumTest {
 
   enum MyEnum {
     A, B
   }
 
   private class Bean {
-    @ValueOfEnum(enumClass = MyEnum.class, message = "Validation failure!")
+    @IsValueOfEnum(enumClass = MyEnum.class, message = "Validation failure!")
     private final String val;
 
     public Bean(String val) {
@@ -35,8 +35,8 @@ public class ValueOfEnumTest {
   @DisplayName("Validator UnitTest - should validate enum values correctly")
   public void should_validate_enum_values_correctly() {
 
-    ValueOfEnumValidator valOfEnumValidator = new ValueOfEnumValidator();
-    valOfEnumValidator.initialize(new ValueOfEnum() {
+    IsValueOfEnumValidator valOfEnumValidator = new IsValueOfEnumValidator();
+    valOfEnumValidator.initialize(new IsValueOfEnum() {
       @Override
       public Class<? extends Enum<?>> enumClass() {
         return MyEnum.class;
@@ -59,7 +59,7 @@ public class ValueOfEnumTest {
 
       @Override
       public Class<? extends java.lang.annotation.Annotation> annotationType() {
-        return ValueOfEnum.class;
+        return IsValueOfEnum.class;
       }
     });
 
@@ -75,7 +75,6 @@ public class ValueOfEnumTest {
   public void should_pass_for_valid_value() {
 
     Bean beanA = new Bean("A");
-
 
     Set<ConstraintViolation<Bean>> violations = this.validator.validate(beanA);
     assertTrue(violations.isEmpty());

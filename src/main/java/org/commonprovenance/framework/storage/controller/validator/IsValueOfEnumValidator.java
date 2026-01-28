@@ -6,11 +6,11 @@ import java.util.Arrays;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public class ValueOfEnumValidator implements ConstraintValidator<ValueOfEnum, String> {
+public class IsValueOfEnumValidator implements ConstraintValidator<IsValueOfEnum, String> {
   private Set<String> accepted;
 
   @Override
-  public void initialize(ValueOfEnum annotation) {
+  public void initialize(IsValueOfEnum annotation) {
     accepted = Arrays.stream(annotation.enumClass().getEnumConstants())
         .map(Enum::name)
         .collect(Collectors.toSet());

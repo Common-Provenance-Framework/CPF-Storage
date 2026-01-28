@@ -30,44 +30,58 @@
   <properties>
     <java.version>25</java.version>
     <prov.ver>2.2.2</prov.ver>
+    <springboot.ver>4.0.2</springboot.ver>
+    <bouncycastle.ver>1.83</bouncycastle.ver>
+    <jackson.ver>3.0.4</jackson.ver>
+    <networknt.ver>3.0.0</networknt.ver>
   </properties>
   <dependencies>
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-data-neo4j</artifactId>
+      <version>${springboot.ver}</version>
     </dependency>
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-webflux</artifactId>
+      <version>${springboot.ver}</version>
     </dependency>
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-validation</artifactId>
+      <version>${springboot.ver}</version>
     </dependency>
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-data-neo4j-test</artifactId>
+      <version>${springboot.ver}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-webflux-test</artifactId>
+      <version>${springboot.ver}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.bouncycastle</groupId>
       <artifactId>bcprov-jdk18on</artifactId>
-      <version>1.83</version>
+      <version>${bouncycastle.ver}</version>
     </dependency>
     <dependency>
       <groupId>tools.jackson.core</groupId>
       <artifactId>jackson-databind</artifactId>
-      <version>3.0.3</version>
+      <version>${jackson.ver}</version>
     </dependency>
     <dependency>
       <groupId>org.openprovenance.prov</groupId>
       <artifactId>prov-interop</artifactId>
       <version>${prov.ver}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.networknt</groupId>
+      <artifactId>json-schema-validator</artifactId>
+      <version>${networknt.ver}</version>
     </dependency>
   </dependencies>
 

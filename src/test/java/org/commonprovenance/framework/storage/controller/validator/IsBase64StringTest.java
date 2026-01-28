@@ -12,12 +12,12 @@ import org.junit.jupiter.api.Test;
 import jakarta.validation.ConstraintViolation;
 
 @DisplayName("Validator - ValueOfBase64StringTest")
-public class ValueOfBase64StringTest {
+public class IsBase64StringTest {
   private final String base64Valid = "U29tZSBiYXNlNjQgZW5jb2RlZCBzdHJpbmc=";
   private final String base64Invalid = "This is not base64!!";
 
   private class Bean {
-    @ValueOfBase64String(message = "Validation failure!")
+    @IsBase64String(message = "Validation failure!")
     private final String val;
 
     public Bean(String val) {
@@ -33,8 +33,8 @@ public class ValueOfBase64StringTest {
   @DisplayName("Validator Test - should validate base64 strings correctly")
   public void should_validate_base64_strings_correctly() {
 
-    ValueOfBase64StringValidator valOfBase64StringValidator = new ValueOfBase64StringValidator();
-    valOfBase64StringValidator.initialize(new ValueOfBase64String() {
+    IsBase64StringValidator valOfBase64StringValidator = new IsBase64StringValidator();
+    valOfBase64StringValidator.initialize(new IsBase64String() {
       @Override
       public String message() {
         return "msg";
@@ -52,7 +52,7 @@ public class ValueOfBase64StringTest {
 
       @Override
       public Class<? extends java.lang.annotation.Annotation> annotationType() {
-        return ValueOfBase64String.class;
+        return IsBase64String.class;
       }
 
       @Override

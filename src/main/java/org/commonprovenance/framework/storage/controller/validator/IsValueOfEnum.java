@@ -5,16 +5,15 @@ import jakarta.validation.Payload;
 import java.lang.annotation.*;
 
 @Documented
-@Constraint(validatedBy = ValueOfBase64StringValidator.class)
+@Constraint(validatedBy = IsValueOfEnumValidator.class)
 @Target({ ElementType.FIELD, ElementType.PARAMETER })
 @Retention(RetentionPolicy.RUNTIME)
-public @interface ValueOfBase64String {
-  String message() default "must be a valid Base64 encoded string";
+public @interface IsValueOfEnum {
+  String message() default "must be any of the enum values";
 
   Class<?>[] groups() default {};
 
   Class<? extends Payload>[] payload() default {};
 
-  /** Use URL-safe Base64 decoder if true */
-  boolean url() default false;
+  Class<? extends Enum<?>> enumClass();
 }

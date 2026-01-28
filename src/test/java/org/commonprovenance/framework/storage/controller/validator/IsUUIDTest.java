@@ -73,20 +73,19 @@ public class IsUUIDTest {
   @DisplayName("Validator Integration Test - HappyPath")
   public void should_pass_for_valid_value() {
 
-  Bean beanValidUUID = new Bean(this.validUUID);
+    Bean beanValidUUID = new Bean(this.validUUID);
 
-  Set<ConstraintViolation<Bean>> violations = this.validator.validate(beanValidUUID);
-  assertTrue(violations.isEmpty());
+    Set<ConstraintViolation<Bean>> violations = this.validator.validate(beanValidUUID);
+    assertTrue(violations.isEmpty());
   }
 
   @Test
   @DisplayName("Validator Integration Test - ErrorPath")
   public void should_fail_for_invalid_value() {
-  Bean beanInvalidUUID = new Bean(this.invalidUUID);
-  Set<ConstraintViolation<Bean>> violations = validator.validate(beanInvalidUUID);
-
-  assertEquals(1, violations.size(), "sould have exact one violation");
-  ConstraintViolation<Bean> violation = violations.iterator().next();
-  assertEquals("Validation failure!", violation.getMessage(), "should have correct violation message");
+    Bean beanInvalidUUID = new Bean(this.invalidUUID);
+    Set<ConstraintViolation<Bean>> violations = validator.validate(beanInvalidUUID);
+    assertEquals(1, violations.size(), "sould have exact one violation");
+    ConstraintViolation<Bean> violation = violations.iterator().next();
+    assertEquals("Validation failure!", violation.getMessage(), "should have correct violation message");
   }
 }
