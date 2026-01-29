@@ -15,7 +15,7 @@ public class DTOMapper {
             "Can not convert to DocumentResponseDTO",
             new IllegalArgumentException("Document can not be null!")))
         : Mono.just(new DocumentResponseDTO(
-            domain.getIdentifier().toString(),
+            domain.getId().toString(),
             domain.getGraph(),
             domain.getFormat().toString()));
   }

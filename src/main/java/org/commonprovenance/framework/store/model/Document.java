@@ -3,18 +3,18 @@ package org.commonprovenance.framework.store.model;
 import java.util.UUID;
 
 public class Document {
-  private final UUID identifier;
+  private final UUID id;
   private final String graph;
   private final Format format;
 
-  public Document(UUID identifier, String graph, Format format) {
-    this.identifier = identifier;
+  public Document(UUID id, String graph, Format format) {
+    this.id = id;
     this.graph = graph;
     this.format = format;
   }
 
-  public UUID getIdentifier() {
-    return identifier;
+  public UUID getId() {
+    return id;
   }
 
   public String getGraph() {

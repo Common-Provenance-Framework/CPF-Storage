@@ -91,7 +91,7 @@ class DocumentServiceImplTest {
     StepVerifier.create(documentService.storeDocument(DocumentRepositoryStub.DOCUMENT_1))
         .assertNext(doc -> {
           assertEquals(
-              DocumentRepositoryStub.IDENTIFIER_STR_1, doc.getIdentifier().toString(),
+              DocumentRepositoryStub.IDENTIFIER_STR_1, doc.getId().toString(),
               "should have exact identifier");
           assertEquals(DocumentRepositoryStub.BASE64_STRING_GRAPH_1, doc.getGraph(),
               "should have exact graph");
@@ -132,11 +132,11 @@ class DocumentServiceImplTest {
 
     StepVerifier.create(documentService.getAllDocuments())
         .assertNext(doc -> {
-          assertEquals(DocumentRepositoryStub.IDENTIFIER_STR_1, doc.getIdentifier().toString(),
+          assertEquals(DocumentRepositoryStub.IDENTIFIER_STR_1, doc.getId().toString(),
               "should have exact id");
         })
         .assertNext(doc -> {
-          assertEquals(DocumentRepositoryStub.IDENTIFIER_STR_2, doc.getIdentifier().toString(),
+          assertEquals(DocumentRepositoryStub.IDENTIFIER_STR_2, doc.getId().toString(),
               "should have exact id");
         })
         .verifyComplete();
@@ -148,7 +148,7 @@ class DocumentServiceImplTest {
 
     StepVerifier.create(documentService.getDocumentById(DocumentRepositoryStub.IDENTIFIER_1))
         .assertNext(doc -> {
-          assertEquals(DocumentRepositoryStub.IDENTIFIER_STR_1, doc.getIdentifier().toString(),
+          assertEquals(DocumentRepositoryStub.IDENTIFIER_STR_1, doc.getId().toString(),
               "should have exact id");
         })
         .verifyComplete();

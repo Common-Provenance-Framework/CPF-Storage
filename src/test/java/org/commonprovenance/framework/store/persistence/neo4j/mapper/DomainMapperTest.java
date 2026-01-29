@@ -30,7 +30,7 @@ public class DomainMapperTest {
 
     StepVerifier.create(DomainMapper.toDomain(entity))
         .assertNext(doc -> {
-          assertEquals(testId, doc.getIdentifier());
+          assertEquals(testId, doc.getId());
           assertEquals(Format.JSON, doc.getFormat());
           assertEquals(base64StringGraph, doc.getGraph());
         })
