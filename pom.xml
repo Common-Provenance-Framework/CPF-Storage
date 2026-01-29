@@ -10,10 +10,10 @@
     <relativePath /> <!-- lookup parent from repository -->
   </parent>
   <groupId>org.commonprovenance.framework</groupId>
-  <artifactId>storage</artifactId>
+  <artifactId>store</artifactId>
   <version>0.0.1-SNAPSHOT</version>
-  <name>cpf-storage</name>
-  <description>Storage service of the Common Provenance Framework.</description>
+  <name>cpf-store</name>
+  <description>Store service of the Common Provenance Framework.</description>
   <url />
   <licenses>
     <license />

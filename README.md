@@ -1,2 +1,2 @@
-# CPF-Storage
-Storage service of the Common Provenance Framework. 
+# CPF-Store
+Store service of the Common Provenance Framework.
