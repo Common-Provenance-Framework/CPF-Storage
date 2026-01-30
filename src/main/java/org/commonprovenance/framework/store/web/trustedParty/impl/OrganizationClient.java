@@ -1,45 +1,43 @@
-package org.commonprovenance.framework.store.web.trustedParty.webFlux;
+package org.commonprovenance.framework.store.web.trustedParty.impl;
 
 import java.util.UUID;
 
 import org.commonprovenance.framework.store.exceptions.InternalApplicationException;
 import org.commonprovenance.framework.store.model.Organization;
 import org.commonprovenance.framework.store.web.trustedParty.OrganizationsClient;
+import org.commonprovenance.framework.store.web.trustedParty.client.TrustedPartyClient;
 import org.commonprovenance.framework.store.web.trustedParty.dto.form.OrganizationFormDTO;
 import org.commonprovenance.framework.store.web.trustedParty.dto.response.OrganizationResponseDTO;
 import org.commonprovenance.framework.store.web.trustedParty.mapper.DomainMapper;
-import org.commonprovenance.framework.store.web.trustedParty.webFlux.cient.WebFluxClient;
-import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 import jakarta.validation.constraints.NotNull;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-@Profile("live")
 @Component
-public class OrganizationWebFluxClient implements OrganizationsClient {
-  private final WebFluxClient webFluxClient;
+public class OrganizationClient implements OrganizationsClient {
+  private final TrustedPartyClient trustedPartyClient;
 
-  public OrganizationWebFluxClient(
-      WebFluxClient client) {
-    this.webFluxClient = client;
+  public OrganizationClient(
+      TrustedPartyClient client) {
+    this.trustedPartyClient = client;
   }
 
   private Mono<OrganizationResponseDTO> postReq(OrganizationFormDTO body) {
-    return webFluxClient.sendPostRequest("/organizations", body, OrganizationResponseDTO.class);
+    return trustedPartyClient.sendPostRequest("/organizations", body, OrganizationResponseDTO.class);
   }
 
   private Mono<OrganizationResponseDTO> getOneReq(String id) {
-    return webFluxClient.sendGetOneRequest("/organizations/" + id, OrganizationResponseDTO.class);
+    return trustedPartyClient.sendGetOneRequest("/organizations/" + id, OrganizationResponseDTO.class);
   }
 
   private Flux<OrganizationResponseDTO> getManyReq() {
-    return webFluxClient.sendGetManyRequest("/organizations", OrganizationResponseDTO.class);
+    return trustedPartyClient.sendGetManyRequest("/organizations", OrganizationResponseDTO.class);
   }
 
   private Mono<OrganizationResponseDTO> deleteReq(String id) {
-    return webFluxClient.sendDeleteRequest("/organizations/" + id, OrganizationResponseDTO.class);
+    return trustedPartyClient.sendDeleteRequest("/organizations/" + id, OrganizationResponseDTO.class);
   }
 
   private <T> Mono<T> makeSure(T value, String message) {

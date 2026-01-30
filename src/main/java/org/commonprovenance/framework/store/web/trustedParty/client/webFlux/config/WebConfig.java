@@ -1,4 +1,4 @@
-package org.commonprovenance.framework.store.web.trustedParty.webFlux.config;
+package org.commonprovenance.framework.store.web.trustedParty.client.webFlux.config;
 
 import java.util.Objects;
 

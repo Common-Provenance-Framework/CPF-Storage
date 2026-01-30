@@ -1,14 +1,19 @@
-package org.commonprovenance.framework.store.web.trustedParty.webFlux.cient;
+package org.commonprovenance.framework.store.web.trustedParty.client.webFlux;
 
+import org.commonprovenance.framework.store.web.trustedParty.client.TrustedPartyClient;
+import org.springframework.context.annotation.Profile;
+import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-public class WebFluxClient {
+@Component
+@Profile("live & webflux")
+public class TrustedPartyWebFluxClient implements TrustedPartyClient {
   private final WebClient client;
 
-  public WebFluxClient(WebClient client) {
+  public TrustedPartyWebFluxClient(WebClient client) {
     this.client = client;
   }
 
