@@ -1,2 +1,4 @@
 spring.application.name=cpf-store
 spring.profiles.active=neo4j
+
+spring.trusted-party.url=http://trustedparty:8080/api/v1/
