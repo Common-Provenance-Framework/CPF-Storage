@@ -4,7 +4,7 @@ import java.util.UUID;
 
 import org.commonprovenance.framework.store.exceptions.InternalApplicationException;
 import org.commonprovenance.framework.store.model.Organization;
-import org.commonprovenance.framework.store.web.trustedParty.OrganizationsClient;
+import org.commonprovenance.framework.store.web.trustedParty.OrganizationClient;
 import org.commonprovenance.framework.store.web.trustedParty.client.TrustedPartyClient;
 import org.commonprovenance.framework.store.web.trustedParty.dto.form.OrganizationFormDTO;
 import org.commonprovenance.framework.store.web.trustedParty.dto.response.OrganizationResponseDTO;
@@ -16,10 +16,10 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @Component
-public class OrganizationClient implements OrganizationsClient {
+public class OrganizationClientImpl implements OrganizationClient {
   private final TrustedPartyClient trustedPartyClient;
 
-  public OrganizationClient(
+  public OrganizationClientImpl(
       TrustedPartyClient client) {
     this.trustedPartyClient = client;
   }

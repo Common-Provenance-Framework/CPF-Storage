@@ -8,7 +8,7 @@ import jakarta.validation.constraints.NotNull;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-public interface OrganizationsClient {
+public interface OrganizationClient {
   @NotNull
   Mono<Organization> create(@NotNull String name);
 
