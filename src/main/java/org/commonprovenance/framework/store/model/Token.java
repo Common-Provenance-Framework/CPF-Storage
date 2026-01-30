@@ -1,7 +1,9 @@
 package org.commonprovenance.framework.store.model;
 
-import java.util.Date;
+import java.time.ZonedDateTime;
 import java.util.UUID;
+
+import org.commonprovenance.framework.store.web.trustedParty.dto.response.TokenResponseDTO;
 
 public class Token {
   private final UUID id;
@@ -9,15 +11,70 @@ public class Token {
   private final String hash;
   private final HashFunction hashFunction;
   private final String signature;
-  private final Date created;
+  private final ZonedDateTime created;
 
-  public Token(UUID id, Document document, String hash, HashFunction hashFunction, String signature, Date created) {
+  public Token(UUID id,
+      Document document,
+      String hash,
+      HashFunction hashFunction,
+      String signature,
+      ZonedDateTime created) {
     this.id = id;
     this.document = document;
     this.hash = hash;
     this.hashFunction = hashFunction;
     this.signature = signature;
     this.created = created;
+  }
+
+  public static Token fromDto(TokenResponseDTO dto) {
+    return new Token(
+        null,
+        null,
+        dto.getHash(),
+        null,
+        dto.getSignature(),
+        null);
+  }
+
+  public Token withId(UUID id) {
+    return new Token(
+        id,
+        this.getDocument(),
+        this.getHash(),
+        this.getHashFunction(),
+        this.getSignature(),
+        this.getCreated());
+  }
+
+  public Token withDocument(Document document) {
+    return new Token(
+        this.getId(),
+        document,
+        this.getHash(),
+        this.getHashFunction(),
+        this.getSignature(),
+        this.getCreated());
+  }
+
+  public Token withHashFunction(HashFunction hashFunction) {
+    return new Token(
+        this.getId(),
+        this.getDocument(),
+        this.getHash(),
+        hashFunction,
+        this.getSignature(),
+        this.getCreated());
+  }
+
+  public Token withCreated(ZonedDateTime created) {
+    return new Token(
+        this.getId(),
+        this.getDocument(),
+        this.getHash(),
+        this.getHashFunction(),
+        this.getSignature(),
+        created);
   }
 
   public UUID getId() {
@@ -40,7 +97,7 @@ public class Token {
     return signature;
   }
 
-  public Date getCreated() {
+  public ZonedDateTime getCreated() {
     return created;
   }
 
