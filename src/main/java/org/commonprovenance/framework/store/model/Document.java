@@ -2,6 +2,7 @@ package org.commonprovenance.framework.store.model;
 
 import java.util.UUID;
 
+import org.commonprovenance.framework.store.persistence.neo4j.entities.DocumentEntity;
 import org.commonprovenance.framework.store.web.trustedParty.dto.response.DocumentResponseDTO;
 
 public class Document {
@@ -17,6 +18,10 @@ public class Document {
 
   public static Document fromDto(DocumentResponseDTO dto) {
     return new Document(null, dto.getGraph(), null);
+  }
+
+  public static Document fromPersistance(DocumentEntity document) {
+    return new Document(null, document.getGraph(), null);
   }
 
   public Document withId(UUID id) {

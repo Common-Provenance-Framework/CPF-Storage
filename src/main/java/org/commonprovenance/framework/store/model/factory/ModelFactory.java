@@ -1,4 +1,4 @@
-package org.commonprovenance.framework.store.web.trustedParty.mapper;
+package org.commonprovenance.framework.store.model.factory;
 
 import static org.commonprovenance.framework.store.common.publisher.PublisherHelper.MONO;
 
@@ -6,31 +6,31 @@ import java.time.ZonedDateTime;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.commonprovenance.framework.store.common.dto.HasCreated;
+import org.commonprovenance.framework.store.common.dto.HasFormat;
+import org.commonprovenance.framework.store.common.dto.HasHashFunction;
+import org.commonprovenance.framework.store.common.dto.HasId;
 import org.commonprovenance.framework.store.common.utils.Validators;
 import org.commonprovenance.framework.store.model.Document;
 import org.commonprovenance.framework.store.model.Format;
 import org.commonprovenance.framework.store.model.HashFunction;
 import org.commonprovenance.framework.store.model.Organization;
 import org.commonprovenance.framework.store.model.Token;
+import org.commonprovenance.framework.store.persistence.neo4j.entity.DocumentEntity;
 import org.commonprovenance.framework.store.web.trustedParty.dto.response.DocumentResponseDTO;
-import org.commonprovenance.framework.store.web.trustedParty.dto.response.HasCreated;
-import org.commonprovenance.framework.store.web.trustedParty.dto.response.HasFormat;
-import org.commonprovenance.framework.store.web.trustedParty.dto.response.HasHashFunction;
-import org.commonprovenance.framework.store.web.trustedParty.dto.response.HasId;
 import org.commonprovenance.framework.store.web.trustedParty.dto.response.OrganizationResponseDTO;
 import org.commonprovenance.framework.store.web.trustedParty.dto.response.TokenResponseDTO;
 
 import reactor.core.publisher.Mono;
 
-public class DomainMapper {
+public class ModelFactory {
   private static <T extends HasId> Mono<UUID> getId(T dto) {
-    return Mono.just(dto)
-        .flatMap(MONO::<T>makeSureNotNull)
+    return MONO.makeSureNotNull(dto)
         .map(HasId::getId)
         .flatMap(MONO.<String>makeSureNotNullWithMessage("DTO 'id' can not be null."))
         .flatMap(MONO.<String>makeSure(
             Validators::isUUID,
-            (String id) -> "Id '" + id + "' is not valid UUID string"))
+            (String id) -> "Id '" + id + "' is not valid UUID string."))
         .map(UUID::fromString)
         .onErrorResume(IllegalArgumentException.class,
             MONO.<IllegalArgumentException, UUID>exceptionWrapper(e -> "Can not parse uuid: " + e.getMessage()))
@@ -38,8 +38,7 @@ public class DomainMapper {
   }
 
   private static <T extends HasFormat> Mono<Format> getFormat(T dto) {
-    return Mono.just(dto)
-        .flatMap(MONO::<T>makeSureNotNull)
+    return MONO.makeSureNotNull(dto)
         .map(HasFormat::getFormat)
         .flatMap(MONO.<String>makeSureNotNullWithMessage("DTO 'format' can not be null."))
         .map(Format::from)
@@ -50,8 +49,7 @@ public class DomainMapper {
   }
 
   private static <T extends HasHashFunction> Mono<HashFunction> getHashFunction(T dto) {
-    return Mono.just(dto)
-        .flatMap(MONO::<T>makeSureNotNull)
+    return MONO.makeSureNotNull(dto)
         .map(HasHashFunction::getHashFunction)
         .flatMap(MONO.<String>makeSureNotNullWithMessage("DTO 'hashFunction' can not be null."))
         .map(HashFunction::from)
@@ -62,8 +60,7 @@ public class DomainMapper {
   }
 
   private static <T extends HasCreated> Mono<ZonedDateTime> getCreated(T dto) {
-    return Mono.just(dto)
-        .flatMap(MONO::<T>makeSureNotNull)
+    return MONO.makeSureNotNull(dto)
         .map(HasCreated::getCreated)
         .flatMap(MONO.<String>makeSureNotNullWithMessage("DTO 'created' can not be null."))
         .flatMap(MONO.<String>makeSure(
@@ -77,29 +74,35 @@ public class DomainMapper {
   }
 
   // ---
-
+  // Trusted Party
   public static Mono<Organization> toDomain(OrganizationResponseDTO dto) {
-    return Mono.just(dto)
-        .flatMap(MONO::<OrganizationResponseDTO>makeSureNotNull)
+    return MONO.makeSureNotNull(dto)
         .map(Organization::fromDto)
-        .flatMap((Organization organization) -> DomainMapper.getId(dto).map(organization::withId));
+        .flatMap((Organization organization) -> ModelFactory.getId(dto).map(organization::withId));
   }
 
   public static Mono<Document> toDomain(DocumentResponseDTO dto) {
-    return Mono.just(dto)
-        .flatMap(MONO::<DocumentResponseDTO>makeSureNotNull)
+    return MONO.makeSureNotNull(dto)
         .map(Document::fromDto)
-        .flatMap((Document document) -> DomainMapper.getId(dto).map(document::withId))
-        .flatMap((Document document) -> DomainMapper.getFormat(dto).map(document::withFormat));
+        .flatMap((Document document) -> ModelFactory.getId(dto).map(document::withId))
+        .flatMap((Document document) -> ModelFactory.getFormat(dto).map(document::withFormat));
   }
 
   public static Mono<Token> toDomain(TokenResponseDTO dto) {
-    return Mono.just(dto)
-        .flatMap(MONO::<TokenResponseDTO>makeSureNotNull)
+    return MONO.makeSureNotNull(dto)
         .map(Token::fromDto)
-        .flatMap((Token token) -> DomainMapper.getId(dto).map(token::withId))
-        .flatMap((Token token) -> DomainMapper.toDomain(dto.getDocument()).map(token::withDocument))
-        .flatMap((Token token) -> DomainMapper.getHashFunction(dto).map(token::withHashFunction))
-        .flatMap((Token token) -> DomainMapper.getCreated(dto).map(token::withCreated));
+        .flatMap((Token token) -> ModelFactory.getId(dto).map(token::withId))
+        .flatMap((Token token) -> ModelFactory.toDomain(dto.getDocument()).map(token::withDocument))
+        .flatMap((Token token) -> ModelFactory.getHashFunction(dto).map(token::withHashFunction))
+        .flatMap((Token token) -> ModelFactory.getCreated(dto).map(token::withCreated));
+  }
+
+  // Persistence
+  public static Mono<Document> toDomain(DocumentEntity entity) {
+    return MONO.makeSureNotNull(entity)
+        .map(Document::fromPersistance)
+        .flatMap((Document document) -> ModelFactory.getId(entity).map(document::withId))
+        .flatMap((Document document) -> ModelFactory.getFormat(entity).map(document::withFormat));
+
   }
 }

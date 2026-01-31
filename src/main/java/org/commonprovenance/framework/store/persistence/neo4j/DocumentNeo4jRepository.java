@@ -5,8 +5,8 @@ import java.util.UUID;
 
 import org.commonprovenance.framework.store.exceptions.InternalApplicationException;
 import org.commonprovenance.framework.store.model.Document;
+import org.commonprovenance.framework.store.model.factory.ModelFactory;
 import org.commonprovenance.framework.store.persistence.DocumentRepository;
-import org.commonprovenance.framework.store.persistence.neo4j.mapper.DomainMapper;
 import org.commonprovenance.framework.store.persistence.neo4j.mapper.EntityMapper;
 import org.commonprovenance.framework.store.persistence.neo4j.repository.IDocumentNeo4jRepository;
 import org.springframework.context.annotation.Profile;
@@ -40,7 +40,7 @@ public class DocumentNeo4jRepository implements DocumentRepository {
             .onErrorResume(ex -> Mono.error(new InternalApplicationException(
                 "DocumentNeo4jRepository - Error while creating new Document",
                 ex)))
-            .flatMap(DomainMapper::toDomain);
+            .flatMap(ModelFactory::toDomain);
   }
 
   @Override
@@ -50,7 +50,7 @@ public class DocumentNeo4jRepository implements DocumentRepository {
         .onErrorResume(ex -> Flux.error(new InternalApplicationException(
             "DocumentNeo4jRepository - Error while reading documents",
             ex)))
-        .flatMap(DomainMapper::toDomain);
+        .flatMap(ModelFactory::toDomain);
   }
 
   @Override
@@ -68,7 +68,7 @@ public class DocumentNeo4jRepository implements DocumentRepository {
               .onErrorResume(ex -> Mono.error(new InternalApplicationException(
                   "DocumentNeo4jRepository - Error while reading document",
                   ex)))
-              .flatMap(DomainMapper::toDomain);
+              .flatMap(ModelFactory::toDomain);
     } catch (NullPointerException nullPointerException) {
       return Mono.error(new InternalApplicationException("Wrong identifier!", nullPointerException));
     } catch (Exception exception) {

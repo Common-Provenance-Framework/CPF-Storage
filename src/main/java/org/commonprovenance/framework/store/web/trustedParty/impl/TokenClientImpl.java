@@ -5,10 +5,10 @@ import static org.commonprovenance.framework.store.common.publisher.PublisherHel
 import java.util.UUID;
 
 import org.commonprovenance.framework.store.model.Token;
+import org.commonprovenance.framework.store.model.factory.ModelFactory;
 import org.commonprovenance.framework.store.web.trustedParty.TokenClient;
 import org.commonprovenance.framework.store.web.trustedParty.client.TrustedPartyClient;
 import org.commonprovenance.framework.store.web.trustedParty.dto.response.TokenResponseDTO;
-import org.commonprovenance.framework.store.web.trustedParty.mapper.DomainMapper;
 import org.springframework.stereotype.Component;
 
 import jakarta.validation.constraints.NotNull;
@@ -36,7 +36,7 @@ public class TokenClientImpl implements TokenClient {
   @Override
   public @NotNull Flux<Token> getAll() {
     return getManyReq()
-        .flatMap(DomainMapper::toDomain);
+        .flatMap(ModelFactory::toDomain);
   }
 
   @Override
@@ -45,6 +45,6 @@ public class TokenClientImpl implements TokenClient {
         .flatMap(MONO.makeSureNotNullWithMessage("Token id can not be null!"))
         .map(UUID::toString)
         .flatMap(this::getOneReq)
-        .flatMap(DomainMapper::toDomain);
+        .flatMap(ModelFactory::toDomain);
   }
 }
