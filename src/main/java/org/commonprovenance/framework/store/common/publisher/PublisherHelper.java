@@ -16,7 +16,7 @@ public interface PublisherHelper {
   // Mono implementation
   class MonoHelper {
     public <T> Mono<T> makeSureNotNull(T value) {
-      return this.<T>makeSureNotNullWithMessage("DTO can not be null.").apply(value);
+      return this.<T>makeSureNotNullWithMessage("Input parameter can not be null.").apply(value);
     }
 
     public <T> Function<T, Mono<T>> makeSureNotNullWithMessage(String message) {
@@ -24,9 +24,7 @@ public interface PublisherHelper {
     }
 
     public <T> Function<T, Mono<T>> makeSure(Predicate<T> validator, String message) {
-      return (T value) -> validator.test(value)
-          ? Mono.just(value)
-          : Mono.error(new InternalApplicationException(message, new IllegalArgumentException()));
+      return makeSure(validator, _ -> message);
     }
 
     public <T> Function<T, Mono<T>> makeSure(Predicate<T> validator, Function<T, String> messageBuilder) {
@@ -51,14 +49,16 @@ public interface PublisherHelper {
 
   // Flux implementation
   class FluxHelper {
+    public <T> Flux<T> makeSureNotNull(T value) {
+      return this.<T>makeSureNotNullWithMessage("Input parameter can not be null.").apply(value);
+    }
+
     public <T> Function<T, Flux<T>> makeSureNotNullWithMessage(String message) {
       return makeSure(Objects::nonNull, message);
     }
 
     public <T> Function<T, Flux<T>> makeSure(Predicate<T> validator, String message) {
-      return (T value) -> validator.test(value)
-          ? Flux.just(value)
-          : Flux.error(new InternalApplicationException(message, new IllegalArgumentException()));
+      return makeSure(validator, _ -> message);
     }
 
     public <T> Function<T, Flux<T>> makeSure(Predicate<T> validator, Function<T, String> messageBuilder) {
