@@ -1,12 +1,10 @@
 package org.commonprovenance.framework.store.web.trustedParty.mapper;
 
 import java.time.ZonedDateTime;
-import java.time.format.DateTimeParseException;
 import java.util.Optional;
 import java.util.UUID;
 
 import org.commonprovenance.framework.store.common.utils.Validators;
-import org.commonprovenance.framework.store.exceptions.InternalApplicationException;
 import org.commonprovenance.framework.store.model.Document;
 import org.commonprovenance.framework.store.model.Format;
 import org.commonprovenance.framework.store.model.HashFunction;
@@ -34,9 +32,8 @@ public class DomainMapper {
             (String id) -> "Id '" + id + "' is not valid UUID string"))
         .map(UUID::fromString)
         .onErrorResume(IllegalArgumentException.class,
-            (IllegalArgumentException e) -> Mono
-                .error(new InternalApplicationException("Can not parse uuid: " + e.getMessage(), e)))
-        .onErrorResume(e -> Mono.error(new InternalApplicationException("Unexpected exception!", e)));
+            MONO.<IllegalArgumentException, UUID>exceptionWrapper(e -> "Can not parse uuid: " + e.getMessage()))
+        .onErrorResume(MONO.<Throwable, UUID>exceptionWrapper());
   }
 
   private static <T extends HasFormat> Mono<Format> getFormat(T dto) {
@@ -72,10 +69,10 @@ public class DomainMapper {
             Validators::isISO8601DateTime,
             (String created) -> "String '" + created + "' is not valid ISO8601 DateTime string"))
         .map(ZonedDateTime::parse)
-        .onErrorResume(DateTimeParseException.class,
-            (DateTimeParseException e) -> Mono
-                .error(new InternalApplicationException("Can not parse date: " + e.getMessage(), e)))
-        .onErrorResume((Throwable e) -> Mono.error(new InternalApplicationException("Unexpected exception!", e)));
+        .onErrorResume(IllegalArgumentException.class,
+            MONO.<IllegalArgumentException, ZonedDateTime>exceptionWrapper(
+                e -> "Can not parse date: " + e.getMessage()))
+        .onErrorResume(MONO.<Throwable, ZonedDateTime>exceptionWrapper());
   }
 
   // ---

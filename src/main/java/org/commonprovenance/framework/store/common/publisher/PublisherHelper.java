@@ -34,6 +34,19 @@ public interface PublisherHelper {
           ? Mono.just(value)
           : Mono.error(new InternalApplicationException(messageBuilder.apply(value), new IllegalArgumentException()));
     }
+
+    public <E extends Throwable, T> Function<E, Mono<T>> exceptionWrapper(Function<E, String> messageBuilder) {
+      return (E exception) -> Mono
+          .<T>error(new InternalApplicationException(messageBuilder.apply(exception), exception));
+    }
+
+    public <E extends Throwable, T> Function<E, Mono<T>> exceptionWrapper(String message) {
+      return (E exception) -> Mono.<T>error(new InternalApplicationException(message, exception));
+    }
+
+    public <E extends Throwable, T> Function<E, Mono<T>> exceptionWrapper() {
+      return (E exception) -> Mono.<T>error(new InternalApplicationException("Unexpected exception!", exception));
+    }
   }
 
   // Flux implementation
@@ -52,6 +65,19 @@ public interface PublisherHelper {
       return (T value) -> validator.test(value)
           ? Flux.just(value)
           : Flux.error(new InternalApplicationException(messageBuilder.apply(value), new IllegalArgumentException()));
+    }
+
+    public <E extends Throwable, T> Function<E, Flux<T>> exceptionWrapper(Function<E, String> messageBuilder) {
+      return (E exception) -> Flux
+          .<T>error(new InternalApplicationException(messageBuilder.apply(exception), exception));
+    }
+
+    public <E extends Throwable, T> Function<E, Flux<T>> exceptionWrapper(String message) {
+      return (E exception) -> Flux.<T>error(new InternalApplicationException(message, exception));
+    }
+
+    public <E extends Throwable, T> Function<E, Flux<T>> exceptionWrapper() {
+      return (E exception) -> Flux.<T>error(new InternalApplicationException("Unexpected exception!", exception));
     }
   }
 }
