@@ -4,6 +4,7 @@ import java.util.Objects;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
+import org.commonprovenance.framework.store.exceptions.ApplicationException;
 import org.commonprovenance.framework.store.exceptions.InternalApplicationException;
 
 import reactor.core.publisher.Flux;
@@ -34,16 +35,17 @@ public interface PublisherHelper {
     }
 
     public <E extends Throwable, T> Function<E, Mono<T>> exceptionWrapper(Function<E, String> messageBuilder) {
-      return (E exception) -> Mono
-          .<T>error(new InternalApplicationException(messageBuilder.apply(exception), exception));
+      return (E exception) -> (exception instanceof ApplicationException)
+          ? Mono.<T>error(exception) // Propagate existing ApplicationException as is
+          : Mono.<T>error(new InternalApplicationException(messageBuilder.apply(exception), exception));
     }
 
     public <E extends Throwable, T> Function<E, Mono<T>> exceptionWrapper(String message) {
-      return (E exception) -> Mono.<T>error(new InternalApplicationException(message, exception));
+      return exceptionWrapper(_ -> message);
     }
 
     public <E extends Throwable, T> Function<E, Mono<T>> exceptionWrapper() {
-      return (E exception) -> Mono.<T>error(new InternalApplicationException("Unexpected exception!", exception));
+      return exceptionWrapper("Unexpected exception!");
     }
   }
 
@@ -68,16 +70,18 @@ public interface PublisherHelper {
     }
 
     public <E extends Throwable, T> Function<E, Flux<T>> exceptionWrapper(Function<E, String> messageBuilder) {
-      return (E exception) -> Flux
-          .<T>error(new InternalApplicationException(messageBuilder.apply(exception), exception));
+      return (
+          E exception) -> (exception instanceof ApplicationException)
+              ? Flux.<T>error(exception) // Propagate existing ApplicationException as is
+              : Flux.<T>error(new InternalApplicationException(messageBuilder.apply(exception), exception));
     }
 
     public <E extends Throwable, T> Function<E, Flux<T>> exceptionWrapper(String message) {
-      return (E exception) -> Flux.<T>error(new InternalApplicationException(message, exception));
+      return exceptionWrapper(_ -> message);
     }
 
     public <E extends Throwable, T> Function<E, Flux<T>> exceptionWrapper() {
-      return (E exception) -> Flux.<T>error(new InternalApplicationException("Unexpected exception!", exception));
+      return exceptionWrapper("Unexpected exception!");
     }
   }
 }
