@@ -26,7 +26,7 @@ public class DomainMapperTest {
 
     StepVerifier.create(DomainMapper.toDomain(formular))
         .assertNext(doc -> {
-          assertInstanceOf(UUID.class, doc.getIdentifier(),
+          assertInstanceOf(UUID.class, doc.getId(),
               "should have identifier which is UUID");
           assertEquals(Format.JSON, doc.getFormat(),
               "should have exact format");

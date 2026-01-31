@@ -26,7 +26,7 @@ public class DocumentDummyRepository implements DocumentRepository {
       return Mono.error(new InternalApplicationException("Illegal argument!",
           new IllegalArgumentException("Document can not be 'null'!")));
 
-    String identifier = document.getIdentifier().toString();
+    String identifier = document.getId().toString();
     System.out.println("*** Store doucment with id ***: " + identifier);
     documents.put(identifier, document);
     return Mono.just(documents.get(identifier));

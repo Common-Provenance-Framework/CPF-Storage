@@ -16,7 +16,7 @@ import jakarta.validation.constraints.NotNull;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-@Profile("neo4j")
+@Profile("neo4j & live")
 @Repository
 public class DocumentNeo4jRepository implements DocumentRepository {
 

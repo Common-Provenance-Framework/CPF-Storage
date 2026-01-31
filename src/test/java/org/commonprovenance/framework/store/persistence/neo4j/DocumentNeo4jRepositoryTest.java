@@ -62,7 +62,7 @@ class DocumentNeo4jRepositoryTest {
 
     StepVerifier.create(repository.create(document))
         .assertNext(doc -> {
-          assertEquals(TEST_ID_1, doc.getIdentifier().toString());
+          assertEquals(TEST_ID_1, doc.getId().toString());
           assertEquals(FORMAT_1, doc.getFormat().toString());
           assertEquals(BASE64_STRING_GRAPH_1, doc.getGraph());
         })
@@ -164,14 +164,14 @@ class DocumentNeo4jRepositoryTest {
         .assertNext(doc -> {
           assertInstanceOf(Document.class, doc, "should return Document");
 
-          assertEquals(TEST_ID_1, doc.getIdentifier().toString(), "should return document with exact id");
+          assertEquals(TEST_ID_1, doc.getId().toString(), "should return document with exact id");
           assertEquals(BASE64_STRING_GRAPH_1, doc.getGraph(), "should return document with exact graph");
           assertEquals(FORMAT_1, doc.getFormat().toString(), "should return document with exact format");
         })
         .assertNext(doc -> {
           assertInstanceOf(Document.class, doc, "should return Document");
 
-          assertEquals(TEST_ID_2, doc.getIdentifier().toString(), "should return document with exact id");
+          assertEquals(TEST_ID_2, doc.getId().toString(), "should return document with exact id");
           assertEquals(BASE64_STRING_GRAPH_2, doc.getGraph(), "should return document with exact graph");
           assertEquals(FORMAT_2, doc.getFormat().toString(), "should return document with exact format");
         })
@@ -199,7 +199,7 @@ class DocumentNeo4jRepositoryTest {
         .assertNext(doc -> {
           assertInstanceOf(Document.class, doc, "should return Document");
 
-          assertEquals(TEST_ID_1, doc.getIdentifier().toString(), "should return document with exact id");
+          assertEquals(TEST_ID_1, doc.getId().toString(), "should return document with exact id");
           assertEquals(BASE64_STRING_GRAPH_1, doc.getGraph(), "should return document with exact graph");
           assertEquals(FORMAT_1, doc.getFormat().toString(), "should return document with exact format");
         })

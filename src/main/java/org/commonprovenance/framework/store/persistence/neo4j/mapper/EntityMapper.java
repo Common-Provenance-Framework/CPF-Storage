@@ -8,6 +8,6 @@ import reactor.core.publisher.Mono;
 public class EntityMapper {
   public static Mono<DocumentEntity> toEntity(Document domain) {
     return Mono
-        .just(new DocumentEntity(domain.getIdentifier().toString(), domain.getGraph(), domain.getFormat().toString()));
+        .just(new DocumentEntity(domain.getId().toString(), domain.getGraph(), domain.getFormat().toString()));
   }
 }
