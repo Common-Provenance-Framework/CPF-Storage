@@ -11,6 +11,7 @@ import org.commonprovenance.framework.store.common.dto.HasFormat;
 import org.commonprovenance.framework.store.common.dto.HasHashFunction;
 import org.commonprovenance.framework.store.common.dto.HasId;
 import org.commonprovenance.framework.store.common.utils.Validators;
+import org.commonprovenance.framework.store.controller.dto.form.DocumentFormDTO;
 import org.commonprovenance.framework.store.model.Document;
 import org.commonprovenance.framework.store.model.Format;
 import org.commonprovenance.framework.store.model.HashFunction;
@@ -27,14 +28,7 @@ public class ModelFactory {
   private static <T extends HasId> Mono<UUID> getId(T dto) {
     return MONO.makeSureNotNull(dto)
         .map(HasId::getId)
-        .flatMap(MONO.<String>makeSureNotNullWithMessage("DTO 'id' can not be null."))
-        .flatMap(MONO.<String>makeSure(
-            Validators::isUUID,
-            (String id) -> "Id '" + id + "' is not valid UUID string."))
-        .map(UUID::fromString)
-        .onErrorResume(IllegalArgumentException.class,
-            MONO.<IllegalArgumentException, UUID>exceptionWrapper(e -> "Can not parse uuid: " + e.getMessage()))
-        .onErrorResume(MONO.<Throwable, UUID>exceptionWrapper());
+        .flatMap(ModelFactory::toUUID);
   }
 
   private static <T extends HasFormat> Mono<Format> getFormat(T dto) {
@@ -74,6 +68,10 @@ public class ModelFactory {
   }
 
   // ---
+  private static Document fromDto(DocumentFormDTO dto) {
+    return new Document(null, dto.getGraph(), null);
+  }
+
   private static Document fromDto(DocumentResponseDTO dto) {
     return new Document(null, dto.getGraph(), null);
   }
@@ -127,5 +125,24 @@ public class ModelFactory {
         .flatMap((Document document) -> ModelFactory.getId(entity).map(document::withId))
         .flatMap((Document document) -> ModelFactory.getFormat(entity).map(document::withFormat));
 
+  }
+
+  // Controller
+  public static Mono<Document> toDomain(DocumentFormDTO formDTO) {
+    return MONO.makeSureNotNull(formDTO)
+        .map(ModelFactory::fromDto)
+        .map((Document document) -> document.withId(UUID.randomUUID()))
+        .flatMap((Document document) -> ModelFactory.getFormat(formDTO).map(document::withFormat));
+  }
+
+  public static Mono<UUID> toUUID(String uuid) {
+    return MONO.<String>makeSureNotNullWithMessage("DTO 'id' can not be null.").apply(uuid)
+        .flatMap(MONO.<String>makeSure(
+            Validators::isUUID,
+            (String id) -> "Id '" + id + "' is not valid UUID string."))
+        .map(UUID::fromString)
+        .onErrorResume(IllegalArgumentException.class,
+            MONO.<IllegalArgumentException, UUID>exceptionWrapper(e -> "Can not parse uuid: " + e.getMessage()))
+        .onErrorResume(MONO.<Throwable, UUID>exceptionWrapper());
   }
 }

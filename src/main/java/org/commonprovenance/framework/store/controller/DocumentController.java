@@ -3,8 +3,8 @@ package org.commonprovenance.framework.store.controller;
 import org.commonprovenance.framework.store.controller.dto.form.DocumentFormDTO;
 import org.commonprovenance.framework.store.controller.dto.response.DocumentResponseDTO;
 import org.commonprovenance.framework.store.controller.mapper.DTOMapper;
-import org.commonprovenance.framework.store.controller.mapper.DomainMapper;
 import org.commonprovenance.framework.store.controller.validator.IsUUID;
+import org.commonprovenance.framework.store.model.factory.ModelFactory;
 import org.commonprovenance.framework.store.service.impl.DocumentServiceImpl;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -32,7 +32,7 @@ public class DocumentController {
   @PostMapping()
   @NotNull
   public Mono<DocumentResponseDTO> createProvDocument(@Valid @RequestBody @NotNull DocumentFormDTO body) {
-    return DomainMapper.toDomain(body)
+    return ModelFactory.toDomain(body)
         .flatMap(this.documentService::storeDocument)
         .flatMap(DTOMapper::toDTO);
   }
@@ -47,7 +47,7 @@ public class DocumentController {
   @NotNull
   @GetMapping("/{uuid}")
   public Mono<DocumentResponseDTO> getProvDocumentById(@PathVariable @IsUUID String uuid) {
-    return DomainMapper.toDomain(uuid)
+    return ModelFactory.toUUID(uuid)
         .flatMap(this.documentService::getDocumentById)
         .flatMap(DTOMapper::toDTO);
   }

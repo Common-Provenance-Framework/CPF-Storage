@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.util.UUID;
 
+import org.commonprovenance.framework.store.controller.dto.form.DocumentFormDTO;
 import org.commonprovenance.framework.store.exceptions.InternalApplicationException;
 import org.commonprovenance.framework.store.model.Format;
 import org.commonprovenance.framework.store.persistence.neo4j.entity.DocumentEntity;
@@ -14,9 +15,9 @@ import org.junit.jupiter.api.Test;
 
 import reactor.test.StepVerifier;
 
-@DisplayName("Neo4j Repository - ModelFactory")
+@DisplayName("Domain Model - ModelFactory")
 public class ModelFactoryTest {
-
+  // persistence
   @Test
   @DisplayName("HappyPath - should return Mono with Document")
   public void should_map_DocumentEntity_to_Document() {
@@ -84,6 +85,102 @@ public class ModelFactoryTest {
             && error.getCause() instanceof IllegalArgumentException
             && error.getCause() instanceof Exception
             && error.getMessage().equals("Input parameter can not be null."))
+        .verify();
+  }
+
+  // Controller
+  @Test
+  @DisplayName("HappyPath - should return Mono with Document")
+  void should_map_DocumentFormDTO_to_Document() {
+    String base64StringGraph = "AAAAQQAAAGIAAAByAAAAYQAAAGsAAABhAAAAIAAAAEQAAABhAAAAYgAAAHIAAABhAAAALgAAAC4=";
+    String format = "JSON";
+
+    DocumentFormDTO formular = new DocumentFormDTO(base64StringGraph, format);
+
+    StepVerifier.create(ModelFactory.toDomain(formular))
+        .assertNext(doc -> {
+          assertInstanceOf(UUID.class, doc.getId(),
+              "should have identifier which is UUID");
+          assertEquals(Format.JSON, doc.getFormat(),
+              "should have exact format");
+          assertEquals(base64StringGraph, doc.getGraph(),
+              "should have exact graph");
+        })
+        .verifyComplete();
+  }
+
+  @Test
+  @DisplayName("ErrorPath - should return Mono with exact Error, if formular is null")
+  void should_terminate_with_error_if_form_is_null() {
+    StepVerifier.create(ModelFactory.toDomain((DocumentFormDTO) null))
+        .expectErrorSatisfies(error -> {
+          assertInstanceOf(InternalApplicationException.class, error);
+          assertEquals("Input parameter can not be null.", error.getMessage());
+          assertInstanceOf(IllegalArgumentException.class, error.getCause());
+          assertNull(error.getCause().getMessage());
+        })
+        .verify();
+  }
+
+  @Test
+  @DisplayName("ErrorPath - should return Mono with exact Error, if unsupported format")
+  void should_terminate_with_error_if_unsupported_format() {
+    String base64StringGraph = "AAAAQQAAAGIAAAByAAAAYQAAAGsAAABhAAAAIAAAAEQAAABhAAAAYgAAAHIAAABhAAAALgAAAC4=";
+    String format = "unknownFormat";
+
+    StepVerifier.create(ModelFactory.toDomain(new DocumentFormDTO(base64StringGraph, format)))
+        .expectErrorSatisfies(error -> {
+          assertInstanceOf(InternalApplicationException.class, error);
+          assertEquals("Format '" + format + "' is not valid Document format.", error.getMessage());
+          assertInstanceOf(IllegalArgumentException.class, error.getCause());
+          assertNull(error.getCause().getMessage());
+        })
+        .verify();
+  }
+
+  // UUID String
+  @Test
+  @DisplayName("HappyPath - should return Mono with UUID")
+  void should_map_String_to_UUID() {
+    String uuidString = "550e8400-e29b-41d4-a716-446655440000";
+    UUID expectedUUID = UUID.fromString(uuidString);
+
+    StepVerifier.create(ModelFactory.toUUID(uuidString))
+        .assertNext(uuid -> {
+          assertInstanceOf(UUID.class, uuid,
+              "should be UUID");
+          assertEquals(expectedUUID, uuid,
+              "should be exact uuid");
+        })
+        .verifyComplete();
+  }
+
+  @Test
+  @DisplayName("ErrorPath - should return Mono with exact Error, if uuid String is null")
+  void should_terminate_with_error_if_uuid_is_null() {
+    String uuid = null;
+    StepVerifier.create(
+        ModelFactory.toUUID(uuid))
+        .expectErrorSatisfies(error -> {
+          assertInstanceOf(InternalApplicationException.class, error);
+          assertEquals("DTO 'id' can not be null.", error.getMessage());
+          assertInstanceOf(IllegalArgumentException.class, error.getCause());
+          assertNull(error.getCause().getMessage());
+        })
+        .verify();
+  }
+
+  @Test
+  @DisplayName("ErrorPath - should return Mono with exact Error, if invalid uuid String")
+  void should_terminate_with_error_if_invalid_uuid() {
+    String id = "invalid_uuid";
+    StepVerifier.create(ModelFactory.toUUID(id))
+        .expectErrorSatisfies(error -> {
+          assertInstanceOf(InternalApplicationException.class, error);
+          assertEquals("Id '" + id + "' is not valid UUID string.", error.getMessage());
+          assertInstanceOf(IllegalArgumentException.class, error.getCause());
+          assertNull(error.getCause().getMessage());
+        })
         .verify();
   }
 }
