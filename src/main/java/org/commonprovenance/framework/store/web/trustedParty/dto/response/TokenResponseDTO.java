@@ -1,5 +1,9 @@
 package org.commonprovenance.framework.store.web.trustedParty.dto.response;
 
+import org.commonprovenance.framework.store.common.dto.HasCreated;
+import org.commonprovenance.framework.store.common.dto.HasHashFunction;
+import org.commonprovenance.framework.store.common.dto.HasId;
+
 public class TokenResponseDTO implements HasId, HasHashFunction, HasCreated {
   private final String id;
   private final DocumentResponseDTO document;
