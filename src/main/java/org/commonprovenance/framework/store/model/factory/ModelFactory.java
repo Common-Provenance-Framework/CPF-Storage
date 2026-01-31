@@ -74,23 +74,46 @@ public class ModelFactory {
   }
 
   // ---
+  private static Document fromDto(DocumentResponseDTO dto) {
+    return new Document(null, dto.getGraph(), null);
+  }
+
+  private static Document fromPersistance(DocumentEntity document) {
+    return new Document(null, document.getGraph(), null);
+  }
+
+  private static Organization fromDto(OrganizationResponseDTO dto) {
+    return new Organization(null, dto.getName());
+  }
+
+  private static Token fromDto(TokenResponseDTO dto) {
+    return new Token(
+        null,
+        null,
+        dto.getHash(),
+        null,
+        dto.getSignature(),
+        null);
+  }
+
+  // ---
   // Trusted Party
   public static Mono<Organization> toDomain(OrganizationResponseDTO dto) {
     return MONO.makeSureNotNull(dto)
-        .map(Organization::fromDto)
+        .map(ModelFactory::fromDto)
         .flatMap((Organization organization) -> ModelFactory.getId(dto).map(organization::withId));
   }
 
   public static Mono<Document> toDomain(DocumentResponseDTO dto) {
     return MONO.makeSureNotNull(dto)
-        .map(Document::fromDto)
+        .map(ModelFactory::fromDto)
         .flatMap((Document document) -> ModelFactory.getId(dto).map(document::withId))
         .flatMap((Document document) -> ModelFactory.getFormat(dto).map(document::withFormat));
   }
 
   public static Mono<Token> toDomain(TokenResponseDTO dto) {
     return MONO.makeSureNotNull(dto)
-        .map(Token::fromDto)
+        .map(ModelFactory::fromDto)
         .flatMap((Token token) -> ModelFactory.getId(dto).map(token::withId))
         .flatMap((Token token) -> ModelFactory.toDomain(dto.getDocument()).map(token::withDocument))
         .flatMap((Token token) -> ModelFactory.getHashFunction(dto).map(token::withHashFunction))
@@ -100,7 +123,7 @@ public class ModelFactory {
   // Persistence
   public static Mono<Document> toDomain(DocumentEntity entity) {
     return MONO.makeSureNotNull(entity)
-        .map(Document::fromPersistance)
+        .map(ModelFactory::fromPersistance)
         .flatMap((Document document) -> ModelFactory.getId(entity).map(document::withId))
         .flatMap((Document document) -> ModelFactory.getFormat(entity).map(document::withFormat));
 

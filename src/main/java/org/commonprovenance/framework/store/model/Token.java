@@ -3,8 +3,6 @@ package org.commonprovenance.framework.store.model;
 import java.time.ZonedDateTime;
 import java.util.UUID;
 
-import org.commonprovenance.framework.store.web.trustedParty.dto.response.TokenResponseDTO;
-
 public class Token {
   private final UUID id;
   private final Document document;
@@ -25,16 +23,6 @@ public class Token {
     this.hashFunction = hashFunction;
     this.signature = signature;
     this.created = created;
-  }
-
-  public static Token fromDto(TokenResponseDTO dto) {
-    return new Token(
-        null,
-        null,
-        dto.getHash(),
-        null,
-        dto.getSignature(),
-        null);
   }
 
   public Token withId(UUID id) {
