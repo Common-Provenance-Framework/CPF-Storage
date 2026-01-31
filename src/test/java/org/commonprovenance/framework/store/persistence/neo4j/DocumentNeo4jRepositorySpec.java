@@ -69,7 +69,7 @@ class DocumentNeo4jRepositorySpec {
         .save(captor.capture());
 
     DocumentEntity capturedEntity = captor.getValue();
-    assertTrue(capturedEntity.getIdentifier().equals(TEST_ID_1)
+    assertTrue(capturedEntity.getId().equals(TEST_ID_1)
         && capturedEntity.getGraph().equals(BASE64_STRING_GRAPH_1)
         && capturedEntity.getFormat().equals(FORMAT_1),
         "should be called with exact entity");

@@ -27,7 +27,7 @@ class EntityMapperTest {
 
     StepVerifier.create(EntityMapper.toEntity(document))
         .assertNext(entity -> {
-          assertEquals(testId, entity.getIdentifier());
+          assertEquals(testId, entity.getId());
           assertEquals(base64StringGraph, entity.getGraph());
           assertEquals(format, entity.getFormat());
         })

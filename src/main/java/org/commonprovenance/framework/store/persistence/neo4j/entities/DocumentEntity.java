@@ -1,23 +1,25 @@
 package org.commonprovenance.framework.store.persistence.neo4j.entities;
 
+import org.commonprovenance.framework.store.common.dto.HasFormat;
+import org.commonprovenance.framework.store.common.dto.HasId;
 import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
 
 @Node("Document")
-public class DocumentEntity {
+public class DocumentEntity implements HasId, HasFormat {
   @Id
-  private final String identifier;
+  private final String id;
   private final String graph;
   private final String format;
 
-  public DocumentEntity(String identifier, String graph, String format) {
-    this.identifier = identifier;
+  public DocumentEntity(String id, String graph, String format) {
+    this.id = id;
     this.graph = graph;
     this.format = format;
   }
 
-  public String getIdentifier() {
-    return this.identifier;
+  public String getId() {
+    return this.id;
   }
 
   public String getGraph() {
