@@ -2,11 +2,8 @@ package org.commonprovenance.framework.store.web.trustedParty.mapper;
 
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeParseException;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.function.Function;
-import java.util.function.Predicate;
 
 import org.commonprovenance.framework.store.common.utils.Validators;
 import org.commonprovenance.framework.store.exceptions.InternalApplicationException;
@@ -24,34 +21,15 @@ import org.commonprovenance.framework.store.web.trustedParty.dto.response.Docume
 import org.commonprovenance.framework.store.web.trustedParty.dto.response.HasCreated;
 
 import reactor.core.publisher.Mono;
+import static org.commonprovenance.framework.store.common.publisher.PublisherHelper.MONO;
 
 public class DomainMapper {
-  private static <T> Mono<T> makeSureNotNull(T value) {
-    return DomainMapper.<T>makeSureNotNullWithMessage("DTO can not be null.").apply(value);
-  }
-
-  private static <T> Function<T, Mono<T>> makeSureNotNullWithMessage(String message) {
-    return DomainMapper.makeSure(Objects::nonNull, message);
-  }
-
-  private static <T> Function<T, Mono<T>> makeSure(Predicate<T> validator, String message) {
-    return (T value) -> validator.test(value)
-        ? Mono.just(value)
-        : Mono.error(new InternalApplicationException(message, new IllegalArgumentException()));
-  }
-
-  private static <T> Function<T, Mono<T>> makeSure(Predicate<T> validator, Function<T, String> messageBuilder) {
-    return (T value) -> validator.test(value)
-        ? Mono.just(value)
-        : Mono.error(new InternalApplicationException(messageBuilder.apply(value), new IllegalArgumentException()));
-  }
-
   private static <T extends HasId> Mono<UUID> getId(T dto) {
     return Mono.just(dto)
-        .flatMap(DomainMapper::<T>makeSureNotNull)
+        .flatMap(MONO::<T>makeSureNotNull)
         .map(HasId::getId)
-        .flatMap(DomainMapper.makeSureNotNullWithMessage("DTO 'id' can not be null."))
-        .flatMap(DomainMapper.makeSure(
+        .flatMap(MONO.<String>makeSureNotNullWithMessage("DTO 'id' can not be null."))
+        .flatMap(MONO.<String>makeSure(
             Validators::isUUID,
             (String id) -> "Id '" + id + "' is not valid UUID string"))
         .map(UUID::fromString)
@@ -63,11 +41,11 @@ public class DomainMapper {
 
   private static <T extends HasFormat> Mono<Format> getFormat(T dto) {
     return Mono.just(dto)
-        .flatMap(DomainMapper::<T>makeSureNotNull)
+        .flatMap(MONO::<T>makeSureNotNull)
         .map(HasFormat::getFormat)
-        .flatMap(DomainMapper.makeSureNotNullWithMessage("DTO 'format' can not be null."))
+        .flatMap(MONO.<String>makeSureNotNullWithMessage("DTO 'format' can not be null."))
         .map(Format::from)
-        .flatMap(DomainMapper.makeSure(
+        .flatMap(MONO.<Optional<Format>>makeSure(
             Optional::isPresent,
             "Format '" + dto.getFormat() + "' is not valid Document format."))
         .map(Optional::get);
@@ -75,11 +53,11 @@ public class DomainMapper {
 
   private static <T extends HasHashFunction> Mono<HashFunction> getHashFunction(T dto) {
     return Mono.just(dto)
-        .flatMap(DomainMapper::<T>makeSureNotNull)
+        .flatMap(MONO::<T>makeSureNotNull)
         .map(HasHashFunction::getHashFunction)
-        .flatMap(DomainMapper.makeSureNotNullWithMessage("DTO 'hashFunction' can not be null."))
+        .flatMap(MONO.<String>makeSureNotNullWithMessage("DTO 'hashFunction' can not be null."))
         .map(HashFunction::from)
-        .flatMap(DomainMapper.makeSure(
+        .flatMap(MONO.<Optional<HashFunction>>makeSure(
             Optional::isPresent,
             "HashFunction '" + dto.getHashFunction() + "' is not valid hash function."))
         .map(Optional::get);
@@ -87,10 +65,10 @@ public class DomainMapper {
 
   private static <T extends HasCreated> Mono<ZonedDateTime> getCreated(T dto) {
     return Mono.just(dto)
-        .flatMap(DomainMapper::<T>makeSureNotNull)
+        .flatMap(MONO::<T>makeSureNotNull)
         .map(HasCreated::getCreated)
-        .flatMap(DomainMapper.makeSureNotNullWithMessage("DTO 'created' can not be null."))
-        .flatMap(DomainMapper.makeSure(
+        .flatMap(MONO.<String>makeSureNotNullWithMessage("DTO 'created' can not be null."))
+        .flatMap(MONO.<String>makeSure(
             Validators::isISO8601DateTime,
             (String created) -> "String '" + created + "' is not valid ISO8601 DateTime string"))
         .map(ZonedDateTime::parse)
@@ -104,14 +82,14 @@ public class DomainMapper {
 
   public static Mono<Organization> toDomain(OrganizationResponseDTO dto) {
     return Mono.just(dto)
-        .flatMap(DomainMapper::<OrganizationResponseDTO>makeSureNotNull)
+        .flatMap(MONO::<OrganizationResponseDTO>makeSureNotNull)
         .map(Organization::fromDto)
         .flatMap((Organization organization) -> DomainMapper.getId(dto).map(organization::withId));
   }
 
   public static Mono<Document> toDomain(DocumentResponseDTO dto) {
     return Mono.just(dto)
-        .flatMap(DomainMapper::<DocumentResponseDTO>makeSureNotNull)
+        .flatMap(MONO::<DocumentResponseDTO>makeSureNotNull)
         .map(Document::fromDto)
         .flatMap((Document document) -> DomainMapper.getId(dto).map(document::withId))
         .flatMap((Document document) -> DomainMapper.getFormat(dto).map(document::withFormat));
@@ -119,7 +97,7 @@ public class DomainMapper {
 
   public static Mono<Token> toDomain(TokenResponseDTO dto) {
     return Mono.just(dto)
-        .flatMap(DomainMapper::<TokenResponseDTO>makeSureNotNull)
+        .flatMap(MONO::<TokenResponseDTO>makeSureNotNull)
         .map(Token::fromDto)
         .flatMap((Token token) -> DomainMapper.getId(dto).map(token::withId))
         .flatMap((Token token) -> DomainMapper.toDomain(dto.getDocument()).map(token::withDocument))
