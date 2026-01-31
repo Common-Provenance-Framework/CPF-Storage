@@ -1,7 +1,6 @@
 package org.commonprovenance.framework.store.web.trustedParty.client.dummy;
 
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;

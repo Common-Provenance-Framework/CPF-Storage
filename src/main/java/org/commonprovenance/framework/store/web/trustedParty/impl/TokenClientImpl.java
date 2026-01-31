@@ -1,8 +1,9 @@
 package org.commonprovenance.framework.store.web.trustedParty.impl;
 
+import static org.commonprovenance.framework.store.common.publisher.PublisherHelper.MONO;
+
 import java.util.UUID;
 
-import org.commonprovenance.framework.store.exceptions.InternalApplicationException;
 import org.commonprovenance.framework.store.model.Token;
 import org.commonprovenance.framework.store.web.trustedParty.TokenClient;
 import org.commonprovenance.framework.store.web.trustedParty.client.TrustedPartyClient;
@@ -32,12 +33,6 @@ public class TokenClientImpl implements TokenClient {
     return trustedPartyClient.sendGetManyRequest("/tokens", TokenResponseDTO.class);
   }
 
-  private <T> Mono<T> makeSure(T value, String message) {
-    return value == null
-        ? Mono.error(new InternalApplicationException(message, new IllegalArgumentException()))
-        : Mono.just(value);
-  }
-
   @Override
   public @NotNull Flux<Token> getAll() {
     return getManyReq()
@@ -46,7 +41,8 @@ public class TokenClientImpl implements TokenClient {
 
   @Override
   public @NotNull Mono<Token> getById(@NotNull UUID id) {
-    return makeSure(id, "Token id can not be null!")
+    return Mono.just(id)
+        .flatMap(MONO.makeSureNotNullWithMessage("Token id can not be null!"))
         .map(UUID::toString)
         .flatMap(this::getOneReq)
         .flatMap(DomainMapper::toDomain);

@@ -1,5 +1,7 @@
 package org.commonprovenance.framework.store.web.trustedParty.mapper;
 
+import static org.commonprovenance.framework.store.common.publisher.PublisherHelper.MONO;
+
 import java.time.ZonedDateTime;
 import java.util.Optional;
 import java.util.UUID;
@@ -10,16 +12,15 @@ import org.commonprovenance.framework.store.model.Format;
 import org.commonprovenance.framework.store.model.HashFunction;
 import org.commonprovenance.framework.store.model.Organization;
 import org.commonprovenance.framework.store.model.Token;
+import org.commonprovenance.framework.store.web.trustedParty.dto.response.DocumentResponseDTO;
+import org.commonprovenance.framework.store.web.trustedParty.dto.response.HasCreated;
 import org.commonprovenance.framework.store.web.trustedParty.dto.response.HasFormat;
 import org.commonprovenance.framework.store.web.trustedParty.dto.response.HasHashFunction;
 import org.commonprovenance.framework.store.web.trustedParty.dto.response.HasId;
 import org.commonprovenance.framework.store.web.trustedParty.dto.response.OrganizationResponseDTO;
 import org.commonprovenance.framework.store.web.trustedParty.dto.response.TokenResponseDTO;
-import org.commonprovenance.framework.store.web.trustedParty.dto.response.DocumentResponseDTO;
-import org.commonprovenance.framework.store.web.trustedParty.dto.response.HasCreated;
 
 import reactor.core.publisher.Mono;
-import static org.commonprovenance.framework.store.common.publisher.PublisherHelper.MONO;
 
 public class DomainMapper {
   private static <T extends HasId> Mono<UUID> getId(T dto) {

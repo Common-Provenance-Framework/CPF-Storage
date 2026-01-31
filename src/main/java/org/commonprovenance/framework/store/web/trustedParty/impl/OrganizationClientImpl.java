@@ -1,8 +1,9 @@
 package org.commonprovenance.framework.store.web.trustedParty.impl;
 
+import static org.commonprovenance.framework.store.common.publisher.PublisherHelper.MONO;
+
 import java.util.UUID;
 
-import org.commonprovenance.framework.store.exceptions.InternalApplicationException;
 import org.commonprovenance.framework.store.model.Organization;
 import org.commonprovenance.framework.store.web.trustedParty.OrganizationClient;
 import org.commonprovenance.framework.store.web.trustedParty.client.TrustedPartyClient;
@@ -40,15 +41,10 @@ public class OrganizationClientImpl implements OrganizationClient {
     return trustedPartyClient.sendDeleteRequest("/organizations/" + id, OrganizationResponseDTO.class);
   }
 
-  private <T> Mono<T> makeSure(T value, String message) {
-    return value == null
-        ? Mono.error(new InternalApplicationException(message, new IllegalArgumentException()))
-        : Mono.just(value);
-  }
-
   @Override
   public @NotNull Mono<Organization> create(@NotNull String organizationName) {
-    return makeSure(organizationName, "Organization name can not be null!")
+    return Mono.just(organizationName)
+        .flatMap(MONO.makeSureNotNullWithMessage("Organization name can not be null!"))
         .map(OrganizationFormDTO::factory)
         .flatMap(this::postReq)
         .flatMap(DomainMapper::toDomain);
@@ -62,7 +58,8 @@ public class OrganizationClientImpl implements OrganizationClient {
 
   @Override
   public @NotNull Mono<Organization> getById(@NotNull UUID id) {
-    return makeSure(id, "Organization id can not be null!")
+    return Mono.just(id)
+        .flatMap(MONO.makeSureNotNullWithMessage("Organization id can not be null!"))
         .map(UUID::toString)
         .flatMap(this::getOneReq)
         .flatMap(DomainMapper::toDomain);
@@ -70,7 +67,8 @@ public class OrganizationClientImpl implements OrganizationClient {
 
   @Override
   public @NotNull Mono<Void> deleteById(@NotNull UUID id) {
-    return makeSure(id, "Organization id can not be null!")
+    return Mono.just(id)
+        .flatMap(MONO.makeSureNotNullWithMessage("Organization id can not be null!"))
         .map(UUID::toString)
         .flatMap(this::deleteReq)
         .then();
