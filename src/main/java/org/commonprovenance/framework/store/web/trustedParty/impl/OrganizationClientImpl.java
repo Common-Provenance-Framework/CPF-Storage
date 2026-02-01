@@ -9,6 +9,7 @@ import org.commonprovenance.framework.store.model.factory.ModelFactory;
 import org.commonprovenance.framework.store.web.trustedParty.OrganizationClient;
 import org.commonprovenance.framework.store.web.trustedParty.client.TrustedPartyClient;
 import org.commonprovenance.framework.store.web.trustedParty.dto.form.OrganizationFormDTO;
+import org.commonprovenance.framework.store.web.trustedParty.dto.form.factory.DTOFactory;
 import org.commonprovenance.framework.store.web.trustedParty.dto.response.OrganizationResponseDTO;
 import org.springframework.stereotype.Component;
 
@@ -44,8 +45,7 @@ public class OrganizationClientImpl implements OrganizationClient {
   @Override
   public @NotNull Mono<Organization> create(@NotNull String organizationName) {
     return Mono.just(organizationName)
-        .flatMap(MONO.makeSureNotNullWithMessage("Organization name can not be null!"))
-        .map(OrganizationFormDTO::factory)
+        .flatMap(DTOFactory::toForm)
         .flatMap(this::postReq)
         .flatMap(ModelFactory::toDomain);
   }
