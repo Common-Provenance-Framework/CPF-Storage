@@ -9,8 +9,8 @@ import org.commonprovenance.framework.store.exceptions.InternalApplicationExcept
 import org.commonprovenance.framework.store.model.Document;
 import org.commonprovenance.framework.store.model.factory.ModelFactory;
 import org.commonprovenance.framework.store.persistence.DocumentRepository;
-import org.commonprovenance.framework.store.persistence.neo4j.entities.DocumentEntity;
-import org.commonprovenance.framework.store.persistence.neo4j.mapper.EntityMapper;
+import org.commonprovenance.framework.store.persistence.neo4j.entity.DocumentEntity;
+import org.commonprovenance.framework.store.persistence.neo4j.entity.factory.EntityFactory;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
 
@@ -26,7 +26,7 @@ public class DocumentNeo4jDummyRepository implements DocumentRepository {
   @Override
   @NotNull
   public Mono<Document> create(@NotNull Document document) {
-    return EntityMapper.toEntity(document)
+    return EntityFactory.toEntity(document)
         .doOnNext(d -> documents.put(d.getId(), d))
         .flatMap(ModelFactory::toDomain);
   }

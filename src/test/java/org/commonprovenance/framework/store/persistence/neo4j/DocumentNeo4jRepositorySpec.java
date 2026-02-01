@@ -12,7 +12,7 @@ import java.util.UUID;
 
 import org.commonprovenance.framework.store.model.Document;
 import org.commonprovenance.framework.store.model.Format;
-import org.commonprovenance.framework.store.persistence.neo4j.entities.DocumentEntity;
+import org.commonprovenance.framework.store.persistence.neo4j.entity.DocumentEntity;
 import org.commonprovenance.framework.store.persistence.neo4j.repository.IDocumentNeo4jRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;

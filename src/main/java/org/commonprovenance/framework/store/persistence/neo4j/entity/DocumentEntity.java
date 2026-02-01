@@ -1,4 +1,4 @@
-package org.commonprovenance.framework.store.persistence.neo4j.entities;
+package org.commonprovenance.framework.store.persistence.neo4j.entity;
 
 import org.commonprovenance.framework.store.common.dto.HasFormat;
 import org.commonprovenance.framework.store.common.dto.HasId;
