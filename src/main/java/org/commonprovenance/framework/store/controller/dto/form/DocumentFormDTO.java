@@ -1,5 +1,6 @@
 package org.commonprovenance.framework.store.controller.dto.form;
 
+import org.commonprovenance.framework.store.common.dto.HasFormat;
 import org.commonprovenance.framework.store.controller.validator.IsBase64String;
 import org.commonprovenance.framework.store.controller.validator.IsJsonBase64;
 import org.commonprovenance.framework.store.controller.validator.IsProvBase64Json;
@@ -8,7 +9,7 @@ import org.commonprovenance.framework.store.model.Format;
 
 import jakarta.validation.constraints.NotBlank;
 
-public class DocumentFormDTO {
+public class DocumentFormDTO implements HasFormat {
 
   @NotBlank(message = "Graph should not be null or empty.")
   @IsBase64String(message = "Graph should be Base64 string.")

@@ -1,7 +1,8 @@
-package org.commonprovenance.framework.store.controller.mapper;
+package org.commonprovenance.framework.store.controller.dto.response.factory;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.util.UUID;
 
@@ -14,7 +15,7 @@ import org.junit.jupiter.api.Test;
 import reactor.test.StepVerifier;
 
 @DisplayName("Controller - DTO Mapper (Model to Response)")
-public class DTOMapperTest {
+public class DTOFactoryTest {
   @Test
   @DisplayName("HappyPath - should return Mono with DocumentResponseDTO")
   void should_map_Document_to_DocumentResponseDTO() {
@@ -27,7 +28,7 @@ public class DTOMapperTest {
         base64StringGraph,
         Format.from(format).get());
 
-    StepVerifier.create(DTOMapper.toDTO(document))
+    StepVerifier.create(DTOFactory.toDTO(document))
         .assertNext(response -> {
           assertEquals(testId, response.getIdentifier(),
               "response should have identifier field with exact value");
@@ -43,12 +44,12 @@ public class DTOMapperTest {
   @DisplayName("ErrorPath - should return Mono with exact error")
   void should_return_Mono_with_error() {
 
-    StepVerifier.create(DTOMapper.toDTO(null))
+    StepVerifier.create(DTOFactory.toDTO(null))
         .expectErrorSatisfies(error -> {
           assertInstanceOf(InternalApplicationException.class, error);
-          assertEquals("Can not convert to DocumentResponseDTO", error.getMessage());
+          assertEquals("Input parameter can not be null.", error.getMessage());
           assertInstanceOf(IllegalArgumentException.class, error.getCause());
-          assertEquals("Document can not be null!", error.getCause().getMessage());
+          assertNull(error.getCause().getMessage());
         })
         .verify();
   }

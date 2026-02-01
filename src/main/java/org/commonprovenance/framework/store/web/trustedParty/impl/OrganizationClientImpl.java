@@ -5,11 +5,12 @@ import static org.commonprovenance.framework.store.common.publisher.PublisherHel
 import java.util.UUID;
 
 import org.commonprovenance.framework.store.model.Organization;
+import org.commonprovenance.framework.store.model.factory.ModelFactory;
 import org.commonprovenance.framework.store.web.trustedParty.OrganizationClient;
 import org.commonprovenance.framework.store.web.trustedParty.client.TrustedPartyClient;
 import org.commonprovenance.framework.store.web.trustedParty.dto.form.OrganizationFormDTO;
+import org.commonprovenance.framework.store.web.trustedParty.dto.form.factory.DTOFactory;
 import org.commonprovenance.framework.store.web.trustedParty.dto.response.OrganizationResponseDTO;
-import org.commonprovenance.framework.store.web.trustedParty.mapper.DomainMapper;
 import org.springframework.stereotype.Component;
 
 import jakarta.validation.constraints.NotNull;
@@ -44,16 +45,15 @@ public class OrganizationClientImpl implements OrganizationClient {
   @Override
   public @NotNull Mono<Organization> create(@NotNull String organizationName) {
     return Mono.just(organizationName)
-        .flatMap(MONO.makeSureNotNullWithMessage("Organization name can not be null!"))
-        .map(OrganizationFormDTO::factory)
+        .flatMap(DTOFactory::toForm)
         .flatMap(this::postReq)
-        .flatMap(DomainMapper::toDomain);
+        .flatMap(ModelFactory::toDomain);
   }
 
   @Override
   public @NotNull Flux<Organization> getAll() {
     return getManyReq()
-        .flatMap(DomainMapper::toDomain);
+        .flatMap(ModelFactory::toDomain);
   }
 
   @Override
@@ -62,7 +62,7 @@ public class OrganizationClientImpl implements OrganizationClient {
         .flatMap(MONO.makeSureNotNullWithMessage("Organization id can not be null!"))
         .map(UUID::toString)
         .flatMap(this::getOneReq)
-        .flatMap(DomainMapper::toDomain);
+        .flatMap(ModelFactory::toDomain);
   }
 
   @Override

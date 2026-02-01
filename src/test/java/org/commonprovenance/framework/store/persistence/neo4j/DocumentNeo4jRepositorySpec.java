@@ -12,7 +12,7 @@ import java.util.UUID;
 
 import org.commonprovenance.framework.store.model.Document;
 import org.commonprovenance.framework.store.model.Format;
-import org.commonprovenance.framework.store.persistence.neo4j.entities.DocumentEntity;
+import org.commonprovenance.framework.store.persistence.neo4j.entity.DocumentEntity;
 import org.commonprovenance.framework.store.persistence.neo4j.repository.IDocumentNeo4jRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -69,7 +69,7 @@ class DocumentNeo4jRepositorySpec {
         .save(captor.capture());
 
     DocumentEntity capturedEntity = captor.getValue();
-    assertTrue(capturedEntity.getIdentifier().equals(TEST_ID_1)
+    assertTrue(capturedEntity.getId().equals(TEST_ID_1)
         && capturedEntity.getGraph().equals(BASE64_STRING_GRAPH_1)
         && capturedEntity.getFormat().equals(FORMAT_1),
         "should be called with exact entity");

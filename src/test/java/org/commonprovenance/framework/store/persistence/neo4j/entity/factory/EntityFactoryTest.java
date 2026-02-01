@@ -1,7 +1,5 @@
-package org.commonprovenance.framework.store.persistence.neo4j.mapper;
+package org.commonprovenance.framework.store.persistence.neo4j.entity.factory;
 
-import org.junit.jupiter.api.Test;
-import reactor.test.StepVerifier;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.UUID;
@@ -9,9 +7,12 @@ import java.util.UUID;
 import org.commonprovenance.framework.store.model.Document;
 import org.commonprovenance.framework.store.model.Format;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+
+import reactor.test.StepVerifier;
 
 @DisplayName("Neo4j Repository - EntityMapper")
-class EntityMapperTest {
+class EntityFactoryTest {
 
   @Test
   @DisplayName("HappyPath - should return Mono with DocumentEntity")
@@ -25,9 +26,9 @@ class EntityMapperTest {
         base64StringGraph,
         Format.from(format).get());
 
-    StepVerifier.create(EntityMapper.toEntity(document))
+    StepVerifier.create(EntityFactory.toEntity(document))
         .assertNext(entity -> {
-          assertEquals(testId, entity.getIdentifier());
+          assertEquals(testId, entity.getId());
           assertEquals(base64StringGraph, entity.getGraph());
           assertEquals(format, entity.getFormat());
         })

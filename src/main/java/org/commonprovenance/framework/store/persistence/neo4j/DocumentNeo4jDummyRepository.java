@@ -7,10 +7,10 @@ import java.util.UUID;
 
 import org.commonprovenance.framework.store.exceptions.InternalApplicationException;
 import org.commonprovenance.framework.store.model.Document;
+import org.commonprovenance.framework.store.model.factory.ModelFactory;
 import org.commonprovenance.framework.store.persistence.DocumentRepository;
-import org.commonprovenance.framework.store.persistence.neo4j.entities.DocumentEntity;
-import org.commonprovenance.framework.store.persistence.neo4j.mapper.DomainMapper;
-import org.commonprovenance.framework.store.persistence.neo4j.mapper.EntityMapper;
+import org.commonprovenance.framework.store.persistence.neo4j.entity.DocumentEntity;
+import org.commonprovenance.framework.store.persistence.neo4j.entity.factory.EntityFactory;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
 
@@ -26,16 +26,16 @@ public class DocumentNeo4jDummyRepository implements DocumentRepository {
   @Override
   @NotNull
   public Mono<Document> create(@NotNull Document document) {
-    return EntityMapper.toEntity(document)
-        .doOnNext(d -> documents.put(d.getIdentifier(), d))
-        .flatMap(DomainMapper::toDomain);
+    return EntityFactory.toEntity(document)
+        .doOnNext(d -> documents.put(d.getId(), d))
+        .flatMap(ModelFactory::toDomain);
   }
 
   @Override
   @NotNull
   public Flux<Document> getAll() {
     return Flux.fromIterable(documents.values())
-        .flatMap(DomainMapper::toDomain);
+        .flatMap(ModelFactory::toDomain);
   }
 
   @Override
@@ -45,7 +45,7 @@ public class DocumentNeo4jDummyRepository implements DocumentRepository {
       return Mono.just(documents.get(Objects.requireNonNull(
           identifier.toString(),
           "Identifier can not be 'null'!")))
-          .flatMap(DomainMapper::toDomain);
+          .flatMap(ModelFactory::toDomain);
     } catch (NullPointerException nullPointerException) {
       return Mono.error(new InternalApplicationException("Wrong identifier!", nullPointerException));
     } catch (Exception exception) {
