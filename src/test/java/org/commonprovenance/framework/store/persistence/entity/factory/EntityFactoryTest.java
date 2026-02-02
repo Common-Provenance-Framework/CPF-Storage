@@ -1,4 +1,4 @@
-package org.commonprovenance.framework.store.persistence.neo4j.entity.factory;
+package org.commonprovenance.framework.store.persistence.entity.factory;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 

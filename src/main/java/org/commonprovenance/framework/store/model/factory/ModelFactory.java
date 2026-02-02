@@ -17,7 +17,7 @@ import org.commonprovenance.framework.store.model.Format;
 import org.commonprovenance.framework.store.model.HashFunction;
 import org.commonprovenance.framework.store.model.Organization;
 import org.commonprovenance.framework.store.model.Token;
-import org.commonprovenance.framework.store.persistence.neo4j.entity.DocumentEntity;
+import org.commonprovenance.framework.store.persistence.entity.DocumentEntity;
 import org.commonprovenance.framework.store.web.trustedParty.dto.response.DocumentResponseDTO;
 import org.commonprovenance.framework.store.web.trustedParty.dto.response.OrganizationResponseDTO;
 import org.commonprovenance.framework.store.web.trustedParty.dto.response.TokenResponseDTO;

@@ -9,7 +9,7 @@ import java.util.UUID;
 import org.commonprovenance.framework.store.controller.dto.form.DocumentFormDTO;
 import org.commonprovenance.framework.store.exceptions.InternalApplicationException;
 import org.commonprovenance.framework.store.model.Format;
-import org.commonprovenance.framework.store.persistence.neo4j.entity.DocumentEntity;
+import org.commonprovenance.framework.store.persistence.entity.DocumentEntity;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
