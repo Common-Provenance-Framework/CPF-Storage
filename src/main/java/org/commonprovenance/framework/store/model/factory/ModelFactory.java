@@ -81,7 +81,11 @@ public class ModelFactory {
   }
 
   private static Organization fromDto(OrganizationResponseDTO dto) {
-    return new Organization(null, dto.getName());
+    return new Organization(
+        null,
+        dto.getName(),
+        dto.getClientCertificate(),
+        dto.getIntermediateCertificates());
   }
 
   private static Token fromDto(TokenResponseDTO dto) {

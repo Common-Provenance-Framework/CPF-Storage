@@ -8,19 +8,16 @@ public class Organization {
   private final String name;
   private final String clientCertificate;
   private final List<String> intermediateCertificates;
-  private final TrustedParty trustedParty;
 
   public Organization(
       UUID id,
       String name,
       String clientCertificate,
-      List<String> intermediateCertificates,
-      TrustedParty trustedParty) {
+      List<String> intermediateCertificates) {
     this.id = id;
     this.name = name;
     this.clientCertificate = clientCertificate;
     this.intermediateCertificates = intermediateCertificates;
-    this.trustedParty = trustedParty;
   }
 
   public Organization withId(UUID id) {
@@ -28,8 +25,7 @@ public class Organization {
         id,
         this.getName(),
         this.getClientCertificate(),
-        this.getIntermediateCertificates(),
-        this.getTrustedParty());
+        this.getIntermediateCertificates());
   }
 
   public UUID getId() {
@@ -47,9 +43,4 @@ public class Organization {
   public List<String> getIntermediateCertificates() {
     return intermediateCertificates;
   }
-
-  public TrustedParty getTrustedParty() {
-    return trustedParty;
-  }
-
 }
