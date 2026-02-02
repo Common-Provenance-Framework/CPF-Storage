@@ -30,8 +30,8 @@ public class DTOFactoryTest {
 
     StepVerifier.create(DTOFactory.toDTO(document))
         .assertNext(response -> {
-          assertEquals(testId, response.getIdentifier(),
-              "response should have identifier field with exact value");
+          assertEquals(testId, response.getId(),
+              "response should have Id field with exact value");
           assertEquals(base64StringGraph, response.getGraph(),
               "response should have graph field with exact value");
           assertEquals(format, response.getFormat(),

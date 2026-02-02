@@ -239,7 +239,7 @@ class DocumentRepositoryTest {
               InternalApplicationException.class, err,
               "should be InternalApplicationException - Exception");
           assertEquals(
-              "Identifier can not be 'null'!",
+              "Document Id can not be 'null'!",
               err.getMessage(),
               "should have exact error message");
 
@@ -277,7 +277,7 @@ class DocumentRepositoryTest {
               InternalApplicationException.class, err,
               "should be InternalApplicationException - Exception");
           assertEquals(
-              "Identifier can not be 'null'!",
+              "Document Id can not be 'null'!",
               err.getMessage(),
               "should have exact error message");
 

@@ -45,8 +45,8 @@ public class DocumentPersistenceImpl implements DocumentPersistence {
 
   @Override
   @NotNull
-  public Mono<Document> getById(@NotNull UUID identifier) {
-    return MONO.<UUID>makeSureNotNullWithMessage("Identifier can not be 'null'!").apply(identifier)
+  public Mono<Document> getById(@NotNull UUID uuid) {
+    return MONO.<UUID>makeSureNotNullWithMessage("Document Id can not be 'null'!").apply(uuid)
         .map(UUID::toString)
         .flatMap(repository::findById)
         .onErrorResume(MONO.exceptionWrapper("DocumentNeo4jRepository - Error while reading document"))
@@ -55,8 +55,8 @@ public class DocumentPersistenceImpl implements DocumentPersistence {
 
   @Override
   @NotNull
-  public Mono<Void> deleteById(@NotNull UUID identifier) {
-    return MONO.<UUID>makeSureNotNullWithMessage("Identifier can not be 'null'!").apply(identifier)
+  public Mono<Void> deleteById(@NotNull UUID uuid) {
+    return MONO.<UUID>makeSureNotNullWithMessage("Document Id can not be 'null'!").apply(uuid)
         .map(UUID::toString)
         .flatMap(repository::deleteById)
         .onErrorResume(MONO.exceptionWrapper("DocumentNeo4jRepository - Error while reading document"));

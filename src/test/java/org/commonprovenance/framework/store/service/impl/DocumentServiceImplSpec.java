@@ -31,11 +31,11 @@ class DocumentServiceImplSpec {
 
   private DocumentServiceImpl documentService;
 
-  private final UUID IDENTIFIER_1 = UUID.fromString("e3cf8742-b595-47f4-8aae-a1e94b62a856");
+  private final UUID UUID_1 = UUID.fromString("e3cf8742-b595-47f4-8aae-a1e94b62a856");
   private final String BASE64_STRING_GRAPH_1 = "AAAAQQAAAGIAAAByAAAAYQAAAGsAAABhAAAAIAAAAEQAAABhAAAAYgAAAHIAAABhAAAALgAAAC4=";
   private final Format FORMAT_1 = Format.JSON;
 
-  private final UUID IDENTIFIER_2 = UUID.fromString("dc3b1fc8-d01e-4405-8cf8-94320a11ba4c");
+  private final UUID UUID_2 = UUID.fromString("dc3b1fc8-d01e-4405-8cf8-94320a11ba4c");
   private final String BASE64_STRING_GRAPH_2 = "AAAASAAAAGUAAABsAAAAbAAAAG8AAAAgAAAAVwAAAG8AAAByAAAAbAAAAGQAAAAh";
   private final Format FORMAT_2 = Format.JSON;
 
@@ -48,7 +48,7 @@ class DocumentServiceImplSpec {
   @DisplayName("storeDocument - should call create on repository once with exact Document.")
 
   void storeDocument_should_call_create_on_repository() {
-    Document document = new Document(IDENTIFIER_1, BASE64_STRING_GRAPH_1, FORMAT_1);
+    Document document = new Document(UUID_1, BASE64_STRING_GRAPH_1, FORMAT_1);
 
     when(documentRepository.create(any(Document.class))).thenAnswer(invocation -> {
       Document documnent = invocation.getArgument(0);
@@ -67,7 +67,7 @@ class DocumentServiceImplSpec {
         .create(captor.capture());
 
     Document capturedEntity = captor.getValue();
-    assertTrue(capturedEntity.getId().equals(IDENTIFIER_1)
+    assertTrue(capturedEntity.getId().equals(UUID_1)
         && capturedEntity.getGraph().equals(BASE64_STRING_GRAPH_1)
         && capturedEntity.getFormat().equals(FORMAT_1),
         "should be called with exact Document");
@@ -76,8 +76,8 @@ class DocumentServiceImplSpec {
   @Test
   @DisplayName("getAllDocuments - should call getAll on repository once")
   void getAllDocuments_shouldReturnAllDocuments() {
-    Document doc1 = new Document(IDENTIFIER_1, BASE64_STRING_GRAPH_1, FORMAT_1);
-    Document doc2 = new Document(IDENTIFIER_2, BASE64_STRING_GRAPH_2, FORMAT_2);
+    Document doc1 = new Document(UUID_1, BASE64_STRING_GRAPH_1, FORMAT_1);
+    Document doc2 = new Document(UUID_2, BASE64_STRING_GRAPH_2, FORMAT_2);
 
     when(documentRepository.getAll()).thenReturn(Flux.just(doc1, doc2));
 
@@ -96,10 +96,10 @@ class DocumentServiceImplSpec {
 
   @Test
   void getDocumentById_shouldReturnDocument() {
-    Document document = new Document(IDENTIFIER_1, BASE64_STRING_GRAPH_1, FORMAT_1);
-    when(documentRepository.getById(IDENTIFIER_1)).thenReturn(Mono.just(document));
+    Document document = new Document(UUID_1, BASE64_STRING_GRAPH_1, FORMAT_1);
+    when(documentRepository.getById(UUID_1)).thenReturn(Mono.just(document));
 
-    StepVerifier.create(documentService.getDocumentById(IDENTIFIER_1))
+    StepVerifier.create(documentService.getDocumentById(UUID_1))
         .expectNext(document)
         .verifyComplete();
 
@@ -111,15 +111,15 @@ class DocumentServiceImplSpec {
         .getById(captor.capture());
 
     UUID capturedId = captor.getValue();
-    assertTrue(capturedId.equals(IDENTIFIER_1),
+    assertTrue(capturedId.equals(UUID_1),
         "should be called with exact id");
   }
 
   @Test
   void deleteDocumentById_shouldDeleteDocument() {
-    when(documentRepository.deleteById(IDENTIFIER_1)).thenReturn(Mono.empty().then());
+    when(documentRepository.deleteById(UUID_1)).thenReturn(Mono.empty().then());
 
-    StepVerifier.create(documentService.deleteDocumentById(IDENTIFIER_1))
+    StepVerifier.create(documentService.deleteDocumentById(UUID_1))
         .verifyComplete();
 
     ArgumentCaptor<UUID> captor = ArgumentCaptor.forClass(UUID.class);
@@ -130,7 +130,7 @@ class DocumentServiceImplSpec {
         .deleteById(captor.capture());
 
     UUID capturedId = captor.getValue();
-    assertTrue(capturedId.equals(IDENTIFIER_1),
+    assertTrue(capturedId.equals(UUID_1),
         "should be called with exact id");
   }
 }
