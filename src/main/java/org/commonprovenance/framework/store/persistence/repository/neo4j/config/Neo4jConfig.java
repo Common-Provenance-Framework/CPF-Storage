@@ -1,4 +1,4 @@
-package org.commonprovenance.framework.store.persistence.neo4j.config;
+package org.commonprovenance.framework.store.persistence.repository.neo4j.config;
 
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;

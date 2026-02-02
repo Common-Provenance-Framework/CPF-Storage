@@ -1,9 +1,9 @@
-package org.commonprovenance.framework.store.persistence.neo4j.entity.factory;
+package org.commonprovenance.framework.store.persistence.entity.factory;
 
 import static org.commonprovenance.framework.store.common.publisher.PublisherHelper.MONO;
 
 import org.commonprovenance.framework.store.model.Document;
-import org.commonprovenance.framework.store.persistence.neo4j.entity.DocumentEntity;
+import org.commonprovenance.framework.store.persistence.entity.DocumentEntity;
 
 import reactor.core.publisher.Mono;
 

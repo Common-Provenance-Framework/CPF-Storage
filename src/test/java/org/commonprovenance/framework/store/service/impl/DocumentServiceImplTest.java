@@ -6,7 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import org.commonprovenance.framework.store.exceptions.InternalApplicationException;
 import org.commonprovenance.framework.store.model.Document;
 import org.commonprovenance.framework.store.model.Format;
-import org.commonprovenance.framework.store.persistence.DocumentRepository;
+import org.commonprovenance.framework.store.persistence.DocumentPersistence;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -20,7 +20,7 @@ import java.util.UUID;
 @DisplayName("Service - DocumentServiceImpl UnitTest")
 
 class DocumentServiceImplTest {
-  private class DocumentRepositoryStub implements DocumentRepository {
+  private class DocumentRepositoryStub implements DocumentPersistence {
     final static String IDENTIFIER_STR_1 = "e3cf8742-b595-47f4-8aae-a1e94b62a856";
     final static UUID IDENTIFIER_1 = UUID.fromString(IDENTIFIER_STR_1);
     final static String BASE64_STRING_GRAPH_1 = "AAAAQQAAAGIAAAByAAAAYQAAAGsAAABhAAAAIAAAAEQAAABhAAAAYgAAAHIAAABhAAAALgAAAC4=";
@@ -71,7 +71,7 @@ class DocumentServiceImplTest {
 
   }
 
-  private final DocumentRepository documentRepository;
+  private final DocumentPersistence documentRepository;
 
   private DocumentServiceImpl documentService;
 

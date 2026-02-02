@@ -1,4 +1,4 @@
-package org.commonprovenance.framework.store.persistence.neo4j;
+package org.commonprovenance.framework.store.persistence;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -12,8 +12,9 @@ import java.util.UUID;
 
 import org.commonprovenance.framework.store.model.Document;
 import org.commonprovenance.framework.store.model.Format;
-import org.commonprovenance.framework.store.persistence.neo4j.entity.DocumentEntity;
-import org.commonprovenance.framework.store.persistence.neo4j.repository.IDocumentNeo4jRepository;
+import org.commonprovenance.framework.store.persistence.entity.DocumentEntity;
+import org.commonprovenance.framework.store.persistence.impl.DocumentPersistenceImpl;
+import org.commonprovenance.framework.store.persistence.repository.DocumentRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -28,12 +29,12 @@ import reactor.test.StepVerifier;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("Neo4j Repository - DocumentNeo4jRepository Specification")
-class DocumentNeo4jRepositorySpec {
+class DocumentRepositorySpec {
 
   @Mock
-  private IDocumentNeo4jRepository documentRepository;
+  private DocumentRepository documentRepository;
 
-  private DocumentNeo4jRepository repository;
+  private DocumentPersistenceImpl repository;
 
   private final String TEST_ID_1 = "e3cf8742-b595-47f4-8aae-a1e94b62a856";
   private final String BASE64_STRING_GRAPH_1 = "AAAAQQAAAGIAAAByAAAAYQAAAGsAAABhAAAAIAAAAEQAAABhAAAAYgAAAHIAAABhAAAALgAAAC4=";
@@ -41,7 +42,7 @@ class DocumentNeo4jRepositorySpec {
 
   @BeforeEach
   void setUp() {
-    repository = new DocumentNeo4jRepository(documentRepository);
+    repository = new DocumentPersistenceImpl(documentRepository);
   }
 
   @Test

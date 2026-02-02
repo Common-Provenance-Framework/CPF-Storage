@@ -1,7 +1,8 @@
-package org.commonprovenance.framework.store.persistence.neo4j;
+package org.commonprovenance.framework.store.persistence;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
@@ -11,8 +12,9 @@ import java.util.UUID;
 import org.commonprovenance.framework.store.exceptions.InternalApplicationException;
 import org.commonprovenance.framework.store.model.Document;
 import org.commonprovenance.framework.store.model.Format;
-import org.commonprovenance.framework.store.persistence.neo4j.entity.DocumentEntity;
-import org.commonprovenance.framework.store.persistence.neo4j.repository.IDocumentNeo4jRepository;
+import org.commonprovenance.framework.store.persistence.entity.DocumentEntity;
+import org.commonprovenance.framework.store.persistence.impl.DocumentPersistenceImpl;
+import org.commonprovenance.framework.store.persistence.repository.DocumentRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -27,12 +29,12 @@ import reactor.test.StepVerifier;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("Neo4j Repository - DocumentNeo4jRepository UnitTest")
-class DocumentNeo4jRepositoryTest {
+class DocumentRepositoryTest {
 
   @Mock
-  private IDocumentNeo4jRepository documentRepository;
+  private DocumentRepository documentRepository;
 
-  private DocumentNeo4jRepository repository;
+  private DocumentPersistenceImpl repository;
 
   private final String TEST_ID_1 = "e3cf8742-b595-47f4-8aae-a1e94b62a856";
   private final String BASE64_STRING_GRAPH_1 = "AAAAQQAAAGIAAAByAAAAYQAAAGsAAABhAAAAIAAAAEQAAABhAAAAYgAAAHIAAABhAAAALgAAAC4=";
@@ -44,7 +46,7 @@ class DocumentNeo4jRepositoryTest {
 
   @BeforeEach
   void setUp() {
-    repository = new DocumentNeo4jRepository(documentRepository);
+    repository = new DocumentPersistenceImpl(documentRepository);
   }
 
   @Test
@@ -231,20 +233,20 @@ class DocumentNeo4jRepositoryTest {
   @Test
   @DisplayName("ErrorPath - getById - should handle terminated IllegalArgumentException")
   void getById_should_handle_terminated_IllegalArgumentException() {
-    StepVerifier.create(repository.getById(null))
+    StepVerifier.create(repository.getById((UUID) null))
         .verifyErrorSatisfies(err -> {
           assertInstanceOf(
               InternalApplicationException.class, err,
               "should be InternalApplicationException - Exception");
           assertEquals(
-              "DocumentNeo4jRepository - Error while reading document", err.getMessage(),
+              "Identifier can not be 'null'!",
+              err.getMessage(),
               "should have exact error message");
 
           assertInstanceOf(
               IllegalArgumentException.class, err.getCause(),
               "should be IllegalArgumentException - Exception cause");
-          assertEquals(
-              "Identifier can not be 'null'!", err.getCause().getMessage(),
+          assertNull(err.getCause().getMessage(),
               "should have exact error message");
         });
   }
@@ -269,20 +271,20 @@ class DocumentNeo4jRepositoryTest {
   @Test
   @DisplayName("ErrorPath - deleteById - should handle terminated IllegalArgumentException")
   void deleteById_should_handle_terminated_IllegalArgumentException() {
-    StepVerifier.create(repository.deleteById(null))
+    StepVerifier.create(repository.deleteById((UUID) null))
         .verifyErrorSatisfies(err -> {
           assertInstanceOf(
               InternalApplicationException.class, err,
               "should be InternalApplicationException - Exception");
           assertEquals(
-              "DocumentNeo4jRepository - Error while deleting document", err.getMessage(),
+              "Identifier can not be 'null'!",
+              err.getMessage(),
               "should have exact error message");
 
           assertInstanceOf(
               IllegalArgumentException.class, err.getCause(),
               "should be IllegalArgumentException - Exception cause");
-          assertEquals(
-              "Identifier can not be 'null'!", err.getCause().getMessage(),
+          assertNull(err.getCause().getMessage(),
               "should have exact error message");
         });
   }
