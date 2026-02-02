@@ -2,7 +2,7 @@ package org.commonprovenance.framework.store.service.impl;
 
 import org.commonprovenance.framework.store.model.Document;
 import org.commonprovenance.framework.store.model.Format;
-import org.commonprovenance.framework.store.persistence.DocumentRepository;
+import org.commonprovenance.framework.store.persistence.DocumentPersistence;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -27,7 +27,7 @@ import static org.mockito.Mockito.when;
 class DocumentServiceImplSpec {
 
   @Mock
-  private DocumentRepository documentRepository;
+  private DocumentPersistence documentRepository;
 
   private DocumentServiceImpl documentService;
 

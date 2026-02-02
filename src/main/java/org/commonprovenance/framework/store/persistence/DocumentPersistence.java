@@ -9,7 +9,7 @@ import jakarta.validation.constraints.NotNull;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-public interface DocumentRepository {
+public interface DocumentPersistence {
   @NotNull
   Mono<Document> create(@NotNull Document document);
 

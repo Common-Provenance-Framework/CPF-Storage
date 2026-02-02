@@ -1,6 +1,6 @@
-package org.commonprovenance.framework.store.persistence.neo4j.repository;
+package org.commonprovenance.framework.store.persistence.repository.neo4j;
 
-import org.commonprovenance.framework.store.persistence.neo4j.entity.DocumentEntity;
+import org.commonprovenance.framework.store.persistence.entity.DocumentEntity;
 import org.springframework.data.neo4j.repository.ReactiveNeo4jRepository;
 import org.springframework.stereotype.Repository;
 
