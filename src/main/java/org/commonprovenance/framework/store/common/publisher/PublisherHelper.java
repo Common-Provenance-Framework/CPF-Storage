@@ -21,11 +21,11 @@ public interface PublisherHelper {
     }
 
     public <T> Function<T, Mono<T>> makeSureNotNullWithMessage(String message) {
-      return makeSure(Objects::nonNull, message);
+      return this.<T>makeSure(Objects::nonNull, message);
     }
 
     public <T> Function<T, Mono<T>> makeSure(Predicate<T> validator, String message) {
-      return makeSure(validator, _ -> message);
+      return this.<T>makeSure(validator, _ -> message);
     }
 
     public <T> Function<T, Mono<T>> makeSure(Predicate<T> validator, Function<T, String> messageBuilder) {
