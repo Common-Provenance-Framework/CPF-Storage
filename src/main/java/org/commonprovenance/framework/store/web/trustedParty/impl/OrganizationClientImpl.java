@@ -43,8 +43,9 @@ public class OrganizationClientImpl implements OrganizationClient {
   }
 
   @Override
-  public @NotNull Mono<Organization> create(@NotNull String organizationName) {
-    return Mono.just(organizationName)
+  public @NotNull Mono<Organization> create(
+      @NotNull org.commonprovenance.framework.store.controller.dto.form.OrganizationFormDTO form) {
+    return Mono.just(form)
         .flatMap(DTOFactory::toForm)
         .flatMap(this::postReq)
         .flatMap(ModelFactory::toDomain);

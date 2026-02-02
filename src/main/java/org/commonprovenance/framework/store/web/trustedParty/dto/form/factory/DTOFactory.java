@@ -7,14 +7,20 @@ import org.commonprovenance.framework.store.web.trustedParty.dto.form.Organizati
 import reactor.core.publisher.Mono;
 
 public class DTOFactory {
-  private static OrganizationFormDTO fromModel(String name) {
-    return new OrganizationFormDTO(name);
+  private static OrganizationFormDTO fromModel(
+      org.commonprovenance.framework.store.controller.dto.form.OrganizationFormDTO form) {
+    return new OrganizationFormDTO(
+        form.getName(),
+        form.getClientCertificate(),
+        form.getIntermediateCertificates());
   }
 
   // ---
 
-  public static Mono<OrganizationFormDTO> toForm(String name) {
-    return MONO.<String>makeSureNotNullWithMessage("Organization name can not be null!").apply(name)
+  public static Mono<OrganizationFormDTO> toForm(
+      org.commonprovenance.framework.store.controller.dto.form.OrganizationFormDTO form) {
+    return MONO.<org.commonprovenance.framework.store.controller.dto.form.OrganizationFormDTO>makeSureNotNullWithMessage(
+        "Organization formular can not be null!").apply(form)
         .map(DTOFactory::fromModel);
   }
 }

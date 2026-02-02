@@ -65,9 +65,12 @@ public class TrustedPartyDummyClient implements TrustedPartyClient {
   public <T, B> Mono<T> sendPostRequest(String uri, B body, Class<T> responseType) {
     if (responseType.equals(OrganizationResponseDTO.class)
         && body instanceof OrganizationFormDTO orgForm) {
-      String id = UUID.randomUUID().toString();
-      OrganizationResponseDTO dto = new OrganizationResponseDTO(id, orgForm.getName());
-      organizations.put(id, dto);
+      OrganizationResponseDTO dto = new OrganizationResponseDTO(
+          UUID.randomUUID().toString(),
+          orgForm.getName(),
+          orgForm.getClientCertificate(),
+          orgForm.getIntermediateCertificates());
+      organizations.put(dto.getId(), dto);
       return Mono.just(dto).map(responseType::cast);
     }
 

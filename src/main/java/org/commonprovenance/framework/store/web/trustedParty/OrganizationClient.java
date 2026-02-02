@@ -10,7 +10,7 @@ import reactor.core.publisher.Mono;
 
 public interface OrganizationClient {
   @NotNull
-  Mono<Organization> create(@NotNull String name);
+  Mono<Organization> create(@NotNull org.commonprovenance.framework.store.controller.dto.form.OrganizationFormDTO form);
 
   @NotNull
   Flux<Organization> getAll();
