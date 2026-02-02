@@ -11,29 +11,29 @@ import reactor.core.publisher.Mono;
 
 @Service
 public class DocumentServiceImpl implements DocumentService {
-  private final DocumentPersistence documentPersistence;
+  private final DocumentPersistence persistence;
 
-  public DocumentServiceImpl(DocumentPersistence documentPersistence) {
-    this.documentPersistence = documentPersistence;
+  public DocumentServiceImpl(DocumentPersistence persistence) {
+    this.persistence = persistence;
   }
 
   @NotNull
   public Mono<Document> storeDocument(@NotNull Document document) {
-    return this.documentPersistence.create(document);
+    return this.persistence.create(document);
   }
 
   @NotNull
   public Flux<Document> getAllDocuments() {
-    return this.documentPersistence.getAll();
+    return this.persistence.getAll();
   }
 
   @NotNull
-  public Mono<Document> getDocumentById(@NotNull java.util.UUID identifier) {
-    return this.documentPersistence.getById(identifier);
+  public Mono<Document> getDocumentById(@NotNull java.util.UUID id) {
+    return this.persistence.getById(id);
   }
 
   @NotNull
-  public Mono<Void> deleteDocumentById(@NotNull java.util.UUID identifier) {
-    return this.documentPersistence.deleteById(identifier);
+  public Mono<Void> deleteDocumentById(@NotNull java.util.UUID id) {
+    return this.persistence.deleteById(id);
   }
 }
