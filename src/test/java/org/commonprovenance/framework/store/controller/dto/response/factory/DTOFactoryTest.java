@@ -44,7 +44,7 @@ public class DTOFactoryTest {
   @DisplayName("ErrorPath - should return Mono with exact error")
   void should_return_Mono_with_error() {
 
-    StepVerifier.create(DTOFactory.toDTO(null))
+    StepVerifier.create(DTOFactory.toDTO((Document) null))
         .expectErrorSatisfies(error -> {
           assertInstanceOf(InternalApplicationException.class, error);
           assertEquals("Input parameter can not be null.", error.getMessage());

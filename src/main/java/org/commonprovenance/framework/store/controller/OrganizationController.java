@@ -1,11 +1,11 @@
 package org.commonprovenance.framework.store.controller;
 
-import org.commonprovenance.framework.store.controller.dto.form.DocumentFormDTO;
-import org.commonprovenance.framework.store.controller.dto.response.DocumentResponseDTO;
+import org.commonprovenance.framework.store.controller.dto.form.OrganizationFormDTO;
+import org.commonprovenance.framework.store.controller.dto.response.OrganizationResponseDTO;
 import org.commonprovenance.framework.store.controller.dto.response.factory.DTOFactory;
 import org.commonprovenance.framework.store.controller.validator.IsUUID;
 import org.commonprovenance.framework.store.model.factory.ModelFactory;
-import org.commonprovenance.framework.store.service.DocumentService;
+import org.commonprovenance.framework.store.service.OrganizationService;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -21,34 +21,34 @@ import reactor.core.publisher.Mono;
 
 @Validated
 @RestController()
-@RequestMapping("/api/v1/documents")
-public class DocumentController {
-  private final DocumentService service;
+@RequestMapping("/api/v1/organizations")
+public class OrganizationController {
+  private final OrganizationService service;
 
-  public DocumentController(DocumentService service) {
+  public OrganizationController(OrganizationService service) {
     this.service = service;
   }
 
   @PostMapping()
   @NotNull
-  public Mono<DocumentResponseDTO> createProvDocument(@Valid @RequestBody @NotNull DocumentFormDTO body) {
+  public Mono<OrganizationResponseDTO> createOrganization(@Valid @RequestBody @NotNull OrganizationFormDTO body) {
     return ModelFactory.toDomain(body)
-        .flatMap(this.service::storeDocument)
+        .flatMap(this.service::storeOrganization)
         .flatMap(DTOFactory::toDTO);
   }
 
   @GetMapping()
   @NotNull
-  public Flux<DocumentResponseDTO> getAllProvDocuments() {
-    return this.service.getAllDocuments()
+  public Flux<OrganizationResponseDTO> getAllOrganizations() {
+    return this.service.getAllOrganizations()
         .flatMap(DTOFactory::toDTO);
   }
 
   @NotNull
   @GetMapping("/{uuid}")
-  public Mono<DocumentResponseDTO> getProvDocumentById(@PathVariable @IsUUID String uuid) {
+  public Mono<OrganizationResponseDTO> getOrganizationById(@PathVariable @IsUUID String uuid) {
     return ModelFactory.toUUID(uuid)
-        .flatMap(this.service::getDocumentById)
+        .flatMap(this.service::getOrganizationById)
         .flatMap(DTOFactory::toDTO);
   }
 }
