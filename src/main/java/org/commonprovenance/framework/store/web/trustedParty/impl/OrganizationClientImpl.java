@@ -3,8 +3,8 @@ package org.commonprovenance.framework.store.web.trustedParty.impl;
 import static org.commonprovenance.framework.store.common.publisher.PublisherHelper.MONO;
 
 import java.util.UUID;
+import java.util.function.Function;
 
-import org.commonprovenance.framework.store.controller.dto.form.OrganizationFormDTO;
 import org.commonprovenance.framework.store.model.Organization;
 import org.commonprovenance.framework.store.model.factory.ModelFactory;
 import org.commonprovenance.framework.store.web.trustedParty.OrganizationClient;
@@ -31,8 +31,10 @@ public class OrganizationClientImpl implements OrganizationClient {
     return trustedPartyClient.sendPostRequest("/organizations", body, OrganizationTPResponseDTO.class);
   }
 
-  private Mono<OrganizationTPResponseDTO> getOneReq(String id) {
-    return trustedPartyClient.sendGetOneRequest("/organizations/" + id, OrganizationTPResponseDTO.class);
+  private Function<String, Mono<OrganizationTPResponseDTO>> getOneReq(String path) {
+    return (String value) -> trustedPartyClient.sendGetOneRequest(
+        "/organizations/" + ((path.isBlank() || path == null) ? "" : "/" + value),
+        OrganizationTPResponseDTO.class);
   }
 
   private Flux<OrganizationTPResponseDTO> getManyReq() {
@@ -44,8 +46,8 @@ public class OrganizationClientImpl implements OrganizationClient {
   }
 
   @Override
-  public @NotNull Mono<Organization> create(@NotNull OrganizationFormDTO form) {
-    return Mono.just(form)
+  public @NotNull Mono<Organization> create(@NotNull Organization organization) {
+    return Mono.just(organization)
         .flatMap(DTOFactory::toForm)
         .flatMap(this::postReq)
         .flatMap(ModelFactory::toDomain);
@@ -59,10 +61,16 @@ public class OrganizationClientImpl implements OrganizationClient {
 
   @Override
   public @NotNull Mono<Organization> getById(@NotNull UUID id) {
-    return Mono.just(id)
-        .flatMap(MONO.makeSureNotNullWithMessage("Organization id can not be null!"))
+    return MONO.<UUID>makeSureNotNullWithMessage("Organization id can not be null!").apply(id)
         .map(UUID::toString)
-        .flatMap(this::getOneReq)
+        .flatMap(this.getOneReq(""))
+        .flatMap(ModelFactory::toDomain);
+  }
+
+  @Override
+  public @NotNull Mono<Organization> getByName(@NotNull String name) {
+    return MONO.<String>makeSureNotNullWithMessage("Organization name can not be null!").apply(name)
+        .flatMap(this.getOneReq("name"))
         .flatMap(ModelFactory::toDomain);
   }
 
