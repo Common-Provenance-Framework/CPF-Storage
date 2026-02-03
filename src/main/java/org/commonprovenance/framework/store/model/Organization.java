@@ -1,10 +1,11 @@
 package org.commonprovenance.framework.store.model;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 public class Organization {
-  private final UUID id;
+  private final Optional<UUID> id;
   private final String name;
   private final String clientCertificate;
   private final List<String> intermediateCertificates;
@@ -14,7 +15,7 @@ public class Organization {
       String name,
       String clientCertificate,
       List<String> intermediateCertificates) {
-    this.id = id;
+    this.id = Optional.ofNullable(id);
     this.name = name;
     this.clientCertificate = clientCertificate;
     this.intermediateCertificates = intermediateCertificates;
@@ -28,7 +29,11 @@ public class Organization {
         this.getIntermediateCertificates());
   }
 
-  public UUID getId() {
+  public Organization withGeneratedId() {
+    return this.withId(this.getId().orElse(UUID.randomUUID()));
+  }
+
+  public Optional<UUID> getId() {
     return id;
   }
 

@@ -2,12 +2,13 @@ package org.commonprovenance.framework.store.model;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class TrustedParty {
-  private final UUID id;
+  private final Optional<UUID> id;
   private final String certificate;
   private final String url;
   private final Boolean isChecked;
@@ -24,7 +25,7 @@ public class TrustedParty {
       Boolean isValid,
       List<Organization> hasTrust,
       List<Token> hasIssued) {
-    this.id = id;
+    this.id = Optional.ofNullable(id);
     this.certificate = certificate;
     this.url = url;
     this.isChecked = isChecked;
@@ -34,7 +35,7 @@ public class TrustedParty {
   }
 
   public TrustedParty(UUID id, String certificate, String url) {
-    this.id = id;
+    this.id = Optional.ofNullable(id);
     this.certificate = certificate;
     this.url = url;
     this.isChecked = false;
@@ -45,7 +46,7 @@ public class TrustedParty {
 
   public TrustedParty withIsChecked(Boolean isChecked) {
     return new TrustedParty(
-        this.getId(),
+        this.getId().orElse(null),
         this.getCertificate(),
         this.getUrl(),
         isChecked,
@@ -56,7 +57,7 @@ public class TrustedParty {
 
   public TrustedParty withIsValid(Boolean isValid) {
     return new TrustedParty(
-        this.getId(),
+        this.getId().orElse(null),
         this.getCertificate(),
         this.getUrl(),
         this.getIsChecked(),
@@ -67,7 +68,7 @@ public class TrustedParty {
 
   public TrustedParty withHasTrust(Organization organization) {
     return new TrustedParty(
-        this.getId(),
+        this.getId().orElse(null),
         this.getCertificate(),
         this.getUrl(),
         this.getIsChecked(),
@@ -81,7 +82,7 @@ public class TrustedParty {
 
   public TrustedParty withHasIssued(Token token) {
     return new TrustedParty(
-        this.getId(),
+        this.getId().orElse(null),
         this.getCertificate(),
         this.getUrl(),
         this.getIsChecked(),
@@ -93,7 +94,7 @@ public class TrustedParty {
             .collect(Collectors.toList()));
   }
 
-  public UUID getId() {
+  public Optional<UUID> getId() {
     return id;
   }
 
