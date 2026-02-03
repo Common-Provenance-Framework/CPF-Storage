@@ -23,24 +23,24 @@ import reactor.core.publisher.Mono;
 @RestController()
 @RequestMapping("/api/v1/organizations")
 public class OrganizationController {
-  private final OrganizationService service;
+  private final OrganizationService organizationService;
 
-  public OrganizationController(OrganizationService service) {
-    this.service = service;
+  public OrganizationController(OrganizationService organizationService) {
+    this.organizationService = organizationService;
   }
 
   @PostMapping()
   @NotNull
   public Mono<OrganizationResponseDTO> createOrganization(@Valid @RequestBody @NotNull OrganizationFormDTO body) {
     return ModelFactory.toDomain(body)
-        .flatMap(this.service::storeOrganization)
+        .flatMap(this.organizationService::storeOrganization)
         .flatMap(DTOFactory::toDTO);
   }
 
   @GetMapping()
   @NotNull
   public Flux<OrganizationResponseDTO> getAllOrganizations() {
-    return this.service.getAllOrganizations()
+    return this.organizationService.getAllOrganizations()
         .flatMap(DTOFactory::toDTO);
   }
 
@@ -48,7 +48,7 @@ public class OrganizationController {
   @GetMapping("/{uuid}")
   public Mono<OrganizationResponseDTO> getOrganizationById(@PathVariable @IsUUID String uuid) {
     return ModelFactory.toUUID(uuid)
-        .flatMap(this.service::getOrganizationById)
+        .flatMap(this.organizationService::getOrganizationById)
         .flatMap(DTOFactory::toDTO);
   }
 }
