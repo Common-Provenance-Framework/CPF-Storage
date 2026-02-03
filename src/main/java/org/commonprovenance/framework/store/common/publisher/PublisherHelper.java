@@ -5,6 +5,7 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 
 import org.commonprovenance.framework.store.exceptions.ApplicationException;
+import org.commonprovenance.framework.store.exceptions.BadRequestException;
 import org.commonprovenance.framework.store.exceptions.InternalApplicationException;
 
 import reactor.core.publisher.Flux;
@@ -32,6 +33,20 @@ public interface PublisherHelper {
       return (T value) -> validator.test(value)
           ? Mono.just(value)
           : Mono.error(new InternalApplicationException(messageBuilder.apply(value), new IllegalArgumentException()));
+    }
+
+    public <T> Function<T, Mono<T>> makeSureAsync(
+        Function<T, Mono<Boolean>> asyncValidator,
+        String message) {
+      return makeSureAsync(asyncValidator, _ -> new BadRequestException(message));
+    }
+
+    public <T> Function<T, Mono<T>> makeSureAsync(
+        Function<T, Mono<Boolean>> asyncValidator,
+        Function<T, ApplicationException> appExceptionBuilderFunction) {
+      return (T value) -> Mono.justOrEmpty(value)
+          .filterWhen(asyncValidator)
+          .switchIfEmpty(Mono.error(appExceptionBuilderFunction.apply(value)));
     }
 
     public <E extends Throwable, T> Function<E, Mono<T>> exceptionWrapper(Function<E, String> messageBuilder) {
