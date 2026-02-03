@@ -2,6 +2,7 @@ package org.commonprovenance.framework.store.web.trustedParty;
 
 import java.util.UUID;
 
+import org.commonprovenance.framework.store.controller.dto.form.OrganizationFormDTO;
 import org.commonprovenance.framework.store.model.Organization;
 
 import jakarta.validation.constraints.NotNull;
@@ -10,7 +11,7 @@ import reactor.core.publisher.Mono;
 
 public interface OrganizationClient {
   @NotNull
-  Mono<Organization> create(@NotNull org.commonprovenance.framework.store.controller.dto.form.OrganizationFormDTO form);
+  Mono<Organization> create(@NotNull OrganizationFormDTO form);
 
   @NotNull
   Flux<Organization> getAll();

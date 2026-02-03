@@ -4,17 +4,17 @@ import org.commonprovenance.framework.store.common.dto.HasCreated;
 import org.commonprovenance.framework.store.common.dto.HasHashFunction;
 import org.commonprovenance.framework.store.common.dto.HasId;
 
-public class TokenResponseDTO implements HasId, HasHashFunction, HasCreated {
+public class TokenTPResponseDTO implements HasId, HasHashFunction, HasCreated {
   private final String id;
-  private final DocumentResponseDTO document;
+  private final DocumentTPResponseDTO document;
   private final String hash;
   private final String hashFunction;
   private final String signature;
   private final String created;
 
-  public TokenResponseDTO(
+  public TokenTPResponseDTO(
       String id,
-      DocumentResponseDTO document,
+      DocumentTPResponseDTO document,
       String hash,
       String hashFunction,
       String signature,
@@ -31,7 +31,7 @@ public class TokenResponseDTO implements HasId, HasHashFunction, HasCreated {
     return id;
   }
 
-  public DocumentResponseDTO getDocument() {
+  public DocumentTPResponseDTO getDocument() {
     return document;
   }
 

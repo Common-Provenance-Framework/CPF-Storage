@@ -7,9 +7,9 @@ import java.util.Optional;
 import java.util.UUID;
 
 import org.commonprovenance.framework.store.web.trustedParty.client.TrustedPartyClient;
-import org.commonprovenance.framework.store.web.trustedParty.dto.form.OrganizationFormDTO;
-import org.commonprovenance.framework.store.web.trustedParty.dto.response.OrganizationResponseDTO;
-import org.commonprovenance.framework.store.web.trustedParty.dto.response.TokenResponseDTO;
+import org.commonprovenance.framework.store.web.trustedParty.dto.form.OrganizationTPFormDTO;
+import org.commonprovenance.framework.store.web.trustedParty.dto.response.OrganizationTPResponseDTO;
+import org.commonprovenance.framework.store.web.trustedParty.dto.response.TokenTPResponseDTO;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
@@ -19,8 +19,8 @@ import reactor.core.publisher.Mono;
 @Profile("dummy")
 @Component
 public class TrustedPartyDummyClient implements TrustedPartyClient {
-  private static Map<String, OrganizationResponseDTO> organizations;
-  private static Map<String, TokenResponseDTO> tokens;
+  private static Map<String, OrganizationTPResponseDTO> organizations;
+  private static Map<String, TokenTPResponseDTO> tokens;
 
   public TrustedPartyDummyClient() {
     organizations = new HashMap<>();
@@ -37,9 +37,9 @@ public class TrustedPartyDummyClient implements TrustedPartyClient {
   public <T> Mono<T> sendGetOneRequest(String uri, Class<T> responseType) {
     return Mono.justOrEmpty(extractIdFromUri(uri))
         .flatMap((String id) -> {
-          if (responseType.equals(OrganizationResponseDTO.class)) {
+          if (responseType.equals(OrganizationTPResponseDTO.class)) {
             return Mono.justOrEmpty(organizations.get(id));
-          } else if (responseType.equals(TokenResponseDTO.class)) {
+          } else if (responseType.equals(TokenTPResponseDTO.class)) {
             return Mono.justOrEmpty(tokens.get(id));
           } else {
             return Mono.empty();
@@ -50,10 +50,10 @@ public class TrustedPartyDummyClient implements TrustedPartyClient {
 
   @Override
   public <T> Flux<T> sendGetManyRequest(String uri, Class<T> responseType) {
-    if (responseType.equals(OrganizationResponseDTO.class)) {
+    if (responseType.equals(OrganizationTPResponseDTO.class)) {
       return Flux.fromIterable(organizations.values())
           .map(responseType::cast);
-    } else if (responseType.equals(TokenResponseDTO.class)) {
+    } else if (responseType.equals(TokenTPResponseDTO.class)) {
       return Flux.fromIterable(tokens.values())
           .map(responseType::cast);
     } else {
@@ -63,9 +63,9 @@ public class TrustedPartyDummyClient implements TrustedPartyClient {
 
   @Override
   public <T, B> Mono<T> sendPostRequest(String uri, B body, Class<T> responseType) {
-    if (responseType.equals(OrganizationResponseDTO.class)
-        && body instanceof OrganizationFormDTO orgForm) {
-      OrganizationResponseDTO dto = new OrganizationResponseDTO(
+    if (responseType.equals(OrganizationTPResponseDTO.class)
+        && body instanceof OrganizationTPFormDTO orgForm) {
+      OrganizationTPResponseDTO dto = new OrganizationTPResponseDTO(
           UUID.randomUUID().toString(),
           orgForm.getName(),
           orgForm.getClientCertificate(),
@@ -81,9 +81,9 @@ public class TrustedPartyDummyClient implements TrustedPartyClient {
   public <T> Mono<T> sendDeleteRequest(String uri, Class<T> responseType) {
     return Mono.justOrEmpty(extractIdFromUri(uri))
         .flatMap((String id) -> {
-          if (responseType.equals(OrganizationResponseDTO.class)) {
+          if (responseType.equals(OrganizationTPResponseDTO.class)) {
             return Mono.justOrEmpty(organizations.remove(id));
-          } else if (responseType.equals(TokenResponseDTO.class)) {
+          } else if (responseType.equals(TokenTPResponseDTO.class)) {
             return Mono.justOrEmpty(tokens.remove(id));
           } else {
             return Mono.empty();

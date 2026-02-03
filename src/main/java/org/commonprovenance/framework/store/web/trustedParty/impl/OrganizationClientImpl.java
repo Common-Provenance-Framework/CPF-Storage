@@ -4,13 +4,14 @@ import static org.commonprovenance.framework.store.common.publisher.PublisherHel
 
 import java.util.UUID;
 
+import org.commonprovenance.framework.store.controller.dto.form.OrganizationFormDTO;
 import org.commonprovenance.framework.store.model.Organization;
 import org.commonprovenance.framework.store.model.factory.ModelFactory;
 import org.commonprovenance.framework.store.web.trustedParty.OrganizationClient;
 import org.commonprovenance.framework.store.web.trustedParty.client.TrustedPartyClient;
-import org.commonprovenance.framework.store.web.trustedParty.dto.form.OrganizationFormDTO;
+import org.commonprovenance.framework.store.web.trustedParty.dto.form.OrganizationTPFormDTO;
 import org.commonprovenance.framework.store.web.trustedParty.dto.form.factory.DTOFactory;
-import org.commonprovenance.framework.store.web.trustedParty.dto.response.OrganizationResponseDTO;
+import org.commonprovenance.framework.store.web.trustedParty.dto.response.OrganizationTPResponseDTO;
 import org.springframework.stereotype.Component;
 
 import jakarta.validation.constraints.NotNull;
@@ -26,25 +27,24 @@ public class OrganizationClientImpl implements OrganizationClient {
     this.trustedPartyClient = client;
   }
 
-  private Mono<OrganizationResponseDTO> postReq(OrganizationFormDTO body) {
-    return trustedPartyClient.sendPostRequest("/organizations", body, OrganizationResponseDTO.class);
+  private Mono<OrganizationTPResponseDTO> postReq(OrganizationTPFormDTO body) {
+    return trustedPartyClient.sendPostRequest("/organizations", body, OrganizationTPResponseDTO.class);
   }
 
-  private Mono<OrganizationResponseDTO> getOneReq(String id) {
-    return trustedPartyClient.sendGetOneRequest("/organizations/" + id, OrganizationResponseDTO.class);
+  private Mono<OrganizationTPResponseDTO> getOneReq(String id) {
+    return trustedPartyClient.sendGetOneRequest("/organizations/" + id, OrganizationTPResponseDTO.class);
   }
 
-  private Flux<OrganizationResponseDTO> getManyReq() {
-    return trustedPartyClient.sendGetManyRequest("/organizations", OrganizationResponseDTO.class);
+  private Flux<OrganizationTPResponseDTO> getManyReq() {
+    return trustedPartyClient.sendGetManyRequest("/organizations", OrganizationTPResponseDTO.class);
   }
 
-  private Mono<OrganizationResponseDTO> deleteReq(String id) {
-    return trustedPartyClient.sendDeleteRequest("/organizations/" + id, OrganizationResponseDTO.class);
+  private Mono<OrganizationTPResponseDTO> deleteReq(String id) {
+    return trustedPartyClient.sendDeleteRequest("/organizations/" + id, OrganizationTPResponseDTO.class);
   }
 
   @Override
-  public @NotNull Mono<Organization> create(
-      @NotNull org.commonprovenance.framework.store.controller.dto.form.OrganizationFormDTO form) {
+  public @NotNull Mono<Organization> create(@NotNull OrganizationFormDTO form) {
     return Mono.just(form)
         .flatMap(DTOFactory::toForm)
         .flatMap(this::postReq)
