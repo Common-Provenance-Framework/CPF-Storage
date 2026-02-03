@@ -1,8 +1,8 @@
-package org.commonprovenance.framework.store.service.impl;
+package org.commonprovenance.framework.store.service.persistence.impl;
 
 import org.commonprovenance.framework.store.model.Document;
 import org.commonprovenance.framework.store.persistence.DocumentPersistence;
-import org.commonprovenance.framework.store.service.DocumentService;
+import org.commonprovenance.framework.store.service.persistence.DocumentService;
 import org.springframework.stereotype.Service;
 
 import jakarta.validation.constraints.NotNull;

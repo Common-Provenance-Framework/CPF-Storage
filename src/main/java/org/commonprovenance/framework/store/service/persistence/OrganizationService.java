@@ -1,4 +1,4 @@
-package org.commonprovenance.framework.store.service;
+package org.commonprovenance.framework.store.service.persistence;
 
 import java.util.UUID;
 

@@ -1,4 +1,4 @@
-package org.commonprovenance.framework.store.service.impl;
+package org.commonprovenance.framework.store.service.persistence.impl;
 
 import static org.commonprovenance.framework.store.common.publisher.PublisherHelper.MONO;
 
@@ -7,7 +7,7 @@ import java.util.UUID;
 import org.commonprovenance.framework.store.exceptions.NotFoundException;
 import org.commonprovenance.framework.store.model.Organization;
 import org.commonprovenance.framework.store.persistence.OrganizationPersistence;
-import org.commonprovenance.framework.store.service.OrganizationService;
+import org.commonprovenance.framework.store.service.persistence.OrganizationService;
 import org.springframework.stereotype.Service;
 
 import jakarta.validation.constraints.NotNull;

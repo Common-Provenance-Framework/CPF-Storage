@@ -5,7 +5,7 @@ import org.commonprovenance.framework.store.controller.dto.response.Organization
 import org.commonprovenance.framework.store.controller.dto.response.factory.DTOFactory;
 import org.commonprovenance.framework.store.controller.validator.IsUUID;
 import org.commonprovenance.framework.store.model.factory.ModelFactory;
-import org.commonprovenance.framework.store.service.OrganizationService;
+import org.commonprovenance.framework.store.service.persistence.OrganizationService;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;

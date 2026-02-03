@@ -1,8 +1,9 @@
-package org.commonprovenance.framework.store.service.impl;
+package org.commonprovenance.framework.store.service.persistence;
 
 import org.commonprovenance.framework.store.model.Document;
 import org.commonprovenance.framework.store.model.Format;
 import org.commonprovenance.framework.store.persistence.DocumentPersistence;
+import org.commonprovenance.framework.store.service.persistence.impl.DocumentServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -24,7 +25,7 @@ import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("Service - DocumentServiceImpl Specification")
-class DocumentServiceImplSpec {
+class DocumentServiceSpec {
 
   @Mock
   private DocumentPersistence documentRepository;
