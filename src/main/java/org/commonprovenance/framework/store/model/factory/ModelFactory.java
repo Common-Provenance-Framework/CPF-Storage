@@ -164,8 +164,7 @@ public class ModelFactory {
 
   public static Mono<Organization> toDomain(OrganizationFormDTO formDTO) {
     return MONO.makeSureNotNull(formDTO)
-        .map(ModelFactory::fromDto)
-        .map((Organization organization) -> organization.withId(UUID.randomUUID()));
+        .map(ModelFactory::fromDto);
   }
 
   public static Mono<UUID> toUUID(String uuid) {

@@ -2,6 +2,8 @@ package org.commonprovenance.framework.store.persistence.entity.factory;
 
 import static org.commonprovenance.framework.store.common.publisher.PublisherHelper.MONO;
 
+import java.util.UUID;
+
 import org.commonprovenance.framework.store.model.Document;
 import org.commonprovenance.framework.store.model.Organization;
 import org.commonprovenance.framework.store.persistence.entity.DocumentEntity;
@@ -19,7 +21,7 @@ public class EntityFactory {
 
   private static OrganizationEntity fromModel(Organization organization) {
     return new OrganizationEntity(
-        organization.getId().toString(),
+        organization.getId().map(UUID::toString).orElse(UUID.randomUUID().toString()),
         organization.getName(),
         organization.getClientCertificate(),
         organization.getIntermediateCertificates());

@@ -1,11 +1,14 @@
 package org.commonprovenance.framework.store.controller;
 
+import static org.commonprovenance.framework.store.common.publisher.PublisherHelper.MONO;
+
 import org.commonprovenance.framework.store.controller.dto.form.OrganizationFormDTO;
 import org.commonprovenance.framework.store.controller.dto.response.OrganizationResponseDTO;
 import org.commonprovenance.framework.store.controller.dto.response.factory.DTOFactory;
 import org.commonprovenance.framework.store.controller.validator.IsUUID;
 import org.commonprovenance.framework.store.model.factory.ModelFactory;
 import org.commonprovenance.framework.store.service.persistence.OrganizationService;
+import org.commonprovenance.framework.store.service.web.trustedParty.TrustedPartyService;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -24,15 +27,23 @@ import reactor.core.publisher.Mono;
 @RequestMapping("/api/v1/organizations")
 public class OrganizationController {
   private final OrganizationService organizationService;
+  private final TrustedPartyService trustedPartyService;
 
-  public OrganizationController(OrganizationService organizationService) {
+  public OrganizationController(
+      OrganizationService organizationService,
+      TrustedPartyService trustedPartyService) {
     this.organizationService = organizationService;
+    this.trustedPartyService = trustedPartyService;
   }
 
   @PostMapping()
   @NotNull
   public Mono<OrganizationResponseDTO> createOrganization(@Valid @RequestBody @NotNull OrganizationFormDTO body) {
+
     return ModelFactory.toDomain(body)
+        .flatMap(MONO.makeSureAsync(this.organizationService::notExists,
+            "Organization with name '" + body.getName() + "' already exists!"))
+        .flatMap(trustedPartyService::createOrganization)
         .flatMap(this.organizationService::storeOrganization)
         .flatMap(DTOFactory::toDTO);
   }

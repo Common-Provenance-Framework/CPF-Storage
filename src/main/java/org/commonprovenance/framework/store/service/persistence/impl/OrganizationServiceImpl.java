@@ -3,7 +3,6 @@ package org.commonprovenance.framework.store.service.persistence.impl;
 import static org.commonprovenance.framework.store.common.publisher.PublisherHelper.MONO;
 
 import java.util.UUID;
-
 import org.commonprovenance.framework.store.exceptions.NotFoundException;
 import org.commonprovenance.framework.store.model.Organization;
 import org.commonprovenance.framework.store.persistence.OrganizationPersistence;
@@ -16,6 +15,7 @@ import reactor.core.publisher.Mono;
 
 @Service
 public class OrganizationServiceImpl implements OrganizationService {
+
   private final OrganizationPersistence persistence;
 
   public OrganizationServiceImpl(OrganizationPersistence persistence) {
@@ -24,17 +24,24 @@ public class OrganizationServiceImpl implements OrganizationService {
 
   @NotNull
   public Mono<Organization> storeOrganization(@NotNull Organization organization) {
-    return this.persistence.create(organization);
+    return MONO.<Organization>makeSureNotNullWithMessage("Organization can not be null").apply(organization)
+        .flatMap(this.persistence::create);
   }
 
   @NotNull
   public Mono<Boolean> exists(@NotNull Organization organization) {
     return MONO.<Organization>makeSureNotNullWithMessage("Organization can not be null").apply(organization)
-        .flatMap(org -> (org.getId() != null)
-            ? this.getOrganizationById(org.getId())
-            : this.getOrganizationByName(org.getName()))
+        .map(Organization::getId)
+        .flatMap(Mono::justOrEmpty)
+        .flatMap(this::getOrganizationById)
+        .switchIfEmpty(this.getOrganizationByName(organization.getName()))
         .thenReturn(true)
         .onErrorResume(NotFoundException.class, _ -> Mono.just(false));
+  }
+
+  @Override
+  public @NotNull Mono<Boolean> notExists(@NotNull Organization organization) {
+    return exists(organization).map(result -> !result);
   }
 
   @NotNull

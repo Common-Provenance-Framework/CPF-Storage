@@ -16,6 +16,9 @@ public interface OrganizationService {
   Mono<Boolean> exists(@NotNull Organization organization);
 
   @NotNull
+  Mono<Boolean> notExists(@NotNull Organization organization);
+
+  @NotNull
   Flux<Organization> getAllOrganizations();
 
   @NotNull
