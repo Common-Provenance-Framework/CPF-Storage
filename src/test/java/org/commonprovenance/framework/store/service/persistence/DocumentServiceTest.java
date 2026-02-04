@@ -92,12 +92,12 @@ class DocumentServiceTest {
     StepVerifier.create(documentService.storeDocument(DocumentRepositoryStub.DOCUMENT_1))
         .assertNext(doc -> {
           assertEquals(
-              DocumentRepositoryStub.UUID_STR_1, doc.getId().toString(),
+              DocumentRepositoryStub.UUID_STR_1, doc.getId().map(UUID::toString).orElse("?uuid?"),
               "should have exact Id");
           assertEquals(DocumentRepositoryStub.BASE64_STRING_GRAPH_1, doc.getGraph(),
               "should have exact graph");
           assertEquals(
-              DocumentRepositoryStub.FORMAT_1.toString(), doc.getFormat().toString(),
+              DocumentRepositoryStub.FORMAT_1.toString(), doc.getFormat().map(Format::toString).orElse("?format?"),
               "should have exact format");
         })
         .verifyComplete();
@@ -133,11 +133,11 @@ class DocumentServiceTest {
 
     StepVerifier.create(documentService.getAllDocuments())
         .assertNext(doc -> {
-          assertEquals(DocumentRepositoryStub.UUID_STR_1, doc.getId().toString(),
+          assertEquals(DocumentRepositoryStub.UUID_STR_1, doc.getId().map(UUID::toString).orElse("?uuid?"),
               "should have exact id");
         })
         .assertNext(doc -> {
-          assertEquals(DocumentRepositoryStub.UUID_STR_2, doc.getId().toString(),
+          assertEquals(DocumentRepositoryStub.UUID_STR_2, doc.getId().map(UUID::toString).orElse("?uuid?"),
               "should have exact id");
         })
         .verifyComplete();
@@ -149,7 +149,7 @@ class DocumentServiceTest {
 
     StepVerifier.create(documentService.getDocumentById(DocumentRepositoryStub.UUID_1))
         .assertNext(doc -> {
-          assertEquals(DocumentRepositoryStub.UUID_STR_1, doc.getId().toString(),
+          assertEquals(DocumentRepositoryStub.UUID_STR_1, doc.getId().map(UUID::toString).orElse("?uuid?"),
               "should have exact id");
         })
         .verifyComplete();

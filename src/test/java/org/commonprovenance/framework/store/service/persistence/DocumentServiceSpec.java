@@ -1,5 +1,13 @@
 package org.commonprovenance.framework.store.service.persistence;
 
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import java.util.UUID;
+
 import org.commonprovenance.framework.store.model.Document;
 import org.commonprovenance.framework.store.model.Format;
 import org.commonprovenance.framework.store.persistence.DocumentPersistence;
@@ -15,13 +23,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
-import java.util.UUID;
-
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("Service - DocumentServiceImpl Specification")
@@ -68,9 +69,9 @@ class DocumentServiceSpec {
         .create(captor.capture());
 
     Document capturedEntity = captor.getValue();
-    assertTrue(capturedEntity.getId().equals(UUID_1)
+    assertTrue(capturedEntity.getId().map(UUID_1::equals).orElse(false)
         && capturedEntity.getGraph().equals(BASE64_STRING_GRAPH_1)
-        && capturedEntity.getFormat().equals(FORMAT_1),
+        && capturedEntity.getFormat().map(FORMAT_1::equals).orElse(false),
         "should be called with exact Document");
   }
 
