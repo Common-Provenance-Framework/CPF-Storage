@@ -34,7 +34,7 @@ class DocumentRepositorySpec {
   @Mock
   private DocumentRepository documentRepository;
 
-  private DocumentPersistenceImpl repository;
+  private DocumentPersistenceImpl documentPersistence;
 
   private final String TEST_ID_1 = "e3cf8742-b595-47f4-8aae-a1e94b62a856";
   private final String BASE64_STRING_GRAPH_1 = "AAAAQQAAAGIAAAByAAAAYQAAAGsAAABhAAAAIAAAAEQAAABhAAAAYgAAAHIAAABhAAAALgAAAC4=";
@@ -42,7 +42,7 @@ class DocumentRepositorySpec {
 
   @BeforeEach
   void setUp() {
-    repository = new DocumentPersistenceImpl(documentRepository);
+    documentPersistence = new DocumentPersistenceImpl(documentRepository);
   }
 
   @Test
@@ -58,7 +58,7 @@ class DocumentRepositorySpec {
       return Mono.just(argumentEntity);
     });
 
-    StepVerifier.create(repository.create(doucment))
+    StepVerifier.create(documentPersistence.create(doucment))
         .expectNextCount(1)
         .verifyComplete();
 
@@ -81,7 +81,7 @@ class DocumentRepositorySpec {
   void getAll_should_call_findAll_method_with_exact_paramters() {
     when(documentRepository.findAll()).thenReturn(Flux.empty());
 
-    StepVerifier.create(repository.getAll())
+    StepVerifier.create(documentPersistence.getAll())
         .expectNextCount(0)
         .verifyComplete();
 
@@ -97,7 +97,7 @@ class DocumentRepositorySpec {
   void getById_should_call_findById_method_with_exact_paramters() {
     when(documentRepository.findById(anyString())).thenReturn(Mono.empty());
 
-    StepVerifier.create(repository.getById(UUID.fromString(TEST_ID_1)))
+    StepVerifier.create(documentPersistence.getById(UUID.fromString(TEST_ID_1)))
         .expectNextCount(0)
         .verifyComplete();
 
@@ -116,7 +116,7 @@ class DocumentRepositorySpec {
   void deleteById_should_call_deleteById_method_with_exact_paramters_when_getbyid() {
     when(documentRepository.deleteById(anyString())).thenReturn(Mono.empty().then());
 
-    StepVerifier.create(repository.deleteById(UUID.fromString(TEST_ID_1)))
+    StepVerifier.create(documentPersistence.deleteById(UUID.fromString(TEST_ID_1)))
         .expectNextCount(0)
         .verifyComplete();
 
