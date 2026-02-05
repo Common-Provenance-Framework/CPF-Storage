@@ -8,7 +8,7 @@ import java.util.function.Function;
 import org.commonprovenance.framework.store.model.Organization;
 import org.commonprovenance.framework.store.model.factory.ModelFactory;
 import org.commonprovenance.framework.store.web.trustedParty.OrganizationClient;
-import org.commonprovenance.framework.store.web.trustedParty.client.TrustedPartyClient;
+import org.commonprovenance.framework.store.web.trustedParty.client.Client;
 import org.commonprovenance.framework.store.web.trustedParty.dto.form.OrganizationTPFormDTO;
 import org.commonprovenance.framework.store.web.trustedParty.dto.form.factory.DTOFactory;
 import org.commonprovenance.framework.store.web.trustedParty.dto.response.OrganizationTPResponseDTO;
@@ -20,29 +20,29 @@ import reactor.core.publisher.Mono;
 
 @Component
 public class OrganizationClientImpl implements OrganizationClient {
-  private final TrustedPartyClient trustedPartyClient;
+  private final Client client;
 
   public OrganizationClientImpl(
-      TrustedPartyClient client) {
-    this.trustedPartyClient = client;
+      Client client) {
+    this.client = client;
   }
 
   private Mono<OrganizationTPResponseDTO> postReq(OrganizationTPFormDTO body) {
-    return trustedPartyClient.sendPostRequest("/organizations", body, OrganizationTPResponseDTO.class);
+    return client.sendPostRequest("/organizations", body, OrganizationTPResponseDTO.class);
   }
 
   private Function<String, Mono<OrganizationTPResponseDTO>> getOneReq(String path) {
-    return (String value) -> trustedPartyClient.sendGetOneRequest(
+    return (String value) -> client.sendGetOneRequest(
         "/organizations/" + ((path.isBlank() || path == null) ? "" : "/" + value),
         OrganizationTPResponseDTO.class);
   }
 
   private Flux<OrganizationTPResponseDTO> getManyReq() {
-    return trustedPartyClient.sendGetManyRequest("/organizations", OrganizationTPResponseDTO.class);
+    return client.sendGetManyRequest("/organizations", OrganizationTPResponseDTO.class);
   }
 
   private Mono<OrganizationTPResponseDTO> deleteReq(String id) {
-    return trustedPartyClient.sendDeleteRequest("/organizations/" + id, OrganizationTPResponseDTO.class);
+    return client.sendDeleteRequest("/organizations/" + id, OrganizationTPResponseDTO.class);
   }
 
   @Override

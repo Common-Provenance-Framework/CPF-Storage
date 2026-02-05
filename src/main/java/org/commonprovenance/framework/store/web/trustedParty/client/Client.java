@@ -1,0 +1,22 @@
+package org.commonprovenance.framework.store.web.trustedParty.client;
+
+import java.util.function.Function;
+
+import org.springframework.web.reactive.function.client.WebClient;
+
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+
+public interface Client {
+  String getUrl();
+
+  <T> Mono<T> sendGetOneRequest(String uri, Class<T> responseType);
+
+  <T> Function<WebClient, Mono<T>> sendCustomGetOneRequest(String uri, Class<T> responseType);
+
+  <T> Flux<T> sendGetManyRequest(String uri, Class<T> responseType);
+
+  <T, B> Mono<T> sendPostRequest(String uri, B body, Class<T> responseType);
+
+  <T> Mono<T> sendDeleteRequest(String uri, Class<T> responseType);
+}

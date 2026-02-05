@@ -5,24 +5,26 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.function.Function;
 
-import org.commonprovenance.framework.store.web.trustedParty.client.TrustedPartyClient;
+import org.commonprovenance.framework.store.web.trustedParty.client.Client;
 import org.commonprovenance.framework.store.web.trustedParty.dto.form.OrganizationTPFormDTO;
 import org.commonprovenance.framework.store.web.trustedParty.dto.response.OrganizationTPResponseDTO;
 import org.commonprovenance.framework.store.web.trustedParty.dto.response.TokenTPResponseDTO;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
+import org.springframework.web.reactive.function.client.WebClient;
 
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @Profile("dummy")
 @Component
-public class TrustedPartyDummyClient implements TrustedPartyClient {
+public class ClientDummy implements Client {
   private static Map<String, OrganizationTPResponseDTO> organizations;
   private static Map<String, TokenTPResponseDTO> tokens;
 
-  public TrustedPartyDummyClient() {
+  public ClientDummy() {
     organizations = new HashMap<>();
     tokens = new HashMap<>();
   }
@@ -31,6 +33,20 @@ public class TrustedPartyDummyClient implements TrustedPartyClient {
     return Arrays.stream(uri.split("/"))
         .filter(s -> !s.isEmpty())
         .reduce((first, second) -> second);
+  }
+
+  @Override
+  public String getUrl() {
+    // ignore custom TP for now
+    // TODO: index etities by TP id
+    return "http://trusted-party.org/api/v1";
+  }
+
+  @Override
+  public <T> Function<WebClient, Mono<T>> sendCustomGetOneRequest(String uri, Class<T> responseType) {
+    // ignore custom TP for now
+    // TODO: index etities by TP id
+    return _ -> sendGetOneRequest(uri, responseType);
   }
 
   @Override

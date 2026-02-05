@@ -1,6 +1,9 @@
 package org.commonprovenance.framework.store.web.trustedParty.client.webFlux;
 
-import org.commonprovenance.framework.store.web.trustedParty.client.TrustedPartyClient;
+import java.util.function.Function;
+
+import org.commonprovenance.framework.store.web.trustedParty.client.Client;
+import org.commonprovenance.framework.store.web.trustedParty.client.webFlux.config.WebConfig;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -10,11 +13,34 @@ import reactor.core.publisher.Mono;
 
 @Component
 @Profile("live & webflux")
-public class TrustedPartyWebFluxClient implements TrustedPartyClient {
+public class ClientWebFlux implements Client {
   private final WebClient client;
+  private final WebConfig config;
 
-  public TrustedPartyWebFluxClient(WebClient client) {
+  public ClientWebFlux(WebClient client, WebConfig config) {
     this.client = client;
+    this.config = config;
+  }
+
+  @Override
+  public String getUrl() {
+    return this.config.getTrustedPartyUrl();
+  }
+
+  public <T> Function<WebClient, Mono<T>> sendCustomGetOneRequest(String uri, Class<T> responseType) {
+    return (WebClient customClient) -> customClient
+        .get()
+        .uri(uri)
+        .retrieve()
+        .bodyToMono(responseType);
+  }
+
+  public <T> Mono<T> sendCustomGetOneRequest(WebClient customClient, String uri, Class<T> responseType) {
+    return customClient
+        .get()
+        .uri(uri)
+        .retrieve()
+        .bodyToMono(responseType);
   }
 
   public <T> Mono<T> sendGetOneRequest(String uri, Class<T> responseType) {

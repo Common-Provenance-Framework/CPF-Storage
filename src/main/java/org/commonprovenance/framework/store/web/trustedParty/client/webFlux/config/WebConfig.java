@@ -17,16 +17,19 @@ public class WebConfig {
     this.env = env;
   }
 
-  @Bean
-  @NotNull
-  public WebClient webClient() {
-    String trustedPartyUrl = env.getProperty(
+  public String getTrustedPartyUrl() {
+    return env.getProperty(
         "spring.trusted-party.url",
         String.class,
         "http://127.0.0.1:8081/api/v1");
+  }
+
+  @Bean
+  @NotNull
+  public WebClient webClient() {
     return Objects.requireNonNull(
         WebClient.builder()
-            .baseUrl(trustedPartyUrl)
+            .baseUrl(this.getTrustedPartyUrl())
             .defaultHeader("Accept", "application/json")
             .build(),
         "Trusted Party client can not be null!");
