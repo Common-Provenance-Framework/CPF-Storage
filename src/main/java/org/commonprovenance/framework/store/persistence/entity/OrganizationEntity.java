@@ -1,40 +1,32 @@
-package org.commonprovenance.framework.store.model;
+package org.commonprovenance.framework.store.persistence.entity;
 
 import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
 
-public class Organization {
-  private final Optional<UUID> id;
+import org.commonprovenance.framework.store.common.dto.HasId;
+import org.springframework.data.neo4j.core.schema.Id;
+import org.springframework.data.neo4j.core.schema.Node;
+
+@Node("Organization")
+public class OrganizationEntity implements HasId {
+  @Id
+  private final String id;
   private final String name;
   private final String clientCertificate;
   private final List<String> intermediateCertificates;
 
-  public Organization(
-      UUID id,
+  public OrganizationEntity(
+      String id,
       String name,
       String clientCertificate,
       List<String> intermediateCertificates) {
-    this.id = Optional.ofNullable(id);
+    this.id = id;
     this.name = name;
     this.clientCertificate = clientCertificate;
     this.intermediateCertificates = intermediateCertificates;
   }
 
-  public Organization withId(UUID id) {
-    return new Organization(
-        id,
-        this.getName(),
-        this.getClientCertificate(),
-        this.getIntermediateCertificates());
-  }
-
-  public Organization withGeneratedId() {
-    return this.withId(this.getId().orElse(UUID.randomUUID()));
-  }
-
-  public Optional<UUID> getId() {
-    return id;
+  public String getId() {
+    return this.id;
   }
 
   public String getName() {
@@ -48,4 +40,5 @@ public class Organization {
   public List<String> getIntermediateCertificates() {
     return intermediateCertificates;
   }
+
 }

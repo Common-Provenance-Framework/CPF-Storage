@@ -8,7 +8,7 @@ import org.commonprovenance.framework.store.model.Token;
 import org.commonprovenance.framework.store.model.factory.ModelFactory;
 import org.commonprovenance.framework.store.web.trustedParty.TokenClient;
 import org.commonprovenance.framework.store.web.trustedParty.client.TrustedPartyClient;
-import org.commonprovenance.framework.store.web.trustedParty.dto.response.TokenResponseDTO;
+import org.commonprovenance.framework.store.web.trustedParty.dto.response.TokenTPResponseDTO;
 import org.springframework.stereotype.Component;
 
 import jakarta.validation.constraints.NotNull;
@@ -24,13 +24,13 @@ public class TokenClientImpl implements TokenClient {
     this.trustedPartyClient = client;
   }
 
-  private Mono<TokenResponseDTO> getOneReq(String id) {
+  private Mono<TokenTPResponseDTO> getOneReq(String id) {
     return trustedPartyClient.sendGetOneRequest("/tokens/" + id,
-        TokenResponseDTO.class);
+        TokenTPResponseDTO.class);
   }
 
-  private Flux<TokenResponseDTO> getManyReq() {
-    return trustedPartyClient.sendGetManyRequest("/tokens", TokenResponseDTO.class);
+  private Flux<TokenTPResponseDTO> getManyReq() {
+    return trustedPartyClient.sendGetManyRequest("/tokens", TokenTPResponseDTO.class);
   }
 
   @Override

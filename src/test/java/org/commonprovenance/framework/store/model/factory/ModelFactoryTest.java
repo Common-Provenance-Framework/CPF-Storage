@@ -32,17 +32,17 @@ public class ModelFactoryTest {
 
     StepVerifier.create(ModelFactory.toDomain(entity))
         .assertNext(doc -> {
-          assertEquals(testId, doc.getId());
-          assertEquals(Format.JSON, doc.getFormat());
+          assertEquals(testId, doc.getId().orElse(null));
+          assertEquals(Format.JSON, doc.getFormat().orElse(null));
           assertEquals(base64StringGraph, doc.getGraph());
         })
         .verifyComplete();
   }
 
   @Test
-  @DisplayName("ErrorPath - should return Mono with InternalApplicationException, if identifier is not valid UUID string")
-  void should_fail_identifier_InternalApplicationException() {
-    String testId = "identifier";
+  @DisplayName("ErrorPath - should return Mono with InternalApplicationException, if Id is not valid UUID string")
+  void should_fail_id_InternalApplicationException() {
+    String testId = "test_uuid";
     String base64StringGraph = "AAAAQQAAAGIAAAByAAAAYQAAAGsAAABhAAAAIAAAAEQAAABhAAAAYgAAAHIAAABhAAAALgAAAC4=";
     Format format = Format.JSON;
 
@@ -99,9 +99,9 @@ public class ModelFactoryTest {
 
     StepVerifier.create(ModelFactory.toDomain(formular))
         .assertNext(doc -> {
-          assertInstanceOf(UUID.class, doc.getId(),
-              "should have identifier which is UUID");
-          assertEquals(Format.JSON, doc.getFormat(),
+          assertInstanceOf(UUID.class, doc.getId().orElse(null),
+              "should have Id which is UUID");
+          assertEquals(Format.JSON, doc.getFormat().orElse(null),
               "should have exact format");
           assertEquals(base64StringGraph, doc.getGraph(),
               "should have exact graph");

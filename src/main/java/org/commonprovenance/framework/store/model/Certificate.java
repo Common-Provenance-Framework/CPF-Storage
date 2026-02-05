@@ -1,16 +1,17 @@
 package org.commonprovenance.framework.store.model;
 
-import java.util.Date;
+import java.time.ZonedDateTime;
+import java.util.Optional;
 import java.util.UUID;
 
 public class Certificate {
-  private final UUID id;
-  private final Organization organization;
+  private final Optional<UUID> id;
+  private final Optional<Organization> organization;
   private final String digest;
   private final String cert;
-  private final CertificateType type;
+  private final Optional<CertificateType> type;
   private final Boolean revoked;
-  private final Date received;
+  private final Optional<ZonedDateTime> received;
 
   public Certificate(
       UUID id,
@@ -19,21 +20,21 @@ public class Certificate {
       String cert,
       CertificateType type,
       Boolean revoked,
-      Date received) {
-    this.id = id;
-    this.organization = organization;
+      ZonedDateTime received) {
+    this.id = Optional.ofNullable(id);
+    this.organization = Optional.ofNullable(organization);
     this.digest = digest;
     this.cert = cert;
-    this.type = type;
+    this.type = Optional.ofNullable(type);
     this.revoked = revoked;
-    this.received = received;
+    this.received = Optional.ofNullable(received);
   }
 
-  public UUID getId() {
+  public Optional<UUID> getId() {
     return id;
   }
 
-  public Organization getOrganization() {
+  public Optional<Organization> getOrganization() {
     return organization;
   }
 
@@ -45,7 +46,7 @@ public class Certificate {
     return cert;
   }
 
-  public CertificateType getType() {
+  public Optional<CertificateType> getType() {
     return type;
   }
 
@@ -53,7 +54,7 @@ public class Certificate {
     return revoked;
   }
 
-  public Date getReceived() {
+  public Optional<ZonedDateTime> getReceived() {
     return received;
   }
 

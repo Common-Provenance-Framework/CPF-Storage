@@ -30,8 +30,8 @@ public class DTOFactoryTest {
 
     StepVerifier.create(DTOFactory.toDTO(document))
         .assertNext(response -> {
-          assertEquals(testId, response.getIdentifier(),
-              "response should have identifier field with exact value");
+          assertEquals(testId, response.getId(),
+              "response should have Id field with exact value");
           assertEquals(base64StringGraph, response.getGraph(),
               "response should have graph field with exact value");
           assertEquals(format, response.getFormat(),
@@ -44,7 +44,7 @@ public class DTOFactoryTest {
   @DisplayName("ErrorPath - should return Mono with exact error")
   void should_return_Mono_with_error() {
 
-    StepVerifier.create(DTOFactory.toDTO(null))
+    StepVerifier.create(DTOFactory.toDTO((Document) null))
         .expectErrorSatisfies(error -> {
           assertInstanceOf(InternalApplicationException.class, error);
           assertEquals("Input parameter can not be null.", error.getMessage());

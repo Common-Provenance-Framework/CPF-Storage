@@ -2,18 +2,18 @@ package org.commonprovenance.framework.store.controller.dto.response;
 
 public class DocumentResponseDTO {
 
-  private final String identifier;
+  private final String id;
   private final String graph;
   private final String format;
 
-  public DocumentResponseDTO(String identifier, String graph, String format) {
-    this.identifier = identifier;
+  public DocumentResponseDTO(String id, String graph, String format) {
+    this.id = id;
     this.graph = graph;
     this.format = format;
   }
 
-  public String getIdentifier() {
-    return identifier;
+  public String getId() {
+    return id;
   }
 
   public String getGraph() {

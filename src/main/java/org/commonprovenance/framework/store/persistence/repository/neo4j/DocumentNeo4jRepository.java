@@ -2,6 +2,7 @@ package org.commonprovenance.framework.store.persistence.repository.neo4j;
 
 import org.commonprovenance.framework.store.persistence.entity.DocumentEntity;
 import org.commonprovenance.framework.store.persistence.repository.DocumentRepository;
+import org.commonprovenance.framework.store.persistence.repository.neo4j.client.DocumentNeo4jRepositoryClient;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
 
@@ -11,30 +12,30 @@ import reactor.core.publisher.Mono;
 @Profile("live & neo4j")
 @Repository
 public class DocumentNeo4jRepository implements DocumentRepository {
-  private final IDocumentNeo4jRepository repository;
+  private final DocumentNeo4jRepositoryClient client;
 
   public DocumentNeo4jRepository(
-      IDocumentNeo4jRepository repository) {
-    this.repository = repository;
+      DocumentNeo4jRepositoryClient client) {
+    this.client = client;
   }
 
   @Override
   public Mono<DocumentEntity> save(DocumentEntity entity) {
-    return repository.save(entity);
+    return client.save(entity);
   }
 
   @Override
   public Flux<DocumentEntity> findAll() {
-    return repository.findAll();
+    return client.findAll();
   }
 
   @Override
   public Mono<DocumentEntity> findById(String id) {
-    return repository.findById(id);
+    return client.findById(id);
   }
 
   @Override
   public Mono<Void> deleteById(String id) {
-    return repository.deleteById(id);
+    return client.deleteById(id);
   }
 }

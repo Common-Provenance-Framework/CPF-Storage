@@ -1,33 +1,34 @@
 package org.commonprovenance.framework.store.model;
 
+import java.util.Optional;
 import java.util.UUID;
 
 public class Document {
-  private final UUID id;
+  private final Optional<UUID> id;
   private final String graph;
-  private final Format format;
+  private final Optional<Format> format;
 
   public Document(UUID id, String graph, Format format) {
-    this.id = id;
+    this.id = Optional.ofNullable(id);
     this.graph = graph;
-    this.format = format;
+    this.format = Optional.ofNullable(format);
   }
 
   public Document withId(UUID id) {
     return new Document(
         id,
         this.getGraph(),
-        this.getFormat());
+        this.getFormat().orElse(null));
   }
 
   public Document withFormat(Format format) {
     return new Document(
-        this.getId(),
+        this.getId().orElse(null),
         this.getGraph(),
         format);
   }
 
-  public UUID getId() {
+  public Optional<UUID> getId() {
     return id;
   }
 
@@ -35,7 +36,7 @@ public class Document {
     return graph;
   }
 
-  public Format getFormat() {
+  public Optional<Format> getFormat() {
     return format;
   }
 }

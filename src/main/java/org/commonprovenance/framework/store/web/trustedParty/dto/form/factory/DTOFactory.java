@@ -2,19 +2,23 @@ package org.commonprovenance.framework.store.web.trustedParty.dto.form.factory;
 
 import static org.commonprovenance.framework.store.common.publisher.PublisherHelper.MONO;
 
-import org.commonprovenance.framework.store.web.trustedParty.dto.form.OrganizationFormDTO;
+import org.commonprovenance.framework.store.model.Organization;
+import org.commonprovenance.framework.store.web.trustedParty.dto.form.OrganizationTPFormDTO;
 
 import reactor.core.publisher.Mono;
 
 public class DTOFactory {
-  private static OrganizationFormDTO fromModel(String name) {
-    return new OrganizationFormDTO(name);
+  private static OrganizationTPFormDTO fromModel(Organization model) {
+    return new OrganizationTPFormDTO(
+        model.getName(),
+        model.getClientCertificate(),
+        model.getIntermediateCertificates());
   }
 
   // ---
 
-  public static Mono<OrganizationFormDTO> toForm(String name) {
-    return MONO.<String>makeSureNotNullWithMessage("Organization name can not be null!").apply(name)
+  public static Mono<OrganizationTPFormDTO> toForm(Organization model) {
+    return MONO.<Organization>makeSureNotNullWithMessage("Organization model can not be null!").apply(model)
         .map(DTOFactory::fromModel);
   }
 }

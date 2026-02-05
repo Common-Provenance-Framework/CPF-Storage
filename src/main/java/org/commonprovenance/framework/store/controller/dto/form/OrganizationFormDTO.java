@@ -1,40 +1,24 @@
-package org.commonprovenance.framework.store.model;
+package org.commonprovenance.framework.store.controller.dto.form;
 
 import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
 
-public class Organization {
-  private final Optional<UUID> id;
+import jakarta.validation.constraints.NotBlank;
+
+public class OrganizationFormDTO {
+  @NotBlank(message = "Organization name should not be null or empty.")
   private final String name;
+  @NotBlank(message = "Organization client certificate should not be null or empty.")
   private final String clientCertificate;
+  @NotBlank(message = "Organization intermediate certificates should not be null or empty.")
   private final List<String> intermediateCertificates;
 
-  public Organization(
-      UUID id,
+  public OrganizationFormDTO(
       String name,
       String clientCertificate,
       List<String> intermediateCertificates) {
-    this.id = Optional.ofNullable(id);
     this.name = name;
     this.clientCertificate = clientCertificate;
     this.intermediateCertificates = intermediateCertificates;
-  }
-
-  public Organization withId(UUID id) {
-    return new Organization(
-        id,
-        this.getName(),
-        this.getClientCertificate(),
-        this.getIntermediateCertificates());
-  }
-
-  public Organization withGeneratedId() {
-    return this.withId(this.getId().orElse(UUID.randomUUID()));
-  }
-
-  public Optional<UUID> getId() {
-    return id;
   }
 
   public String getName() {
@@ -48,4 +32,5 @@ public class Organization {
   public List<String> getIntermediateCertificates() {
     return intermediateCertificates;
   }
+
 }

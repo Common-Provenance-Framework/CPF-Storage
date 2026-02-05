@@ -18,10 +18,14 @@ import reactor.core.publisher.Mono;
 public class DocumentDummyRepository implements DocumentRepository {
   private static Map<String, DocumentEntity> documents = new HashMap<>();
 
+  private void add(DocumentEntity entity) {
+    documents.put(entity.getId(), entity);
+  }
+
   @Override
   public Mono<DocumentEntity> save(DocumentEntity entity) {
     return MONO.makeSureNotNull(entity)
-        .doOnNext(d -> documents.put(d.getId(), d));
+        .doOnNext(this::add);
   }
 
   @Override

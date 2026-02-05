@@ -1,4 +1,4 @@
-package org.commonprovenance.framework.store.service;
+package org.commonprovenance.framework.store.service.persistence;
 
 import org.commonprovenance.framework.store.model.Document;
 
@@ -14,8 +14,8 @@ public interface DocumentService {
   Flux<Document> getAllDocuments();
 
   @NotNull
-  Mono<Document> getDocumentById(@NotNull java.util.UUID identifier);
+  Mono<Document> getDocumentById(@NotNull java.util.UUID id);
 
   @NotNull
-  Mono<Void> deleteDocumentById(@NotNull java.util.UUID identifier);
+  Mono<Void> deleteDocumentById(@NotNull java.util.UUID id);
 }

@@ -1,40 +1,19 @@
-package org.commonprovenance.framework.store.model;
+package org.commonprovenance.framework.store.web.trustedParty.dto.form;
 
 import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
 
-public class Organization {
-  private final Optional<UUID> id;
+public class OrganizationTPFormDTO {
   private final String name;
   private final String clientCertificate;
   private final List<String> intermediateCertificates;
 
-  public Organization(
-      UUID id,
+  public OrganizationTPFormDTO(
       String name,
       String clientCertificate,
       List<String> intermediateCertificates) {
-    this.id = Optional.ofNullable(id);
     this.name = name;
     this.clientCertificate = clientCertificate;
     this.intermediateCertificates = intermediateCertificates;
-  }
-
-  public Organization withId(UUID id) {
-    return new Organization(
-        id,
-        this.getName(),
-        this.getClientCertificate(),
-        this.getIntermediateCertificates());
-  }
-
-  public Organization withGeneratedId() {
-    return this.withId(this.getId().orElse(UUID.randomUUID()));
-  }
-
-  public Optional<UUID> getId() {
-    return id;
   }
 
   public String getName() {
@@ -48,4 +27,5 @@ public class Organization {
   public List<String> getIntermediateCertificates() {
     return intermediateCertificates;
   }
+
 }

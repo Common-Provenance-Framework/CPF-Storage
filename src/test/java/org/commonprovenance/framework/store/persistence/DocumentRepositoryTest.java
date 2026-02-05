@@ -64,8 +64,8 @@ class DocumentRepositoryTest {
 
     StepVerifier.create(repository.create(document))
         .assertNext(doc -> {
-          assertEquals(TEST_ID_1, doc.getId().toString());
-          assertEquals(FORMAT_1, doc.getFormat().toString());
+          assertEquals(TEST_ID_1, doc.getId().map(UUID::toString).orElse("?uuid?"));
+          assertEquals(FORMAT_1, doc.getFormat().map(Format::toString).orElse("?format?"));
           assertEquals(BASE64_STRING_GRAPH_1, doc.getGraph());
         })
         .verifyComplete();
@@ -166,16 +166,20 @@ class DocumentRepositoryTest {
         .assertNext(doc -> {
           assertInstanceOf(Document.class, doc, "should return Document");
 
-          assertEquals(TEST_ID_1, doc.getId().toString(), "should return document with exact id");
+          assertEquals(TEST_ID_1, doc.getId().map(UUID::toString).orElse("?uuid?"),
+              "should return document with exact id");
           assertEquals(BASE64_STRING_GRAPH_1, doc.getGraph(), "should return document with exact graph");
-          assertEquals(FORMAT_1, doc.getFormat().toString(), "should return document with exact format");
+          assertEquals(FORMAT_1, doc.getFormat().map(Format::toString).orElse("?format?"),
+              "should return document with exact format");
         })
         .assertNext(doc -> {
           assertInstanceOf(Document.class, doc, "should return Document");
 
-          assertEquals(TEST_ID_2, doc.getId().toString(), "should return document with exact id");
+          assertEquals(TEST_ID_2, doc.getId().map(UUID::toString).orElse("?uuid?"),
+              "should return document with exact id");
           assertEquals(BASE64_STRING_GRAPH_2, doc.getGraph(), "should return document with exact graph");
-          assertEquals(FORMAT_2, doc.getFormat().toString(), "should return document with exact format");
+          assertEquals(FORMAT_2, doc.getFormat().map(Format::toString).orElse("?format?"),
+              "should return document with exact format");
         })
         .verifyComplete();
   }
@@ -201,9 +205,11 @@ class DocumentRepositoryTest {
         .assertNext(doc -> {
           assertInstanceOf(Document.class, doc, "should return Document");
 
-          assertEquals(TEST_ID_1, doc.getId().toString(), "should return document with exact id");
+          assertEquals(TEST_ID_1, doc.getId().map(UUID::toString).orElse("?uuid?"),
+              "should return document with exact id");
           assertEquals(BASE64_STRING_GRAPH_1, doc.getGraph(), "should return document with exact graph");
-          assertEquals(FORMAT_1, doc.getFormat().toString(), "should return document with exact format");
+          assertEquals(FORMAT_1, doc.getFormat().map(Format::toString).orElse("?format?"),
+              "should return document with exact format");
         })
         .verifyComplete();
   }
@@ -239,7 +245,7 @@ class DocumentRepositoryTest {
               InternalApplicationException.class, err,
               "should be InternalApplicationException - Exception");
           assertEquals(
-              "Identifier can not be 'null'!",
+              "Document Id can not be 'null'!",
               err.getMessage(),
               "should have exact error message");
 
@@ -277,7 +283,7 @@ class DocumentRepositoryTest {
               InternalApplicationException.class, err,
               "should be InternalApplicationException - Exception");
           assertEquals(
-              "Identifier can not be 'null'!",
+              "Document Id can not be 'null'!",
               err.getMessage(),
               "should have exact error message");
 

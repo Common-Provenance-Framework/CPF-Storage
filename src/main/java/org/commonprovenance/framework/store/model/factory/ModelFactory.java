@@ -12,15 +12,17 @@ import org.commonprovenance.framework.store.common.dto.HasHashFunction;
 import org.commonprovenance.framework.store.common.dto.HasId;
 import org.commonprovenance.framework.store.common.utils.Validators;
 import org.commonprovenance.framework.store.controller.dto.form.DocumentFormDTO;
+import org.commonprovenance.framework.store.controller.dto.form.OrganizationFormDTO;
 import org.commonprovenance.framework.store.model.Document;
 import org.commonprovenance.framework.store.model.Format;
 import org.commonprovenance.framework.store.model.HashFunction;
 import org.commonprovenance.framework.store.model.Organization;
 import org.commonprovenance.framework.store.model.Token;
 import org.commonprovenance.framework.store.persistence.entity.DocumentEntity;
-import org.commonprovenance.framework.store.web.trustedParty.dto.response.DocumentResponseDTO;
-import org.commonprovenance.framework.store.web.trustedParty.dto.response.OrganizationResponseDTO;
-import org.commonprovenance.framework.store.web.trustedParty.dto.response.TokenResponseDTO;
+import org.commonprovenance.framework.store.persistence.entity.OrganizationEntity;
+import org.commonprovenance.framework.store.web.trustedParty.dto.response.DocumentTPResponseDTO;
+import org.commonprovenance.framework.store.web.trustedParty.dto.response.OrganizationTPResponseDTO;
+import org.commonprovenance.framework.store.web.trustedParty.dto.response.TokenTPResponseDTO;
 
 import reactor.core.publisher.Mono;
 
@@ -72,7 +74,7 @@ public class ModelFactory {
     return new Document(null, dto.getGraph(), null);
   }
 
-  private static Document fromDto(DocumentResponseDTO dto) {
+  private static Document fromDto(DocumentTPResponseDTO dto) {
     return new Document(null, dto.getGraph(), null);
   }
 
@@ -80,11 +82,30 @@ public class ModelFactory {
     return new Document(null, document.getGraph(), null);
   }
 
-  private static Organization fromDto(OrganizationResponseDTO dto) {
-    return new Organization(null, dto.getName());
+  private static Organization fromPersistance(OrganizationEntity organization) {
+    return new Organization(null,
+        organization.getName(),
+        organization.getClientCertificate(),
+        organization.getIntermediateCertificates());
   }
 
-  private static Token fromDto(TokenResponseDTO dto) {
+  private static Organization fromDto(OrganizationTPResponseDTO dto) {
+    return new Organization(
+        null,
+        dto.getName(),
+        dto.getClientCertificate(),
+        dto.getIntermediateCertificates());
+  }
+
+  private static Organization fromDto(OrganizationFormDTO dto) {
+    return new Organization(
+        null,
+        dto.getName(),
+        dto.getClientCertificate(),
+        dto.getIntermediateCertificates());
+  }
+
+  private static Token fromDto(TokenTPResponseDTO dto) {
     return new Token(
         null,
         null,
@@ -96,20 +117,20 @@ public class ModelFactory {
 
   // ---
   // Trusted Party
-  public static Mono<Organization> toDomain(OrganizationResponseDTO dto) {
+  public static Mono<Organization> toDomain(OrganizationTPResponseDTO dto) {
     return MONO.makeSureNotNull(dto)
         .map(ModelFactory::fromDto)
         .flatMap((Organization organization) -> ModelFactory.getId(dto).map(organization::withId));
   }
 
-  public static Mono<Document> toDomain(DocumentResponseDTO dto) {
+  public static Mono<Document> toDomain(DocumentTPResponseDTO dto) {
     return MONO.makeSureNotNull(dto)
         .map(ModelFactory::fromDto)
         .flatMap((Document document) -> ModelFactory.getId(dto).map(document::withId))
         .flatMap((Document document) -> ModelFactory.getFormat(dto).map(document::withFormat));
   }
 
-  public static Mono<Token> toDomain(TokenResponseDTO dto) {
+  public static Mono<Token> toDomain(TokenTPResponseDTO dto) {
     return MONO.makeSureNotNull(dto)
         .map(ModelFactory::fromDto)
         .flatMap((Token token) -> ModelFactory.getId(dto).map(token::withId))
@@ -127,12 +148,23 @@ public class ModelFactory {
 
   }
 
+  public static Mono<Organization> toDomain(OrganizationEntity entity) {
+    return MONO.makeSureNotNull(entity)
+        .map(ModelFactory::fromPersistance)
+        .flatMap((Organization organization) -> ModelFactory.getId(entity).map(organization::withId));
+  }
+
   // Controller
   public static Mono<Document> toDomain(DocumentFormDTO formDTO) {
     return MONO.makeSureNotNull(formDTO)
         .map(ModelFactory::fromDto)
         .map((Document document) -> document.withId(UUID.randomUUID()))
         .flatMap((Document document) -> ModelFactory.getFormat(formDTO).map(document::withFormat));
+  }
+
+  public static Mono<Organization> toDomain(OrganizationFormDTO formDTO) {
+    return MONO.makeSureNotNull(formDTO)
+        .map(ModelFactory::fromDto);
   }
 
   public static Mono<UUID> toUUID(String uuid) {

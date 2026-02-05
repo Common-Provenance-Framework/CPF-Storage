@@ -1,16 +1,17 @@
-package org.commonprovenance.framework.store.web.trustedParty;
+package org.commonprovenance.framework.store.persistence;
 
 import java.util.UUID;
 
 import org.commonprovenance.framework.store.model.Organization;
 
 import jakarta.validation.constraints.NotNull;
+
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-public interface OrganizationClient {
+public interface OrganizationPersistence {
   @NotNull
-  Mono<Organization> create(@NotNull Organization organization);
+  Mono<Organization> create(@NotNull Organization document);
 
   @NotNull
   Flux<Organization> getAll();

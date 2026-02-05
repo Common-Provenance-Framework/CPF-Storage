@@ -1,4 +1,4 @@
-package org.commonprovenance.framework.store.service.impl;
+package org.commonprovenance.framework.store.service.persistence;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
@@ -7,6 +7,7 @@ import org.commonprovenance.framework.store.exceptions.InternalApplicationExcept
 import org.commonprovenance.framework.store.model.Document;
 import org.commonprovenance.framework.store.model.Format;
 import org.commonprovenance.framework.store.persistence.DocumentPersistence;
+import org.commonprovenance.framework.store.service.persistence.impl.DocumentServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -19,19 +20,19 @@ import java.util.UUID;
 
 @DisplayName("Service - DocumentServiceImpl UnitTest")
 
-class DocumentServiceImplTest {
+class DocumentServiceTest {
   private class DocumentRepositoryStub implements DocumentPersistence {
-    final static String IDENTIFIER_STR_1 = "e3cf8742-b595-47f4-8aae-a1e94b62a856";
-    final static UUID IDENTIFIER_1 = UUID.fromString(IDENTIFIER_STR_1);
+    final static String UUID_STR_1 = "e3cf8742-b595-47f4-8aae-a1e94b62a856";
+    final static UUID UUID_1 = UUID.fromString(UUID_STR_1);
     final static String BASE64_STRING_GRAPH_1 = "AAAAQQAAAGIAAAByAAAAYQAAAGsAAABhAAAAIAAAAEQAAABhAAAAYgAAAHIAAABhAAAALgAAAC4=";
     final static Format FORMAT_1 = Format.JSON;
-    final static Document DOCUMENT_1 = new Document(IDENTIFIER_1, BASE64_STRING_GRAPH_1, FORMAT_1);
+    final static Document DOCUMENT_1 = new Document(UUID_1, BASE64_STRING_GRAPH_1, FORMAT_1);
 
-    final static String IDENTIFIER_STR_2 = "dc3b1fc8-d01e-4405-8cf8-94320a11ba4c";
-    final static UUID IDENTIFIER_2 = UUID.fromString(IDENTIFIER_STR_2);
+    final static String UUID_STR_2 = "dc3b1fc8-d01e-4405-8cf8-94320a11ba4c";
+    final static UUID UUID_2 = UUID.fromString(UUID_STR_2);
     final static String BASE64_STRING_GRAPH_2 = "AAAASAAAAGUAAABsAAAAbAAAAG8AAAAgAAAAVwAAAG8AAAByAAAAbAAAAGQAAAAh";
     final static Format FORMAT_2 = Format.JSON;
-    final static Document DOCUMENT_2 = new Document(IDENTIFIER_2, BASE64_STRING_GRAPH_2, FORMAT_2);
+    final static Document DOCUMENT_2 = new Document(UUID_2, BASE64_STRING_GRAPH_2, FORMAT_2);
 
     @Override
     public Mono<Document> create(Document document) {
@@ -47,17 +48,17 @@ class DocumentServiceImplTest {
     }
 
     @Override
-    public Mono<Document> getById(UUID identifier) {
-      if (identifier == null)
+    public Mono<Document> getById(UUID uuid) {
+      if (uuid == null)
         return Mono.error(new InternalApplicationException(
             "DocumentNeo4jRepository - Error while reading document",
             new IllegalArgumentException(
-                "Identifier can not be 'null'!")));
+                "Id can not be 'null'!")));
 
-      switch (identifier.toString()) {
-        case IDENTIFIER_STR_1:
+      switch (uuid.toString()) {
+        case UUID_STR_1:
           return Mono.just(DOCUMENT_1);
-        case IDENTIFIER_STR_2:
+        case UUID_STR_2:
           return Mono.just(DOCUMENT_2);
         default:
           return Mono.empty();
@@ -65,7 +66,7 @@ class DocumentServiceImplTest {
     }
 
     @Override
-    public Mono<Void> deleteById(UUID identifier) {
+    public Mono<Void> deleteById(UUID uuid) {
       return Mono.empty().then();
     }
 
@@ -75,7 +76,7 @@ class DocumentServiceImplTest {
 
   private DocumentServiceImpl documentService;
 
-  public DocumentServiceImplTest() {
+  public DocumentServiceTest() {
     this.documentRepository = new DocumentRepositoryStub();
   }
 
@@ -91,12 +92,12 @@ class DocumentServiceImplTest {
     StepVerifier.create(documentService.storeDocument(DocumentRepositoryStub.DOCUMENT_1))
         .assertNext(doc -> {
           assertEquals(
-              DocumentRepositoryStub.IDENTIFIER_STR_1, doc.getId().toString(),
-              "should have exact identifier");
+              DocumentRepositoryStub.UUID_STR_1, doc.getId().map(UUID::toString).orElse("?uuid?"),
+              "should have exact Id");
           assertEquals(DocumentRepositoryStub.BASE64_STRING_GRAPH_1, doc.getGraph(),
               "should have exact graph");
           assertEquals(
-              DocumentRepositoryStub.FORMAT_1.toString(), doc.getFormat().toString(),
+              DocumentRepositoryStub.FORMAT_1.toString(), doc.getFormat().map(Format::toString).orElse("?format?"),
               "should have exact format");
         })
         .verifyComplete();
@@ -132,11 +133,11 @@ class DocumentServiceImplTest {
 
     StepVerifier.create(documentService.getAllDocuments())
         .assertNext(doc -> {
-          assertEquals(DocumentRepositoryStub.IDENTIFIER_STR_1, doc.getId().toString(),
+          assertEquals(DocumentRepositoryStub.UUID_STR_1, doc.getId().map(UUID::toString).orElse("?uuid?"),
               "should have exact id");
         })
         .assertNext(doc -> {
-          assertEquals(DocumentRepositoryStub.IDENTIFIER_STR_2, doc.getId().toString(),
+          assertEquals(DocumentRepositoryStub.UUID_STR_2, doc.getId().map(UUID::toString).orElse("?uuid?"),
               "should have exact id");
         })
         .verifyComplete();
@@ -146,9 +147,9 @@ class DocumentServiceImplTest {
   @DisplayName("HappyPath - getDocumentById - should return Mono with exact document from repository.")
   void getDocumentById_should_return_mono_with_exact_document() {
 
-    StepVerifier.create(documentService.getDocumentById(DocumentRepositoryStub.IDENTIFIER_1))
+    StepVerifier.create(documentService.getDocumentById(DocumentRepositoryStub.UUID_1))
         .assertNext(doc -> {
-          assertEquals(DocumentRepositoryStub.IDENTIFIER_STR_1, doc.getId().toString(),
+          assertEquals(DocumentRepositoryStub.UUID_STR_1, doc.getId().map(UUID::toString).orElse("?uuid?"),
               "should have exact id");
         })
         .verifyComplete();
@@ -182,7 +183,7 @@ class DocumentServiceImplTest {
               err.getCause(),
               "should be NullPointerException - Exception cause");
           assertEquals(
-              "Identifier can not be 'null'!",
+              "Id can not be 'null'!",
               err.getCause().getMessage(),
               "should have exact error message");
         });
@@ -193,7 +194,7 @@ class DocumentServiceImplTest {
 
   void deleteDocumentById_should_delete_document() {
 
-    StepVerifier.create(documentService.deleteDocumentById(DocumentRepositoryStub.IDENTIFIER_1))
+    StepVerifier.create(documentService.deleteDocumentById(DocumentRepositoryStub.UUID_1))
         .verifyComplete();
   }
 }
