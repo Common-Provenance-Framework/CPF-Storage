@@ -5,6 +5,7 @@ import static org.commonprovenance.framework.store.common.publisher.PublisherHel
 import java.time.ZonedDateTime;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.function.Function;
 
 import org.commonprovenance.framework.store.common.dto.HasCreated;
 import org.commonprovenance.framework.store.common.dto.HasFormat;
@@ -18,11 +19,13 @@ import org.commonprovenance.framework.store.model.Format;
 import org.commonprovenance.framework.store.model.HashFunction;
 import org.commonprovenance.framework.store.model.Organization;
 import org.commonprovenance.framework.store.model.Token;
+import org.commonprovenance.framework.store.model.TrustedParty;
 import org.commonprovenance.framework.store.persistence.entity.DocumentEntity;
 import org.commonprovenance.framework.store.persistence.entity.OrganizationEntity;
 import org.commonprovenance.framework.store.web.trustedParty.dto.response.DocumentTPResponseDTO;
 import org.commonprovenance.framework.store.web.trustedParty.dto.response.OrganizationTPResponseDTO;
 import org.commonprovenance.framework.store.web.trustedParty.dto.response.TokenTPResponseDTO;
+import org.commonprovenance.framework.store.web.trustedParty.dto.response.TrustedPartyTPResponseDTO;
 
 import reactor.core.publisher.Mono;
 
@@ -115,6 +118,12 @@ public class ModelFactory {
         null);
   }
 
+  private static TrustedParty fromDto(TrustedPartyTPResponseDTO dto) {
+    return new TrustedParty(
+        dto.getName(),
+        dto.getCertificate());
+  }
+
   // ---
   // Trusted Party
   public static Mono<Organization> toDomain(OrganizationTPResponseDTO dto) {
@@ -137,6 +146,19 @@ public class ModelFactory {
         .flatMap((Token token) -> ModelFactory.toDomain(dto.getDocument()).map(token::withDocument))
         .flatMap((Token token) -> ModelFactory.getHashFunction(dto).map(token::withHashFunction))
         .flatMap((Token token) -> ModelFactory.getCreated(dto).map(token::withCreated));
+  }
+
+  public static Function<TrustedPartyTPResponseDTO, Mono<TrustedParty>> toDomain(String url) {
+    return (TrustedPartyTPResponseDTO dto) -> MONO.makeSureNotNull(dto)
+        .map(ModelFactory::fromDto)
+        .flatMap((TrustedParty trustedParty) -> ModelFactory.getId(dto).map(trustedParty::withId))
+        .map((TrustedParty trustedParty) -> trustedParty.withUrl(url));
+  }
+
+  public static Mono<TrustedParty> toDomain(TrustedPartyTPResponseDTO dto) {
+    return MONO.makeSureNotNull(dto)
+        .map(ModelFactory::fromDto)
+        .flatMap((TrustedParty trustedParty) -> ModelFactory.getId(dto).map(trustedParty::withId));
   }
 
   // Persistence
