@@ -8,7 +8,7 @@ import java.util.UUID;
 import java.util.function.Function;
 
 import org.commonprovenance.framework.store.web.trustedParty.client.Client;
-import org.commonprovenance.framework.store.web.trustedParty.dto.form.OrganizationTPFormDTO;
+import org.commonprovenance.framework.store.web.trustedParty.dto.form.RegisterOrganizationTPFormDTO;
 import org.commonprovenance.framework.store.web.trustedParty.dto.response.OrganizationTPResponseDTO;
 import org.commonprovenance.framework.store.web.trustedParty.dto.response.TokenTPResponseDTO;
 import org.springframework.context.annotation.Profile;
@@ -81,7 +81,7 @@ public class ClientDummy implements Client {
   public <T, B> Function<B, Mono<T>> sendPostRequest(String uri, Class<T> responseType) {
     if (responseType.equals(OrganizationTPResponseDTO.class)) {
       return (B body) -> {
-        if (body instanceof OrganizationTPFormDTO orgForm) {
+        if (body instanceof RegisterOrganizationTPFormDTO orgForm) {
           OrganizationTPResponseDTO dto = new OrganizationTPResponseDTO(
               UUID.randomUUID().toString(),
               orgForm.getName(),

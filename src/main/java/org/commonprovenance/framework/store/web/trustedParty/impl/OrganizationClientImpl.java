@@ -9,7 +9,7 @@ import org.commonprovenance.framework.store.model.Organization;
 import org.commonprovenance.framework.store.model.factory.ModelFactory;
 import org.commonprovenance.framework.store.web.trustedParty.OrganizationClient;
 import org.commonprovenance.framework.store.web.trustedParty.client.Client;
-import org.commonprovenance.framework.store.web.trustedParty.dto.form.OrganizationTPFormDTO;
+import org.commonprovenance.framework.store.web.trustedParty.dto.form.RegisterOrganizationTPFormDTO;
 import org.commonprovenance.framework.store.web.trustedParty.dto.form.factory.DTOFactory;
 import org.commonprovenance.framework.store.web.trustedParty.dto.response.OrganizationTPResponseDTO;
 import org.springframework.stereotype.Component;
@@ -27,7 +27,7 @@ public class OrganizationClientImpl implements OrganizationClient {
     this.client = client;
   }
 
-  private Mono<OrganizationTPResponseDTO> postReq(OrganizationTPFormDTO body) {
+  private Mono<OrganizationTPResponseDTO> postReq(RegisterOrganizationTPFormDTO body) {
     return client.sendPostRequest("/organizations", OrganizationTPResponseDTO.class)
         .apply(body);
   }

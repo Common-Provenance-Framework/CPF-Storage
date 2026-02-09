@@ -4,18 +4,18 @@ import java.util.List;
 
 import org.commonprovenance.framework.store.common.validation.ValidatableDTO;
 
-public class OrganizationTPFormDTO extends ValidatableDTO {
+public class RegisterOrganizationTPFormDTO extends ValidatableDTO {
   private final String name;
   private final String clientCertificate;
   private final List<String> intermediateCertificates;
 
-  public OrganizationTPFormDTO() {
+  public RegisterOrganizationTPFormDTO() {
     this.name = null;
     this.clientCertificate = null;
     this.intermediateCertificates = null;
   }
 
-  public OrganizationTPFormDTO(
+  public RegisterOrganizationTPFormDTO(
       String name,
       String clientCertificate,
       List<String> intermediateCertificates) {

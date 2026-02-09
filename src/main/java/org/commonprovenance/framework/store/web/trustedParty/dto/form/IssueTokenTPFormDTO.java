@@ -2,14 +2,14 @@ package org.commonprovenance.framework.store.web.trustedParty.dto.form;
 
 import org.commonprovenance.framework.store.common.validation.ValidatableDTO;
 
-public class TokenTPFormDTO extends ValidatableDTO {
+public class IssueTokenTPFormDTO extends ValidatableDTO {
   private final String organizationId;
   private final String document;
   private final String documentFormat;
   private final String type;
   private final String createdOn;
 
-  public TokenTPFormDTO() {
+  public IssueTokenTPFormDTO() {
     this.organizationId = null;
     this.document = null;
     this.documentFormat = null;
@@ -17,7 +17,7 @@ public class TokenTPFormDTO extends ValidatableDTO {
     this.createdOn = null;
   }
 
-  public TokenTPFormDTO(
+  public IssueTokenTPFormDTO(
       String organizationId,
       String document,
       String documentFormat,
@@ -30,8 +30,8 @@ public class TokenTPFormDTO extends ValidatableDTO {
     this.createdOn = createdOn;
   }
 
-  public TokenTPFormDTO withOrganizationId(String id) {
-    return new TokenTPFormDTO(
+  public IssueTokenTPFormDTO withOrganizationId(String id) {
+    return new IssueTokenTPFormDTO(
         id,
         this.getDocument(),
         this.getDocumentFormat(),
@@ -39,8 +39,8 @@ public class TokenTPFormDTO extends ValidatableDTO {
         this.getCreatedOn());
   }
 
-  public TokenTPFormDTO withDocument(String graph) {
-    return new TokenTPFormDTO(
+  public IssueTokenTPFormDTO withDocument(String graph) {
+    return new IssueTokenTPFormDTO(
         this.getOrganizationId(),
         graph,
         this.getDocumentFormat(),
@@ -48,8 +48,8 @@ public class TokenTPFormDTO extends ValidatableDTO {
         this.getCreatedOn());
   }
 
-  public TokenTPFormDTO withDocumentFormat(String format) {
-    return new TokenTPFormDTO(
+  public IssueTokenTPFormDTO withDocumentFormat(String format) {
+    return new IssueTokenTPFormDTO(
         this.getOrganizationId(),
         this.getDocument(),
         format,
@@ -57,8 +57,8 @@ public class TokenTPFormDTO extends ValidatableDTO {
         this.getCreatedOn());
   }
 
-  public TokenTPFormDTO withGraphType(String type) {
-    return new TokenTPFormDTO(
+  public IssueTokenTPFormDTO withGraphType(String type) {
+    return new IssueTokenTPFormDTO(
         this.getOrganizationId(),
         this.getDocument(),
         this.getDocumentFormat(),
