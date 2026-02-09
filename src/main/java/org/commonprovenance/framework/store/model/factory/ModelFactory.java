@@ -3,6 +3,7 @@ package org.commonprovenance.framework.store.model.factory;
 import static org.commonprovenance.framework.store.common.publisher.PublisherHelper.MONO;
 
 import java.time.ZonedDateTime;
+import java.util.Collections;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Function;
@@ -95,9 +96,9 @@ public class ModelFactory {
   private static Organization fromDto(OrganizationTPResponseDTO dto) {
     return new Organization(
         null,
-        dto.getName(),
-        dto.getClientCertificate(),
-        dto.getIntermediateCertificates());
+        dto.getId(),
+        dto.getCertificate(),
+        Collections.emptyList());
   }
 
   private static Organization fromDto(OrganizationFormDTO dto) {
@@ -128,8 +129,9 @@ public class ModelFactory {
   // Trusted Party
   public static Mono<Organization> toDomain(OrganizationTPResponseDTO dto) {
     return MONO.makeSureNotNull(dto)
-        .map(ModelFactory::fromDto)
-        .flatMap((Organization organization) -> ModelFactory.getId(dto).map(organization::withId));
+        .map(ModelFactory::fromDto);
+    // .flatMap((Organization organization) ->
+    // ModelFactory.getId(dto).map(organization::withId));
   }
 
   public static Mono<Document> toDomain(DocumentTPResponseDTO dto) {
