@@ -35,14 +35,6 @@ public class ClientWebFlux implements Client {
         .bodyToMono(responseType);
   }
 
-  public <T> Mono<T> sendCustomGetOneRequest(WebClient customClient, String uri, Class<T> responseType) {
-    return customClient
-        .get()
-        .uri(uri)
-        .retrieve()
-        .bodyToMono(responseType);
-  }
-
   public <T> Mono<T> sendGetOneRequest(String uri, Class<T> responseType) {
     return this.client.get()
         .uri(uri)
@@ -57,8 +49,17 @@ public class ClientWebFlux implements Client {
         .bodyToFlux(responseType);
   }
 
-  public <T, B> Mono<T> sendPostRequest(String uri, B body, Class<T> responseType) {
-    return this.client.post()
+  public <T, B> Function<B, Mono<T>> sendPostRequest(String uri, Class<T> responseType) {
+    return (B body) -> this.client.post()
+        .uri(uri)
+        .bodyValue(body)
+        .retrieve()
+        .bodyToMono(responseType);
+  }
+
+  public <T, B> Function<WebClient, Function<B, Mono<T>>> sendCustomPostRequest(String uri, Class<T> responseType) {
+    return (WebClient customClient) -> (B body) -> customClient
+        .post()
         .uri(uri)
         .bodyValue(body)
         .retrieve()

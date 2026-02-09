@@ -16,7 +16,9 @@ public interface Client {
 
   <T> Flux<T> sendGetManyRequest(String uri, Class<T> responseType);
 
-  <T, B> Mono<T> sendPostRequest(String uri, B body, Class<T> responseType);
+  <T, B> Function<B, Mono<T>> sendPostRequest(String uri, Class<T> responseType);
+
+  <T, B> Function<WebClient, Function<B, Mono<T>>> sendCustomPostRequest(String uri, Class<T> responseType);
 
   <T> Mono<T> sendDeleteRequest(String uri, Class<T> responseType);
 }

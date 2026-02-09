@@ -46,7 +46,7 @@ public class ClientDummy implements Client {
   public <T> Function<WebClient, Mono<T>> sendCustomGetOneRequest(String uri, Class<T> responseType) {
     // ignore custom TP for now
     // TODO: index etities by TP id
-    return _ -> sendGetOneRequest(uri, responseType);
+    return (WebClient _) -> sendGetOneRequest(uri, responseType);
   }
 
   @Override
@@ -78,19 +78,29 @@ public class ClientDummy implements Client {
   }
 
   @Override
-  public <T, B> Mono<T> sendPostRequest(String uri, B body, Class<T> responseType) {
-    if (responseType.equals(OrganizationTPResponseDTO.class)
-        && body instanceof OrganizationTPFormDTO orgForm) {
-      OrganizationTPResponseDTO dto = new OrganizationTPResponseDTO(
-          UUID.randomUUID().toString(),
-          orgForm.getName(),
-          orgForm.getClientCertificate(),
-          orgForm.getIntermediateCertificates());
-      organizations.put(dto.getId(), dto);
-      return Mono.just(dto).map(responseType::cast);
+  public <T, B> Function<B, Mono<T>> sendPostRequest(String uri, Class<T> responseType) {
+    if (responseType.equals(OrganizationTPResponseDTO.class)) {
+      return (B body) -> {
+        if (body instanceof OrganizationTPFormDTO orgForm) {
+          OrganizationTPResponseDTO dto = new OrganizationTPResponseDTO(
+              UUID.randomUUID().toString(),
+              orgForm.getName(),
+              orgForm.getClientCertificate(),
+              orgForm.getIntermediateCertificates());
+          organizations.put(dto.getId(), dto);
+          return Mono.just(dto).map(responseType::cast);
+        }
+        return Mono.empty();
+      };
     }
+    return _ -> Mono.empty();
+  }
 
-    return Mono.empty();
+  @Override
+  public <T, B> Function<WebClient, Function<B, Mono<T>>> sendCustomPostRequest(String uri, Class<T> responseType) {
+    // ignore custom TP for now
+    // TODO: index etities by TP id
+    return (WebClient _) -> sendPostRequest(uri, responseType);
   }
 
   @Override

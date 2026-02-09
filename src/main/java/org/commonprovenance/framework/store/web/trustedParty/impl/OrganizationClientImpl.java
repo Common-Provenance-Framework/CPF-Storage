@@ -28,7 +28,8 @@ public class OrganizationClientImpl implements OrganizationClient {
   }
 
   private Mono<OrganizationTPResponseDTO> postReq(OrganizationTPFormDTO body) {
-    return client.sendPostRequest("/organizations", body, OrganizationTPResponseDTO.class);
+    return client.sendPostRequest("/organizations", OrganizationTPResponseDTO.class)
+        .apply(body);
   }
 
   private Function<String, Mono<OrganizationTPResponseDTO>> getOneReq(String path) {
