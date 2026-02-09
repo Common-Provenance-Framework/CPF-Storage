@@ -120,7 +120,7 @@ public class ModelFactory {
 
   private static TrustedParty fromDto(TrustedPartyTPResponseDTO dto) {
     return new TrustedParty(
-        dto.getName(),
+        dto.getId(),
         dto.getCertificate());
   }
 
