@@ -1,0 +1,8 @@
+# Retrieves a specific document
+
+@organization_id=ORG2
+@document_id=http://prov-storage-2:8000/api/v1/organizations/ORG2/documents/ProcessingBundle_V0
+
+
+GET http://{{$dotenv TRUSTED_PARTY_HOST}}:{{$dotenv TRUSTED_PARTY_PORT}}/api/v1/organizations/{{organization_id}}/tokens HTTP/1.1
+Accept: application/json

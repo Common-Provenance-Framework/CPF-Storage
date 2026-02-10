@@ -1,0 +1,7 @@
+# Retrieves all tokens of all documents of the organization
+
+@organization_id=ORG2
+
+
+GET http://{{$dotenv TRUSTED_PARTY_HOST}}:{{$dotenv TRUSTED_PARTY_PORT}}/api/v1/organizations/{{organization_id}}/tokens HTTP/1.1
+Accept: application/json
