@@ -1,17 +1,21 @@
 package org.commonprovenance.framework.store.web.trustedParty;
 
-import java.util.UUID;
-
+import org.commonprovenance.framework.store.model.Format;
 import org.commonprovenance.framework.store.model.Token;
+import org.openprovenance.prov.model.QualifiedName;
+
 import jakarta.validation.constraints.NotNull;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 public interface TokenClient {
   @NotNull
-  Flux<Token> getAll();
+  Flux<Token> getAllByOrganization(@NotNull String organizationId);
 
   @NotNull
-  Mono<Token> getById(@NotNull UUID id);
+  Mono<Token> getByDocumentId(
+      @NotNull String organizationId,
+      @NotNull QualifiedName bundle_identifier,
+      @NotNull Format documentFormat);
 
 }
