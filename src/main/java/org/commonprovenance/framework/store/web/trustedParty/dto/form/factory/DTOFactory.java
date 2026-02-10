@@ -82,7 +82,7 @@ public class DTOFactory {
         addSignature.apply(model)));
   }
 
-  private static UnaryOperator<VerifySignatureTPFormDTO> verifySigFormFromTokenModel(Document model) {
+  private static UnaryOperator<VerifySignatureTPFormDTO> verifySigFormFromDocumentModel(Document model) {
     Function<Document, UnaryOperator<VerifySignatureTPFormDTO>> fromTokenSig = document -> form -> Optional
         .ofNullable(document)
         .map(Document::getSignature)
@@ -136,7 +136,7 @@ public class DTOFactory {
         new VerifySignatureTPFormDTO(),
         List.of(
             addOrganizationId(organization),
-            verifySigFormFromTokenModel(document))))
+            verifySigFormFromDocumentModel(document))))
         .flatMap(MONO::validateDTO);
   }
 }

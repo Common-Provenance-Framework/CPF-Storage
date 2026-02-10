@@ -4,7 +4,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-import java.util.UUID;
 import java.util.function.Function;
 
 import org.commonprovenance.framework.store.web.trustedParty.client.Client;
@@ -83,10 +82,8 @@ public class ClientDummy implements Client {
       return (B body) -> {
         if (body instanceof RegisterOrganizationTPFormDTO orgForm) {
           OrganizationTPResponseDTO dto = new OrganizationTPResponseDTO(
-              UUID.randomUUID().toString(),
-              orgForm.getName(),
-              orgForm.getClientCertificate(),
-              orgForm.getIntermediateCertificates());
+              orgForm.getOrganizationId(),
+              orgForm.getClientCertificate());
           organizations.put(dto.getId(), dto);
           return Mono.just(dto).map(responseType::cast);
         }

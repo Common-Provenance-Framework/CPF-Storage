@@ -18,4 +18,9 @@ public interface TrustedPartyClient {
       Document document,
       GraphType type,
       Optional<String> trustedPartyUrl);
+
+  Mono<Boolean> verifySignature(
+      Organization organization,
+      Document document,
+      Optional<String> trustedPartyUrl);
 }

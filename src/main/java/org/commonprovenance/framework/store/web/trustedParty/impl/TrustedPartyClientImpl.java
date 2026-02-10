@@ -55,4 +55,13 @@ public class TrustedPartyClientImpl implements TrustedPartyClient {
         .flatMap(ModelFactory::toDomain);
   }
 
+  @Override
+  public Mono<Boolean> verifySignature(Organization organization, Document document, Optional<String> trustedPartyUrl) {
+    return DTOFactory.toForm(organization, document)
+        .flatMap(trustedPartyUrl
+            .map(this::buildWebClient)
+            .map(this.client.sendCustomPostRequest("/verifySignature", TokenTPResponseDTO.class))
+            .orElse(this.client.sendPostRequest("/verifySignature", TokenTPResponseDTO.class)))
+        .then(Mono.just(true));
+  }
 }
