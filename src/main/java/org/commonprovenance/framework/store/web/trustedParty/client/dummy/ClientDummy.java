@@ -120,4 +120,16 @@ public class ClientDummy implements Client {
         })
         .map(responseType::cast);
   }
+
+  @Override
+  public <T, B> Function<B, Mono<T>> sendPutRequest(String uri, Class<T> responseType) {
+    // TODO Auto-generated method stub
+    throw new UnsupportedOperationException("Unimplemented method 'sendPutRequest'");
+  }
+
+  @Override
+  public <T, B> Function<WebClient, Function<B, Mono<T>>> sendCustomPutRequest(String uri, Class<T> responseType) {
+    // TODO Auto-generated method stub
+    throw new UnsupportedOperationException("Unimplemented method 'sendCustomPutRequest'");
+  }
 }

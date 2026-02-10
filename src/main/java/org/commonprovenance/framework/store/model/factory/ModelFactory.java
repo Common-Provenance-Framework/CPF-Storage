@@ -21,6 +21,7 @@ import org.commonprovenance.framework.store.model.Token;
 import org.commonprovenance.framework.store.model.TrustedParty;
 import org.commonprovenance.framework.store.persistence.entity.DocumentEntity;
 import org.commonprovenance.framework.store.persistence.entity.OrganizationEntity;
+import org.commonprovenance.framework.store.web.trustedParty.dto.response.CertificateTPResponseDTO;
 import org.commonprovenance.framework.store.web.trustedParty.dto.response.DocumentTPResponseDTO;
 import org.commonprovenance.framework.store.web.trustedParty.dto.response.OrganizationTPResponseDTO;
 import org.commonprovenance.framework.store.web.trustedParty.dto.response.TokenTPResponseDTO;
@@ -102,6 +103,14 @@ public class ModelFactory {
         Collections.emptyList());
   }
 
+  private static Organization fromDto(CertificateTPResponseDTO dto) {
+    return new Organization(
+        null,
+        dto.getId(),
+        dto.getCertificate(),
+        Collections.emptyList());
+  }
+
   private static Organization fromDto(OrganizationFormDTO dto) {
     return new Organization(
         null,
@@ -128,6 +137,11 @@ public class ModelFactory {
   // ---
   // Trusted Party
   public static Mono<Organization> toDomain(OrganizationTPResponseDTO dto) {
+    return MONO.makeSureNotNull(dto)
+        .map(ModelFactory::fromDto);
+  }
+
+  public static Mono<Organization> toDomain(CertificateTPResponseDTO dto) {
     return MONO.makeSureNotNull(dto)
         .map(ModelFactory::fromDto);
   }

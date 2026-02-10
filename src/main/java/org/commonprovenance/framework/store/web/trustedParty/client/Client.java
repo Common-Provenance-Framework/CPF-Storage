@@ -20,5 +20,9 @@ public interface Client {
 
   <T, B> Function<WebClient, Function<B, Mono<T>>> sendCustomPostRequest(String uri, Class<T> responseType);
 
+  <T, B> Function<B, Mono<T>> sendPutRequest(String uri, Class<T> responseType);
+
+  <T, B> Function<WebClient, Function<B, Mono<T>>> sendCustomPutRequest(String uri, Class<T> responseType);
+
   <T> Mono<T> sendDeleteRequest(String uri, Class<T> responseType);
 }

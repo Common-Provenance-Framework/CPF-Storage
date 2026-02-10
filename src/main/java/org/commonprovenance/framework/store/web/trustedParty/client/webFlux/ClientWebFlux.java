@@ -66,10 +66,28 @@ public class ClientWebFlux implements Client {
         .bodyToMono(responseType);
   }
 
+  public <T, B> Function<B, Mono<T>> sendPutRequest(String uri, Class<T> responseType) {
+    return (B body) -> this.client.put()
+        .uri(uri)
+        .bodyValue(body)
+        .retrieve()
+        .bodyToMono(responseType);
+  }
+
+  public <T, B> Function<WebClient, Function<B, Mono<T>>> sendCustomPutRequest(String uri, Class<T> responseType) {
+    return (WebClient customClient) -> (B body) -> customClient
+        .put()
+        .uri(uri)
+        .bodyValue(body)
+        .retrieve()
+        .bodyToMono(responseType);
+  }
+
   public <T> Mono<T> sendDeleteRequest(String uri, Class<T> responseType) {
-    return this.client.post()
+    return this.client.delete()
         .uri(uri)
         .retrieve()
         .bodyToMono(responseType);
   }
+
 }
