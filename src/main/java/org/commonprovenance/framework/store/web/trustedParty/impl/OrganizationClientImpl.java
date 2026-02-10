@@ -2,7 +2,6 @@ package org.commonprovenance.framework.store.web.trustedParty.impl;
 
 import static org.commonprovenance.framework.store.common.publisher.PublisherHelper.MONO;
 
-import java.util.UUID;
 import java.util.function.Function;
 
 import org.commonprovenance.framework.store.model.Organization;
@@ -61,25 +60,16 @@ public class OrganizationClientImpl implements OrganizationClient {
   }
 
   @Override
-  public @NotNull Mono<Organization> getById(@NotNull UUID id) {
-    return MONO.<UUID>makeSureNotNullWithMessage("Organization id can not be null!").apply(id)
-        .map(UUID::toString)
+  public @NotNull Mono<Organization> getById(@NotNull String id) {
+    return MONO.<String>makeSureNotNullWithMessage("Organization id can not be null!").apply(id)
         .flatMap(this.getOneReq(""))
         .flatMap(ModelFactory::toDomain);
   }
 
   @Override
-  public @NotNull Mono<Organization> getByName(@NotNull String name) {
-    return MONO.<String>makeSureNotNullWithMessage("Organization name can not be null!").apply(name)
-        .flatMap(this.getOneReq("name"))
-        .flatMap(ModelFactory::toDomain);
-  }
-
-  @Override
-  public @NotNull Mono<Void> deleteById(@NotNull UUID id) {
+  public @NotNull Mono<Void> deleteById(@NotNull String id) {
     return Mono.just(id)
         .flatMap(MONO.makeSureNotNullWithMessage("Organization id can not be null!"))
-        .map(UUID::toString)
         .flatMap(this::deleteReq)
         .then();
   }

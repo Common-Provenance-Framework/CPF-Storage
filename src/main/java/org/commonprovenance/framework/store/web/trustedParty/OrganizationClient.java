@@ -1,7 +1,5 @@
 package org.commonprovenance.framework.store.web.trustedParty;
 
-import java.util.UUID;
-
 import org.commonprovenance.framework.store.model.Organization;
 
 import jakarta.validation.constraints.NotNull;
@@ -16,11 +14,8 @@ public interface OrganizationClient {
   Flux<Organization> getAll();
 
   @NotNull
-  Mono<Organization> getById(@NotNull UUID id);
+  Mono<Organization> getById(@NotNull String id);
 
   @NotNull
-  Mono<Organization> getByName(@NotNull String name);
-
-  @NotNull
-  Mono<Void> deleteById(@NotNull UUID id);
+  Mono<Void> deleteById(@NotNull String id);
 }
