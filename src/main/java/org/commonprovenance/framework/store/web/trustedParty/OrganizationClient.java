@@ -8,7 +8,7 @@ import reactor.core.publisher.Mono;
 
 public interface OrganizationClient {
   @NotNull
-  Mono<Organization> create(@NotNull Organization organization);
+  Mono<Boolean> create(@NotNull Organization organization);
 
   @NotNull
   Flux<Organization> getAll();

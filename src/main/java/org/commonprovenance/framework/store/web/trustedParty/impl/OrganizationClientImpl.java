@@ -46,11 +46,11 @@ public class OrganizationClientImpl implements OrganizationClient {
   }
 
   @Override
-  public @NotNull Mono<Organization> create(@NotNull Organization organization) {
+  public @NotNull Mono<Boolean> create(@NotNull Organization organization) {
     return Mono.just(organization)
         .flatMap(DTOFactory::toForm)
         .flatMap(this::postReq)
-        .flatMap(ModelFactory::toDomain);
+        .thenReturn(true);
   }
 
   @Override
