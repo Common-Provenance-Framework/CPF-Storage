@@ -26,10 +26,9 @@ public class TrustedPartyServiceImpl implements TrustedPartyService {
   @Override
   public Mono<Boolean> exists(Organization organization) {
     return MONO.<Organization>makeSureNotNullWithMessage("Organization can not be null!").apply(organization)
-        .map(Organization::getId)
+        .map(Organization::getName)
         .flatMap(Mono::justOrEmpty)
         .flatMap(this.organizationClient::getById)
-        .switchIfEmpty(this.organizationClient.getByName(organization.getName()))
         .thenReturn(true)
         .switchIfEmpty(Mono.just(false))
         .onErrorResume(NotFoundException.class, _ -> Mono.just(false));
