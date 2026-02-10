@@ -24,11 +24,13 @@ public class ModelFactoryTest {
     UUID testId = UUID.randomUUID();
     String base64StringGraph = "AAAAQQAAAGIAAAByAAAAYQAAAGsAAABhAAAAIAAAAEQAAABhAAAAYgAAAHIAAABhAAAALgAAAC4=";
     Format format = Format.JSON;
+    String signature = "..";
 
     DocumentEntity entity = new DocumentEntity(
         testId.toString(),
         base64StringGraph,
-        format.toString());
+        format.toString(),
+        signature);
 
     StepVerifier.create(ModelFactory.toDomain(entity))
         .assertNext(doc -> {
@@ -45,11 +47,13 @@ public class ModelFactoryTest {
     String testId = "test_uuid";
     String base64StringGraph = "AAAAQQAAAGIAAAByAAAAYQAAAGsAAABhAAAAIAAAAEQAAABhAAAAYgAAAHIAAABhAAAALgAAAC4=";
     Format format = Format.JSON;
+    String signature = "..";
 
     DocumentEntity entity = new DocumentEntity(
         testId,
         base64StringGraph,
-        format.toString());
+        format.toString(),
+        signature);
 
     StepVerifier.create(ModelFactory.toDomain(entity))
         .expectErrorMatches(error -> error instanceof InternalApplicationException
@@ -64,11 +68,13 @@ public class ModelFactoryTest {
     UUID testId = UUID.randomUUID();
     String base64StringGraph = "AAAAQQAAAGIAAAByAAAAYQAAAGsAAABhAAAAIAAAAEQAAABhAAAAYgAAAHIAAABhAAAALgAAAC4=";
     String format = "unknown";
+    String signature = "..";
 
     DocumentEntity entity = new DocumentEntity(
         testId.toString(),
         base64StringGraph,
-        format);
+        format,
+        signature);
 
     StepVerifier.create(ModelFactory.toDomain(entity))
         .expectErrorMatches(error -> error instanceof InternalApplicationException
@@ -94,8 +100,9 @@ public class ModelFactoryTest {
   void should_map_DocumentFormDTO_to_Document() {
     String base64StringGraph = "AAAAQQAAAGIAAAByAAAAYQAAAGsAAABhAAAAIAAAAEQAAABhAAAAYgAAAHIAAABhAAAALgAAAC4=";
     String format = "JSON";
+    String signature = "..";
 
-    DocumentFormDTO formular = new DocumentFormDTO(base64StringGraph, format);
+    DocumentFormDTO formular = new DocumentFormDTO(base64StringGraph, format, signature);
 
     StepVerifier.create(ModelFactory.toDomain(formular))
         .assertNext(doc -> {
@@ -127,8 +134,9 @@ public class ModelFactoryTest {
   void should_terminate_with_error_if_unsupported_format() {
     String base64StringGraph = "AAAAQQAAAGIAAAByAAAAYQAAAGsAAABhAAAAIAAAAEQAAABhAAAAYgAAAHIAAABhAAAALgAAAC4=";
     String format = "unknownFormat";
+    String signature = "..";
 
-    StepVerifier.create(ModelFactory.toDomain(new DocumentFormDTO(base64StringGraph, format)))
+    StepVerifier.create(ModelFactory.toDomain(new DocumentFormDTO(base64StringGraph, format, signature)))
         .expectErrorSatisfies(error -> {
           assertInstanceOf(InternalApplicationException.class, error);
           assertEquals("Format '" + format + "' is not valid Document format.", error.getMessage());

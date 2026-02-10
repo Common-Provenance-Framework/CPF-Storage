@@ -1,29 +1,19 @@
 package org.commonprovenance.framework.store.web.trustedParty.dto.response;
 
-import org.commonprovenance.framework.store.common.dto.HasFormat;
-import org.commonprovenance.framework.store.common.dto.HasId;
+public class DocumentTPResponseDTO {
+  private final String document;
+  private final String signature;
 
-public class DocumentTPResponseDTO implements HasId, HasFormat {
-  private final String id;
-  private final String graph;
-  private final String format;
-
-  public DocumentTPResponseDTO(String id, String graph, String format) {
-    this.id = id;
-    this.graph = graph;
-    this.format = format;
+  public DocumentTPResponseDTO(String document, String signature) {
+    this.document = document;
+    this.signature = signature;
   }
 
-  public String getId() {
-    return id;
+  public String getDocument() {
+    return document;
   }
 
-  public String getGraph() {
-    return graph;
+  public String getSignature() {
+    return signature;
   }
-
-  public String getFormat() {
-    return format;
-  }
-
 }

@@ -2,30 +2,40 @@ package org.commonprovenance.framework.store.web.trustedParty.dto.form;
 
 import java.util.List;
 
+import org.commonprovenance.framework.store.common.dto.HasOrganizationId;
 import org.commonprovenance.framework.store.common.validation.ValidatableDTO;
 
-public class RegisterOrganizationTPFormDTO extends ValidatableDTO {
-  private final String name;
+public class RegisterOrganizationTPFormDTO extends ValidatableDTO
+    implements HasOrganizationId<RegisterOrganizationTPFormDTO> {
+  private final String organizationId;
   private final String clientCertificate;
   private final List<String> intermediateCertificates;
 
   public RegisterOrganizationTPFormDTO() {
-    this.name = null;
+    this.organizationId = null;
     this.clientCertificate = null;
     this.intermediateCertificates = null;
   }
 
   public RegisterOrganizationTPFormDTO(
-      String name,
+      String organizationId,
       String clientCertificate,
       List<String> intermediateCertificates) {
-    this.name = name;
+    this.organizationId = organizationId;
     this.clientCertificate = clientCertificate;
     this.intermediateCertificates = intermediateCertificates;
   }
 
-  public String getName() {
-    return name;
+  @Override
+  public RegisterOrganizationTPFormDTO withOrganizationId(String id) {
+    return new RegisterOrganizationTPFormDTO(
+        id,
+        this.getClientCertificate(),
+        this.getIntermediateCertificates());
+  }
+
+  public String getOrganizationId() {
+    return organizationId;
   }
 
   public String getClientCertificate() {

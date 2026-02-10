@@ -21,9 +21,12 @@ public class DocumentFormDTO implements HasFormat {
   @IsValueOfEnum(enumClass = Format.class, message = "Invalid format.")
   private final String format;
 
-  public DocumentFormDTO(String graph, String format) {
+  private final String signature;
+
+  public DocumentFormDTO(String graph, String format, String signature) {
     this.graph = graph;
     this.format = format;
+    this.signature = signature;
   }
 
   public String getGraph() {
@@ -32,5 +35,9 @@ public class DocumentFormDTO implements HasFormat {
 
   public String getFormat() {
     return format;
+  }
+
+  public String getSignature() {
+    return signature;
   }
 }

@@ -20,11 +20,13 @@ class EntityFactoryTest {
     String testId = "6ee9d79b-0615-4cb1-b0f3-2303d10c8cff";
     String base64StringGraph = "AAAAQQAAAGIAAAByAAAAYQAAAGsAAABhAAAAIAAAAEQAAABhAAAAYgAAAHIAAABhAAAALgAAAC4=";
     String format = "JSON";
+    String signature = "...";
 
     Document document = new Document(
         UUID.fromString(testId),
         base64StringGraph,
-        Format.from(format).get());
+        Format.from(format).get(),
+        signature);
 
     StepVerifier.create(EntityFactory.toEntity(document))
         .assertNext(entity -> {
