@@ -28,6 +28,12 @@ public class OrganizationServiceImpl implements OrganizationService {
         .flatMap(this.persistence::create);
   }
 
+  @Override
+  public @NotNull Mono<Organization> updateOrganization(@NotNull Organization organization) {
+    return MONO.<Organization>makeSureNotNullWithMessage("Organization can not be null").apply(organization)
+        .flatMap(this.persistence::update);
+  }
+
   @NotNull
   public Mono<Boolean> exists(@NotNull Organization organization) {
     return MONO.<Organization>makeSureNotNullWithMessage("Organization can not be null").apply(organization)
@@ -63,4 +69,5 @@ public class OrganizationServiceImpl implements OrganizationService {
   public Mono<Void> deleteOrganizationById(@NotNull UUID id) {
     return this.persistence.deleteById(id);
   }
+
 }
