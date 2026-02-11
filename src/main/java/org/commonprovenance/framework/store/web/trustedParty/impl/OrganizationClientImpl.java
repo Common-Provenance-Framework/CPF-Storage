@@ -3,6 +3,7 @@ package org.commonprovenance.framework.store.web.trustedParty.impl;
 import static org.commonprovenance.framework.store.common.publisher.PublisherHelper.MONO;
 
 import java.util.Optional;
+import java.util.function.Function;
 
 import org.commonprovenance.framework.store.model.Organization;
 import org.commonprovenance.framework.store.model.factory.ModelFactory;
@@ -26,10 +27,8 @@ public class OrganizationClientImpl implements OrganizationClient {
   }
 
   @Override
-  public @NotNull Mono<Organization> create(
-      @NotNull Organization organization,
-      Optional<String> trustedPartyUrl) {
-    return Mono.just(organization)
+  public @NotNull Function<Organization, Mono<Organization>> create(Optional<String> trustedPartyUrl) {
+    return (Organization organization) -> Mono.just(organization)
         .flatMap(DTOFactory::toForm)
         .flatMap(trustedPartyUrl
             .map(this.client::buildWebClient)
@@ -48,10 +47,9 @@ public class OrganizationClientImpl implements OrganizationClient {
   }
 
   @Override
-  public @NotNull Mono<Organization> getById(
-      @NotNull String organizationId,
-      Optional<String> trustedPartyUrl) {
-    return MONO.<String>makeSureNotNullWithMessage("Organization id can not be null!").apply(organizationId)
+  public @NotNull Function<String, Mono<Organization>> getById(Optional<String> trustedPartyUrl) {
+    return (String organizationId) -> MONO.<String>makeSureNotNullWithMessage("Organization id can not be null!")
+        .apply(organizationId)
         .flatMap((String id) -> trustedPartyUrl
             .map(this.client::buildWebClient)
             .map(this.client.sendCustomGetOneRequest("/organizations/" + id, OrganizationTPResponseDTO.class))
@@ -59,16 +57,4 @@ public class OrganizationClientImpl implements OrganizationClient {
         .flatMap(ModelFactory::toDomain);
   }
 
-  @Override
-  public @NotNull Mono<Void> deleteById(
-      @NotNull String organizationId,
-      Optional<String> trustedPartyUrl) {
-    return Mono.just(organizationId)
-        .flatMap((String id) -> trustedPartyUrl
-            .map(this.client::buildWebClient)
-            .map(this.client.sendCustomDeleteRequest("/organizations/" + id, OrganizationTPResponseDTO.class))
-            .orElse(this.client.sendDeleteRequest("/organizations/" + id, OrganizationTPResponseDTO.class)))
-        .flatMap(MONO.makeSureNotNullWithMessage("Organization id can not be null!"))
-        .then();
-  }
 }

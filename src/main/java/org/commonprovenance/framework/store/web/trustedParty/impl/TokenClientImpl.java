@@ -3,6 +3,7 @@ package org.commonprovenance.framework.store.web.trustedParty.impl;
 import static org.commonprovenance.framework.store.common.publisher.PublisherHelper.MONO;
 
 import java.util.Optional;
+import java.util.function.Function;
 
 import org.commonprovenance.framework.store.model.Format;
 import org.commonprovenance.framework.store.model.Token;
@@ -31,10 +32,8 @@ public class TokenClientImpl implements TokenClient {
   }
 
   @Override
-  public @NotNull Flux<Token> getAllByOrganization(
-      @NotNull String organizationId,
-      Optional<String> trustedPartyUrl) {
-    return Mono.just(organizationId)
+  public @NotNull Function<String, Flux<Token>> getAllByOrganization(Optional<String> trustedPartyUrl) {
+    return (@NotNull String organizationId) -> Mono.just(organizationId)
         .flatMap(MONO.makeSureNotNullWithMessage("Organization id can not be null!"))
         .flatMapMany((String orgId) -> trustedPartyUrl
             .map(this.client::buildWebClient)

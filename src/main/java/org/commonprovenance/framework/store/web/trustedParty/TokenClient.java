@@ -1,6 +1,7 @@
 package org.commonprovenance.framework.store.web.trustedParty;
 
 import java.util.Optional;
+import java.util.function.Function;
 
 import org.commonprovenance.framework.store.model.Format;
 import org.commonprovenance.framework.store.model.Token;
@@ -12,9 +13,7 @@ import reactor.core.publisher.Mono;
 
 public interface TokenClient {
   @NotNull
-  Flux<Token> getAllByOrganization(
-      @NotNull String organizationId,
-      Optional<String> trustedPartyUrl);
+  Function<String, Flux<Token>> getAllByOrganization(Optional<String> trustedPartyUrl);
 
   @NotNull
   Mono<Token> getByDocumentId(

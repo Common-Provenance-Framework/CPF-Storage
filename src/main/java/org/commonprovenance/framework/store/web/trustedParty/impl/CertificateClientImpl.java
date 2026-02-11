@@ -4,6 +4,7 @@ import static org.commonprovenance.framework.store.common.publisher.PublisherHel
 
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Function;
 
 import org.commonprovenance.framework.store.model.Organization;
 import org.commonprovenance.framework.store.model.factory.ModelFactory;
@@ -30,10 +31,9 @@ public class CertificateClientImpl implements CertificateClient {
   }
 
   @Override
-  public @NotNull Mono<Organization> getOrganizationCertificate(
-      @NotNull String organizationId,
-      Optional<String> trustedPartyUrl) {
-    return MONO.<String>makeSureNotNullWithMessage("Organization id can not be null!").apply(organizationId)
+  public @NotNull Function<String, Mono<Organization>> getOrganizationCertificate(Optional<String> trustedPartyUrl) {
+    return (@NotNull String organizationId) -> MONO
+        .<String>makeSureNotNullWithMessage("Organization id can not be null!").apply(organizationId)
         .flatMap((String id) -> {
           return trustedPartyUrl
               .map(this.client::buildWebClient)

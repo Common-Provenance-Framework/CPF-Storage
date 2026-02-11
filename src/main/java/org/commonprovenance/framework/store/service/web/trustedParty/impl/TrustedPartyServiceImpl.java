@@ -2,6 +2,8 @@ package org.commonprovenance.framework.store.service.web.trustedParty.impl;
 
 import static org.commonprovenance.framework.store.common.publisher.PublisherHelper.MONO;
 
+import java.util.Optional;
+
 import org.commonprovenance.framework.store.exceptions.NotFoundException;
 import org.commonprovenance.framework.store.model.Organization;
 import org.commonprovenance.framework.store.service.web.trustedParty.TrustedPartyService;
@@ -20,7 +22,7 @@ public class TrustedPartyServiceImpl implements TrustedPartyService {
   public Mono<Organization> createOrganization(Organization organization) {
     return MONO.<Organization>makeSureNotNullWithMessage("Organization can not be null!").apply(organization)
         .flatMap(MONO.<Organization>makeSureAsync(this::notExists, "Organization already registered!"))
-        .flatMap(this.organizationClient::create);
+        .flatMap(this.organizationClient.create(Optional.empty()));
   }
 
   @Override
@@ -28,7 +30,7 @@ public class TrustedPartyServiceImpl implements TrustedPartyService {
     return MONO.<Organization>makeSureNotNullWithMessage("Organization can not be null!").apply(organization)
         .map(Organization::getName)
         .flatMap(Mono::justOrEmpty)
-        .flatMap(this.organizationClient::getById)
+        .flatMap(this.organizationClient.getById(Optional.empty()))
         .thenReturn(true)
         .switchIfEmpty(Mono.just(false))
         .onErrorResume(NotFoundException.class, _ -> Mono.just(false));

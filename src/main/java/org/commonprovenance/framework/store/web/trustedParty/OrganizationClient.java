@@ -1,6 +1,7 @@
 package org.commonprovenance.framework.store.web.trustedParty;
 
 import java.util.Optional;
+import java.util.function.Function;
 
 import org.commonprovenance.framework.store.model.Organization;
 
@@ -10,20 +11,11 @@ import reactor.core.publisher.Mono;
 
 public interface OrganizationClient {
   @NotNull
-  Mono<Organization> create(
-      @NotNull Organization organization,
-      Optional<String> trustedPartyUrl);
+  Function<Organization, Mono<Organization>> create(Optional<String> trustedPartyUrl);
 
   @NotNull
   Flux<Organization> getAll(Optional<String> trustedPartyUrl);
 
   @NotNull
-  Mono<Organization> getById(
-      @NotNull String organizationId,
-      Optional<String> trustedPartyUrl);
-
-  @NotNull
-  Mono<Void> deleteById(
-      @NotNull String organizationId,
-      Optional<String> trustedPartyUrl);
+  Function<String, Mono<Organization>> getById(Optional<String> trustedPartyUrl);
 }

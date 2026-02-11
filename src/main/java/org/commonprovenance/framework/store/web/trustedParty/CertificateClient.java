@@ -2,6 +2,7 @@ package org.commonprovenance.framework.store.web.trustedParty;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Function;
 
 import org.commonprovenance.framework.store.model.Organization;
 
@@ -10,9 +11,7 @@ import reactor.core.publisher.Mono;
 
 public interface CertificateClient {
   @NotNull
-  Mono<Organization> getOrganizationCertificate(
-      @NotNull String organizationId,
-      Optional<String> trustedPartyUrl);
+  Function<String, Mono<Organization>> getOrganizationCertificate(Optional<String> trustedPartyUrl);
 
   @NotNull
   Mono<Boolean> updateOrganizationCertificate(
