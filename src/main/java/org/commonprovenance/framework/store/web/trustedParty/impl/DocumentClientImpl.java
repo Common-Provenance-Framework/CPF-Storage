@@ -1,5 +1,7 @@
 package org.commonprovenance.framework.store.web.trustedParty.impl;
 
+import java.util.Optional;
+
 import org.commonprovenance.framework.store.model.Document;
 import org.commonprovenance.framework.store.model.Format;
 import org.commonprovenance.framework.store.model.factory.ModelFactory;
@@ -25,15 +27,14 @@ public class DocumentClientImpl implements DocumentClient {
   public @NotNull Mono<Document> getById(
       @NotNull String organizationId,
       @NotNull QualifiedName bundle_identifier,
-      @NotNull Format documentFormat) {
-    return client.sendGetOneRequest(
-        "organizations/"
-            + organizationId
-            + "/documents/"
-            + bundle_identifier.getUri()
-            + "/"
-            + documentFormat.toString(),
-        DocumentTPResponseDTO.class)
+      @NotNull Format documentFormat,
+      Optional<String> trustedPartyUrl) {
+    String uri = "organizations/" + organizationId + "/documents/" + bundle_identifier.getUri() + "/"
+        + documentFormat.toString();
+    return trustedPartyUrl
+        .map(this.client::buildWebClient)
+        .map(this.client.sendCustomGetOneRequest(uri, DocumentTPResponseDTO.class))
+        .orElse(this.client.sendGetOneRequest(uri, DocumentTPResponseDTO.class))
         .flatMap(ModelFactory::toDomain);
   }
 

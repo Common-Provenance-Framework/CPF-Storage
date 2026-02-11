@@ -70,6 +70,13 @@ public class ClientDummy implements Client {
   }
 
   @Override
+  public <T> Function<WebClient, Flux<T>> sendCustomGetManyRequest(String uri, Class<T> responseType) {
+    // ignore custom TP for now
+    // TODO: index etities by TP id
+    return (WebClient _) -> sendGetManyRequest(uri, responseType);
+  }
+
+  @Override
   public <T> Flux<T> sendGetManyRequest(String uri, Class<T> responseType) {
     if (responseType.equals(OrganizationTPResponseDTO.class)) {
       return Flux.fromIterable(organizations.values())
@@ -131,5 +138,17 @@ public class ClientDummy implements Client {
   public <T, B> Function<WebClient, Function<B, Mono<T>>> sendCustomPutRequest(String uri, Class<T> responseType) {
     // TODO Auto-generated method stub
     throw new UnsupportedOperationException("Unimplemented method 'sendCustomPutRequest'");
+  }
+
+  @Override
+  public WebClient buildWebClient(String trustedPartyUrl) {
+    // TODO Auto-generated method stub
+    throw new UnsupportedOperationException("Unimplemented method 'buildWebClient'");
+  }
+
+  @Override
+  public <T> Function<WebClient, Mono<T>> sendCustomDeleteRequest(String uri, Class<T> responseType) {
+    // TODO Auto-generated method stub
+    throw new UnsupportedOperationException("Unimplemented method 'sendCustomDeleteRequest'");
   }
 }

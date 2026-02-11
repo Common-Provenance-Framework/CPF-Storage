@@ -3,13 +3,12 @@ package org.commonprovenance.framework.store.web.trustedParty.impl;
 import static org.commonprovenance.framework.store.common.publisher.PublisherHelper.MONO;
 
 import java.util.List;
-import java.util.function.Function;
+import java.util.Optional;
 
 import org.commonprovenance.framework.store.model.Organization;
 import org.commonprovenance.framework.store.model.factory.ModelFactory;
 import org.commonprovenance.framework.store.web.trustedParty.CertificateClient;
 import org.commonprovenance.framework.store.web.trustedParty.client.Client;
-import org.commonprovenance.framework.store.web.trustedParty.dto.form.UpdateOrganizationTPFormDTO;
 import org.commonprovenance.framework.store.web.trustedParty.dto.form.factory.DTOFactory;
 import org.commonprovenance.framework.store.web.trustedParty.dto.response.CertificateTPResponseDTO;
 import org.springframework.stereotype.Component;
@@ -26,33 +25,35 @@ public class CertificateClientImpl implements CertificateClient {
     this.client = client;
   }
 
-  private Mono<CertificateTPResponseDTO> getOneReq(String id) {
-    return client.sendGetOneRequest(
-        "/organizations/" + id + "/certs",
-        CertificateTPResponseDTO.class);
-  }
-
-  private Function<UpdateOrganizationTPFormDTO, Mono<Void>> putReq(String id) {
-    return (UpdateOrganizationTPFormDTO body) -> client.sendPutRequest(
-        "/organizations" + id + "/certs",
-        Void.class)
-        .apply(body);
+  private String getUri(String id) {
+    return "/organizations/" + id + "/certs";
   }
 
   @Override
-  public @NotNull Mono<Organization> getOrganizationCertificate(@NotNull String id) {
-    return MONO.<String>makeSureNotNullWithMessage("Organization id can not be null!").apply(id)
-        .flatMap(this::getOneReq)
+  public @NotNull Mono<Organization> getOrganizationCertificate(
+      @NotNull String organizationId,
+      Optional<String> trustedPartyUrl) {
+    return MONO.<String>makeSureNotNullWithMessage("Organization id can not be null!").apply(organizationId)
+        .flatMap((String id) -> {
+          return trustedPartyUrl
+              .map(this.client::buildWebClient)
+              .map(this.client.sendCustomGetOneRequest(getUri(id), CertificateTPResponseDTO.class))
+              .orElse(this.client.sendGetOneRequest(getUri(id), CertificateTPResponseDTO.class));
+        })
         .flatMap(ModelFactory::toDomain);
   }
 
   @Override
   public @NotNull Mono<Boolean> updateOrganizationCertificate(
-      @NotNull String id,
+      @NotNull String organizationId,
       @NotNull String clientCertificate,
-      @NotNull List<String> intermediateCertificates) {
+      @NotNull List<String> intermediateCertificates,
+      Optional<String> trustedPartyUrl) {
     return DTOFactory.toForm(clientCertificate, intermediateCertificates)
-        .flatMap(this.putReq(id))
+        .flatMap(trustedPartyUrl
+            .map(this.client::buildWebClient)
+            .map(this.client.sendCustomPutRequest(getUri(organizationId), Void.class))
+            .orElse(this.client.sendPutRequest(getUri(organizationId), Void.class)))
         .thenReturn(true);
   }
 

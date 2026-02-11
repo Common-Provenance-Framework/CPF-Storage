@@ -27,6 +27,14 @@ public class ClientWebFlux implements Client {
     return this.config.getTrustedPartyUrl();
   }
 
+  @Override
+  public WebClient buildWebClient(String trustedPartyUrl) {
+    return WebClient.builder()
+        .baseUrl(trustedPartyUrl)
+        .defaultHeader("Accept", "application/json")
+        .build();
+  }
+
   public <T> Function<WebClient, Mono<T>> sendCustomGetOneRequest(String uri, Class<T> responseType) {
     return (WebClient customClient) -> customClient
         .get()
@@ -44,6 +52,13 @@ public class ClientWebFlux implements Client {
 
   public <T> Flux<T> sendGetManyRequest(String uri, Class<T> responseType) {
     return this.client.get()
+        .uri(uri)
+        .retrieve()
+        .bodyToFlux(responseType);
+  }
+
+  public <T> Function<WebClient, Flux<T>> sendCustomGetManyRequest(String uri, Class<T> responseType) {
+    return (WebClient customClient) -> customClient.get()
         .uri(uri)
         .retrieve()
         .bodyToFlux(responseType);
@@ -85,6 +100,13 @@ public class ClientWebFlux implements Client {
 
   public <T> Mono<T> sendDeleteRequest(String uri, Class<T> responseType) {
     return this.client.delete()
+        .uri(uri)
+        .retrieve()
+        .bodyToMono(responseType);
+  }
+
+  public <T> Function<WebClient, Mono<T>> sendCustomDeleteRequest(String uri, Class<T> responseType) {
+    return (WebClient customClient) -> customClient.delete()
         .uri(uri)
         .retrieve()
         .bodyToMono(responseType);

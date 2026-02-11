@@ -2,6 +2,8 @@ package org.commonprovenance.framework.store.web.trustedParty.impl;
 
 import static org.commonprovenance.framework.store.common.publisher.PublisherHelper.MONO;
 
+import java.util.Optional;
+
 import org.commonprovenance.framework.store.model.Format;
 import org.commonprovenance.framework.store.model.Token;
 import org.commonprovenance.framework.store.model.factory.ModelFactory;
@@ -24,15 +26,20 @@ public class TokenClientImpl implements TokenClient {
     this.client = client;
   }
 
-  private Flux<TokenTPResponseDTO> getManyReq(String organizationId) {
-    return client.sendGetManyRequest("/organizations/" + organizationId + "/tokens", TokenTPResponseDTO.class);
+  private String getTokensUri(String id) {
+    return "/organizations/" + id + "/tokens";
   }
 
   @Override
-  public @NotNull Flux<Token> getAllByOrganization(@NotNull String organizationId) {
+  public @NotNull Flux<Token> getAllByOrganization(
+      @NotNull String organizationId,
+      Optional<String> trustedPartyUrl) {
     return Mono.just(organizationId)
         .flatMap(MONO.makeSureNotNullWithMessage("Organization id can not be null!"))
-        .flatMapMany(this::getManyReq)
+        .flatMapMany((String orgId) -> trustedPartyUrl
+            .map(this.client::buildWebClient)
+            .map(this.client.sendCustomGetManyRequest(getTokensUri(orgId), TokenTPResponseDTO.class))
+            .orElse(this.client.sendGetManyRequest(getTokensUri(orgId), TokenTPResponseDTO.class)))
         .flatMap(ModelFactory::toDomain);
   }
 
@@ -40,15 +47,14 @@ public class TokenClientImpl implements TokenClient {
   public @NotNull Mono<Token> getByDocumentId(
       @NotNull String organizationId,
       @NotNull QualifiedName bundle_identifier,
-      @NotNull Format documentFormat) {
-    return client.sendGetOneRequest(
-        "organizations/"
-            + organizationId
-            + "/tokens/"
-            + bundle_identifier.getUri()
-            + "/"
-            + documentFormat.toString(),
-        TokenTPResponseDTO.class)
+      @NotNull Format documentFormat,
+      Optional<String> trustedPartyUrl) {
+    String uri = getTokensUri(organizationId) + "/" + bundle_identifier.getUri() + "/" + documentFormat.toString();
+
+    return trustedPartyUrl
+        .map(this.client::buildWebClient)
+        .map(this.client.sendCustomGetOneRequest(uri, TokenTPResponseDTO.class))
+        .orElse(client.sendGetOneRequest(uri, TokenTPResponseDTO.class))
         .flatMap(ModelFactory::toDomain);
   }
 }
