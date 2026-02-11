@@ -122,12 +122,10 @@ public class DTOFactory {
         .flatMap(MONO::validateDTO);
   }
 
-  public static Mono<UpdateOrganizationTPFormDTO> toForm(
-      String clientCertificate,
-      List<String> intermediateCertificates) {
+  public static Mono<UpdateOrganizationTPFormDTO> toUpdateForm(Organization model) {
     return Mono.justOrEmpty(new UpdateOrganizationTPFormDTO(
-        clientCertificate,
-        intermediateCertificates))
+        model.getClientCertificate(),
+        model.getIntermediateCertificates()))
         .flatMap(MONO::validateDTO);
   }
 

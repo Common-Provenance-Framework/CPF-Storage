@@ -2,7 +2,6 @@ package org.commonprovenance.framework.store.web.trustedParty.impl;
 
 import static org.commonprovenance.framework.store.common.publisher.PublisherHelper.MONO;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
 
@@ -44,17 +43,14 @@ public class CertificateClientImpl implements CertificateClient {
   }
 
   @Override
-  public @NotNull Mono<Boolean> updateOrganizationCertificate(
-      @NotNull String organizationId,
-      @NotNull String clientCertificate,
-      @NotNull List<String> intermediateCertificates,
+  public @NotNull Function<Organization, Mono<Organization>> updateOrganizationCertificate(
       Optional<String> trustedPartyUrl) {
-    return DTOFactory.toForm(clientCertificate, intermediateCertificates)
+    return (@NotNull Organization organization) -> DTOFactory.toUpdateForm(organization)
         .flatMap(trustedPartyUrl
             .map(this.client::buildWebClient)
-            .map(this.client.sendCustomPutRequest(getUri(organizationId), Void.class))
-            .orElse(this.client.sendPutRequest(getUri(organizationId), Void.class)))
-        .thenReturn(true);
+            .map(this.client.sendCustomPutRequest(getUri(organization.getName()), Void.class))
+            .orElse(this.client.sendPutRequest(getUri(organization.getName()), Void.class)))
+        .thenReturn(organization);
   }
 
 }

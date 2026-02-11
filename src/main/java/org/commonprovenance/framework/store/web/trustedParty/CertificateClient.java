@@ -1,6 +1,5 @@
 package org.commonprovenance.framework.store.web.trustedParty;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
 
@@ -14,9 +13,5 @@ public interface CertificateClient {
   Function<String, Mono<Organization>> getOrganizationCertificate(Optional<String> trustedPartyUrl);
 
   @NotNull
-  Mono<Boolean> updateOrganizationCertificate(
-      @NotNull String organizationId,
-      @NotNull String clientCertificate,
-      @NotNull List<String> intermediateCertificates,
-      Optional<String> trustedPartyUrl);
+  Function<Organization, Mono<Organization>> updateOrganizationCertificate(Optional<String> trustedPartyUrl);
 }
