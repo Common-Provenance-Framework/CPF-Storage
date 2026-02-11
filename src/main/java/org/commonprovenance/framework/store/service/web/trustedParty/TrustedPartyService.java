@@ -7,6 +7,8 @@ import reactor.core.publisher.Mono;
 public interface TrustedPartyService {
   Mono<Organization> createOrganization(Organization organization);
 
+  Mono<Organization> updateOrganization(Organization organization);
+
   Mono<Boolean> exists(Organization organization);
 
   Mono<Boolean> notExists(Organization organization);
