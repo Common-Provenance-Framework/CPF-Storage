@@ -37,6 +37,15 @@ public class OrganizationPersistenceImpl implements OrganizationPersistence {
   }
 
   @Override
+  public @NotNull Mono<Organization> update(@NotNull Organization organization) {
+    return MONO.<Organization>makeSureNotNullWithMessage("Organization can not be 'null'!").apply(organization)
+        .flatMap(EntityFactory::toEntity)
+        .flatMap(repository::save)
+        .onErrorResume(MONO.exceptionWrapper("OrganizationPersistence - Error while updating existing Organization"))
+        .flatMap(ModelFactory::toDomain);
+  }
+
+  @Override
   @NotNull
   public Flux<Organization> getAll() {
     return repository.findAll()
@@ -72,4 +81,5 @@ public class OrganizationPersistenceImpl implements OrganizationPersistence {
         .flatMap(repository::deleteById)
         .onErrorResume(MONO.exceptionWrapper("DocumentNeo4jRepository - Error while reading document"));
   }
+
 }

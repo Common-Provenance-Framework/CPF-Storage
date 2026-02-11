@@ -13,6 +13,9 @@ public interface OrganizationService {
   Mono<Organization> storeOrganization(@NotNull Organization organization);
 
   @NotNull
+  Mono<Organization> updateOrganization(@NotNull Organization organization);
+
+  @NotNull
   Mono<Boolean> exists(@NotNull Organization organization);
 
   @NotNull

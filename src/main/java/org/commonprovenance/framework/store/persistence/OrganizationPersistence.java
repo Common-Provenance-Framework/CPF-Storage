@@ -14,6 +14,9 @@ public interface OrganizationPersistence {
   Mono<Organization> create(@NotNull Organization document);
 
   @NotNull
+  Mono<Organization> update(@NotNull Organization document);
+
+  @NotNull
   Flux<Organization> getAll();
 
   @NotNull
