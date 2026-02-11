@@ -9,6 +9,8 @@ import reactor.core.publisher.Mono;
 public interface OrganizationController {
   Mono<OrganizationResponseDTO> createOrganization(OrganizationFormDTO body);
 
+  Mono<OrganizationResponseDTO> updateOrganization(String uuid, OrganizationFormDTO body);
+
   Flux<OrganizationResponseDTO> getAllOrganizations();
 
   Mono<OrganizationResponseDTO> getOrganizationById(String uuid);
