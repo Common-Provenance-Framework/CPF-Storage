@@ -2,14 +2,13 @@ package org.commonprovenance.framework.store.web.trustedParty.impl;
 
 import static org.commonprovenance.framework.store.common.publisher.PublisherHelper.MONO;
 
-import java.util.UUID;
+import java.util.Optional;
 import java.util.function.Function;
 
 import org.commonprovenance.framework.store.model.Organization;
 import org.commonprovenance.framework.store.model.factory.ModelFactory;
 import org.commonprovenance.framework.store.web.trustedParty.OrganizationClient;
-import org.commonprovenance.framework.store.web.trustedParty.client.TrustedPartyClient;
-import org.commonprovenance.framework.store.web.trustedParty.dto.form.OrganizationTPFormDTO;
+import org.commonprovenance.framework.store.web.trustedParty.client.Client;
 import org.commonprovenance.framework.store.web.trustedParty.dto.form.factory.DTOFactory;
 import org.commonprovenance.framework.store.web.trustedParty.dto.response.OrganizationTPResponseDTO;
 import org.springframework.stereotype.Component;
@@ -20,66 +19,42 @@ import reactor.core.publisher.Mono;
 
 @Component
 public class OrganizationClientImpl implements OrganizationClient {
-  private final TrustedPartyClient trustedPartyClient;
+  private final Client client;
 
   public OrganizationClientImpl(
-      TrustedPartyClient client) {
-    this.trustedPartyClient = client;
-  }
-
-  private Mono<OrganizationTPResponseDTO> postReq(OrganizationTPFormDTO body) {
-    return trustedPartyClient.sendPostRequest("/organizations", body, OrganizationTPResponseDTO.class);
-  }
-
-  private Function<String, Mono<OrganizationTPResponseDTO>> getOneReq(String path) {
-    return (String value) -> trustedPartyClient.sendGetOneRequest(
-        "/organizations/" + ((path.isBlank() || path == null) ? "" : "/" + value),
-        OrganizationTPResponseDTO.class);
-  }
-
-  private Flux<OrganizationTPResponseDTO> getManyReq() {
-    return trustedPartyClient.sendGetManyRequest("/organizations", OrganizationTPResponseDTO.class);
-  }
-
-  private Mono<OrganizationTPResponseDTO> deleteReq(String id) {
-    return trustedPartyClient.sendDeleteRequest("/organizations/" + id, OrganizationTPResponseDTO.class);
+      Client client) {
+    this.client = client;
   }
 
   @Override
-  public @NotNull Mono<Organization> create(@NotNull Organization organization) {
-    return Mono.just(organization)
+  public @NotNull Function<Organization, Mono<Organization>> create(Optional<String> trustedPartyUrl) {
+    return (Organization organization) -> Mono.just(organization)
         .flatMap(DTOFactory::toForm)
-        .flatMap(this::postReq)
+        .flatMap(trustedPartyUrl
+            .map(this.client::buildWebClient)
+            .map(this.client.sendCustomPostRequest("/organizations", OrganizationTPResponseDTO.class))
+            .orElse(this.client.sendPostRequest("/organizations", OrganizationTPResponseDTO.class)))
+        .thenReturn(organization);
+  }
+
+  @Override
+  public @NotNull Flux<Organization> getAll(Optional<String> trustedPartyUrl) {
+    return trustedPartyUrl
+        .map(this.client::buildWebClient)
+        .map(this.client.sendCustomGetManyRequest("/organizations", OrganizationTPResponseDTO.class))
+        .orElse(this.client.sendGetManyRequest("/organizations", OrganizationTPResponseDTO.class))
         .flatMap(ModelFactory::toDomain);
   }
 
   @Override
-  public @NotNull Flux<Organization> getAll() {
-    return getManyReq()
+  public @NotNull Function<String, Mono<Organization>> getById(Optional<String> trustedPartyUrl) {
+    return (String organizationId) -> MONO.<String>makeSureNotNullWithMessage("Organization id can not be null!")
+        .apply(organizationId)
+        .flatMap((String id) -> trustedPartyUrl
+            .map(this.client::buildWebClient)
+            .map(this.client.sendCustomGetOneRequest("/organizations/" + id, OrganizationTPResponseDTO.class))
+            .orElse(this.client.sendGetOneRequest("/organizations/" + id, OrganizationTPResponseDTO.class)))
         .flatMap(ModelFactory::toDomain);
   }
 
-  @Override
-  public @NotNull Mono<Organization> getById(@NotNull UUID id) {
-    return MONO.<UUID>makeSureNotNullWithMessage("Organization id can not be null!").apply(id)
-        .map(UUID::toString)
-        .flatMap(this.getOneReq(""))
-        .flatMap(ModelFactory::toDomain);
-  }
-
-  @Override
-  public @NotNull Mono<Organization> getByName(@NotNull String name) {
-    return MONO.<String>makeSureNotNullWithMessage("Organization name can not be null!").apply(name)
-        .flatMap(this.getOneReq("name"))
-        .flatMap(ModelFactory::toDomain);
-  }
-
-  @Override
-  public @NotNull Mono<Void> deleteById(@NotNull UUID id) {
-    return Mono.just(id)
-        .flatMap(MONO.makeSureNotNullWithMessage("Organization id can not be null!"))
-        .map(UUID::toString)
-        .flatMap(this::deleteReq)
-        .then();
-  }
 }

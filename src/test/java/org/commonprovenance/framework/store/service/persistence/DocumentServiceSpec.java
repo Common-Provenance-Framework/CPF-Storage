@@ -40,6 +40,7 @@ class DocumentServiceSpec {
   private final UUID UUID_2 = UUID.fromString("dc3b1fc8-d01e-4405-8cf8-94320a11ba4c");
   private final String BASE64_STRING_GRAPH_2 = "AAAASAAAAGUAAABsAAAAbAAAAG8AAAAgAAAAVwAAAG8AAAByAAAAbAAAAGQAAAAh";
   private final Format FORMAT_2 = Format.JSON;
+  private final String SIGNATURE = "...";
 
   @BeforeEach
   void setUp() {
@@ -50,7 +51,7 @@ class DocumentServiceSpec {
   @DisplayName("storeDocument - should call create on repository once with exact Document.")
 
   void storeDocument_should_call_create_on_repository() {
-    Document document = new Document(UUID_1, BASE64_STRING_GRAPH_1, FORMAT_1);
+    Document document = new Document(UUID_1, BASE64_STRING_GRAPH_1, FORMAT_1, SIGNATURE);
 
     when(documentRepository.create(any(Document.class))).thenAnswer(invocation -> {
       Document documnent = invocation.getArgument(0);
@@ -78,8 +79,8 @@ class DocumentServiceSpec {
   @Test
   @DisplayName("getAllDocuments - should call getAll on repository once")
   void getAllDocuments_shouldReturnAllDocuments() {
-    Document doc1 = new Document(UUID_1, BASE64_STRING_GRAPH_1, FORMAT_1);
-    Document doc2 = new Document(UUID_2, BASE64_STRING_GRAPH_2, FORMAT_2);
+    Document doc1 = new Document(UUID_1, BASE64_STRING_GRAPH_1, FORMAT_1, SIGNATURE);
+    Document doc2 = new Document(UUID_2, BASE64_STRING_GRAPH_2, FORMAT_2, SIGNATURE);
 
     when(documentRepository.getAll()).thenReturn(Flux.just(doc1, doc2));
 
@@ -98,7 +99,7 @@ class DocumentServiceSpec {
 
   @Test
   void getDocumentById_shouldReturnDocument() {
-    Document document = new Document(UUID_1, BASE64_STRING_GRAPH_1, FORMAT_1);
+    Document document = new Document(UUID_1, BASE64_STRING_GRAPH_1, FORMAT_1, SIGNATURE);
     when(documentRepository.getById(UUID_1)).thenReturn(Mono.just(document));
 
     StepVerifier.create(documentService.getDocumentById(UUID_1))

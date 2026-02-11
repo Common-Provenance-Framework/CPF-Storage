@@ -2,22 +2,22 @@ package org.commonprovenance.framework.store.web.trustedParty.dto.form;
 
 import java.util.List;
 
-public class OrganizationTPFormDTO {
-  private final String name;
+import org.commonprovenance.framework.store.common.validation.ValidatableDTO;
+
+public class UpdateOrganizationTPFormDTO extends ValidatableDTO {
   private final String clientCertificate;
   private final List<String> intermediateCertificates;
 
-  public OrganizationTPFormDTO(
-      String name,
-      String clientCertificate,
-      List<String> intermediateCertificates) {
-    this.name = name;
-    this.clientCertificate = clientCertificate;
-    this.intermediateCertificates = intermediateCertificates;
+  public UpdateOrganizationTPFormDTO() {
+    this.clientCertificate = null;
+    this.intermediateCertificates = null;
   }
 
-  public String getName() {
-    return name;
+  public UpdateOrganizationTPFormDTO(
+      String clientCertificate,
+      List<String> intermediateCertificates) {
+    this.clientCertificate = clientCertificate;
+    this.intermediateCertificates = intermediateCertificates;
   }
 
   public String getClientCertificate() {
@@ -27,5 +27,4 @@ public class OrganizationTPFormDTO {
   public List<String> getIntermediateCertificates() {
     return intermediateCertificates;
   }
-
 }

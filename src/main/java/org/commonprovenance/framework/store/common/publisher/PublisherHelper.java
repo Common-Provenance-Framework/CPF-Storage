@@ -1,11 +1,14 @@
 package org.commonprovenance.framework.store.common.publisher;
 
 import java.util.Objects;
+import java.util.Vector;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
+import org.commonprovenance.framework.store.common.validation.ValidatableDTO;
 import org.commonprovenance.framework.store.exceptions.ApplicationException;
 import org.commonprovenance.framework.store.exceptions.BadRequestException;
+import org.commonprovenance.framework.store.exceptions.ConstraintException;
 import org.commonprovenance.framework.store.exceptions.InternalApplicationException;
 
 import reactor.core.publisher.Flux;
@@ -17,6 +20,15 @@ public interface PublisherHelper {
 
   // Mono implementation
   class MonoHelper {
+    public <T extends ValidatableDTO> Mono<T> validateDTO(T value) {
+      Vector<String> result = value.validate();
+      return result.isEmpty()
+          ? Mono.just(value)
+          : Mono.error(new ConstraintException(
+              "Validation of class '" + value.getClass().getSimpleName() + "' faild with message: "
+                  + result.stream().reduce("", (acc, i) -> acc.isEmpty() ? i : acc + ", " + i)));
+    }
+
     public <T> Mono<T> makeSureNotNull(T value) {
       return this.<T>makeSureNotNullWithMessage("Input parameter can not be null.").apply(value);
     }

@@ -26,13 +26,15 @@ class DocumentServiceTest {
     final static UUID UUID_1 = UUID.fromString(UUID_STR_1);
     final static String BASE64_STRING_GRAPH_1 = "AAAAQQAAAGIAAAByAAAAYQAAAGsAAABhAAAAIAAAAEQAAABhAAAAYgAAAHIAAABhAAAALgAAAC4=";
     final static Format FORMAT_1 = Format.JSON;
-    final static Document DOCUMENT_1 = new Document(UUID_1, BASE64_STRING_GRAPH_1, FORMAT_1);
+    final static String SIGNATURE = "...";
+
+    final static Document DOCUMENT_1 = new Document(UUID_1, BASE64_STRING_GRAPH_1, FORMAT_1, SIGNATURE);
 
     final static String UUID_STR_2 = "dc3b1fc8-d01e-4405-8cf8-94320a11ba4c";
     final static UUID UUID_2 = UUID.fromString(UUID_STR_2);
     final static String BASE64_STRING_GRAPH_2 = "AAAASAAAAGUAAABsAAAAbAAAAG8AAAAgAAAAVwAAAG8AAAByAAAAbAAAAGQAAAAh";
     final static Format FORMAT_2 = Format.JSON;
-    final static Document DOCUMENT_2 = new Document(UUID_2, BASE64_STRING_GRAPH_2, FORMAT_2);
+    final static Document DOCUMENT_2 = new Document(UUID_2, BASE64_STRING_GRAPH_2, FORMAT_2, SIGNATURE);
 
     @Override
     public Mono<Document> create(Document document) {

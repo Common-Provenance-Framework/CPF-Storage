@@ -11,11 +11,13 @@ public class DocumentEntity implements HasId, HasFormat {
   private final String id;
   private final String graph;
   private final String format;
+  private final String signature;
 
-  public DocumentEntity(String id, String graph, String format) {
+  public DocumentEntity(String id, String graph, String format, String signature) {
     this.id = id;
     this.graph = graph;
     this.format = format;
+    this.signature = signature;
   }
 
   public String getId() {
@@ -29,4 +31,9 @@ public class DocumentEntity implements HasId, HasFormat {
   public String getFormat() {
     return this.format;
   }
+
+  public String getSignature() {
+    return signature;
+  }
+
 }

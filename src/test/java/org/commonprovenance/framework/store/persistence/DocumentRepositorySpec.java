@@ -39,6 +39,7 @@ class DocumentRepositorySpec {
   private final String TEST_ID_1 = "e3cf8742-b595-47f4-8aae-a1e94b62a856";
   private final String BASE64_STRING_GRAPH_1 = "AAAAQQAAAGIAAAByAAAAYQAAAGsAAABhAAAAIAAAAEQAAABhAAAAYgAAAHIAAABhAAAALgAAAC4=";
   private final String FORMAT_1 = "JSON";
+  private final String SIGNATURE = "..";
 
   @BeforeEach
   void setUp() {
@@ -51,7 +52,8 @@ class DocumentRepositorySpec {
     Document doucment = new Document(
         UUID.fromString(TEST_ID_1),
         BASE64_STRING_GRAPH_1,
-        Format.from(FORMAT_1).get());
+        Format.from(FORMAT_1).get(),
+        SIGNATURE);
 
     when(documentRepository.save(any())).thenAnswer(invocation -> {
       DocumentEntity argumentEntity = invocation.getArgument(0);

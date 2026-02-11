@@ -2,11 +2,11 @@ package org.commonprovenance.framework.store.model.factory;
 
 import static org.commonprovenance.framework.store.common.publisher.PublisherHelper.MONO;
 
-import java.time.ZonedDateTime;
+import java.util.Collections;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.function.Function;
 
-import org.commonprovenance.framework.store.common.dto.HasCreated;
 import org.commonprovenance.framework.store.common.dto.HasFormat;
 import org.commonprovenance.framework.store.common.dto.HasHashFunction;
 import org.commonprovenance.framework.store.common.dto.HasId;
@@ -18,11 +18,14 @@ import org.commonprovenance.framework.store.model.Format;
 import org.commonprovenance.framework.store.model.HashFunction;
 import org.commonprovenance.framework.store.model.Organization;
 import org.commonprovenance.framework.store.model.Token;
+import org.commonprovenance.framework.store.model.TrustedParty;
 import org.commonprovenance.framework.store.persistence.entity.DocumentEntity;
 import org.commonprovenance.framework.store.persistence.entity.OrganizationEntity;
+import org.commonprovenance.framework.store.web.trustedParty.dto.response.CertificateTPResponseDTO;
 import org.commonprovenance.framework.store.web.trustedParty.dto.response.DocumentTPResponseDTO;
 import org.commonprovenance.framework.store.web.trustedParty.dto.response.OrganizationTPResponseDTO;
 import org.commonprovenance.framework.store.web.trustedParty.dto.response.TokenTPResponseDTO;
+import org.commonprovenance.framework.store.web.trustedParty.dto.response.TrustedPartyTPResponseDTO;
 
 import reactor.core.publisher.Mono;
 
@@ -55,31 +58,34 @@ public class ModelFactory {
         .map(Optional::get);
   }
 
-  private static <T extends HasCreated> Mono<ZonedDateTime> getCreated(T dto) {
-    return MONO.makeSureNotNull(dto)
-        .map(HasCreated::getCreated)
-        .flatMap(MONO.<String>makeSureNotNullWithMessage("DTO 'created' can not be null."))
-        .flatMap(MONO.<String>makeSure(
-            Validators::isISO8601DateTime,
-            (String created) -> "String '" + created + "' is not valid ISO8601 DateTime string"))
-        .map(ZonedDateTime::parse)
-        .onErrorResume(IllegalArgumentException.class,
-            MONO.<IllegalArgumentException, ZonedDateTime>exceptionWrapper(
-                e -> "Can not parse date: " + e.getMessage()))
-        .onErrorResume(MONO.<Throwable, ZonedDateTime>exceptionWrapper());
-  }
+  // private static <T extends HasCreatedOn> Mono<Long> getCreated(T dto) {
+  // return MONO.makeSureNotNull(dto)
+  // .map(HasCreatedOn::getCreatedOn)
+  // .flatMap(MONO.<Long>makeSureNotNullWithMessage("DTO 'createdOn' can not be
+  // null."))
+  // // .flatMap(MONO.<String>makeSure(
+  // // Validators::isISO8601DateTime,
+  // // (String created) -> "String '" + created + "' is not valid ISO8601
+  // DateTime
+  // // string"))
+  // // .map(ZonedDateTime::parse)
+  // .onErrorResume(IllegalArgumentException.class,
+  // MONO.<IllegalArgumentException, Long>exceptionWrapper(
+  // e -> "Can not parse date: " + e.getMessage()))
+  // .onErrorResume(MONO.<Throwable, Long>exceptionWrapper());
+  // }
 
   // ---
   private static Document fromDto(DocumentFormDTO dto) {
-    return new Document(null, dto.getGraph(), null);
+    return new Document(null, dto.getGraph(), null, dto.getSignature());
   }
 
   private static Document fromDto(DocumentTPResponseDTO dto) {
-    return new Document(null, dto.getGraph(), null);
+    return new Document(null, dto.getDocument(), null, dto.getSignature());
   }
 
   private static Document fromPersistance(DocumentEntity document) {
-    return new Document(null, document.getGraph(), null);
+    return new Document(null, document.getGraph(), null, document.getSignature());
   }
 
   private static Organization fromPersistance(OrganizationEntity organization) {
@@ -92,9 +98,17 @@ public class ModelFactory {
   private static Organization fromDto(OrganizationTPResponseDTO dto) {
     return new Organization(
         null,
-        dto.getName(),
-        dto.getClientCertificate(),
-        dto.getIntermediateCertificates());
+        dto.getId(),
+        dto.getCertificate(),
+        Collections.emptyList());
+  }
+
+  private static Organization fromDto(CertificateTPResponseDTO dto) {
+    return new Organization(
+        null,
+        dto.getId(),
+        dto.getCertificate(),
+        Collections.emptyList());
   }
 
   private static Organization fromDto(OrganizationFormDTO dto) {
@@ -108,35 +122,52 @@ public class ModelFactory {
   private static Token fromDto(TokenTPResponseDTO dto) {
     return new Token(
         null,
-        null,
-        dto.getHash(),
+        dto.getData().getDocumentDigest(),
         null,
         dto.getSignature(),
-        null);
+        dto.getData().getDocumentCreationTimestamp());
+  }
+
+  private static TrustedParty fromDto(TrustedPartyTPResponseDTO dto) {
+    return new TrustedParty(
+        dto.getId(),
+        dto.getCertificate());
   }
 
   // ---
   // Trusted Party
   public static Mono<Organization> toDomain(OrganizationTPResponseDTO dto) {
     return MONO.makeSureNotNull(dto)
-        .map(ModelFactory::fromDto)
-        .flatMap((Organization organization) -> ModelFactory.getId(dto).map(organization::withId));
+        .map(ModelFactory::fromDto);
+  }
+
+  public static Mono<Organization> toDomain(CertificateTPResponseDTO dto) {
+    return MONO.makeSureNotNull(dto)
+        .map(ModelFactory::fromDto);
   }
 
   public static Mono<Document> toDomain(DocumentTPResponseDTO dto) {
     return MONO.makeSureNotNull(dto)
-        .map(ModelFactory::fromDto)
-        .flatMap((Document document) -> ModelFactory.getId(dto).map(document::withId))
-        .flatMap((Document document) -> ModelFactory.getFormat(dto).map(document::withFormat));
+        .map(ModelFactory::fromDto);
   }
 
   public static Mono<Token> toDomain(TokenTPResponseDTO dto) {
     return MONO.makeSureNotNull(dto)
         .map(ModelFactory::fromDto)
-        .flatMap((Token token) -> ModelFactory.getId(dto).map(token::withId))
-        .flatMap((Token token) -> ModelFactory.toDomain(dto.getDocument()).map(token::withDocument))
-        .flatMap((Token token) -> ModelFactory.getHashFunction(dto).map(token::withHashFunction))
-        .flatMap((Token token) -> ModelFactory.getCreated(dto).map(token::withCreated));
+        .flatMap((Token token) -> ModelFactory.getHashFunction(dto.getData().getAdditionalData())
+            .map(token::withHashFunction));
+  }
+
+  public static Function<TrustedPartyTPResponseDTO, Mono<TrustedParty>> toDomain(String url) {
+    return (TrustedPartyTPResponseDTO dto) -> MONO.makeSureNotNull(dto)
+        .map(ModelFactory::fromDto)
+        .map((TrustedParty trustedParty) -> trustedParty.withUrl(url));
+  }
+
+  public static Mono<TrustedParty> toDomain(TrustedPartyTPResponseDTO dto) {
+    return MONO.makeSureNotNull(dto)
+        .map(ModelFactory::fromDto)
+        .flatMap((TrustedParty trustedParty) -> ModelFactory.getId(dto).map(trustedParty::withId));
   }
 
   // Persistence

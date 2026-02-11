@@ -1,0 +1,3 @@
+# Retrieves info about all organizations
+
+GET http://{{$dotenv TRUSTED_PARTY_HOST}}:{{$dotenv TRUSTED_PARTY_PORT}}/api/v1/organizations HTTP/1.1

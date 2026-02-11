@@ -43,6 +43,7 @@ class DocumentRepositoryTest {
   private final String TEST_ID_2 = "dc3b1fc8-d01e-4405-8cf8-94320a11ba4c";
   private final String BASE64_STRING_GRAPH_2 = "AAAASAAAAGUAAABsAAAAbAAAAG8AAAAgAAAAVwAAAG8AAAByAAAAbAAAAGQAAAAh";
   private final String FORMAT_2 = "JSON";
+  private final String SIGNATURE = "...";
 
   @BeforeEach
   void setUp() {
@@ -55,7 +56,8 @@ class DocumentRepositoryTest {
     Document document = new Document(
         UUID.fromString(TEST_ID_1),
         BASE64_STRING_GRAPH_1,
-        Format.from(FORMAT_1).get());
+        Format.from(FORMAT_1).get(),
+        SIGNATURE);
 
     when(documentRepository.save(any())).thenAnswer(invocation -> {
       DocumentEntity argumentEntity = invocation.getArgument(0);
@@ -78,7 +80,8 @@ class DocumentRepositoryTest {
     Document document = new Document(
         UUID.fromString(TEST_ID_1),
         BASE64_STRING_GRAPH_1,
-        Format.from(FORMAT_1).get());
+        Format.from(FORMAT_1).get(),
+        SIGNATURE);
 
     when(documentRepository.save(any())).thenAnswer(_invocation -> {
       return Mono.error(new IllegalArgumentException(errMessage));
@@ -105,7 +108,8 @@ class DocumentRepositoryTest {
     Document document = new Document(
         UUID.fromString(TEST_ID_1),
         BASE64_STRING_GRAPH_1,
-        Format.from(FORMAT_1).get());
+        Format.from(FORMAT_1).get(),
+        SIGNATURE);
 
     when(documentRepository.save(any())).thenAnswer(_invocation -> {
       return Mono.error(new OptimisticLockingFailureException(errMessage));
@@ -133,7 +137,8 @@ class DocumentRepositoryTest {
     Document document = new Document(
         UUID.fromString(TEST_ID_1),
         BASE64_STRING_GRAPH_1,
-        Format.from(FORMAT_1).get());
+        Format.from(FORMAT_1).get(),
+        SIGNATURE);
 
     when(documentRepository.save(any())).thenAnswer(_invocation -> {
       throw new IllegalArgumentException(errMessage);
@@ -158,8 +163,8 @@ class DocumentRepositoryTest {
   void getAll_should_load_all_entities() {
     when(documentRepository.findAll()).thenAnswer(_invocation -> {
       return Flux.just(
-          new DocumentEntity(TEST_ID_1, BASE64_STRING_GRAPH_1, FORMAT_1),
-          new DocumentEntity(TEST_ID_2, BASE64_STRING_GRAPH_2, FORMAT_2));
+          new DocumentEntity(TEST_ID_1, BASE64_STRING_GRAPH_1, FORMAT_1, SIGNATURE),
+          new DocumentEntity(TEST_ID_2, BASE64_STRING_GRAPH_2, FORMAT_2, SIGNATURE));
     });
 
     StepVerifier.create(repository.getAll())
@@ -191,9 +196,9 @@ class DocumentRepositoryTest {
       String id = invocation.getArgument(0);
       switch (id) {
         case TEST_ID_1:
-          return Mono.just(new DocumentEntity(TEST_ID_1, BASE64_STRING_GRAPH_1, FORMAT_1));
+          return Mono.just(new DocumentEntity(TEST_ID_1, BASE64_STRING_GRAPH_1, FORMAT_1, SIGNATURE));
         case TEST_ID_2:
-          return Mono.just(new DocumentEntity(TEST_ID_2, BASE64_STRING_GRAPH_2, FORMAT_2));
+          return Mono.just(new DocumentEntity(TEST_ID_2, BASE64_STRING_GRAPH_2, FORMAT_2, SIGNATURE));
         case null:
           return Mono.error(new IllegalArgumentException("Id can not be 'null'"));
         default:
@@ -221,9 +226,9 @@ class DocumentRepositoryTest {
       String id = invocation.getArgument(0);
       switch (id) {
         case TEST_ID_1:
-          return Mono.just(new DocumentEntity(TEST_ID_1, BASE64_STRING_GRAPH_1, FORMAT_1));
+          return Mono.just(new DocumentEntity(TEST_ID_1, BASE64_STRING_GRAPH_1, FORMAT_1, SIGNATURE));
         case TEST_ID_2:
-          return Mono.just(new DocumentEntity(TEST_ID_2, BASE64_STRING_GRAPH_2, FORMAT_2));
+          return Mono.just(new DocumentEntity(TEST_ID_2, BASE64_STRING_GRAPH_2, FORMAT_2, SIGNATURE));
         case null:
           return Mono.error(new IllegalArgumentException("Id can not be 'null'"));
         default:
