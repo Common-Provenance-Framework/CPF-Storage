@@ -30,7 +30,9 @@ public class TrustedPartyClientImpl implements TrustedPartyClient {
         .map(this.client::buildWebClient)
         .flatMap(this.client.sendCustomGetOneRequest("/info", TrustedPartyTPResponseDTO.class))
         .switchIfEmpty(this.client.sendGetOneRequest("/info", TrustedPartyTPResponseDTO.class))
-        .flatMap(ModelFactory.toDomain(trustedPartyUrl.orElse(this.client.getUrl())));
+        .flatMap(ModelFactory.toDomain(
+            trustedPartyUrl.orElse(this.client.getUrl()),
+            trustedPartyUrl.isPresent() ? false : true));
   }
 
   @Override
