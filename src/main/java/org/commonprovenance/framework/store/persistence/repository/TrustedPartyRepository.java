@@ -14,5 +14,7 @@ public interface TrustedPartyRepository {
 
   Mono<TrustedPartyEntity> findByName(String name);
 
+  Mono<TrustedPartyEntity> findDefault();
+
   Mono<Void> deleteById(String id);
 }

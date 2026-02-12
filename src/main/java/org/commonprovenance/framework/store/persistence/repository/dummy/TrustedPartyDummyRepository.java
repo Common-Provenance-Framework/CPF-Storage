@@ -45,10 +45,10 @@ public class TrustedPartyDummyRepository implements TrustedPartyRepository {
   public Mono<TrustedPartyEntity> findByName(String name) {
     return MONO.makeSureNotNull(name)
         .thenMany(this.findAll())
-        .filter(o -> o.getName().equals(name))
+        .filter(tp -> tp.getName().equals(name))
         .singleOrEmpty()
-        .onErrorResume(MONO.exceptionWrapper("OrganizationPersistence - Error while reading organization by name"))
-        .switchIfEmpty(Mono.error(new NotFoundException("Organization with name '" + name + "' not found!")));
+        .onErrorResume(MONO.exceptionWrapper("TrustedPartyPersistence - Error while reading TrustedParty by name"))
+        .switchIfEmpty(Mono.error(new NotFoundException("TrustedParty with name '" + name + "' not found!")));
   }
 
   @Override
@@ -56,5 +56,15 @@ public class TrustedPartyDummyRepository implements TrustedPartyRepository {
     return MONO.makeSureNotNull(id)
         .map(trustedParties::remove)
         .then();
+  }
+
+  @Override
+  public Mono<TrustedPartyEntity> findDefault() {
+    return this.findAll()
+        .filter(TrustedPartyEntity::getIsDefault)
+        .singleOrEmpty()
+        .onErrorResume(MONO.exceptionWrapper("TrustedPartyPersistence - Error while reading TrustedParty by name"))
+        .switchIfEmpty(Mono.error(new NotFoundException("TrustedParty default not found!")));
+
   }
 }

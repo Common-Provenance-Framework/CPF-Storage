@@ -43,4 +43,9 @@ public class TrustedPartyNeo4jRepository implements TrustedPartyRepository {
   public Mono<Void> deleteById(String id) {
     return client.deleteById(id);
   }
+
+  @Override
+  public Mono<TrustedPartyEntity> findDefault() {
+    return client.findByIsDefaultTrue();
+  }
 }

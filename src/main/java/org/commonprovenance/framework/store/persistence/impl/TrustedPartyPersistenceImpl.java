@@ -85,4 +85,11 @@ public class TrustedPartyPersistenceImpl implements TrustedPartyPersistence {
         .onErrorResume(MONO.exceptionWrapper("TrustedPartyPersistence - Error while reading TrustedParty"));
   }
 
+  @Override
+  public @NotNull Mono<TrustedParty> getDefault() {
+    return repository.findDefault()
+        .onErrorResume(MONO.exceptionWrapper("TrustedPartyPersistence - Error while reading default TrustedParty"))
+        .flatMap(ModelFactory::toDomain);
+  }
+
 }

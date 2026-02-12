@@ -9,4 +9,7 @@ import reactor.core.publisher.Mono;
 @Repository
 public interface TrustedPartyNeo4jRepositoryClient extends ReactiveNeo4jRepository<TrustedPartyEntity, String> {
   Mono<TrustedPartyEntity> findByName(String name);
+  
+  // Find the default trusted party (where isDefault = true)
+  Mono<TrustedPartyEntity> findByIsDefaultTrue();
 }

@@ -13,7 +13,6 @@ public class TrustedPartyEntity implements HasId {
   private final String url;
   private final Boolean checked;
   private final Boolean valid;
-
   private final Boolean isDefault;
 
   public TrustedPartyEntity(

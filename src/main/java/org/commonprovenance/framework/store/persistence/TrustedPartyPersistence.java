@@ -23,6 +23,9 @@ public interface TrustedPartyPersistence {
   Mono<TrustedParty> getById(@NotNull UUID id);
 
   @NotNull
+  Mono<TrustedParty> getDefault();
+
+  @NotNull
   Mono<TrustedParty> getByName(@NotNull String name);
 
   @NotNull
