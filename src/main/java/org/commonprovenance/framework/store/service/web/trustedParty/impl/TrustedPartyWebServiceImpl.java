@@ -8,19 +8,19 @@ import java.util.function.Function;
 import org.commonprovenance.framework.store.exceptions.NotFoundException;
 import org.commonprovenance.framework.store.model.Organization;
 import org.commonprovenance.framework.store.model.TrustedParty;
-import org.commonprovenance.framework.store.service.web.trustedParty.TrustedPartyService;
+import org.commonprovenance.framework.store.service.web.trustedParty.TrustedPartyWebService;
 import org.commonprovenance.framework.store.web.trustedParty.CertificateClient;
 import org.commonprovenance.framework.store.web.trustedParty.OrganizationClient;
 import org.commonprovenance.framework.store.web.trustedParty.TrustedPartyClient;
 
 import reactor.core.publisher.Mono;
 
-public class TrustedPartyServiceImpl implements TrustedPartyService {
+public class TrustedPartyWebServiceImpl implements TrustedPartyWebService {
   private final OrganizationClient organizationClient;
   private final CertificateClient certificateClient;
   private final TrustedPartyClient trustedPartyClient;
 
-  public TrustedPartyServiceImpl(
+  public TrustedPartyWebServiceImpl(
       OrganizationClient organizationClient,
       CertificateClient certificateClient,
       TrustedPartyClient trustedPartyClient) {

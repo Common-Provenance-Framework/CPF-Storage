@@ -8,7 +8,7 @@ import org.commonprovenance.framework.store.model.TrustedParty;
 
 import reactor.core.publisher.Mono;
 
-public interface TrustedPartyService {
+public interface TrustedPartyWebService {
   Function<Organization, Mono<Organization>> createOrganization(Optional<String> trustedPartyUri);
 
   Mono<Organization> updateOrganization(Organization organization);
