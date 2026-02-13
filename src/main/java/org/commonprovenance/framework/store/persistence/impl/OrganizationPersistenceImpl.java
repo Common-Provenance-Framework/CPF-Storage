@@ -30,7 +30,10 @@ public class OrganizationPersistenceImpl implements OrganizationPersistence {
   @NotNull
   public Mono<Organization> create(@NotNull Organization organization) {
     return MONO.<Organization>makeSureNotNullWithMessage("Organization can not be 'null'!").apply(organization)
-        .flatMap(EntityFactory::toEntity)
+        .flatMap(org -> Mono.zip(
+            EntityFactory.toEntity(org),
+            EntityFactory.toEntity(org.getTrustedParty())))
+        .map(tuple -> tuple.getT1().withTrustedParty(tuple.getT2()))
         .flatMap(repository::save)
         .onErrorResume(MONO.exceptionWrapper("OrganizationPersistence - Error while creating new Organization"))
         .flatMap(ModelFactory::toDomain);
@@ -68,7 +71,9 @@ public class OrganizationPersistenceImpl implements OrganizationPersistence {
   public @NotNull Mono<Organization> getByName(@NotNull String name) {
     return MONO.<String>makeSureNotNullWithMessage("Organization name can not be 'null'!").apply(name)
         .flatMap(repository::findByName)
-        .onErrorResume(MONO.exceptionWrapper("OrganizationPersistence - Error while reading organization by name"))
+        .onErrorResume(
+            MONO.exceptionWrapper(e -> "OrganizationPersistence - Error while reading organization by name: " + name
+                + ". Message: " + e.getMessage() + "\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"))
         .switchIfEmpty(Mono.error(new NotFoundException("Organization with name '" + name + "' not found!")))
         .flatMap(ModelFactory::toDomain);
   }

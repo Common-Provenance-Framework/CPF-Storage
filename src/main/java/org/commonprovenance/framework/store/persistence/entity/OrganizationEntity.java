@@ -2,13 +2,10 @@ package org.commonprovenance.framework.store.persistence.entity;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.commonprovenance.framework.store.common.dto.HasId;
-import org.commonprovenance.framework.store.model.TrustedParty;
 import org.commonprovenance.framework.store.persistence.relation.Trusts;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
@@ -55,10 +52,14 @@ public class OrganizationEntity implements HasId {
   }
 
   // Factory methods
-  public @NonNull OrganizationEntity withTrusts(@Nullable TrustedParty trustedParty) {
-    Function<TrustedParty, List<Trusts>> addTrustedParty = tp -> Stream.concat(
+  public @NonNull OrganizationEntity withTrustedParty(@Nullable TrustedPartyEntity trustedPartyEntity) {
+    if (trustedPartyEntity == null) {
+      return this;
+    }
+
+    List<Trusts> updatedTrusts = Stream.concat(
         this.getTrusts().stream(),
-        Stream.of(new Trusts(tp)))
+        Stream.of(new Trusts(trustedPartyEntity)))
         .collect(Collectors.toList());
 
     return new OrganizationEntity(
@@ -66,19 +67,16 @@ public class OrganizationEntity implements HasId {
         this.getName(),
         this.getClientCertificate(),
         this.getIntermediateCertificates(),
-
-        Optional.ofNullable(trustedParty)
-            .map(addTrustedParty)
-            .orElse(this.getTrusts()));
+        updatedTrusts);
   }
 
   // Wither method for Neo4j to set relationships
   public @NonNull OrganizationEntity withTrusts(@NonNull List<Trusts> trusts) {
     return new OrganizationEntity(
-        this.id,
-        this.name,
-        this.clientCertificate,
-        this.intermediateCertificates,
+        this.getId(),
+        this.getName(),
+        this.getClientCertificate(),
+        this.getIntermediateCertificates(),
         trusts);
   }
 
