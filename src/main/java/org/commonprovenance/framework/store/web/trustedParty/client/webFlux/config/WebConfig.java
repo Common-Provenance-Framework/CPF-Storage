@@ -19,7 +19,7 @@ public class WebConfig {
 
   public String getTrustedPartyUrl() {
     return env.getProperty(
-        "spring.trusted-party.url",
+        "trusted-party.url",
         String.class,
         "http://127.0.0.1:8081/api/v1");
   }
