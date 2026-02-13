@@ -13,9 +13,11 @@ import org.commonprovenance.framework.store.web.trustedParty.client.Client;
 import org.commonprovenance.framework.store.web.trustedParty.dto.form.factory.DTOFactory;
 import org.commonprovenance.framework.store.web.trustedParty.dto.response.TokenTPResponseDTO;
 import org.commonprovenance.framework.store.web.trustedParty.dto.response.TrustedPartyTPResponseDTO;
+import org.springframework.stereotype.Component;
 
 import reactor.core.publisher.Mono;
 
+@Component
 public class TrustedPartyClientImpl implements TrustedPartyClient {
   private final Client client;
 
