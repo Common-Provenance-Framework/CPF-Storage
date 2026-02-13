@@ -28,6 +28,15 @@ public class TrustedPartyServiceImpl implements TrustedPartyService {
   }
 
   @Override
+  public @NotNull Mono<TrustedParty> findTrustedParty(@NotNull TrustedParty trustedParty) {
+    return MONO.<TrustedParty>makeSureNotNullWithMessage("TrustedParty can not be null").apply(trustedParty)
+        .map(TrustedParty::getId)
+        .flatMap(Mono::justOrEmpty)
+        .flatMap(this::getTrustedPartyById)
+        .switchIfEmpty(this.getTrustedPartyByName(trustedParty.getName()));
+  }
+
+  @Override
   @NotNull
   public Mono<TrustedParty> getDefaultTrustedParty() {
     return this.persistence.getDefault();

@@ -12,6 +12,9 @@ public interface TrustedPartyService {
   Mono<TrustedParty> storeTrustedParty(@NotNull TrustedParty trustedParty);
 
   @NotNull
+  Mono<TrustedParty> findTrustedParty(@NotNull TrustedParty trustedParty);
+
+  @NotNull
   Mono<TrustedParty> getDefaultTrustedParty();
 
   @NotNull
