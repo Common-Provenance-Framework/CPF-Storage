@@ -72,6 +72,16 @@ public class OrganizationEntity implements HasId {
             .orElse(this.getTrusts()));
   }
 
+  // Wither method for Neo4j to set relationships
+  public @NonNull OrganizationEntity withTrusts(@NonNull List<Trusts> trusts) {
+    return new OrganizationEntity(
+        this.id,
+        this.name,
+        this.clientCertificate,
+        this.intermediateCertificates,
+        trusts);
+  }
+
   public String getId() {
     return this.id;
   }

@@ -43,7 +43,8 @@ public class TrustedParty {
   public TrustedParty(UUID id, String name, String certificate, String url, Boolean isChecked, Boolean isValid,
       Boolean isDefault) {
     this.id = Optional.ofNullable(id);
-    this.name = this.certificate = certificate;
+    this.name = name;
+    this.certificate = certificate;
     this.url = Optional.ofNullable(url);
     this.isChecked = isChecked;
     this.isValid = isValid;
@@ -54,7 +55,8 @@ public class TrustedParty {
 
   public TrustedParty(UUID id, String name, String certificate, String url, Boolean isDefault) {
     this.id = Optional.ofNullable(id);
-    this.name = this.certificate = certificate;
+    this.name = name;
+    this.certificate = certificate;
     this.url = Optional.ofNullable(url);
     this.isChecked = false;
     this.isValid = false;
@@ -65,7 +67,8 @@ public class TrustedParty {
 
   public TrustedParty(String name, String certificate) {
     this.id = Optional.empty();
-    this.name = this.certificate = certificate;
+    this.name = name;
+    this.certificate = certificate;
     this.url = Optional.empty();
     this.isChecked = false;
     this.isValid = false;
