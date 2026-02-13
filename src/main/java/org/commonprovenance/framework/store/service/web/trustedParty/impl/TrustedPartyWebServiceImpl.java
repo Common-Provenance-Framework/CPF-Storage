@@ -12,9 +12,11 @@ import org.commonprovenance.framework.store.service.web.trustedParty.TrustedPart
 import org.commonprovenance.framework.store.web.trustedParty.CertificateClient;
 import org.commonprovenance.framework.store.web.trustedParty.OrganizationClient;
 import org.commonprovenance.framework.store.web.trustedParty.TrustedPartyClient;
+import org.springframework.stereotype.Service;
 
 import reactor.core.publisher.Mono;
 
+@Service
 public class TrustedPartyWebServiceImpl implements TrustedPartyWebService {
   private final OrganizationClient organizationClient;
   private final CertificateClient certificateClient;
