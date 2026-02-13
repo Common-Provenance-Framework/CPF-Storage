@@ -12,6 +12,8 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 public class UnhandledExceptionHandler {
   @ExceptionHandler(Exception.class)
   public ResponseEntity<ErrorDTO> handleRest(Exception ex) {
+    System.out.println("*** Unhandled Exception ***");
+    System.out.println("-----------------------------------------------");
     System.out.println(ex.getLocalizedMessage());
     System.out.println(ex.getMessage());
     System.out.println(ex.getClass().descriptorString());
@@ -19,6 +21,7 @@ public class UnhandledExceptionHandler {
     System.out.println(ex.getClass().getName());
     System.out.println(ex.getClass().getSimpleName());
     System.out.println(ex.getClass().getTypeName());
+    System.out.println("-----------------------------------------------");
     return ResponseEntity.internalServerError().body(new UnhandledErrorDTO());
   }
 }
