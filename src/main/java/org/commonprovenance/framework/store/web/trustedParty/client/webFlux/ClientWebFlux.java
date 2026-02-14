@@ -2,6 +2,7 @@ package org.commonprovenance.framework.store.web.trustedParty.client.webFlux;
 
 import java.util.function.Function;
 
+import org.commonprovenance.framework.store.exceptions.NotFoundException;
 import org.commonprovenance.framework.store.web.trustedParty.client.Client;
 import org.commonprovenance.framework.store.web.trustedParty.client.webFlux.config.WebConfig;
 import org.springframework.context.annotation.Profile;
@@ -40,6 +41,8 @@ public class ClientWebFlux implements Client {
         .get()
         .uri(uri)
         .retrieve()
+        .onStatus(status -> status.value() == 404,
+            response -> Mono.error(new NotFoundException("Resource not found at: " + uri)))
         .bodyToMono(responseType);
   }
 
@@ -47,6 +50,8 @@ public class ClientWebFlux implements Client {
     return this.client.get()
         .uri(uri)
         .retrieve()
+        .onStatus(status -> status.value() == 404,
+            response -> Mono.error(new NotFoundException("Resource not found at: " + uri)))
         .bodyToMono(responseType);
   }
 
