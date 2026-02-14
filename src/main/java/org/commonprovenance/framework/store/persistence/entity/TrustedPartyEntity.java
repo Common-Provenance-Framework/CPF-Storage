@@ -1,6 +1,7 @@
 package org.commonprovenance.framework.store.persistence.entity;
 
 import org.commonprovenance.framework.store.common.dto.HasId;
+import org.springframework.data.annotation.PersistenceCreator;
 import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
 
@@ -15,6 +16,7 @@ public class TrustedPartyEntity implements HasId {
   private final Boolean valid;
   private final Boolean isDefault;
 
+  @PersistenceCreator
   public TrustedPartyEntity(
       String id,
       String name,

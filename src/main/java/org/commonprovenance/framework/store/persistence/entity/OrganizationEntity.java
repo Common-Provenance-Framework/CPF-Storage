@@ -10,6 +10,7 @@ import java.util.stream.Stream;
 import org.commonprovenance.framework.store.common.dto.HasId;
 import org.commonprovenance.framework.store.model.TrustedParty;
 import org.commonprovenance.framework.store.persistence.relation.Trusts;
+import org.springframework.data.annotation.PersistenceCreator;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 import org.springframework.data.neo4j.core.schema.Id;
@@ -19,7 +20,7 @@ import org.springframework.data.neo4j.core.schema.Relationship;
 @Node("Organization")
 public class OrganizationEntity implements HasId {
   @Id
-  private final String id;
+  private final @NonNull String id;
   private final String name;
   private final String clientCertificate;
   private final List<String> intermediateCertificates;
@@ -27,19 +28,7 @@ public class OrganizationEntity implements HasId {
   @Relationship(type = "trusts", direction = Relationship.Direction.OUTGOING)
   private final List<Trusts> trusts;
 
-  public OrganizationEntity(
-      String id,
-      String name,
-      String clientCertificate,
-      List<String> intermediateCertificates) {
-    this.id = id;
-    this.name = name;
-    this.clientCertificate = clientCertificate;
-    this.intermediateCertificates = intermediateCertificates;
-
-    this.trusts = Collections.emptyList();
-  }
-
+  @PersistenceCreator
   public OrganizationEntity(
       String id,
       String name,
@@ -52,6 +41,19 @@ public class OrganizationEntity implements HasId {
     this.intermediateCertificates = intermediateCertificates;
 
     this.trusts = trusts;
+  }
+
+  public OrganizationEntity(
+      String id,
+      String name,
+      String clientCertificate,
+      List<String> intermediateCertificates) {
+    this.id = id;
+    this.name = name;
+    this.clientCertificate = clientCertificate;
+    this.intermediateCertificates = intermediateCertificates;
+
+    this.trusts = Collections.emptyList();
   }
 
   // Factory methods
