@@ -15,6 +15,7 @@ import org.commonprovenance.framework.store.common.dto.HasOrganizationId;
 import org.commonprovenance.framework.store.common.utils.Validators;
 import org.commonprovenance.framework.store.controller.dto.form.DocumentFormDTO;
 import org.commonprovenance.framework.store.controller.dto.form.OrganizationFormDTO;
+import org.commonprovenance.framework.store.exceptions.ArgumentValidatorException;
 import org.commonprovenance.framework.store.model.Document;
 import org.commonprovenance.framework.store.model.Format;
 import org.commonprovenance.framework.store.model.HashFunction;
@@ -251,7 +252,7 @@ public class ModelFactory {
     return MONO.<String>makeSureNotNullWithMessage("DTO 'id' can not be null.").apply(uuid)
         .flatMap(MONO.<String>makeSure(
             Validators::isUUID,
-            (String id) -> "Id '" + id + "' is not valid UUID string."))
+            (String id) -> new ArgumentValidatorException("Id '" + id + "' is not valid UUID string.")))
         .map(UUID::fromString)
         .onErrorResume(IllegalArgumentException.class,
             MONO.<IllegalArgumentException, UUID>exceptionWrapper(e -> "Can not parse uuid: " + e.getMessage()))
