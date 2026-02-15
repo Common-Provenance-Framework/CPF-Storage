@@ -8,5 +8,6 @@ import reactor.core.publisher.Mono;
 
 @Repository
 public interface OrganizationNeo4jRepositoryClient extends ReactiveNeo4jRepository<OrganizationEntity, String> {
+
   Mono<OrganizationEntity> findByName(String name);
 }

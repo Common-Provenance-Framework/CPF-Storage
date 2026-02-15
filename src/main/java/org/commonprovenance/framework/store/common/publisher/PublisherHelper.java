@@ -7,7 +7,7 @@ import java.util.function.Predicate;
 
 import org.commonprovenance.framework.store.common.validation.ValidatableDTO;
 import org.commonprovenance.framework.store.exceptions.ApplicationException;
-import org.commonprovenance.framework.store.exceptions.BadRequestException;
+import org.commonprovenance.framework.store.exceptions.ConflictException;
 import org.commonprovenance.framework.store.exceptions.ConstraintException;
 import org.commonprovenance.framework.store.exceptions.InternalApplicationException;
 
@@ -50,7 +50,7 @@ public interface PublisherHelper {
     public <T> Function<T, Mono<T>> makeSureAsync(
         Function<T, Mono<Boolean>> asyncValidator,
         String message) {
-      return makeSureAsync(asyncValidator, _ -> new BadRequestException(message));
+      return makeSureAsync(asyncValidator, _ -> new ConflictException(message));
     }
 
     public <T> Function<T, Mono<T>> makeSureAsync(

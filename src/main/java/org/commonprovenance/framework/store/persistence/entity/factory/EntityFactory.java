@@ -8,8 +8,10 @@ import java.util.UUID;
 import org.commonprovenance.framework.store.model.Document;
 import org.commonprovenance.framework.store.model.Format;
 import org.commonprovenance.framework.store.model.Organization;
+import org.commonprovenance.framework.store.model.TrustedParty;
 import org.commonprovenance.framework.store.persistence.entity.DocumentEntity;
 import org.commonprovenance.framework.store.persistence.entity.OrganizationEntity;
+import org.commonprovenance.framework.store.persistence.entity.TrustedPartyEntity;
 
 import reactor.core.publisher.Mono;
 
@@ -26,12 +28,23 @@ public class EntityFactory {
             model.getSignature()));
   }
 
-  private static OrganizationEntity fromModel(Organization organization) {
+  private static OrganizationEntity fromModel(Organization model) {
     return new OrganizationEntity(
-        organization.getId().map(UUID::toString).orElse(UUID.randomUUID().toString()),
-        organization.getName(),
-        organization.getClientCertificate(),
-        organization.getIntermediateCertificates());
+        model.getId().map(UUID::toString).orElse(UUID.randomUUID().toString()),
+        model.getName(),
+        model.getClientCertificate(),
+        model.getIntermediateCertificates());
+  }
+
+  private static TrustedPartyEntity fromModel(TrustedParty model) {
+    return new TrustedPartyEntity(
+        model.getId().map(UUID::toString).orElse(UUID.randomUUID().toString()),
+        model.getName(),
+        model.getCertificate(),
+        model.getUrl().orElse(null),
+        model.getIsChecked(),
+        model.getIsValid(),
+        model.getIsDefault());
   }
 
   // ---
@@ -43,6 +56,11 @@ public class EntityFactory {
 
   public static Mono<OrganizationEntity> toEntity(Organization organization) {
     return MONO.makeSureNotNull(organization)
+        .map(EntityFactory::fromModel);
+  }
+
+  public static Mono<TrustedPartyEntity> toEntity(TrustedParty trustedParty) {
+    return MONO.makeSureNotNull(trustedParty)
         .map(EntityFactory::fromModel);
   }
 }

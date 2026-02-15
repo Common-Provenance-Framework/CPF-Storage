@@ -14,6 +14,7 @@ public class TrustedParty {
   private final Optional<String> url;
   private final Boolean isChecked;
   private final Boolean isValid;
+  private final Boolean isDefault;
 
   private final List<Organization> hasTrust;
   private final List<Token> hasIssued;
@@ -25,6 +26,7 @@ public class TrustedParty {
       String url,
       Boolean isChecked,
       Boolean isValid,
+      Boolean isDefault,
       List<Organization> hasTrust,
       List<Token> hasIssued) {
     this.id = Optional.ofNullable(id);
@@ -33,26 +35,44 @@ public class TrustedParty {
     this.url = Optional.ofNullable(url);
     this.isChecked = isChecked;
     this.isValid = isValid;
+    this.isDefault = isDefault;
     this.hasTrust = hasTrust;
     this.hasIssued = hasIssued;
   }
 
-  public TrustedParty(UUID id, String name, String certificate, String url) {
+  public TrustedParty(UUID id, String name, String certificate, String url, Boolean isChecked, Boolean isValid,
+      Boolean isDefault) {
     this.id = Optional.ofNullable(id);
-    this.name = this.certificate = certificate;
+    this.name = name;
+    this.certificate = certificate;
+    this.url = Optional.ofNullable(url);
+    this.isChecked = isChecked;
+    this.isValid = isValid;
+    this.isDefault = isDefault;
+    this.hasTrust = Collections.emptyList();
+    this.hasIssued = Collections.emptyList();
+  }
+
+  public TrustedParty(UUID id, String name, String certificate, String url, Boolean isDefault) {
+    this.id = Optional.ofNullable(id);
+    this.name = name;
+    this.certificate = certificate;
     this.url = Optional.ofNullable(url);
     this.isChecked = false;
     this.isValid = false;
+    this.isDefault = isDefault;
     this.hasTrust = Collections.emptyList();
     this.hasIssued = Collections.emptyList();
   }
 
   public TrustedParty(String name, String certificate) {
     this.id = Optional.empty();
-    this.name = this.certificate = certificate;
+    this.name = name;
+    this.certificate = certificate;
     this.url = Optional.empty();
     this.isChecked = false;
     this.isValid = false;
+    this.isDefault = false;
     this.hasTrust = Collections.emptyList();
     this.hasIssued = Collections.emptyList();
   }
@@ -65,6 +85,7 @@ public class TrustedParty {
         this.getUrl().orElse(null),
         this.getIsChecked(),
         this.getIsValid(),
+        this.getIsDefault(),
         this.getHasTrust(),
         this.getHasIssued());
   }
@@ -77,6 +98,7 @@ public class TrustedParty {
         url,
         this.getIsChecked(),
         this.getIsValid(),
+        this.getIsDefault(),
         this.getHasTrust(),
         this.getHasIssued());
   }
@@ -89,6 +111,7 @@ public class TrustedParty {
         this.getUrl().orElse(null),
         isChecked,
         this.getIsValid(),
+        this.getIsDefault(),
         this.getHasTrust(),
         this.getHasIssued());
   }
@@ -101,6 +124,20 @@ public class TrustedParty {
         this.getUrl().orElse(null),
         this.getIsChecked(),
         isValid,
+        this.getIsDefault(),
+        this.getHasTrust(),
+        this.getHasIssued());
+  }
+
+  public TrustedParty withIsDefault(Boolean isDefault) {
+    return new TrustedParty(
+        this.getId().orElse(null),
+        this.getName(),
+        this.getCertificate(),
+        this.getUrl().orElse(null),
+        this.getIsChecked(),
+        this.getIsValid(),
+        isDefault,
         this.getHasTrust(),
         this.getHasIssued());
   }
@@ -113,6 +150,7 @@ public class TrustedParty {
         this.getUrl().orElse(null),
         this.getIsChecked(),
         this.getIsValid(),
+        this.getIsDefault(),
         Stream.concat(
             this.getHasTrust().stream(),
             Stream.of(organization))
@@ -128,6 +166,7 @@ public class TrustedParty {
         this.getUrl().orElse(null),
         this.getIsChecked(),
         this.getIsValid(),
+        this.getIsDefault(),
         this.getHasTrust(),
         Stream.concat(
             this.getHasIssued().stream(),
@@ -159,6 +198,10 @@ public class TrustedParty {
     return isValid;
   }
 
+  public Boolean getIsDefault() {
+    return isDefault;
+  }
+
   public List<Organization> getHasTrust() {
     return hasTrust;
   }
@@ -166,4 +209,5 @@ public class TrustedParty {
   public List<Token> getHasIssued() {
     return hasIssued;
   }
+
 }

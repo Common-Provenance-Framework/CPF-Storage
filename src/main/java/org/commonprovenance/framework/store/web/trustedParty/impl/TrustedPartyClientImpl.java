@@ -13,9 +13,11 @@ import org.commonprovenance.framework.store.web.trustedParty.client.Client;
 import org.commonprovenance.framework.store.web.trustedParty.dto.form.factory.DTOFactory;
 import org.commonprovenance.framework.store.web.trustedParty.dto.response.TokenTPResponseDTO;
 import org.commonprovenance.framework.store.web.trustedParty.dto.response.TrustedPartyTPResponseDTO;
+import org.springframework.stereotype.Component;
 
 import reactor.core.publisher.Mono;
 
+@Component
 public class TrustedPartyClientImpl implements TrustedPartyClient {
   private final Client client;
 
@@ -30,7 +32,9 @@ public class TrustedPartyClientImpl implements TrustedPartyClient {
         .map(this.client::buildWebClient)
         .flatMap(this.client.sendCustomGetOneRequest("/info", TrustedPartyTPResponseDTO.class))
         .switchIfEmpty(this.client.sendGetOneRequest("/info", TrustedPartyTPResponseDTO.class))
-        .flatMap(ModelFactory.toDomain(trustedPartyUrl.orElse(this.client.getUrl())));
+        .flatMap(ModelFactory.toDomain(
+            trustedPartyUrl.orElse(this.client.getUrl()),
+            trustedPartyUrl.isPresent() ? false : true));
   }
 
   @Override

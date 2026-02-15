@@ -21,6 +21,7 @@ import org.commonprovenance.framework.store.model.Token;
 import org.commonprovenance.framework.store.model.TrustedParty;
 import org.commonprovenance.framework.store.persistence.entity.DocumentEntity;
 import org.commonprovenance.framework.store.persistence.entity.OrganizationEntity;
+import org.commonprovenance.framework.store.persistence.entity.TrustedPartyEntity;
 import org.commonprovenance.framework.store.web.trustedParty.dto.response.CertificateTPResponseDTO;
 import org.commonprovenance.framework.store.web.trustedParty.dto.response.DocumentTPResponseDTO;
 import org.commonprovenance.framework.store.web.trustedParty.dto.response.OrganizationTPResponseDTO;
@@ -88,11 +89,24 @@ public class ModelFactory {
     return new Document(null, document.getGraph(), null, document.getSignature());
   }
 
+  private static TrustedParty fromPersistance(TrustedPartyEntity trustedParty) {
+    return new TrustedParty(
+        null,
+        trustedParty.getName(),
+        trustedParty.getClientCertificate(),
+        trustedParty.getUrl(),
+        trustedParty.getChecked(),
+        trustedParty.getValid(),
+        trustedParty.getIsDefault());
+  }
+
   private static Organization fromPersistance(OrganizationEntity organization) {
-    return new Organization(null,
+    return new Organization(
+        null,
         organization.getName(),
         organization.getClientCertificate(),
-        organization.getIntermediateCertificates());
+        organization.getIntermediateCertificates(),
+        ModelFactory.toDomain(organization.getTrusts().getFirst().getTrustedParty()).block());
   }
 
   private static Organization fromDto(OrganizationTPResponseDTO dto) {
@@ -100,7 +114,8 @@ public class ModelFactory {
         null,
         dto.getId(),
         dto.getCertificate(),
-        Collections.emptyList());
+        Collections.emptyList(),
+        null);
   }
 
   private static Organization fromDto(CertificateTPResponseDTO dto) {
@@ -108,7 +123,8 @@ public class ModelFactory {
         null,
         dto.getId(),
         dto.getCertificate(),
-        Collections.emptyList());
+        Collections.emptyList(),
+        null);
   }
 
   private static Organization fromDto(OrganizationFormDTO dto) {
@@ -116,7 +132,8 @@ public class ModelFactory {
         null,
         dto.getName(),
         dto.getClientCertificate(),
-        dto.getIntermediateCertificates());
+        dto.getIntermediateCertificates(),
+        null);
   }
 
   private static Token fromDto(TokenTPResponseDTO dto) {
@@ -158,10 +175,11 @@ public class ModelFactory {
             .map(token::withHashFunction));
   }
 
-  public static Function<TrustedPartyTPResponseDTO, Mono<TrustedParty>> toDomain(String url) {
+  public static Function<TrustedPartyTPResponseDTO, Mono<TrustedParty>> toDomain(String url, Boolean isDefault) {
     return (TrustedPartyTPResponseDTO dto) -> MONO.makeSureNotNull(dto)
         .map(ModelFactory::fromDto)
-        .map((TrustedParty trustedParty) -> trustedParty.withUrl(url));
+        .map((TrustedParty trustedParty) -> trustedParty.withUrl(url))
+        .map((TrustedParty trustedParty) -> trustedParty.withIsDefault(isDefault));
   }
 
   public static Mono<TrustedParty> toDomain(TrustedPartyTPResponseDTO dto) {
@@ -183,6 +201,12 @@ public class ModelFactory {
     return MONO.makeSureNotNull(entity)
         .map(ModelFactory::fromPersistance)
         .flatMap((Organization organization) -> ModelFactory.getId(entity).map(organization::withId));
+  }
+
+  public static Mono<TrustedParty> toDomain(TrustedPartyEntity entity) {
+    return MONO.makeSureNotNull(entity)
+        .map(ModelFactory::fromPersistance)
+        .flatMap((TrustedParty trustedParty) -> ModelFactory.getId(entity).map(trustedParty::withId));
   }
 
   // Controller
