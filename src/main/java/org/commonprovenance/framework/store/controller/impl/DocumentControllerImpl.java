@@ -24,10 +24,10 @@ import reactor.core.publisher.Mono;
 @RestController()
 @RequestMapping("/api/v1/documents")
 public class DocumentControllerImpl implements DocumentController {
-  private final DocumentService service;
+  private final DocumentService documentService;
 
-  public DocumentControllerImpl(DocumentService service) {
-    this.service = service;
+      DocumentService documentService,
+    this.documentService = documentService;
   }
 
   @ResponseStatus(HttpStatus.CREATED)
@@ -36,14 +36,14 @@ public class DocumentControllerImpl implements DocumentController {
   public Mono<DocumentResponseDTO> createProvDocument(
       @RequestBody DocumentFormDTO body) {
     return ModelFactory.toDomain(body)
-        .flatMap(this.service::storeDocument)
+        .flatMap(this.documentService::storeDocument)
         .flatMap(DTOFactory::toDTO);
   }
 
   @GetMapping()
   @NotNull
   public Flux<DocumentResponseDTO> getAllProvDocuments() {
-    return this.service.getAllDocuments()
+    return this.documentService.getAllDocuments()
         .flatMap(DTOFactory::toDTO);
   }
 
@@ -51,7 +51,7 @@ public class DocumentControllerImpl implements DocumentController {
   @GetMapping("/{uuid}")
   public Mono<DocumentResponseDTO> getProvDocumentById(@PathVariable String uuid) {
     return ModelFactory.toUUID(uuid)
-        .flatMap(this.service::getDocumentById)
+        .flatMap(this.documentService::getDocumentById)
         .flatMap(DTOFactory::toDTO);
   }
 }
