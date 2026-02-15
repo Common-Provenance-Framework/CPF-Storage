@@ -7,6 +7,7 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Function;
 
+import org.commonprovenance.framework.store.common.dto.HasDocumentFormat;
 import org.commonprovenance.framework.store.common.dto.HasFormat;
 import org.commonprovenance.framework.store.common.dto.HasHashFunction;
 import org.commonprovenance.framework.store.common.dto.HasId;
@@ -35,6 +36,17 @@ public class ModelFactory {
     return MONO.makeSureNotNull(dto)
         .map(HasId::getId)
         .flatMap(ModelFactory::toUUID);
+  }
+
+  private static <T extends HasDocumentFormat> Mono<Format> getDocumentFormat(T dto) {
+    return MONO.makeSureNotNull(dto)
+        .map(HasDocumentFormat::getDocumentFormat)
+        .flatMap(MONO.<String>makeSureNotNullWithMessage("DTO 'format' can not be null."))
+        .map(Format::from)
+        .flatMap(MONO.<Optional<Format>>makeSure(
+            Optional::isPresent,
+            "Format '" + dto.getDocumentFormat() + "' is not valid Document format."))
+        .map(Optional::get);
   }
 
   private static <T extends HasFormat> Mono<Format> getFormat(T dto) {
@@ -78,7 +90,7 @@ public class ModelFactory {
 
   // ---
   private static Document fromDto(DocumentFormDTO dto) {
-    return new Document(null, dto.getGraph(), null, dto.getSignature());
+    return new Document(null, dto.getDocument(), null, dto.getSignature());
   }
 
   private static Document fromDto(DocumentTPResponseDTO dto) {
@@ -86,7 +98,11 @@ public class ModelFactory {
   }
 
   private static Document fromPersistance(DocumentEntity document) {
-    return new Document(null, document.getGraph(), null, document.getSignature());
+    return new Document(
+        null,
+        document.getGraph(),
+        null,
+        null);
   }
 
   private static TrustedParty fromPersistance(TrustedPartyEntity trustedParty) {
@@ -214,7 +230,7 @@ public class ModelFactory {
     return MONO.makeSureNotNull(formDTO)
         .map(ModelFactory::fromDto)
         .map((Document document) -> document.withId(UUID.randomUUID()))
-        .flatMap((Document document) -> ModelFactory.getFormat(formDTO).map(document::withFormat));
+        .flatMap((Document document) -> ModelFactory.getDocumentFormat(formDTO).map(document::withFormat));
   }
 
   public static Mono<Organization> toDomain(OrganizationFormDTO formDTO) {
