@@ -3,6 +3,7 @@ package org.commonprovenance.framework.store.service.web.trustedParty;
 import java.util.Optional;
 import java.util.function.Function;
 
+import org.commonprovenance.framework.store.model.Document;
 import org.commonprovenance.framework.store.model.Organization;
 import org.commonprovenance.framework.store.model.TrustedParty;
 
@@ -18,4 +19,6 @@ public interface TrustedPartyWebService {
   Mono<Boolean> notExists(Organization organization);
 
   Mono<TrustedParty> getTrustedPartyByUrl(Optional<String> trustedPartyUrl);
+
+  Function<Organization, Mono<Boolean>> verifySignature(Document document);
 }

@@ -1,6 +1,7 @@
 package org.commonprovenance.framework.store.web.trustedParty.impl;
 
 import java.util.Optional;
+import java.util.function.Function;
 
 import org.commonprovenance.framework.store.model.Document;
 import org.commonprovenance.framework.store.model.GraphType;
@@ -52,9 +53,9 @@ public class TrustedPartyClientImpl implements TrustedPartyClient {
   }
 
   @Override
-  public Mono<Boolean> verifySignature(Organization organization, Document document, Optional<String> trustedPartyUrl) {
-    return DTOFactory.toForm(organization, document)
-        .flatMap(trustedPartyUrl
+  public Function<Document, Mono<Boolean>> verifySignature(Organization organization) {
+    return (Document document) -> DTOFactory.toForm(organization, document)
+        .flatMap(organization.getTrustedParty().getUrl()
             .map(this.client::buildWebClient)
             .map(this.client.sendCustomPostRequest("/verifySignature", TokenTPResponseDTO.class))
             .orElse(this.client.sendPostRequest("/verifySignature", TokenTPResponseDTO.class)))

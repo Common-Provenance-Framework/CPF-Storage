@@ -1,6 +1,7 @@
 package org.commonprovenance.framework.store.web.trustedParty;
 
 import java.util.Optional;
+import java.util.function.Function;
 
 import org.commonprovenance.framework.store.model.Document;
 import org.commonprovenance.framework.store.model.GraphType;
@@ -19,8 +20,5 @@ public interface TrustedPartyClient {
       GraphType type,
       Optional<String> trustedPartyUrl);
 
-  Mono<Boolean> verifySignature(
-      Organization organization,
-      Document document,
-      Optional<String> trustedPartyUrl);
+  Function<Document, Mono<Boolean>> verifySignature(Organization organization);
 }

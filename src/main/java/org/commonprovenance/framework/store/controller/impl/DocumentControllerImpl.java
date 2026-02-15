@@ -8,12 +8,14 @@ import org.commonprovenance.framework.store.controller.DocumentController;
 import org.commonprovenance.framework.store.controller.dto.form.DocumentFormDTO;
 import org.commonprovenance.framework.store.controller.dto.response.DocumentResponseDTO;
 import org.commonprovenance.framework.store.controller.dto.response.factory.DTOFactory;
+import org.commonprovenance.framework.store.exceptions.BadRequestException;
 import org.commonprovenance.framework.store.exceptions.ConflictException;
 import org.commonprovenance.framework.store.model.Document;
 import org.commonprovenance.framework.store.model.Organization;
 import org.commonprovenance.framework.store.model.factory.ModelFactory;
 import org.commonprovenance.framework.store.service.persistence.DocumentService;
 import org.commonprovenance.framework.store.service.persistence.OrganizationService;
+import org.commonprovenance.framework.store.service.web.trustedParty.TrustedPartyWebService;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -34,12 +36,15 @@ import reactor.core.publisher.Mono;
 public class DocumentControllerImpl implements DocumentController {
   private final DocumentService documentService;
   private final OrganizationService organizationService;
+  private final TrustedPartyWebService trustedPartyWebService;
 
   public DocumentControllerImpl(
       DocumentService documentService,
-      OrganizationService organizationService) {
+      OrganizationService organizationService,
+      TrustedPartyWebService trustedPartyWebService) {
     this.documentService = documentService;
     this.organizationService = organizationService;
+    this.trustedPartyWebService = trustedPartyWebService;
   }
 
   @ResponseStatus(HttpStatus.CREATED)
@@ -66,6 +71,13 @@ public class DocumentControllerImpl implements DocumentController {
                 tp -> tp.getIsValid(),
                 _ -> new ConflictException(
                     "Trusted party has been checked, but has not been considered as vaid!"))))
+        // --------------------------
+        // validate document signature
+        .delayUntil((Document document) -> Mono.justOrEmpty(document.getOrganizationId())
+            .flatMap(this.organizationService::getOrganizationById)
+            .flatMap(MONO.makeSureAsync(
+                trustedPartyWebService.verifySignature(document),
+                _ -> new BadRequestException("Invalid signature!"))))
         // --------------------------
         .flatMap(this.documentService::storeDocument)
         .flatMap(DTOFactory::toDTO);
