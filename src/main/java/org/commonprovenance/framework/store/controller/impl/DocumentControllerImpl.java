@@ -1,11 +1,19 @@
 package org.commonprovenance.framework.store.controller.impl;
 
+import static org.commonprovenance.framework.store.common.publisher.PublisherHelper.MONO;
+
+import java.util.UUID;
+
 import org.commonprovenance.framework.store.controller.DocumentController;
 import org.commonprovenance.framework.store.controller.dto.form.DocumentFormDTO;
 import org.commonprovenance.framework.store.controller.dto.response.DocumentResponseDTO;
 import org.commonprovenance.framework.store.controller.dto.response.factory.DTOFactory;
+import org.commonprovenance.framework.store.exceptions.ConflictException;
+import org.commonprovenance.framework.store.model.Document;
+import org.commonprovenance.framework.store.model.Organization;
 import org.commonprovenance.framework.store.model.factory.ModelFactory;
 import org.commonprovenance.framework.store.service.persistence.DocumentService;
+import org.commonprovenance.framework.store.service.persistence.OrganizationService;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -25,9 +33,13 @@ import reactor.core.publisher.Mono;
 @RequestMapping("/api/v1/documents")
 public class DocumentControllerImpl implements DocumentController {
   private final DocumentService documentService;
+  private final OrganizationService organizationService;
 
+  public DocumentControllerImpl(
       DocumentService documentService,
+      OrganizationService organizationService) {
     this.documentService = documentService;
+    this.organizationService = organizationService;
   }
 
   @ResponseStatus(HttpStatus.CREATED)
@@ -36,6 +48,25 @@ public class DocumentControllerImpl implements DocumentController {
   public Mono<DocumentResponseDTO> createProvDocument(
       @RequestBody DocumentFormDTO body) {
     return ModelFactory.toDomain(body)
+        // validate Organization and TrustedParty first
+        .delayUntil((Document document) -> Mono.just(new Organization())
+            .map(organization -> organization.withId(document.getOrganizationId()))
+            .flatMap(MONO.makeSureAsync(
+                this.organizationService::exists,
+                org -> new ConflictException("Organization with id " + org.getId().map(UUID::toString).orElse("")
+                    + " has not been registered yet!")))
+            .flatMap(organization -> Mono.justOrEmpty(organization.getId())
+                .flatMap(this.organizationService::getOrganizationById))
+            .map(organization -> organization.getTrustedParty())
+            .flatMap(MONO.makeSure(
+                tp -> tp.getIsChecked(),
+                _ -> new ConflictException(
+                    "Trusted party has not been checked for its validity yet!")))
+            .flatMap(MONO.makeSure(
+                tp -> tp.getIsValid(),
+                _ -> new ConflictException(
+                    "Trusted party has been checked, but has not been considered as vaid!"))))
+        // --------------------------
         .flatMap(this.documentService::storeDocument)
         .flatMap(DTOFactory::toDTO);
   }
