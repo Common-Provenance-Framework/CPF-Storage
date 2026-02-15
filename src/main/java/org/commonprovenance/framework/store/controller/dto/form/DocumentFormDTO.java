@@ -4,12 +4,17 @@ import org.commonprovenance.framework.store.common.dto.HasDocumentFormat;
 import org.commonprovenance.framework.store.controller.validator.IsBase64String;
 import org.commonprovenance.framework.store.controller.validator.IsJsonBase64;
 import org.commonprovenance.framework.store.controller.validator.IsProvBase64Json;
+import org.commonprovenance.framework.store.controller.validator.IsUUID;
 import org.commonprovenance.framework.store.controller.validator.IsValueOfEnum;
 import org.commonprovenance.framework.store.model.Format;
 
 import jakarta.validation.constraints.NotBlank;
 
 public class DocumentFormDTO implements HasDocumentFormat {
+
+  @NotBlank(message = "OrganizationId should not be null or empty.")
+  @IsUUID(message = "OrganizationId should be a valid UUID.")
+  private final String organizationId;
 
   @NotBlank(message = "Document should not be null or empty.")
   @IsBase64String(message = "Document should be Base64 string.")
@@ -27,11 +32,17 @@ public class DocumentFormDTO implements HasDocumentFormat {
   @NotBlank(message = "CreatedOn should not be null or empty.")
   private final Long createdOn;
 
-  public DocumentFormDTO(String document, String documentFormat, String signature, Long createdOn) {
+  public DocumentFormDTO(String organizationId, String document, String documentFormat, String signature,
+      Long createdOn) {
+    this.organizationId = organizationId;
     this.document = document;
     this.documentFormat = documentFormat;
     this.signature = signature;
     this.createdOn = createdOn;
+  }
+
+  public String getOrganizationId() {
+    return organizationId;
   }
 
   public String getDocument() {

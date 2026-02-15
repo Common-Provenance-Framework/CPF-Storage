@@ -24,8 +24,7 @@ public class EntityFactory {
         .map((Format format) -> new DocumentEntity(
             model.getId().orElse(UUID.randomUUID()).toString(),
             model.getGraph(),
-            format.toString(),
-            model.getSignature()));
+            format.toString()));
   }
 
   private static OrganizationEntity fromModel(Organization model) {
