@@ -11,6 +11,7 @@ import org.commonprovenance.framework.store.common.dto.HasDocumentFormat;
 import org.commonprovenance.framework.store.common.dto.HasFormat;
 import org.commonprovenance.framework.store.common.dto.HasHashFunction;
 import org.commonprovenance.framework.store.common.dto.HasId;
+import org.commonprovenance.framework.store.common.dto.HasOrganizationId;
 import org.commonprovenance.framework.store.common.utils.Validators;
 import org.commonprovenance.framework.store.controller.dto.form.DocumentFormDTO;
 import org.commonprovenance.framework.store.controller.dto.form.OrganizationFormDTO;
@@ -47,6 +48,12 @@ public class ModelFactory {
             Optional::isPresent,
             "Format '" + dto.getDocumentFormat() + "' is not valid Document format."))
         .map(Optional::get);
+  }
+
+  private static <T extends HasOrganizationId<T>> Mono<UUID> getOrganizationId(T dto) {
+    return MONO.makeSureNotNull(dto)
+        .map(HasOrganizationId<T>::getOrganizationId)
+        .flatMap(ModelFactory::toUUID);
   }
 
   private static <T extends HasFormat> Mono<Format> getFormat(T dto) {
@@ -90,15 +97,16 @@ public class ModelFactory {
 
   // ---
   private static Document fromDto(DocumentFormDTO dto) {
-    return new Document(null, dto.getDocument(), null, dto.getSignature());
+    return new Document(null, null, dto.getDocument(), null, dto.getSignature());
   }
 
   private static Document fromDto(DocumentTPResponseDTO dto) {
-    return new Document(null, dto.getDocument(), null, dto.getSignature());
+    return new Document(null, null, dto.getDocument(), null, dto.getSignature());
   }
 
   private static Document fromPersistance(DocumentEntity document) {
     return new Document(
+        null,
         null,
         document.getGraph(),
         null,
@@ -230,6 +238,7 @@ public class ModelFactory {
     return MONO.makeSureNotNull(formDTO)
         .map(ModelFactory::fromDto)
         .map((Document document) -> document.withId(UUID.randomUUID()))
+        .flatMap((Document document) -> ModelFactory.getOrganizationId(formDTO).map(document::withOrganizationId))
         .flatMap((Document document) -> ModelFactory.getDocumentFormat(formDTO).map(document::withFormat));
   }
 

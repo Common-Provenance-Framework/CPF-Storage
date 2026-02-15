@@ -1,6 +1,7 @@
 package org.commonprovenance.framework.store.controller.dto.form;
 
 import org.commonprovenance.framework.store.common.dto.HasDocumentFormat;
+import org.commonprovenance.framework.store.common.dto.HasOrganizationId;
 import org.commonprovenance.framework.store.controller.validator.IsBase64String;
 import org.commonprovenance.framework.store.controller.validator.IsJsonBase64;
 import org.commonprovenance.framework.store.controller.validator.IsProvBase64Json;
@@ -10,7 +11,7 @@ import org.commonprovenance.framework.store.model.Format;
 
 import jakarta.validation.constraints.NotBlank;
 
-public class DocumentFormDTO implements HasDocumentFormat {
+public class DocumentFormDTO implements HasDocumentFormat, HasOrganizationId<DocumentFormDTO> {
 
   @NotBlank(message = "OrganizationId should not be null or empty.")
   @IsUUID(message = "OrganizationId should be a valid UUID.")
@@ -39,6 +40,15 @@ public class DocumentFormDTO implements HasDocumentFormat {
     this.documentFormat = documentFormat;
     this.signature = signature;
     this.createdOn = createdOn;
+  }
+
+  public DocumentFormDTO withOrganizationId(String organizationId) {
+    return new DocumentFormDTO(
+        organizationId,
+        this.getDocument(),
+        this.getDocumentFormat(),
+        this.getSignature(),
+        this.getCreatedOn());
   }
 
   public String getOrganizationId() {
