@@ -10,12 +10,14 @@ import org.commonprovenance.framework.store.controller.dto.response.DocumentResp
 import org.commonprovenance.framework.store.controller.dto.response.factory.DTOFactory;
 import org.commonprovenance.framework.store.exceptions.BadRequestException;
 import org.commonprovenance.framework.store.exceptions.ConflictException;
+import org.commonprovenance.framework.store.exceptions.InternalApplicationException;
 import org.commonprovenance.framework.store.model.Document;
 import org.commonprovenance.framework.store.model.Organization;
 import org.commonprovenance.framework.store.model.factory.ModelFactory;
 import org.commonprovenance.framework.store.service.persistence.DocumentService;
 import org.commonprovenance.framework.store.service.persistence.OrganizationService;
 import org.commonprovenance.framework.store.service.web.trustedParty.TrustedPartyWebService;
+import org.openprovenance.prov.model.ProvFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -26,6 +28,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import cz.muni.fi.cpm.model.ICpmFactory;
+import cz.muni.fi.cpm.model.ICpmProvFactory;
 import jakarta.validation.constraints.NotNull;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -38,13 +42,24 @@ public class DocumentControllerImpl implements DocumentController {
   private final OrganizationService organizationService;
   private final TrustedPartyWebService trustedPartyWebService;
 
+  private final ProvFactory provFactory;
+  private final ICpmFactory cpmFactory;
+  private final ICpmProvFactory cpmProvFactory;
+
   public DocumentControllerImpl(
       DocumentService documentService,
       OrganizationService organizationService,
-      TrustedPartyWebService trustedPartyWebService) {
+      TrustedPartyWebService trustedPartyWebService,
+      ProvFactory provFactory,
+      ICpmFactory cpmFactory,
+      ICpmProvFactory cpmProvFactory) {
     this.documentService = documentService;
     this.organizationService = organizationService;
     this.trustedPartyWebService = trustedPartyWebService;
+
+    this.provFactory = provFactory;
+    this.cpmFactory = cpmFactory;
+    this.cpmProvFactory = cpmProvFactory;
   }
 
   @ResponseStatus(HttpStatus.CREATED)
@@ -79,6 +94,13 @@ public class DocumentControllerImpl implements DocumentController {
                 trustedPartyWebService.verifySignature(document),
                 _ -> new BadRequestException("Invalid signature!"))))
         // --------------------------
+        // deserialize document into CpmDocument class
+        .map(document -> document.withCpmDocument(this.provFactory, this.cpmProvFactory, this.cpmFactory))
+        .flatMap(MONO.makeSure(
+            doc -> doc.getCpmDocument().isPresent(),
+            doc -> new InternalApplicationException("Graf has not been deserialized")))
+        // --------------------------
+
         .flatMap(this.documentService::storeDocument)
         .flatMap(DTOFactory::toDTO);
   }
