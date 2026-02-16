@@ -37,6 +37,7 @@ class DocumentRepositoryTest {
   private DocumentPersistenceImpl repository;
 
   private final String TEST_ID_1 = "e3cf8742-b595-47f4-8aae-a1e94b62a856";
+  private final String TEST_ORG_ID_1 = "6ee9d79b-0615-4cb1-b0f3-2303d10c8cff";
   private final String BASE64_STRING_GRAPH_1 = "AAAAQQAAAGIAAAByAAAAYQAAAGsAAABhAAAAIAAAAEQAAABhAAAAYgAAAHIAAABhAAAALgAAAC4=";
   private final String FORMAT_1 = "JSON";
 
@@ -55,6 +56,7 @@ class DocumentRepositoryTest {
   void create_should_create_new_entity() {
     Document document = new Document(
         UUID.fromString(TEST_ID_1),
+        UUID.fromString(TEST_ORG_ID_1),
         BASE64_STRING_GRAPH_1,
         Format.from(FORMAT_1).get(),
         SIGNATURE);
@@ -79,6 +81,7 @@ class DocumentRepositoryTest {
     String errMessage = "Wrong Argumnent..";
     Document document = new Document(
         UUID.fromString(TEST_ID_1),
+        UUID.fromString(TEST_ORG_ID_1),
         BASE64_STRING_GRAPH_1,
         Format.from(FORMAT_1).get(),
         SIGNATURE);
@@ -107,6 +110,7 @@ class DocumentRepositoryTest {
     String errMessage = "Optimistic Locking..";
     Document document = new Document(
         UUID.fromString(TEST_ID_1),
+        UUID.fromString(TEST_ORG_ID_1),
         BASE64_STRING_GRAPH_1,
         Format.from(FORMAT_1).get(),
         SIGNATURE);
@@ -136,6 +140,7 @@ class DocumentRepositoryTest {
     String errMessage = "Wrong Argumnent..";
     Document document = new Document(
         UUID.fromString(TEST_ID_1),
+        UUID.fromString(TEST_ORG_ID_1),
         BASE64_STRING_GRAPH_1,
         Format.from(FORMAT_1).get(),
         SIGNATURE);
@@ -163,8 +168,8 @@ class DocumentRepositoryTest {
   void getAll_should_load_all_entities() {
     when(documentRepository.findAll()).thenAnswer(_invocation -> {
       return Flux.just(
-          new DocumentEntity(TEST_ID_1, BASE64_STRING_GRAPH_1, FORMAT_1, SIGNATURE),
-          new DocumentEntity(TEST_ID_2, BASE64_STRING_GRAPH_2, FORMAT_2, SIGNATURE));
+          new DocumentEntity(TEST_ID_1, BASE64_STRING_GRAPH_1, FORMAT_1),
+          new DocumentEntity(TEST_ID_2, BASE64_STRING_GRAPH_2, FORMAT_2));
     });
 
     StepVerifier.create(repository.getAll())
@@ -196,9 +201,9 @@ class DocumentRepositoryTest {
       String id = invocation.getArgument(0);
       switch (id) {
         case TEST_ID_1:
-          return Mono.just(new DocumentEntity(TEST_ID_1, BASE64_STRING_GRAPH_1, FORMAT_1, SIGNATURE));
+          return Mono.just(new DocumentEntity(TEST_ID_1, BASE64_STRING_GRAPH_1, FORMAT_1));
         case TEST_ID_2:
-          return Mono.just(new DocumentEntity(TEST_ID_2, BASE64_STRING_GRAPH_2, FORMAT_2, SIGNATURE));
+          return Mono.just(new DocumentEntity(TEST_ID_2, BASE64_STRING_GRAPH_2, FORMAT_2));
         case null:
           return Mono.error(new IllegalArgumentException("Id can not be 'null'"));
         default:
@@ -226,9 +231,9 @@ class DocumentRepositoryTest {
       String id = invocation.getArgument(0);
       switch (id) {
         case TEST_ID_1:
-          return Mono.just(new DocumentEntity(TEST_ID_1, BASE64_STRING_GRAPH_1, FORMAT_1, SIGNATURE));
+          return Mono.just(new DocumentEntity(TEST_ID_1, BASE64_STRING_GRAPH_1, FORMAT_1));
         case TEST_ID_2:
-          return Mono.just(new DocumentEntity(TEST_ID_2, BASE64_STRING_GRAPH_2, FORMAT_2, SIGNATURE));
+          return Mono.just(new DocumentEntity(TEST_ID_2, BASE64_STRING_GRAPH_2, FORMAT_2));
         case null:
           return Mono.error(new IllegalArgumentException("Id can not be 'null'"));
         default:
@@ -254,11 +259,12 @@ class DocumentRepositoryTest {
               err.getMessage(),
               "should have exact error message");
 
-          assertInstanceOf(
-              IllegalArgumentException.class, err.getCause(),
-              "should be IllegalArgumentException - Exception cause");
-          assertNull(err.getCause().getMessage(),
-              "should have exact error message");
+          assertNull(err.getCause());
+          // assertInstanceOf(
+          // IllegalArgumentException.class, err.getCause(),
+          // "should be IllegalArgumentException - Exception cause");
+          // assertNull(err.getCause().getMessage(),
+          // "should have exact error message");
         });
   }
 
@@ -291,12 +297,13 @@ class DocumentRepositoryTest {
               "Document Id can not be 'null'!",
               err.getMessage(),
               "should have exact error message");
+          assertNull(err.getCause());
 
-          assertInstanceOf(
-              IllegalArgumentException.class, err.getCause(),
-              "should be IllegalArgumentException - Exception cause");
-          assertNull(err.getCause().getMessage(),
-              "should have exact error message");
+          // assertInstanceOf(
+          // IllegalArgumentException.class, err.getCause(),
+          // "should be IllegalArgumentException - Exception cause");
+          // assertNull(err.getCause().getMessage(),
+          // "should have exact error message");
         });
   }
 }

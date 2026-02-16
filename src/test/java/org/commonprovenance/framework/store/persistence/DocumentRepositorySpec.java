@@ -37,6 +37,7 @@ class DocumentRepositorySpec {
   private DocumentPersistenceImpl documentPersistence;
 
   private final String TEST_ID_1 = "e3cf8742-b595-47f4-8aae-a1e94b62a856";
+  private final String TEST_ORG_ID_2 = "6ee9d79b-0615-4cb1-b0f3-2303d10c8cff";
   private final String BASE64_STRING_GRAPH_1 = "AAAAQQAAAGIAAAByAAAAYQAAAGsAAABhAAAAIAAAAEQAAABhAAAAYgAAAHIAAABhAAAALgAAAC4=";
   private final String FORMAT_1 = "JSON";
   private final String SIGNATURE = "..";
@@ -51,6 +52,7 @@ class DocumentRepositorySpec {
   void created_should_call_save_method_with_exact_paramters() {
     Document doucment = new Document(
         UUID.fromString(TEST_ID_1),
+        UUID.fromString(TEST_ORG_ID_2),
         BASE64_STRING_GRAPH_1,
         Format.from(FORMAT_1).get(),
         SIGNATURE);

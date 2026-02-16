@@ -34,10 +34,12 @@ class DocumentServiceSpec {
   private DocumentServiceImpl documentService;
 
   private final UUID UUID_1 = UUID.fromString("e3cf8742-b595-47f4-8aae-a1e94b62a856");
+  private final UUID TEST_ORG_ID_1 = UUID.fromString("6ee9d79b-0615-4cb1-b0f3-2303d10c8cff");
   private final String BASE64_STRING_GRAPH_1 = "AAAAQQAAAGIAAAByAAAAYQAAAGsAAABhAAAAIAAAAEQAAABhAAAAYgAAAHIAAABhAAAALgAAAC4=";
   private final Format FORMAT_1 = Format.JSON;
 
   private final UUID UUID_2 = UUID.fromString("dc3b1fc8-d01e-4405-8cf8-94320a11ba4c");
+  private final UUID TEST_ORG_ID_2 = UUID.fromString("6ee9d79b-0615-4cb1-b0f3-2303d10c8cff");
   private final String BASE64_STRING_GRAPH_2 = "AAAASAAAAGUAAABsAAAAbAAAAG8AAAAgAAAAVwAAAG8AAAByAAAAbAAAAGQAAAAh";
   private final Format FORMAT_2 = Format.JSON;
   private final String SIGNATURE = "...";
@@ -51,7 +53,7 @@ class DocumentServiceSpec {
   @DisplayName("storeDocument - should call create on repository once with exact Document.")
 
   void storeDocument_should_call_create_on_repository() {
-    Document document = new Document(UUID_1, BASE64_STRING_GRAPH_1, FORMAT_1, SIGNATURE);
+    Document document = new Document(UUID_1, TEST_ORG_ID_1, BASE64_STRING_GRAPH_1, FORMAT_1, SIGNATURE);
 
     when(documentRepository.create(any(Document.class))).thenAnswer(invocation -> {
       Document documnent = invocation.getArgument(0);
@@ -79,8 +81,8 @@ class DocumentServiceSpec {
   @Test
   @DisplayName("getAllDocuments - should call getAll on repository once")
   void getAllDocuments_shouldReturnAllDocuments() {
-    Document doc1 = new Document(UUID_1, BASE64_STRING_GRAPH_1, FORMAT_1, SIGNATURE);
-    Document doc2 = new Document(UUID_2, BASE64_STRING_GRAPH_2, FORMAT_2, SIGNATURE);
+    Document doc1 = new Document(UUID_1, TEST_ORG_ID_1, BASE64_STRING_GRAPH_1, FORMAT_1, SIGNATURE);
+    Document doc2 = new Document(UUID_2, TEST_ORG_ID_2, BASE64_STRING_GRAPH_2, FORMAT_2, SIGNATURE);
 
     when(documentRepository.getAll()).thenReturn(Flux.just(doc1, doc2));
 
@@ -99,7 +101,7 @@ class DocumentServiceSpec {
 
   @Test
   void getDocumentById_shouldReturnDocument() {
-    Document document = new Document(UUID_1, BASE64_STRING_GRAPH_1, FORMAT_1, SIGNATURE);
+    Document document = new Document(UUID_1, TEST_ORG_ID_1, BASE64_STRING_GRAPH_1, FORMAT_1, SIGNATURE);
     when(documentRepository.getById(UUID_1)).thenReturn(Mono.just(document));
 
     StepVerifier.create(documentService.getDocumentById(UUID_1))
@@ -110,7 +112,7 @@ class DocumentServiceSpec {
     verify(
         documentRepository,
         times(1)
-            .description("Repository getAll method should be invoked once"))
+            .description("Repository getById method should be invoked once"))
         .getById(captor.capture());
 
     UUID capturedId = captor.getValue();

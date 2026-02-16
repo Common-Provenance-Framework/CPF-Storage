@@ -16,6 +16,7 @@ public class DTOFactory {
   private static DocumentResponseDTO fromModel(Document model) {
     return new DocumentResponseDTO(
         model.getId().map(UUID::toString).orElse(null),
+        model.getOrganizationId().toString(),
         model.getGraph(),
         model.getFormat().map(Format::toString).orElse(null));
   }
