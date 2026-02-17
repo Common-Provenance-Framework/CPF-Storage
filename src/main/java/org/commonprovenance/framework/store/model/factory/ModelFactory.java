@@ -238,7 +238,6 @@ public class ModelFactory {
   public static Mono<Document> toDomain(DocumentFormDTO formDTO) {
     return MONO.makeSureNotNull(formDTO)
         .map(ModelFactory::fromDto)
-        .map((Document document) -> document.withId(UUID.randomUUID()))
         .flatMap((Document document) -> ModelFactory.getOrganizationId(formDTO).map(document::withOrganizationId))
         .flatMap((Document document) -> ModelFactory.getDocumentFormat(formDTO).map(document::withFormat));
   }

@@ -100,8 +100,11 @@ public class DocumentControllerImpl implements DocumentController {
             doc -> doc.getCpmDocument().isPresent(),
             doc -> new InternalApplicationException("Graf has not been deserialized")))
         // --------------------------
-
-        .flatMap(this.documentService::storeDocument)
+        // get document id from deserialized document - has to be bundle identifier
+        // local part
+        .map(document -> document
+            .withId(document.getCpmDocument().map(cpm -> cpm.getBundleId().getLocalPart()).map(UUID::fromString)
+                .orElse(null)))
         .flatMap(DTOFactory::toDTO);
   }
 
