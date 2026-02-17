@@ -134,6 +134,14 @@ public class DocumentControllerImpl implements DocumentController {
                 this::isValidBackwardConnector,
                 (Element element) -> new BadRequestException(
                     "Element '" + element.getId() + "' is not valid backward connector"))))
+        // validate forward connector attributes
+        .delayUntil(document -> Mono.justOrEmpty(document.getCpmDocument())
+            .flatMapMany(cpm -> Flux.fromIterable(cpm.getForwardConnectors()))
+            .map(INode::getAnyElement)
+            .flatMap(MONO.makeSure(
+                this::isValidForwardConnector,
+                (Element element) -> new BadRequestException(
+                    "Element '" + element.getId() + "' is not valid forward connector"))))
         .flatMap(DTOFactory::toDTO);
   }
 
@@ -147,6 +155,14 @@ public class DocumentControllerImpl implements DocumentController {
     return false;
   }
 
+  private Boolean isValidForwardConnector(Element connector) {
+    return CpmUtilities.containsCpmAttribute(connector, CpmAttribute.REFERENCED_BUNDLE_ID)
+        && CpmUtilities.containsCpmAttribute(connector, CpmAttribute.REFERENCED_META_BUNDLE_ID)
+        && CpmUtilities.containsCpmAttribute(connector, CpmAttribute.REFERENCED_BUNDLE_HASH_VALUE)
+        // && CpmUtilities.containsCpmAttribute(connector,
+        // CpmAttribute.PROVENANCE_SERVICE_URI) // is optional
+        && CpmUtilities.containsCpmAttribute(connector, CpmAttribute.HASH_ALG);
+  }
 
   @GetMapping()
   @NotNull
