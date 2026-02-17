@@ -57,8 +57,8 @@ public class TrustedPartyClientImpl implements TrustedPartyClient {
     return (Document document) -> DTOFactory.toForm(organization, document)
         .flatMap(organization.getTrustedParty().getUrl()
             .map(this.client::buildWebClient)
-            .map(this.client.sendCustomPostRequest("/verifySignature", TokenTPResponseDTO.class))
-            .orElse(this.client.sendPostRequest("/verifySignature", TokenTPResponseDTO.class)))
+            .map(this.client.sendCustomPostRequest("/verifySignature", Void.class))
+            .orElse(this.client.sendPostRequest("/verifySignature", Void.class)))
         .then(Mono.just(true));
   }
 }
