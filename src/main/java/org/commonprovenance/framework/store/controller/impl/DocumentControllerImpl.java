@@ -18,6 +18,8 @@ import org.commonprovenance.framework.store.model.factory.ModelFactory;
 import org.commonprovenance.framework.store.service.persistence.DocumentService;
 import org.commonprovenance.framework.store.service.persistence.OrganizationService;
 import org.commonprovenance.framework.store.service.web.trustedParty.TrustedPartyWebService;
+import org.openprovenance.prov.model.Element;
+import org.openprovenance.prov.model.Entity;
 import org.openprovenance.prov.model.ProvFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
@@ -29,8 +31,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import cz.muni.fi.cpm.constants.CpmAttribute;
+import cz.muni.fi.cpm.model.CpmUtilities;
 import cz.muni.fi.cpm.model.ICpmFactory;
 import cz.muni.fi.cpm.model.ICpmProvFactory;
+import cz.muni.fi.cpm.model.INode;
 import jakarta.validation.constraints.NotNull;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -121,9 +126,27 @@ public class DocumentControllerImpl implements DocumentController {
                 .onErrorResume(NotFoundException.class, _ -> Mono.just(true)),
             doc -> new ConflictException("Document with id '" + doc.getId().map(UUID::toString).get() + "' exists!!")))
 
-        )
+        // validate backward connector attributes
+        .delayUntil(document -> Mono.justOrEmpty(document.getCpmDocument())
+            .flatMapMany(cpm -> Flux.fromIterable(cpm.getBackwardConnectors()))
+            .map(INode::getAnyElement)
+            .flatMap(MONO.makeSure(
+                this::isValidBackwardConnector,
+                (Element element) -> new BadRequestException(
+                    "Element '" + element.getId() + "' is not valid backward connector"))))
         .flatMap(DTOFactory::toDTO);
   }
+
+  private Boolean isValidBackwardConnector(Element connector) {
+    if (connector instanceof Entity entity) {
+      return CpmUtilities.containsCpmAttribute(entity, CpmAttribute.REFERENCED_BUNDLE_ID)
+          && CpmUtilities.containsCpmAttribute(entity, CpmAttribute.REFERENCED_META_BUNDLE_ID)
+          && CpmUtilities.containsCpmAttribute(entity, CpmAttribute.REFERENCED_BUNDLE_HASH_VALUE)
+          && CpmUtilities.containsCpmAttribute(entity, CpmAttribute.HASH_ALG);
+    }
+    return false;
+  }
+
 
   @GetMapping()
   @NotNull
