@@ -105,6 +105,14 @@ public class DocumentControllerImpl implements DocumentController {
         .map(document -> document
             .withId(document.getCpmDocument().map(cpm -> cpm.getBundleId().getLocalPart()).map(UUID::fromString)
                 .orElse(null)))
+        // validate bundle identifier namespace uri. But has to be validate in different
+        // way!!
+        .delayUntil(document -> Mono.justOrEmpty(document.getCpmDocument()
+            .map(cpm -> cpm.getBundleId().getNamespaceURI().endsWith(
+                "/documents/")))
+            .flatMap(x -> x ? Mono.just(document)
+                : Mono.error(new BadRequestException(
+                    "The bundle identifier does not resolve into document: "))))
         .flatMap(DTOFactory::toDTO);
   }
 
