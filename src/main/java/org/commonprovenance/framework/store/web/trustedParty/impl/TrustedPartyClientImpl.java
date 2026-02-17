@@ -59,6 +59,8 @@ public class TrustedPartyClientImpl implements TrustedPartyClient {
             .map(this.client::buildWebClient)
             .map(this.client.sendCustomPostRequest("/verifySignature", Void.class))
             .orElse(this.client.sendPostRequest("/verifySignature", Void.class)))
-        .then(Mono.just(true));
+        .then(Mono.just(true))
+        .onErrorResume(org.springframework.web.reactive.function.client.WebClientResponseException.BadRequest.class,
+            ex -> Mono.just(false));
   }
 }
