@@ -113,6 +113,14 @@ public class DocumentControllerImpl implements DocumentController {
             .flatMap(x -> x ? Mono.just(document)
                 : Mono.error(new BadRequestException(
                     "The bundle identifier does not resolve into document: "))))
+        // validate document doest not exists yet
+        .flatMap(MONO.makeSureAsync(
+            // do not exists
+            doc -> this.documentService.getDocumentById(doc.getId().get()).thenReturn(false)
+                .onErrorResume(NotFoundException.class, _ -> Mono.just(true)),
+            doc -> new ConflictException("Document with id '" + doc.getId().map(UUID::toString).get() + "' exists!!"))
+
+        )
         .flatMap(DTOFactory::toDTO);
   }
 

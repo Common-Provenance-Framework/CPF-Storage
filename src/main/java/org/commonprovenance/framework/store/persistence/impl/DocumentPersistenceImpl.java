@@ -4,6 +4,7 @@ import static org.commonprovenance.framework.store.common.publisher.PublisherHel
 
 import java.util.UUID;
 
+import org.commonprovenance.framework.store.exceptions.NotFoundException;
 import org.commonprovenance.framework.store.model.Document;
 import org.commonprovenance.framework.store.model.factory.ModelFactory;
 import org.commonprovenance.framework.store.persistence.DocumentPersistence;
@@ -50,7 +51,9 @@ public class DocumentPersistenceImpl implements DocumentPersistence {
         .map(UUID::toString)
         .flatMap(repository::findById)
         .onErrorResume(MONO.exceptionWrapper("DocumentNeo4jRepository - Error while reading document"))
-        .flatMap(ModelFactory::toDomain);
+        .flatMap(ModelFactory::toDomain)
+        .switchIfEmpty(
+            Mono.error(new NotFoundException("Document with id '" + uuid.toString() + "' has not been found!")));
   }
 
   @Override
