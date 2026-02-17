@@ -11,6 +11,7 @@ import org.commonprovenance.framework.store.controller.dto.response.factory.DTOF
 import org.commonprovenance.framework.store.exceptions.BadRequestException;
 import org.commonprovenance.framework.store.exceptions.ConflictException;
 import org.commonprovenance.framework.store.exceptions.InternalApplicationException;
+import org.commonprovenance.framework.store.exceptions.NotFoundException;
 import org.commonprovenance.framework.store.model.Document;
 import org.commonprovenance.framework.store.model.Organization;
 import org.commonprovenance.framework.store.model.factory.ModelFactory;
@@ -118,7 +119,7 @@ public class DocumentControllerImpl implements DocumentController {
             // do not exists
             doc -> this.documentService.getDocumentById(doc.getId().get()).thenReturn(false)
                 .onErrorResume(NotFoundException.class, _ -> Mono.just(true)),
-            doc -> new ConflictException("Document with id '" + doc.getId().map(UUID::toString).get() + "' exists!!"))
+            doc -> new ConflictException("Document with id '" + doc.getId().map(UUID::toString).get() + "' exists!!")))
 
         )
         .flatMap(DTOFactory::toDTO);
