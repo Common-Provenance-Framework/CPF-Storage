@@ -10,7 +10,8 @@
       "type": "object",
       "patternProperties": {
         "^[a-zA-Z0-9_\\-]+$": {
-          "type": "string"
+          "type": "string",
+          "format": "uri"
         }
       }
     },
@@ -58,7 +59,8 @@
           "type": "string"
         },
         "type": {
-          "type": "string"
+          "type": "string",
+          "format": "uri"
         },
         "lang": {
           "type": "string"
@@ -146,10 +148,12 @@
       "title": "communication",
       "properties": {
         "prov:informant": {
-          "type": "string"
+          "type": "string",
+          "format": "uri"
         },
         "prov:informed": {
-          "type": "string"
+          "type": "string",
+          "format": "uri"
         }
       },
       "required": [
@@ -172,7 +176,8 @@
           "format": "date-time"
         },
         "prov:trigger": {
-          "type": "string"
+          "type": "string",
+          "format": "uri"
         }
       },
       "required": [
@@ -212,19 +217,23 @@
       "title": "derivation",
       "properties": {
         "prov:generatedEntity": {
-          "type": "string"
+          "type": "string",
+          "format": "uri"
         },
         "prov:usedEntity": {
-          "type": "string"
+          "type": "string",
+          "format": "uri"
         },
         "prov:activity": {
           "type": "string"
         },
         "prov:generation": {
-          "type": "string"
+          "type": "string",
+          "format": "uri"
         },
         "prov:usage": {
-          "type": "string"
+          "type": "string",
+          "format": "uri"
         }
       },
       "required": [
@@ -265,7 +274,8 @@
           "type": "string"
         },
         "prov:plan": {
-          "type": "string"
+          "type": "string",
+          "format": "uri"
         }
       },
       "required": [
@@ -280,10 +290,12 @@
       "title": "delegation",
       "properties": {
         "prov:delegate": {
-          "type": "string"
+          "type": "string",
+          "format": "uri"
         },
         "prov:responsible": {
-          "type": "string"
+          "type": "string",
+          "format": "uri"
         },
         "prov:activity": {
           "type": "string"
@@ -302,10 +314,12 @@
       "title": "",
       "properties": {
         "prov:influencer": {
-          "type": "string"
+          "type": "string",
+          "format": "uri"
         },
         "prov:influencee": {
-          "type": "string"
+          "type": "string",
+          "format": "uri"
         }
       },
       "required": [
@@ -321,10 +335,12 @@
       "title": "specialization",
       "properties": {
         "prov:generalEntity": {
-          "type": "string"
+          "type": "string",
+          "format": "uri"
         },
         "prov:specificEntity": {
-          "type": "string"
+          "type": "string",
+          "format": "uri"
         }
       },
       "required": [
@@ -340,10 +356,12 @@
       "title": "alternate",
       "properties": {
         "prov:alternate1": {
-          "type": "string"
+          "type": "string",
+          "format": "uri"
         },
         "prov:alternate2": {
-          "type": "string"
+          "type": "string",
+          "format": "uri"
         }
       },
       "required": [
@@ -359,7 +377,8 @@
       "title": "membership",
       "properties": {
         "prov:collection": {
-          "type": "string"
+          "type": "string",
+          "format": "uri"
         },
         "prov:entity": {
           "type": "string"
@@ -382,7 +401,8 @@
           "type": "object",
           "patternProperties": {
             "^[a-zA-Z0-9_\\-]+$": {
-              "type": "string"
+              "type": "string",
+              "format": "uri"
             }
           }
         },
