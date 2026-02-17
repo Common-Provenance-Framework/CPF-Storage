@@ -10,6 +10,7 @@ import org.commonprovenance.framework.store.controller.validator.IsValueOfEnum;
 import org.commonprovenance.framework.store.model.Format;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 
 public class DocumentFormDTO implements HasDocumentFormat, HasOrganizationId<DocumentFormDTO> {
 
@@ -30,7 +31,7 @@ public class DocumentFormDTO implements HasDocumentFormat, HasOrganizationId<Doc
   @NotBlank(message = "Signature should not be null or empty.")
   private final String signature;
 
-  @NotBlank(message = "CreatedOn should not be null or empty.")
+  @NotNull(message = "CreatedOn should not be null.")
   private final Long createdOn;
 
   public DocumentFormDTO(String organizationId, String document, String documentFormat, String signature,
