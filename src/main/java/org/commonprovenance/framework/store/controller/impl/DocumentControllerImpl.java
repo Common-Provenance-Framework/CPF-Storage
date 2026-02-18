@@ -175,6 +175,7 @@ public class DocumentControllerImpl implements DocumentController {
                     "Reference meta bundle id is not resolvable. Element '" + element.getId()
                         + "' is not valid forward connector."))))
 
+        // TODO: check hashes in connectors
         // .map(x -> x)
         // .flatMap(this.documentService::storeDocument) // Do NOT store for now..
         .flatMap(DTOFactory::toDTO);
