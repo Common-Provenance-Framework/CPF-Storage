@@ -147,9 +147,22 @@ public class DocumentControllerImpl implements DocumentController {
                 (Element element) -> new BadRequestException(
                     "Element '" + element.getId() + "' is not valid forward connector"))))
         // validate reference resolvable - backward connector
-        .delayUntil(document -> Mono.justOrEmpty(document
-            .getCpmDocument())
+        .delayUntil(document -> Mono.justOrEmpty(document.getCpmDocument())
             .flatMapMany(cpm -> Flux.fromIterable(cpm.getBackwardConnectors()))
+            .map(INode::getAnyElement)
+            .flatMap(MONO.makeSureAsync(
+                this::isResolvableBundleId,
+                (Element element) -> new BadRequestException(
+                    "Reference bundle id is not resolvable. Element '" + element.getId()
+                        + "' is not valid backward connector.")))
+            .flatMap(MONO.makeSureAsync(
+                this::isResolvableMetaBundleId,
+                (Element element) -> new BadRequestException(
+                    "Reference meta bundle id is not resolvable. Element '" + element.getId()
+                        + "' is not valid backward connector."))))
+        // validate reference resolvable - forward connector
+        .delayUntil(document -> Mono.justOrEmpty(document.getCpmDocument())
+            .flatMapMany(cpm -> Flux.fromIterable(cpm.getForwardConnectors()))
             .map(INode::getAnyElement)
             .flatMap(MONO.makeSureAsync(
                 this::isResolvableBundleId,
