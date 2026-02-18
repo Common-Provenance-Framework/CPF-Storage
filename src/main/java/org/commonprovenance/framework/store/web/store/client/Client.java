@@ -1,4 +1,4 @@
-package org.commonprovenance.framework.store.web.ping.client;
+package org.commonprovenance.framework.store.web.store.client;
 
 import reactor.core.publisher.Mono;
 

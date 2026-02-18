@@ -1,4 +1,4 @@
-package org.commonprovenance.framework.store.web.ping;
+package org.commonprovenance.framework.store.web.store;
 
 import jakarta.validation.constraints.NotNull;
 import reactor.core.publisher.Mono;

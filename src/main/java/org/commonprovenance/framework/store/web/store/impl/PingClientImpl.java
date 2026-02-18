@@ -1,7 +1,7 @@
-package org.commonprovenance.framework.store.web.ping.impl;
+package org.commonprovenance.framework.store.web.store.impl;
 
-import org.commonprovenance.framework.store.web.ping.PingClient;
-import org.commonprovenance.framework.store.web.ping.client.Client;
+import org.commonprovenance.framework.store.web.store.PingClient;
+import org.commonprovenance.framework.store.web.store.client.Client;
 import org.springframework.stereotype.Component;
 
 import jakarta.validation.constraints.NotNull;

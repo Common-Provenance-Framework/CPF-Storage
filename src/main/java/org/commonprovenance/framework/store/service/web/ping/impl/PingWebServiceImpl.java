@@ -1,7 +1,7 @@
 package org.commonprovenance.framework.store.service.web.ping.impl;
 
 import org.commonprovenance.framework.store.service.web.ping.PingWebService;
-import org.commonprovenance.framework.store.web.ping.PingClient;
+import org.commonprovenance.framework.store.web.store.PingClient;
 import org.openprovenance.prov.model.QualifiedName;
 import org.springframework.stereotype.Service;
 
