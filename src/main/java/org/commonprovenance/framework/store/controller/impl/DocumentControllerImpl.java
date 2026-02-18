@@ -17,10 +17,12 @@ import org.commonprovenance.framework.store.model.Organization;
 import org.commonprovenance.framework.store.model.factory.ModelFactory;
 import org.commonprovenance.framework.store.service.persistence.DocumentService;
 import org.commonprovenance.framework.store.service.persistence.OrganizationService;
+import org.commonprovenance.framework.store.service.web.store.StoreWebService;
 import org.commonprovenance.framework.store.service.web.trustedParty.TrustedPartyWebService;
 import org.openprovenance.prov.model.Element;
 import org.openprovenance.prov.model.Entity;
 import org.openprovenance.prov.model.ProvFactory;
+import org.openprovenance.prov.model.QualifiedName;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -47,6 +49,7 @@ public class DocumentControllerImpl implements DocumentController {
   private final DocumentService documentService;
   private final OrganizationService organizationService;
   private final TrustedPartyWebService trustedPartyWebService;
+  private final StoreWebService storeWebService;
 
   private final ProvFactory provFactory;
   private final ICpmFactory cpmFactory;
@@ -56,12 +59,14 @@ public class DocumentControllerImpl implements DocumentController {
       DocumentService documentService,
       OrganizationService organizationService,
       TrustedPartyWebService trustedPartyWebService,
+      StoreWebService storeWebService,
       ProvFactory provFactory,
       ICpmFactory cpmFactory,
       ICpmProvFactory cpmProvFactory) {
     this.documentService = documentService;
     this.organizationService = organizationService;
     this.trustedPartyWebService = trustedPartyWebService;
+    this.storeWebService = storeWebService;
 
     this.provFactory = provFactory;
     this.cpmFactory = cpmFactory;
@@ -141,9 +146,55 @@ public class DocumentControllerImpl implements DocumentController {
                 this::isValidForwardConnector,
                 (Element element) -> new BadRequestException(
                     "Element '" + element.getId() + "' is not valid forward connector"))))
+        // validate reference resolvable - backward connector
+        .delayUntil(document -> Mono.justOrEmpty(document
+            .getCpmDocument())
+            .flatMapMany(cpm -> Flux.fromIterable(cpm.getBackwardConnectors()))
+            .map(INode::getAnyElement)
+            .flatMap(MONO.makeSureAsync(
+                this::isResolvableBundleId,
+                (Element element) -> new BadRequestException(
+                    "Reference bundle id is not resolvable. Element '" + element.getId()
+                        + "' is not valid forward connector.")))
+            .flatMap(MONO.makeSureAsync(
+                this::isResolvableMetaBundleId,
+                (Element element) -> new BadRequestException(
+                    "Reference meta bundle id is not resolvable. Element '" + element.getId()
+                        + "' is not valid forward connector."))))
+
         // .map(x -> x)
         // .flatMap(this.documentService::storeDocument) // Do NOT store for now..
         .flatMap(DTOFactory::toDTO);
+  }
+
+  private Mono<Boolean> isResolvableBundleId(Element connector) {
+    if (connector instanceof Entity entity) {
+      return Mono.justOrEmpty(CpmUtilities.getCpmAttributeValue(entity, CpmAttribute.REFERENCED_BUNDLE_ID))
+          .flatMap((Object value) -> {
+            if (value instanceof QualifiedName qn) {
+              return Mono.justOrEmpty(qn);
+            }
+            return Mono.error(new BadRequestException());
+          })
+          .flatMap(this.storeWebService::pingQualifiedName);
+    }
+    return Mono.error(new BadRequestException(
+        "Invalid connector. Statement with id '" + connector.getId().toString() + "' is not entity!"));
+  }
+
+  private Mono<Boolean> isResolvableMetaBundleId(Element connector) {
+    if (connector instanceof Entity entity) {
+      return Mono.justOrEmpty(CpmUtilities.getCpmAttributeValue(entity, CpmAttribute.REFERENCED_META_BUNDLE_ID))
+          .flatMap((Object value) -> {
+            if (value instanceof QualifiedName qn) {
+              return Mono.justOrEmpty(qn);
+            }
+            return Mono.error(new BadRequestException());
+          })
+          .flatMap(this.storeWebService::pingQualifiedName);
+    }
+    return Mono.error(new BadRequestException(
+        "Invalid connector. Statement with id '" + connector.getId().toString() + "' is not entity!"));
   }
 
   private Boolean isValidBackwardConnector(Element connector) {
