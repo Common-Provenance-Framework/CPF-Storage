@@ -3,6 +3,7 @@ package org.commonprovenance.framework.store.model;
 import java.io.IOException;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.function.Function;
 
 import org.commonprovenance.framework.store.common.utils.Base64Utils;
 import org.commonprovenance.framework.store.common.utils.ProvDocumentUtils;
@@ -47,7 +48,8 @@ public class Document {
         this.getOrganizationId(),
         this.getGraph(),
         this.getFormat().orElse(null),
-        this.getSignature());
+        this.getSignature(),
+        this.getCpmDocument().orElse(null));
   }
 
   public Document withOrganizationId(UUID organizationId) {
@@ -72,9 +74,9 @@ public class Document {
     return this.cpmDocument.isPresent()
         ? this
         : Optional.ofNullable(this.graph)
-            .map(g -> Base64Utils.decodeToString(g))
+            .map(Base64Utils::decodeToString)
             .flatMap(
-                json -> {
+                (String json) -> {
                   try {
                     return Optional
                         .of(ProvDocumentUtils.deserialize(
@@ -85,14 +87,24 @@ public class Document {
                     return Optional.empty();
                   }
                 })
-            .map(d -> new CpmDocument(d, provFactory, cpmProvFactory, cpmFactory))
-            .map(cd -> new Document(
+            .map(this.cpmFactory(provFactory, cpmProvFactory, cpmFactory))
+            .map((CpmDocument cpmDocument) -> new Document(
                 this.getId().orElse(null),
                 this.getOrganizationId(),
                 this.getGraph(),
                 this.getFormat().orElse(null),
-                this.getSignature(), cd))
+                this.getSignature(),
+                cpmDocument))
             .orElse(this);
+  }
+
+  private Function<org.openprovenance.prov.model.Document, CpmDocument> cpmFactory(
+      ProvFactory provFactory,
+      ICpmProvFactory cpmProvFactory,
+      ICpmFactory cpmFactory) {
+    return (org.openprovenance.prov.model.Document document) -> {
+      return new CpmDocument(document, provFactory, cpmProvFactory, cpmFactory);
+    };
   }
 
   public Optional<UUID> getId() {
