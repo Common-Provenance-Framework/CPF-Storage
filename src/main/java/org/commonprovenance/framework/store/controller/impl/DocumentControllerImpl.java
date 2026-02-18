@@ -141,6 +141,8 @@ public class DocumentControllerImpl implements DocumentController {
                 this::isValidForwardConnector,
                 (Element element) -> new BadRequestException(
                     "Element '" + element.getId() + "' is not valid forward connector"))))
+        // .map(x -> x)
+        // .flatMap(this.documentService::storeDocument) // Do NOT store for now..
         .flatMap(DTOFactory::toDTO);
   }
 
