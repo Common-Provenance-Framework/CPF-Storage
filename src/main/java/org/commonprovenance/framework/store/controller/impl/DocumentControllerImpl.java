@@ -155,12 +155,15 @@ public class DocumentControllerImpl implements DocumentController {
   }
 
   private Boolean isValidForwardConnector(Element connector) {
-    return CpmUtilities.containsCpmAttribute(connector, CpmAttribute.REFERENCED_BUNDLE_ID)
-        && CpmUtilities.containsCpmAttribute(connector, CpmAttribute.REFERENCED_META_BUNDLE_ID)
-        && CpmUtilities.containsCpmAttribute(connector, CpmAttribute.REFERENCED_BUNDLE_HASH_VALUE)
-        // && CpmUtilities.containsCpmAttribute(connector,
-        // CpmAttribute.PROVENANCE_SERVICE_URI) // is optional
-        && CpmUtilities.containsCpmAttribute(connector, CpmAttribute.HASH_ALG);
+    if (connector instanceof Entity entity) {
+      return CpmUtilities.containsCpmAttribute(entity, CpmAttribute.REFERENCED_BUNDLE_ID)
+          && CpmUtilities.containsCpmAttribute(entity, CpmAttribute.REFERENCED_META_BUNDLE_ID)
+          && CpmUtilities.containsCpmAttribute(entity, CpmAttribute.REFERENCED_BUNDLE_HASH_VALUE)
+          // && CpmUtilities.containsCpmAttribute(entity,
+          // CpmAttribute.PROVENANCE_SERVICE_URI) // is optional
+          && CpmUtilities.containsCpmAttribute(entity, CpmAttribute.HASH_ALG);
+    }
+    return false;
   }
 
   @GetMapping()
