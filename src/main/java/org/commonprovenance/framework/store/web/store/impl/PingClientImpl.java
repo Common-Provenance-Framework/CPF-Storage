@@ -1,7 +1,7 @@
 package org.commonprovenance.framework.store.web.store.impl;
 
 import org.commonprovenance.framework.store.web.store.PingClient;
-import org.commonprovenance.framework.store.web.store.client.Client;
+import org.commonprovenance.framework.store.web.store.client.ClientStore;
 import org.springframework.stereotype.Component;
 
 import jakarta.validation.constraints.NotNull;
@@ -9,9 +9,9 @@ import reactor.core.publisher.Mono;
 
 @Component
 public class PingClientImpl implements PingClient {
-  private final Client client;
+  private final ClientStore client;
 
-  public PingClientImpl(Client client) {
+  public PingClientImpl(ClientStore client) {
     this.client = client;
   }
 

@@ -2,7 +2,7 @@ package org.commonprovenance.framework.store.web.store.client.webFlux;
 
 import org.springframework.stereotype.Component;
 import org.commonprovenance.framework.store.exceptions.NotFoundException;
-import org.commonprovenance.framework.store.web.store.client.Client;
+import org.commonprovenance.framework.store.web.store.client.ClientStore;
 import org.springframework.context.annotation.Profile;
 import org.springframework.web.reactive.function.client.WebClient;
 
@@ -10,8 +10,8 @@ import reactor.core.publisher.Mono;
 
 @Component
 @Profile("live & webflux")
-public class ClientWebFlux implements Client {
-  public ClientWebFlux() {
+public class ClientStoreWebFlux implements ClientStore {
+  public ClientStoreWebFlux() {
   }
 
   @Override

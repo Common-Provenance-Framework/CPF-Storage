@@ -8,6 +8,7 @@ import java.util.function.Function;
 import org.commonprovenance.framework.store.exceptions.NotFoundException;
 import org.commonprovenance.framework.store.model.Document;
 import org.commonprovenance.framework.store.model.Organization;
+import org.commonprovenance.framework.store.model.Token;
 import org.commonprovenance.framework.store.model.TrustedParty;
 import org.commonprovenance.framework.store.service.web.trustedParty.TrustedPartyWebService;
 import org.commonprovenance.framework.store.web.trustedParty.CertificateClient;
@@ -78,6 +79,11 @@ public class TrustedPartyWebServiceImpl implements TrustedPartyWebService {
         .apply(document)
         .flatMap(this.trustedPartyClient.verifySignature(organization));
 
+  }
+
+  @Override
+  public Function<Document, Mono<Token>> issueGraphToken(Optional<String> trustedPartyUrl) {
+    return this.trustedPartyClient.issueGraphToken(trustedPartyUrl);
   }
 
 }
