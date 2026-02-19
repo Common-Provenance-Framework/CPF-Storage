@@ -17,57 +17,86 @@ import cz.muni.fi.cpm.model.ICpmProvFactory;
 public class Document {
   private final Optional<UUID> id;
   private final UUID organizationId;
+  private final String organizationName;
   private final String graph;
   private final Optional<Format> format;
   private final String signature;
 
   private final Optional<CpmDocument> cpmDocument;
+  private final Optional<Token> token;
 
-  public Document(UUID id, UUID organizationId, String graph, Format format, String signature) {
+  public Document(UUID id, UUID organizationId, String organizationName, String graph, Format format,
+      String signature) {
     this.id = Optional.ofNullable(id);
     this.organizationId = organizationId;
+    this.organizationName = organizationName;
     this.graph = graph;
     this.format = Optional.ofNullable(format);
     this.signature = signature;
     this.cpmDocument = Optional.empty();
+    this.token = Optional.empty();
   }
 
-  public Document(UUID id, UUID organizationId, String graph, Format format, String signature,
-      CpmDocument cpmDocument) {
+  public Document(UUID id, UUID organizationId,
+      String organizationName, String graph, Format format, String signature,
+      CpmDocument cpmDocument, Token token) {
     this.id = Optional.ofNullable(id);
     this.organizationId = organizationId;
+    this.organizationName = organizationName;
     this.graph = graph;
     this.format = Optional.ofNullable(format);
     this.signature = signature;
+
     this.cpmDocument = Optional.ofNullable(cpmDocument);
+    this.token = Optional.ofNullable(token);
   }
 
   public Document withId(UUID id) {
     return new Document(
         id,
         this.getOrganizationId(),
+        this.getOrganizationName(),
         this.getGraph(),
         this.getFormat().orElse(null),
         this.getSignature(),
-        this.getCpmDocument().orElse(null));
+        this.getCpmDocument().orElse(null),
+        this.getToken().orElse(null));
   }
 
   public Document withOrganizationId(UUID organizationId) {
     return new Document(
         this.getId().orElse(null),
         organizationId,
+        this.getOrganizationName(),
         this.getGraph(),
         this.getFormat().orElse(null),
-        this.getSignature());
+        this.getSignature(),
+        this.getCpmDocument().orElse(null),
+        this.getToken().orElse(null));
+  }
+
+  public Document withOrganizationName(String organizationName) {
+    return new Document(
+        this.getId().orElse(null),
+        this.getOrganizationId(),
+        organizationName,
+        this.getGraph(),
+        this.getFormat().orElse(null),
+        this.getSignature(),
+        this.getCpmDocument().orElse(null),
+        this.getToken().orElse(null));
   }
 
   public Document withFormat(Format format) {
     return new Document(
         this.getId().orElse(null),
         this.getOrganizationId(),
+        this.getOrganizationName(),
         this.getGraph(),
         format,
-        this.getSignature());
+        this.getSignature(),
+        this.getCpmDocument().orElse(null),
+        this.getToken().orElse(null));
   }
 
   public Document withCpmDocument(ProvFactory provFactory, ICpmProvFactory cpmProvFactory, ICpmFactory cpmFactory) {
@@ -91,11 +120,25 @@ public class Document {
             .map((CpmDocument cpmDocument) -> new Document(
                 this.getId().orElse(null),
                 this.getOrganizationId(),
+                this.getOrganizationName(),
                 this.getGraph(),
                 this.getFormat().orElse(null),
                 this.getSignature(),
-                cpmDocument))
+                cpmDocument,
+                this.getToken().orElse(null)))
             .orElse(this);
+  }
+
+  public Document withToken(Token token) {
+    return new Document(
+        this.getId().orElse(null),
+        this.getOrganizationId(),
+        this.getOrganizationName(),
+        this.getGraph(),
+        this.getFormat().orElse(null),
+        this.getSignature(),
+        this.getCpmDocument().orElse(null),
+        token);
   }
 
   private Function<org.openprovenance.prov.model.Document, CpmDocument> cpmFactory(
@@ -115,6 +158,10 @@ public class Document {
     return organizationId;
   }
 
+  public String getOrganizationName() {
+    return organizationName;
+  }
+
   public String getGraph() {
     return graph;
   }
@@ -129,5 +176,9 @@ public class Document {
 
   public Optional<CpmDocument> getCpmDocument() {
     return cpmDocument;
+  }
+
+  public Optional<Token> getToken() {
+    return token;
   }
 }

@@ -39,12 +39,8 @@ public class TrustedPartyClientImpl implements TrustedPartyClient {
   }
 
   @Override
-  public Mono<Token> issueToken(
-      Organization organization,
-      Document document,
-      GraphType type,
-      Optional<String> trustedPartyUrl) {
-    return DTOFactory.toForm(organization, document, type)
+  public Function<Document, Mono<Token>> issueGraphToken(Optional<String> trustedPartyUrl) {
+    return (Document document) -> DTOFactory.toForm(document, GraphType.GRAPH)
         .flatMap(trustedPartyUrl
             .map(this.client::buildWebClient)
             .map(this.client.sendCustomPostRequest("/issueToken", TokenTPResponseDTO.class))

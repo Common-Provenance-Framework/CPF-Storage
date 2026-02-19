@@ -2,6 +2,7 @@ package org.commonprovenance.framework.store.controller.impl;
 
 import static org.commonprovenance.framework.store.common.publisher.PublisherHelper.MONO;
 
+import java.util.Optional;
 import java.util.UUID;
 
 import org.commonprovenance.framework.store.controller.DocumentController;
@@ -14,6 +15,7 @@ import org.commonprovenance.framework.store.exceptions.InternalApplicationExcept
 import org.commonprovenance.framework.store.exceptions.NotFoundException;
 import org.commonprovenance.framework.store.model.Document;
 import org.commonprovenance.framework.store.model.Organization;
+import org.commonprovenance.framework.store.model.TrustedParty;
 import org.commonprovenance.framework.store.model.factory.ModelFactory;
 import org.commonprovenance.framework.store.service.persistence.DocumentService;
 import org.commonprovenance.framework.store.service.persistence.OrganizationService;
@@ -32,6 +34,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import org.stringtemplate.v4.compiler.CodeGenerator.region_return;
 
 import cz.muni.fi.cpm.constants.CpmAttribute;
 import cz.muni.fi.cpm.model.CpmUtilities;
@@ -153,12 +156,17 @@ public class DocumentControllerImpl implements DocumentController {
             .flatMap(MONO.makeSureAsync(
                 this::isResolvableBundleId,
                 (Element element) -> new BadRequestException(
-                    "Reference bundle id is not resolvable. Element '" + element.getId()
+                    "Reference bundle id '" + getReferenceValue(element,
+                        CpmAttribute.REFERENCED_BUNDLE_ID)
+                        + "' is not resolvable. Element '"
+                        + element.getId()
                         + "' is not valid backward connector.")))
             .flatMap(MONO.makeSureAsync(
                 this::isResolvableMetaBundleId,
                 (Element element) -> new BadRequestException(
-                    "Reference meta bundle id is not resolvable. Element '" + element.getId()
+                    "Reference meta bundle id '"
+                        + getReferenceValue(element, CpmAttribute.REFERENCED_META_BUNDLE_ID)
+                        + "' is not resolvable. Element '" + element.getId()
                         + "' is not valid backward connector."))))
         // validate reference resolvable - forward connector
         .delayUntil(document -> Mono.justOrEmpty(document.getCpmDocument())
@@ -167,18 +175,45 @@ public class DocumentControllerImpl implements DocumentController {
             .flatMap(MONO.makeSureAsync(
                 this::isResolvableBundleId,
                 (Element element) -> new BadRequestException(
-                    "Reference bundle id is not resolvable. Element '" + element.getId()
+                    "Reference bundle id '"
+                        + getReferenceValue(element, CpmAttribute.REFERENCED_BUNDLE_ID)
+                        + "' is not resolvable. Element '" + element.getId()
                         + "' is not valid forward connector.")))
             .flatMap(MONO.makeSureAsync(
                 this::isResolvableMetaBundleId,
                 (Element element) -> new BadRequestException(
-                    "Reference meta bundle id is not resolvable. Element '" + element.getId()
+                    "Reference meta bundle id '"
+                        + getReferenceValue(element, CpmAttribute.REFERENCED_META_BUNDLE_ID)
+                        + "' is not resolvable. Element '" + element.getId()
                         + "' is not valid forward connector."))))
-
         // TODO: check hashes in connectors
+        // TODO: check cpm constraints
+        // TODO: check provenance constraints
+        .flatMap(
+            (Document document) -> this.organizationService.getOrganizationById(document.getOrganizationId())
+                .flatMap(org -> Mono.just(org)
+                    .map(Organization::getTrustedParty)
+                    .map(TrustedParty::getUrl)
+                    .map(this.trustedPartyWebService::issueGraphToken)
+                    .flatMap(issueToken -> issueToken.apply(document.withOrganizationName(org.getName())))
+                    .map(document::withToken))
+
+        )
         // .map(x -> x)
         // .flatMap(this.documentService::storeDocument) // Do NOT store for now..
         .flatMap(DTOFactory::toDTO);
+  }
+
+  private String getReferenceValue(Element element, CpmAttribute attr) {
+    return Optional.ofNullable(CpmUtilities.getCpmAttributeValue(element, attr))
+        .flatMap((Object obj) -> {
+          if (obj instanceof QualifiedName qn) {
+            return Optional.ofNullable(qn);
+          }
+          return Optional.empty();
+        })
+        .map(qn -> qn.getNamespaceURI() + qn.getLocalPart())
+        .orElse("???");
   }
 
   private Mono<Boolean> isResolvableBundleId(Element connector) {

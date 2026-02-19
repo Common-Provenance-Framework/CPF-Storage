@@ -98,15 +98,16 @@ public class ModelFactory {
 
   // ---
   private static Document fromDto(DocumentFormDTO dto) {
-    return new Document(null, null, dto.getDocument(), null, dto.getSignature());
+    return new Document(null, null, null, dto.getDocument(), null, dto.getSignature());
   }
 
   private static Document fromDto(DocumentTPResponseDTO dto) {
-    return new Document(null, null, dto.getDocument(), null, dto.getSignature());
+    return new Document(null, null, null, dto.getDocument(), null, dto.getSignature());
   }
 
   private static Document fromPersistance(DocumentEntity document) {
     return new Document(
+        null,
         null,
         null,
         document.getGraph(),

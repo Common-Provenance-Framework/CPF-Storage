@@ -2,6 +2,7 @@ package org.commonprovenance.framework.store.web.trustedParty.dto.form.factory;
 
 import static org.commonprovenance.framework.store.common.publisher.PublisherHelper.MONO;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
@@ -35,7 +36,7 @@ public class DTOFactory {
   // }
 
   private static <T extends HasCreatedOn<T>> UnaryOperator<T> addCreatedOn() {
-    return (T form) -> form.withCreatedOn(System.currentTimeMillis());
+    return (T form) -> form.withCreatedOn(Instant.now().getEpochSecond());
   }
 
   private static <T extends HasOrganizationId<T>> UnaryOperator<T> addOrganizationId(Organization model) {
@@ -61,12 +62,21 @@ public class DTOFactory {
         .orElse(form);
   }
 
-  private static UnaryOperator<IssueTokenTPFormDTO> tokenFormFromDocumentModel(Document model) {
-    Function<Document, UnaryOperator<IssueTokenTPFormDTO>> addFormat = document -> form -> Optional
-        .ofNullable(document)
+  private static UnaryOperator<IssueTokenTPFormDTO> tokenFormAddFormatfromDocumentModel(Document model) {
+    return form -> Optional
+        .ofNullable(model)
         .flatMap(Document::getFormat)
         .map(Format::toString)
+        .map(String::toLowerCase)
         .map(form::withDocumentFormat)
+        .orElse(form);
+  }
+
+  private static UnaryOperator<IssueTokenTPFormDTO> tokenFormAddOrganizationIdfromDocumentModel(Document model) {
+    Function<Document, UnaryOperator<IssueTokenTPFormDTO>> addFormat = document -> form -> Optional
+        .ofNullable(document)
+        .map(Document::getOrganizationName)
+        .map(form::withOrganizationId)
         .orElse(form);
 
     Function<Document, UnaryOperator<IssueTokenTPFormDTO>> addSignature = document -> form -> Optional
@@ -97,18 +107,19 @@ public class DTOFactory {
 
   // ---
 
-  public static Mono<IssueTokenTPFormDTO> toForm(Organization organization, Document document, GraphType graphType) {
+  public static Mono<IssueTokenTPFormDTO> toForm(Document document, GraphType graphType) {
     Function<GraphType, UnaryOperator<IssueTokenTPFormDTO>> addGrapType = type -> form -> Optional
         .ofNullable(type)
         .map(GraphType::toString)
+        .map(String::toLowerCase)
         .map(form::withGraphType)
         .orElse(form);
 
     return Mono.justOrEmpty(MonoidComposition.compose(
         new IssueTokenTPFormDTO(),
         List.of(
-            addOrganizationId(organization),
-            tokenFormFromDocumentModel(document),
+            tokenFormAddFormatfromDocumentModel(document),
+            tokenFormAddOrganizationIdfromDocumentModel(document),
             addGrapType.apply(graphType),
             addCreatedOn())))
         .flatMap(MONO::validateDTO);

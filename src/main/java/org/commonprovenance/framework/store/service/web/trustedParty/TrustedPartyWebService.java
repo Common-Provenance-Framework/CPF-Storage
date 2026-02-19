@@ -5,6 +5,7 @@ import java.util.function.Function;
 
 import org.commonprovenance.framework.store.model.Document;
 import org.commonprovenance.framework.store.model.Organization;
+import org.commonprovenance.framework.store.model.Token;
 import org.commonprovenance.framework.store.model.TrustedParty;
 
 import reactor.core.publisher.Mono;
@@ -21,4 +22,6 @@ public interface TrustedPartyWebService {
   Mono<TrustedParty> getTrustedPartyByUrl(Optional<String> trustedPartyUrl);
 
   Function<Organization, Mono<Boolean>> verifySignature(Document document);
+
+  Function<Document, Mono<Token>> issueGraphToken(Optional<String> trustedPartyUrl);
 }
