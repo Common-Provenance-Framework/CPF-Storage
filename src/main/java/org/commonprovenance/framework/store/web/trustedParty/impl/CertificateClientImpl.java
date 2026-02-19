@@ -8,7 +8,7 @@ import java.util.function.Function;
 import org.commonprovenance.framework.store.model.Organization;
 import org.commonprovenance.framework.store.model.factory.ModelFactory;
 import org.commonprovenance.framework.store.web.trustedParty.CertificateClient;
-import org.commonprovenance.framework.store.web.trustedParty.client.Client;
+import org.commonprovenance.framework.store.web.trustedParty.client.ClientTP;
 import org.commonprovenance.framework.store.web.trustedParty.dto.form.factory.DTOFactory;
 import org.commonprovenance.framework.store.web.trustedParty.dto.response.CertificateTPResponseDTO;
 import org.springframework.stereotype.Component;
@@ -18,10 +18,10 @@ import reactor.core.publisher.Mono;
 
 @Component
 public class CertificateClientImpl implements CertificateClient {
-  private final Client client;
+  private final ClientTP client;
 
   public CertificateClientImpl(
-      Client client) {
+      ClientTP client) {
     this.client = client;
   }
 

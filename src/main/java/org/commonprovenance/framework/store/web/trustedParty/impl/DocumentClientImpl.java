@@ -6,7 +6,7 @@ import org.commonprovenance.framework.store.model.Document;
 import org.commonprovenance.framework.store.model.Format;
 import org.commonprovenance.framework.store.model.factory.ModelFactory;
 import org.commonprovenance.framework.store.web.trustedParty.DocumentClient;
-import org.commonprovenance.framework.store.web.trustedParty.client.Client;
+import org.commonprovenance.framework.store.web.trustedParty.client.ClientTP;
 import org.commonprovenance.framework.store.web.trustedParty.dto.response.DocumentTPResponseDTO;
 import org.openprovenance.prov.model.QualifiedName;
 import org.springframework.stereotype.Component;
@@ -16,10 +16,10 @@ import reactor.core.publisher.Mono;
 
 @Component
 public class DocumentClientImpl implements DocumentClient {
-  private final Client client;
+  private final ClientTP client;
 
   public DocumentClientImpl(
-      Client client) {
+      ClientTP client) {
     this.client = client;
   }
 

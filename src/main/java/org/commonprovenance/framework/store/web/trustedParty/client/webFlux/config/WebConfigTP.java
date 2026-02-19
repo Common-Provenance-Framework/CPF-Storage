@@ -10,10 +10,10 @@ import org.springframework.web.reactive.function.client.WebClient;
 import jakarta.validation.constraints.NotNull;
 
 @Configuration
-public class WebConfig {
+public class WebConfigTP {
   private final Environment env;
 
-  WebConfig(Environment env) {
+  WebConfigTP(Environment env) {
     this.env = env;
   }
 

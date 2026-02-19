@@ -3,8 +3,8 @@ package org.commonprovenance.framework.store.web.trustedParty.client.webFlux;
 import java.util.function.Function;
 
 import org.commonprovenance.framework.store.exceptions.NotFoundException;
-import org.commonprovenance.framework.store.web.trustedParty.client.Client;
-import org.commonprovenance.framework.store.web.trustedParty.client.webFlux.config.WebConfig;
+import org.commonprovenance.framework.store.web.trustedParty.client.ClientTP;
+import org.commonprovenance.framework.store.web.trustedParty.client.webFlux.config.WebConfigTP;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -14,11 +14,11 @@ import reactor.core.publisher.Mono;
 
 @Component
 @Profile("live & webflux")
-public class ClientWebFlux implements Client {
+public class ClientTPWebFlux implements ClientTP {
   private final WebClient client;
-  private final WebConfig config;
+  private final WebConfigTP config;
 
-  public ClientWebFlux(WebClient client, WebConfig config) {
+  public ClientTPWebFlux(WebClient client, WebConfigTP config) {
     this.client = client;
     this.config = config;
   }

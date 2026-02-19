@@ -9,7 +9,7 @@ import org.commonprovenance.framework.store.model.Format;
 import org.commonprovenance.framework.store.model.Token;
 import org.commonprovenance.framework.store.model.factory.ModelFactory;
 import org.commonprovenance.framework.store.web.trustedParty.TokenClient;
-import org.commonprovenance.framework.store.web.trustedParty.client.Client;
+import org.commonprovenance.framework.store.web.trustedParty.client.ClientTP;
 import org.commonprovenance.framework.store.web.trustedParty.dto.response.TokenTPResponseDTO;
 import org.openprovenance.prov.model.QualifiedName;
 import org.springframework.stereotype.Component;
@@ -20,10 +20,10 @@ import reactor.core.publisher.Mono;
 
 @Component
 public class TokenClientImpl implements TokenClient {
-  private final Client client;
+  private final ClientTP client;
 
   public TokenClientImpl(
-      Client client) {
+      ClientTP client) {
     this.client = client;
   }
 

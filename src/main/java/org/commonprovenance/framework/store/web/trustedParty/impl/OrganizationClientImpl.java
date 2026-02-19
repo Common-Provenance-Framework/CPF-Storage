@@ -8,7 +8,7 @@ import java.util.function.Function;
 import org.commonprovenance.framework.store.model.Organization;
 import org.commonprovenance.framework.store.model.factory.ModelFactory;
 import org.commonprovenance.framework.store.web.trustedParty.OrganizationClient;
-import org.commonprovenance.framework.store.web.trustedParty.client.Client;
+import org.commonprovenance.framework.store.web.trustedParty.client.ClientTP;
 import org.commonprovenance.framework.store.web.trustedParty.dto.form.factory.DTOFactory;
 import org.commonprovenance.framework.store.web.trustedParty.dto.response.OrganizationTPResponseDTO;
 import org.springframework.stereotype.Component;
@@ -19,10 +19,10 @@ import reactor.core.publisher.Mono;
 
 @Component
 public class OrganizationClientImpl implements OrganizationClient {
-  private final Client client;
+  private final ClientTP client;
 
   public OrganizationClientImpl(
-      Client client) {
+      ClientTP client) {
     this.client = client;
   }
 
