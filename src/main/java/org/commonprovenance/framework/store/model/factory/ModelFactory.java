@@ -16,6 +16,7 @@ import org.commonprovenance.framework.store.common.utils.Validators;
 import org.commonprovenance.framework.store.controller.dto.form.DocumentFormDTO;
 import org.commonprovenance.framework.store.controller.dto.form.OrganizationFormDTO;
 import org.commonprovenance.framework.store.exceptions.ArgumentValidatorException;
+import org.commonprovenance.framework.store.model.AdditionalData;
 import org.commonprovenance.framework.store.model.Document;
 import org.commonprovenance.framework.store.model.Format;
 import org.commonprovenance.framework.store.model.HashFunction;
@@ -163,11 +164,20 @@ public class ModelFactory {
   }
 
   private static Token fromDto(TokenTPResponseDTO dto) {
+    AdditionalData additionalData = new AdditionalData(
+        dto.getData().getAdditionalData().getBundle(),
+        dto.getData().getOriginatorId(),
+        dto.getData().getAdditionalData().getHashFunction(),
+        dto.getData().getAdditionalData().getTrustedPartyUri(),
+        dto.getData().getAdditionalData().getTrustedPartyCertificate(),
+        dto.getData().getDocumentCreationTimestamp());
     return new Token(
         null,
         dto.getData().getDocumentDigest(),
-        null,
         dto.getSignature(),
+        additionalData,
+        null,
+        null,
         dto.getData().getDocumentCreationTimestamp());
   }
 
@@ -196,9 +206,7 @@ public class ModelFactory {
 
   public static Mono<Token> toDomain(TokenTPResponseDTO dto) {
     return MONO.makeSureNotNull(dto)
-        .map(ModelFactory::fromDto)
-        .flatMap((Token token) -> ModelFactory.getHashFunction(dto.getData().getAdditionalData())
-            .map(token::withHashFunction));
+        .map(ModelFactory::fromDto);
   }
 
   public static Function<TrustedPartyTPResponseDTO, Mono<TrustedParty>> toDomain(String url, Boolean isDefault) {

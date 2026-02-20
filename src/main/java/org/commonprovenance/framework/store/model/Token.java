@@ -6,20 +6,28 @@ import java.util.UUID;
 public class Token {
   private final Optional<UUID> id;
   private final String hash;
-  private final Optional<HashFunction> hashFunction;
   private final String signature;
+
+  private final AdditionalData additionalData;
+  private final TrustedParty trustedParty;
+  private final Document document;
+
   private final Long createdOn;
 
   public Token(
       UUID id,
       String hash,
-      HashFunction hashFunction,
       String signature,
+      AdditionalData additionalData,
+      TrustedParty trustedParty,
+      Document document,
       Long createdOn) {
     this.id = Optional.ofNullable(id);
     this.hash = hash;
-    this.hashFunction = Optional.ofNullable(hashFunction);
     this.signature = signature;
+    this.additionalData = additionalData;
+    this.trustedParty = trustedParty;
+    this.document = document;
     this.createdOn = createdOn;
   }
 
@@ -27,8 +35,10 @@ public class Token {
     return new Token(
         id,
         this.getHash(),
-        this.getHashFunction().orElse(null),
         this.getSignature(),
+        this.getAdditionalData(),
+        this.getTrustedParty(),
+        this.getDocument(),
         this.getCreatedOn());
   }
 
@@ -36,12 +46,25 @@ public class Token {
     return this.withId(this.getId().orElse(UUID.randomUUID()));
   }
 
-  public Token withHashFunction(HashFunction hashFunction) {
+  public Token withTrustedParty(TrustedParty trustedParty) {
     return new Token(
         this.getId().orElse(null),
         this.getHash(),
-        hashFunction,
         this.getSignature(),
+        this.getAdditionalData(),
+        trustedParty,
+        this.getDocument(),
+        this.getCreatedOn());
+  }
+
+  public Token withDocument(Document document) {
+    return new Token(
+        this.getId().orElse(null),
+        this.getHash(),
+        this.getSignature(),
+        this.getAdditionalData(),
+        this.getTrustedParty(),
+        document,
         this.getCreatedOn());
   }
 
@@ -53,15 +76,24 @@ public class Token {
     return hash;
   }
 
-  public Optional<HashFunction> getHashFunction() {
-    return hashFunction;
-  }
-
   public String getSignature() {
     return signature;
+  }
+
+  public AdditionalData getAdditionalData() {
+    return additionalData;
+  }
+
+  public TrustedParty getTrustedParty() {
+    return trustedParty;
+  }
+
+  public Document getDocument() {
+    return document;
   }
 
   public Long getCreatedOn() {
     return createdOn;
   }
+
 }
