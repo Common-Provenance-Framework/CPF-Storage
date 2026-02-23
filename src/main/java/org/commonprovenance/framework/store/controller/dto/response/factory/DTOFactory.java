@@ -2,6 +2,7 @@ package org.commonprovenance.framework.store.controller.dto.response.factory;
 
 import static org.commonprovenance.framework.store.common.publisher.PublisherHelper.MONO;
 
+import java.util.Optional;
 import java.util.UUID;
 
 import org.commonprovenance.framework.store.controller.dto.response.DocumentResponseDTO;
@@ -16,7 +17,7 @@ public class DTOFactory {
   private static DocumentResponseDTO fromModel(Document model) {
     return new DocumentResponseDTO(
         model.getId().map(UUID::toString).orElse(null),
-        model.getOrganizationId().toString(),
+        Optional.ofNullable(model.getOrganizationId()).map(UUID::toString).orElse("???"),
         model.getGraph(),
         model.getFormat().map(Format::toString).orElse(null));
   }
