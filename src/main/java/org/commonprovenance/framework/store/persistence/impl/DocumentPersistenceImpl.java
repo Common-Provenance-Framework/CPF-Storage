@@ -52,8 +52,8 @@ public class DocumentPersistenceImpl implements DocumentPersistence {
         .flatMap(repository::findById)
         .onErrorResume(MONO.exceptionWrapper("DocumentNeo4jRepository - Error while reading document"))
         .flatMap(ModelFactory::toDomain)
-        .switchIfEmpty(
-            Mono.error(new NotFoundException("Document with id '" + uuid.toString() + "' has not been found!")));
+        .switchIfEmpty(Mono.defer(() -> Mono
+            .error(new NotFoundException("Document with id '" + uuid.toString() + "' has not been found!"))));
   }
 
   @Override
