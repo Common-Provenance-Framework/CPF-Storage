@@ -21,6 +21,7 @@ public class DTOFactoryTest {
   void should_map_Document_to_DocumentResponseDTO() {
     String testId = "6ee9d79b-0615-4cb1-b0f3-2303d10c8cff";
     String organizationId = "6ee9d79b-0615-4cb1-b0f3-2303d10c8cff";
+    String orgName = "ORG1";
     String base64StringGraph = "AAAAQQAAAGIAAAByAAAAYQAAAGsAAABhAAAAIAAAAEQAAABhAAAAYgAAAHIAAABhAAAALgAAAC4=";
     String format = "JSON";
     String signature = "..";
@@ -28,6 +29,7 @@ public class DTOFactoryTest {
     Document document = new Document(
         UUID.fromString(testId),
         UUID.fromString(organizationId),
+        orgName,
         base64StringGraph,
         Format.from(format).get(),
         signature);

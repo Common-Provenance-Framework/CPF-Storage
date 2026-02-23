@@ -105,8 +105,9 @@ public class ModelFactoryTest {
 
     StepVerifier.create(ModelFactory.toDomain(formular))
         .assertNext(doc -> {
-          assertInstanceOf(UUID.class, doc.getId().orElse(null),
-              "should have Id which is UUID");
+          // assertInstanceOf(UUID.class, doc.getId().orElse(null),
+          // "should have Id which is UUID");
+          assertNull(doc.getId().orElse(null));
           assertEquals(Format.JSON, doc.getFormat().orElse(null),
               "should have exact format");
           assertEquals(base64StringGraph, doc.getGraph(),

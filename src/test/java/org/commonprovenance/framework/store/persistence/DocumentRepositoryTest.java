@@ -9,7 +9,9 @@ import static org.mockito.Mockito.when;
 
 import java.util.UUID;
 
+import org.commonprovenance.framework.store.exceptions.ApplicationException;
 import org.commonprovenance.framework.store.exceptions.InternalApplicationException;
+import org.commonprovenance.framework.store.exceptions.NotFoundException;
 import org.commonprovenance.framework.store.model.Document;
 import org.commonprovenance.framework.store.model.Format;
 import org.commonprovenance.framework.store.persistence.entity.DocumentEntity;
@@ -38,6 +40,7 @@ class DocumentRepositoryTest {
 
   private final String TEST_ID_1 = "e3cf8742-b595-47f4-8aae-a1e94b62a856";
   private final String TEST_ORG_ID_1 = "6ee9d79b-0615-4cb1-b0f3-2303d10c8cff";
+  private final String ORG_NAME_1 = "ORG1";
   private final String BASE64_STRING_GRAPH_1 = "AAAAQQAAAGIAAAByAAAAYQAAAGsAAABhAAAAIAAAAEQAAABhAAAAYgAAAHIAAABhAAAALgAAAC4=";
   private final String FORMAT_1 = "JSON";
 
@@ -57,6 +60,7 @@ class DocumentRepositoryTest {
     Document document = new Document(
         UUID.fromString(TEST_ID_1),
         UUID.fromString(TEST_ORG_ID_1),
+        ORG_NAME_1,
         BASE64_STRING_GRAPH_1,
         Format.from(FORMAT_1).get(),
         SIGNATURE);
@@ -82,6 +86,7 @@ class DocumentRepositoryTest {
     Document document = new Document(
         UUID.fromString(TEST_ID_1),
         UUID.fromString(TEST_ORG_ID_1),
+        ORG_NAME_1,
         BASE64_STRING_GRAPH_1,
         Format.from(FORMAT_1).get(),
         SIGNATURE);
@@ -111,6 +116,7 @@ class DocumentRepositoryTest {
     Document document = new Document(
         UUID.fromString(TEST_ID_1),
         UUID.fromString(TEST_ORG_ID_1),
+        ORG_NAME_1,
         BASE64_STRING_GRAPH_1,
         Format.from(FORMAT_1).get(),
         SIGNATURE);
@@ -141,6 +147,7 @@ class DocumentRepositoryTest {
     Document document = new Document(
         UUID.fromString(TEST_ID_1),
         UUID.fromString(TEST_ORG_ID_1),
+        ORG_NAME_1,
         BASE64_STRING_GRAPH_1,
         Format.from(FORMAT_1).get(),
         SIGNATURE);
@@ -242,8 +249,11 @@ class DocumentRepositoryTest {
     });
 
     StepVerifier.create(repository.getById(UUID.fromString("6f6fed6d-f5c3-44b3-bcca-db9453564122")))
-        .expectNextCount(0)
-        .verifyComplete();
+        .verifyErrorSatisfies(err -> {
+          assertInstanceOf(ApplicationException.class, err);
+          assertInstanceOf(NotFoundException.class, err);
+          assertEquals(err.getMessage(), "Document with id '6f6fed6d-f5c3-44b3-bcca-db9453564122' has not been found!");
+        });
   }
 
   @Test
