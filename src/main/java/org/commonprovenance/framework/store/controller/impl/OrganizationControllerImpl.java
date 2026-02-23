@@ -11,8 +11,8 @@ import org.commonprovenance.framework.store.controller.dto.response.factory.DTOF
 import org.commonprovenance.framework.store.exceptions.NotFoundException;
 import org.commonprovenance.framework.store.model.Organization;
 import org.commonprovenance.framework.store.model.factory.ModelFactory;
-import org.commonprovenance.framework.store.service.persistence.OrganizationService;
-import org.commonprovenance.framework.store.service.persistence.TrustedPartyService;
+import org.commonprovenance.framework.store.service.persistence.finalizedProvComponent.OrganizationService;
+import org.commonprovenance.framework.store.service.persistence.finalizedProvComponent.TrustedPartyService;
 import org.commonprovenance.framework.store.service.web.trustedParty.TrustedPartyWebService;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;

@@ -10,7 +10,7 @@ import org.commonprovenance.framework.store.controller.dto.form.DocumentFormDTO;
 import org.commonprovenance.framework.store.exceptions.ArgumentValidatorException;
 import org.commonprovenance.framework.store.exceptions.InternalApplicationException;
 import org.commonprovenance.framework.store.model.Format;
-import org.commonprovenance.framework.store.persistence.entity.DocumentEntity;
+import org.commonprovenance.framework.store.persistence.finalizedProvComponent.model.node.DocumentNode;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -26,7 +26,7 @@ public class ModelFactoryTest {
     String base64StringGraph = "AAAAQQAAAGIAAAByAAAAYQAAAGsAAABhAAAAIAAAAEQAAABhAAAAYgAAAHIAAABhAAAALgAAAC4=";
     Format format = Format.JSON;
 
-    DocumentEntity entity = new DocumentEntity(
+    DocumentNode entity = new DocumentNode(
         testId.toString(),
         base64StringGraph,
         format.toString());
@@ -47,7 +47,7 @@ public class ModelFactoryTest {
     String base64StringGraph = "AAAAQQAAAGIAAAByAAAAYQAAAGsAAABhAAAAIAAAAEQAAABhAAAAYgAAAHIAAABhAAAALgAAAC4=";
     Format format = Format.JSON;
 
-    DocumentEntity entity = new DocumentEntity(
+    DocumentNode entity = new DocumentNode(
         testId,
         base64StringGraph,
         format.toString());
@@ -67,7 +67,7 @@ public class ModelFactoryTest {
     String base64StringGraph = "AAAAQQAAAGIAAAByAAAAYQAAAGsAAABhAAAAIAAAAEQAAABhAAAAYgAAAHIAAABhAAAALgAAAC4=";
     String format = "unknown";
 
-    DocumentEntity entity = new DocumentEntity(
+    DocumentNode entity = new DocumentNode(
         testId.toString(),
         base64StringGraph,
         format);
@@ -83,7 +83,7 @@ public class ModelFactoryTest {
   @Test
   @DisplayName("ErrorPath - should return Mono with InternalApplicationException, if any Exception")
   void should_fail_Exception_InternalApplicationException() {
-    StepVerifier.create(ModelFactory.toDomain((DocumentEntity) null))
+    StepVerifier.create(ModelFactory.toDomain((DocumentNode) null))
         .expectErrorMatches(error -> error instanceof InternalApplicationException
             && error.getCause() == null
             // && error.getCause() instanceof Exception

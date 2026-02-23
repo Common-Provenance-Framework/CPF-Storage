@@ -12,9 +12,9 @@ import java.util.UUID;
 
 import org.commonprovenance.framework.store.model.Document;
 import org.commonprovenance.framework.store.model.Format;
-import org.commonprovenance.framework.store.persistence.entity.DocumentEntity;
-import org.commonprovenance.framework.store.persistence.impl.DocumentPersistenceImpl;
-import org.commonprovenance.framework.store.persistence.repository.DocumentRepository;
+import org.commonprovenance.framework.store.persistence.finalizedProvComponent.impl.DocumentPersistenceImpl;
+import org.commonprovenance.framework.store.persistence.finalizedProvComponent.model.node.DocumentNode;
+import org.commonprovenance.framework.store.persistence.finalizedProvComponent.repository.DocumentRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -60,7 +60,7 @@ class DocumentRepositorySpec {
         SIGNATURE);
 
     when(documentRepository.save(any())).thenAnswer(invocation -> {
-      DocumentEntity argumentEntity = invocation.getArgument(0);
+      DocumentNode argumentEntity = invocation.getArgument(0);
       return Mono.just(argumentEntity);
     });
 
@@ -68,14 +68,14 @@ class DocumentRepositorySpec {
         .expectNextCount(1)
         .verifyComplete();
 
-    ArgumentCaptor<DocumentEntity> captor = ArgumentCaptor.forClass(DocumentEntity.class);
+    ArgumentCaptor<DocumentNode> captor = ArgumentCaptor.forClass(DocumentNode.class);
     verify(
         documentRepository,
         times(1)
             .description("Repository save method should be invoked once"))
         .save(captor.capture());
 
-    DocumentEntity capturedEntity = captor.getValue();
+    DocumentNode capturedEntity = captor.getValue();
     assertTrue(capturedEntity.getId().equals(TEST_ID_1)
         && capturedEntity.getGraph().equals(BASE64_STRING_GRAPH_1)
         && capturedEntity.getFormat().equals(FORMAT_1),

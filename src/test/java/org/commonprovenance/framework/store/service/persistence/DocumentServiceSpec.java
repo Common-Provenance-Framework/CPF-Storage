@@ -10,8 +10,8 @@ import java.util.UUID;
 
 import org.commonprovenance.framework.store.model.Document;
 import org.commonprovenance.framework.store.model.Format;
-import org.commonprovenance.framework.store.persistence.DocumentPersistence;
-import org.commonprovenance.framework.store.service.persistence.impl.DocumentServiceImpl;
+import org.commonprovenance.framework.store.persistence.finalizedProvComponent.DocumentPersistence;
+import org.commonprovenance.framework.store.service.persistence.finalizedProvComponent.impl.DocumentServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

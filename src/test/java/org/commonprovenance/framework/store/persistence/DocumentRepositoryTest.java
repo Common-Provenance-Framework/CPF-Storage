@@ -14,9 +14,9 @@ import org.commonprovenance.framework.store.exceptions.InternalApplicationExcept
 import org.commonprovenance.framework.store.exceptions.NotFoundException;
 import org.commonprovenance.framework.store.model.Document;
 import org.commonprovenance.framework.store.model.Format;
-import org.commonprovenance.framework.store.persistence.entity.DocumentEntity;
-import org.commonprovenance.framework.store.persistence.impl.DocumentPersistenceImpl;
-import org.commonprovenance.framework.store.persistence.repository.DocumentRepository;
+import org.commonprovenance.framework.store.persistence.finalizedProvComponent.impl.DocumentPersistenceImpl;
+import org.commonprovenance.framework.store.persistence.finalizedProvComponent.model.node.DocumentNode;
+import org.commonprovenance.framework.store.persistence.finalizedProvComponent.repository.DocumentRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -66,7 +66,7 @@ class DocumentRepositoryTest {
         SIGNATURE);
 
     when(documentRepository.save(any())).thenAnswer(invocation -> {
-      DocumentEntity argumentEntity = invocation.getArgument(0);
+      DocumentNode argumentEntity = invocation.getArgument(0);
       return Mono.just(argumentEntity);
     });
 
@@ -175,8 +175,8 @@ class DocumentRepositoryTest {
   void getAll_should_load_all_entities() {
     when(documentRepository.findAll()).thenAnswer(_invocation -> {
       return Flux.just(
-          new DocumentEntity(TEST_ID_1, BASE64_STRING_GRAPH_1, FORMAT_1),
-          new DocumentEntity(TEST_ID_2, BASE64_STRING_GRAPH_2, FORMAT_2));
+          new DocumentNode(TEST_ID_1, BASE64_STRING_GRAPH_1, FORMAT_1),
+          new DocumentNode(TEST_ID_2, BASE64_STRING_GRAPH_2, FORMAT_2));
     });
 
     StepVerifier.create(repository.getAll())
@@ -208,9 +208,9 @@ class DocumentRepositoryTest {
       String id = invocation.getArgument(0);
       switch (id) {
         case TEST_ID_1:
-          return Mono.just(new DocumentEntity(TEST_ID_1, BASE64_STRING_GRAPH_1, FORMAT_1));
+          return Mono.just(new DocumentNode(TEST_ID_1, BASE64_STRING_GRAPH_1, FORMAT_1));
         case TEST_ID_2:
-          return Mono.just(new DocumentEntity(TEST_ID_2, BASE64_STRING_GRAPH_2, FORMAT_2));
+          return Mono.just(new DocumentNode(TEST_ID_2, BASE64_STRING_GRAPH_2, FORMAT_2));
         case null:
           return Mono.error(new IllegalArgumentException("Id can not be 'null'"));
         default:
@@ -238,9 +238,9 @@ class DocumentRepositoryTest {
       String id = invocation.getArgument(0);
       switch (id) {
         case TEST_ID_1:
-          return Mono.just(new DocumentEntity(TEST_ID_1, BASE64_STRING_GRAPH_1, FORMAT_1));
+          return Mono.just(new DocumentNode(TEST_ID_1, BASE64_STRING_GRAPH_1, FORMAT_1));
         case TEST_ID_2:
-          return Mono.just(new DocumentEntity(TEST_ID_2, BASE64_STRING_GRAPH_2, FORMAT_2));
+          return Mono.just(new DocumentNode(TEST_ID_2, BASE64_STRING_GRAPH_2, FORMAT_2));
         case null:
           return Mono.error(new IllegalArgumentException("Id can not be 'null'"));
         default:

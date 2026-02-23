@@ -23,10 +23,10 @@ import org.commonprovenance.framework.store.model.HashFunction;
 import org.commonprovenance.framework.store.model.Organization;
 import org.commonprovenance.framework.store.model.Token;
 import org.commonprovenance.framework.store.model.TrustedParty;
-import org.commonprovenance.framework.store.persistence.entity.DocumentEntity;
-import org.commonprovenance.framework.store.persistence.entity.OrganizationEntity;
-import org.commonprovenance.framework.store.persistence.entity.TokenEntity;
-import org.commonprovenance.framework.store.persistence.entity.TrustedPartyEntity;
+import org.commonprovenance.framework.store.persistence.finalizedProvComponent.model.node.DocumentNode;
+import org.commonprovenance.framework.store.persistence.finalizedProvComponent.model.node.OrganizationNode;
+import org.commonprovenance.framework.store.persistence.finalizedProvComponent.model.node.TokenNode;
+import org.commonprovenance.framework.store.persistence.finalizedProvComponent.model.node.TrustedPartyNode;
 import org.commonprovenance.framework.store.web.trustedParty.dto.response.CertificateTPResponseDTO;
 import org.commonprovenance.framework.store.web.trustedParty.dto.response.DocumentTPResponseDTO;
 import org.commonprovenance.framework.store.web.trustedParty.dto.response.OrganizationTPResponseDTO;
@@ -107,7 +107,7 @@ public class ModelFactory {
     return new Document(null, null, null, dto.getDocument(), null, dto.getSignature());
   }
 
-  private static Document fromPersistance(DocumentEntity document) {
+  private static Document fromPersistance(DocumentNode document) {
     return new Document(
         null,
         null,
@@ -117,7 +117,7 @@ public class ModelFactory {
         null);
   }
 
-  private static TrustedParty fromPersistance(TrustedPartyEntity trustedParty) {
+  private static TrustedParty fromPersistance(TrustedPartyNode trustedParty) {
     return new TrustedParty(
         null,
         trustedParty.getName(),
@@ -128,7 +128,7 @@ public class ModelFactory {
         trustedParty.getIsDefault());
   }
 
-  private static Organization fromPersistance(OrganizationEntity organization) {
+  private static Organization fromPersistance(OrganizationNode organization) {
     return new Organization(
         null,
         organization.getName(),
@@ -137,7 +137,7 @@ public class ModelFactory {
         ModelFactory.toDomain(organization.getTrusts().getFirst().getTrustedParty()).block());
   }
 
-  private static Token fromPersistance(TokenEntity token) {
+  private static Token fromPersistance(TokenNode token) {
 
     return new Token(
         null,
@@ -236,7 +236,7 @@ public class ModelFactory {
   }
 
   // Persistence
-  public static Mono<Document> toDomain(DocumentEntity entity) {
+  public static Mono<Document> toDomain(DocumentNode entity) {
     return MONO.makeSureNotNull(entity)
         .map(ModelFactory::fromPersistance)
         .flatMap((Document document) -> ModelFactory.getId(entity).map(document::withId))
@@ -244,19 +244,19 @@ public class ModelFactory {
 
   }
 
-  public static Mono<Organization> toDomain(OrganizationEntity entity) {
+  public static Mono<Organization> toDomain(OrganizationNode entity) {
     return MONO.makeSureNotNull(entity)
         .map(ModelFactory::fromPersistance)
         .flatMap((Organization organization) -> ModelFactory.getId(entity).map(organization::withId));
   }
 
-  public static Mono<TrustedParty> toDomain(TrustedPartyEntity entity) {
+  public static Mono<TrustedParty> toDomain(TrustedPartyNode entity) {
     return MONO.makeSureNotNull(entity)
         .map(ModelFactory::fromPersistance)
         .flatMap((TrustedParty trustedParty) -> ModelFactory.getId(entity).map(trustedParty::withId));
   }
 
-  public static Mono<Token> toDomain(TokenEntity entity) {
+  public static Mono<Token> toDomain(TokenNode entity) {
     return MONO.makeSureNotNull(entity)
         .map(ModelFactory::fromPersistance)
         .flatMap((Token token) -> ModelFactory.getId(entity).map(token::withId));
