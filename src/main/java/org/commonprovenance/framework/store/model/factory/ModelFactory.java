@@ -25,13 +25,14 @@ import org.commonprovenance.framework.store.model.Token;
 import org.commonprovenance.framework.store.model.TrustedParty;
 import org.commonprovenance.framework.store.persistence.entity.DocumentEntity;
 import org.commonprovenance.framework.store.persistence.entity.OrganizationEntity;
+import org.commonprovenance.framework.store.persistence.entity.TokenEntity;
 import org.commonprovenance.framework.store.persistence.entity.TrustedPartyEntity;
 import org.commonprovenance.framework.store.web.trustedParty.dto.response.CertificateTPResponseDTO;
 import org.commonprovenance.framework.store.web.trustedParty.dto.response.DocumentTPResponseDTO;
 import org.commonprovenance.framework.store.web.trustedParty.dto.response.OrganizationTPResponseDTO;
 import org.commonprovenance.framework.store.web.trustedParty.dto.response.TokenTPResponseDTO;
 import org.commonprovenance.framework.store.web.trustedParty.dto.response.TrustedPartyTPResponseDTO;
-
+import tools.jackson.databind.ObjectMapper;
 import reactor.core.publisher.Mono;
 
 public class ModelFactory {
@@ -134,6 +135,18 @@ public class ModelFactory {
         organization.getClientCertificate(),
         organization.getIntermediateCertificates(),
         ModelFactory.toDomain(organization.getTrusts().getFirst().getTrustedParty()).block());
+  }
+
+  private static Token fromPersistance(TokenEntity token) {
+
+    return new Token(
+        null,
+        token.getHash(),
+        token.getSignature(),
+        new ObjectMapper().readValue(token.getAdditionalData(), AdditionalData.class),
+        ModelFactory.toDomain(token.getWasIssuedBy().getFirst().getTrustedParty()).block(),
+        ModelFactory.toDomain(token.getBelongsTo().getFirst().getDocument()).block(),
+        token.getTokenTimestamp());
   }
 
   private static Organization fromDto(OrganizationTPResponseDTO dto) {
@@ -241,6 +254,12 @@ public class ModelFactory {
     return MONO.makeSureNotNull(entity)
         .map(ModelFactory::fromPersistance)
         .flatMap((TrustedParty trustedParty) -> ModelFactory.getId(entity).map(trustedParty::withId));
+  }
+
+  public static Mono<Token> toDomain(TokenEntity entity) {
+    return MONO.makeSureNotNull(entity)
+        .map(ModelFactory::fromPersistance)
+        .flatMap((Token token) -> ModelFactory.getId(entity).map(token::withId));
   }
 
   // Controller

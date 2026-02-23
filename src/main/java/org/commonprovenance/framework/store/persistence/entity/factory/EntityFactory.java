@@ -85,6 +85,8 @@ public class EntityFactory {
 
   public static Mono<TokenEntity> toEntity(Token token) {
     return MONO.makeSureNotNull(token)
-        .flatMap(EntityFactory::fromModel);
+        .flatMap(EntityFactory::fromModel)
+        .flatMap(entity -> EntityFactory.toEntity(token.getTrustedParty()).map(entity::withTrustedParty))
+        .flatMap(entity -> EntityFactory.toEntity(token.getDocument()).map(entity::withDocument));
   }
 }

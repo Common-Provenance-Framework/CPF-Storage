@@ -37,7 +37,7 @@ public final class BelongsTo {
     return new BelongsTo(id, this.getDocument());
   }
 
-  public @NotNull BelongsTo withDocumentEntity(@NotNull DocumentEntity documentEntity) {
+  public @NotNull BelongsTo withDocument(@NotNull DocumentEntity documentEntity) {
     return new BelongsTo(this.getId(), documentEntity);
   }
 
