@@ -15,10 +15,12 @@ import org.commonprovenance.framework.store.exceptions.InternalApplicationExcept
 import org.commonprovenance.framework.store.exceptions.NotFoundException;
 import org.commonprovenance.framework.store.model.Document;
 import org.commonprovenance.framework.store.model.Organization;
+import org.commonprovenance.framework.store.model.Token;
 import org.commonprovenance.framework.store.model.TrustedParty;
 import org.commonprovenance.framework.store.model.factory.ModelFactory;
 import org.commonprovenance.framework.store.service.persistence.DocumentService;
 import org.commonprovenance.framework.store.service.persistence.OrganizationService;
+import org.commonprovenance.framework.store.service.persistence.TokenService;
 import org.commonprovenance.framework.store.service.web.store.StoreWebService;
 import org.commonprovenance.framework.store.service.web.trustedParty.TrustedPartyWebService;
 import org.openprovenance.prov.model.Element;
@@ -34,7 +36,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
-import org.stringtemplate.v4.compiler.CodeGenerator.region_return;
 
 import cz.muni.fi.cpm.constants.CpmAttribute;
 import cz.muni.fi.cpm.model.CpmUtilities;
@@ -51,6 +52,7 @@ import reactor.core.publisher.Mono;
 public class DocumentControllerImpl implements DocumentController {
   private final DocumentService documentService;
   private final OrganizationService organizationService;
+  private final TokenService tokenService;
   private final TrustedPartyWebService trustedPartyWebService;
   private final StoreWebService storeWebService;
 
@@ -61,6 +63,7 @@ public class DocumentControllerImpl implements DocumentController {
   public DocumentControllerImpl(
       DocumentService documentService,
       OrganizationService organizationService,
+      TokenService tokenService,
       TrustedPartyWebService trustedPartyWebService,
       StoreWebService storeWebService,
       ProvFactory provFactory,
@@ -68,6 +71,7 @@ public class DocumentControllerImpl implements DocumentController {
       ICpmProvFactory cpmProvFactory) {
     this.documentService = documentService;
     this.organizationService = organizationService;
+    this.tokenService = tokenService;
     this.trustedPartyWebService = trustedPartyWebService;
     this.storeWebService = storeWebService;
 
@@ -189,18 +193,19 @@ public class DocumentControllerImpl implements DocumentController {
         // TODO: check hashes in connectors
         // TODO: check cpm constraints
         // TODO: check provenance constraints
+        // issue token
         .flatMap(
             (Document document) -> this.organizationService.getOrganizationById(document.getOrganizationId())
-                .flatMap(org -> Mono.just(org)
+                .flatMap((Organization org) -> Mono.just(org)
                     .map(Organization::getTrustedParty)
                     .map(TrustedParty::getUrl)
                     .map(this.trustedPartyWebService::issueGraphToken)
                     .flatMap(issueToken -> issueToken.apply(document.withOrganizationName(org.getName())))
-                    .map(document::withToken))
-
-        )
-        // .map(x -> x)
-        // .flatMap(this.documentService::storeDocument) // Do NOT store for now..
+                    .map((Token token) -> token.withDocument(document))
+                    .map((Token token) -> token.withTrustedParty(org.getTrustedParty()))))
+        // Store Document with token
+        .flatMap(tokenService::storeToken)
+        .map(Token::getDocument)
         .flatMap(DTOFactory::toDTO);
   }
 
