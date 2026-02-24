@@ -8,7 +8,7 @@ import org.commonprovenance.framework.store.exceptions.NotFoundException;
 import org.commonprovenance.framework.store.model.Document;
 import org.commonprovenance.framework.store.model.factory.ModelFactory;
 import org.commonprovenance.framework.store.persistence.finalizedProvComponent.DocumentPersistence;
-import org.commonprovenance.framework.store.persistence.finalizedProvComponent.model.node.factory.NodeFactory;
+import org.commonprovenance.framework.store.persistence.finalizedProvComponent.model.factory.NodeFactory;
 import org.commonprovenance.framework.store.persistence.finalizedProvComponent.repository.DocumentRepository;
 import org.springframework.stereotype.Component;
 

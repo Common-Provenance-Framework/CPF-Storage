@@ -8,7 +8,7 @@ import org.commonprovenance.framework.store.exceptions.NotFoundException;
 import org.commonprovenance.framework.store.model.Token;
 import org.commonprovenance.framework.store.model.factory.ModelFactory;
 import org.commonprovenance.framework.store.persistence.finalizedProvComponent.TokenPersistence;
-import org.commonprovenance.framework.store.persistence.finalizedProvComponent.model.node.factory.NodeFactory;
+import org.commonprovenance.framework.store.persistence.finalizedProvComponent.model.factory.NodeFactory;
 import org.commonprovenance.framework.store.persistence.finalizedProvComponent.repository.TokenRepository;
 import org.springframework.stereotype.Component;
 

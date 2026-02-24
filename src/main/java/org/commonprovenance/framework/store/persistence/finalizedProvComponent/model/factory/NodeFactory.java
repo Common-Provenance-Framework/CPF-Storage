@@ -1,4 +1,4 @@
-package org.commonprovenance.framework.store.persistence.finalizedProvComponent.model.node.factory;
+package org.commonprovenance.framework.store.persistence.finalizedProvComponent.model.factory;
 
 import static org.commonprovenance.framework.store.common.publisher.PublisherHelper.MONO;
 
