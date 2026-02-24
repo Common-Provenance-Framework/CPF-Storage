@@ -1,5 +1,6 @@
 package org.commonprovenance.framework.store.persistence.metaComponent.model.node;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -25,13 +26,28 @@ public class BundleNode extends BaseProvClassNode {
     this.contains = contains;
   }
 
+  public BundleNode(String id,
+      Collection<EntityNode> entities,
+      Collection<AgentNode> agents,
+      Collection<ActivityNode> activities) {
+    super(id, "{}");
+
+    this.contains = Stream.concat(
+        Stream.concat(
+            entities.stream(),
+            agents.stream()),
+        activities.stream())
+        .map(s -> new Contains(s))
+        .collect(Collectors.toList());
+  }
+
   public BundleNode(String id) {
     super(id, "{}");
 
     this.contains = Collections.emptyList();
   }
 
-  public @NonNull BundleNode wihtNode(@Nullable BaseProvClassNode node) {
+  public @NonNull BundleNode withNode(@Nullable BaseProvClassNode node) {
     if (node == null)
       return this;
 
@@ -43,7 +59,7 @@ public class BundleNode extends BaseProvClassNode {
     return new BundleNode(this.getId(), this.getAttributes(), contains);
   }
 
-  public @NonNull BundleNode wihtContains(@NonNull List<Contains> contains) {
+  public @NonNull BundleNode withContains(@NonNull List<Contains> contains) {
     return new BundleNode(this.getId(), this.getAttributes(), contains);
   }
 

@@ -11,10 +11,16 @@ import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 import org.springframework.data.annotation.PersistenceCreator;
 import org.springframework.data.neo4j.core.schema.Node;
+import org.springframework.data.neo4j.core.schema.Property;
 import org.springframework.data.neo4j.core.schema.Relationship;
 
 @Node("Activity")
 public class ActivityNode extends BaseProvClassNode {
+  @Property("start_time")
+  private final String startTime;
+
+  @Property("end_time")
+  private final String endTime;
 
   @Relationship(type = "was_associated_with", direction = Relationship.Direction.OUTGOING)
   private final List<WasAssociatedWith> wasAssociatedWith;
@@ -25,23 +31,30 @@ public class ActivityNode extends BaseProvClassNode {
   @PersistenceCreator
   public ActivityNode(
       String id,
+      String startTime,
+      String endTime,
       String attributesJson,
       List<WasAssociatedWith> wasAssociatedWith,
       List<Used> used) {
     super(id, attributesJson);
 
+    this.startTime = startTime;
+    this.endTime = endTime;
+
     this.wasAssociatedWith = wasAssociatedWith;
     this.used = used;
   }
 
-  public ActivityNode(String id) {
-    super(id, "{}");
+  public ActivityNode(String id, String startTime, String endTime, String attributes) {
+    super(id, attributes);
 
+    this.startTime = startTime;
+    this.endTime = endTime;
     this.wasAssociatedWith = Collections.emptyList();
     this.used = Collections.emptyList();
   }
 
-  public @NonNull ActivityNode wihtWasAssociatedWithAgent(@Nullable AgentNode agent) {
+  public @NonNull ActivityNode withWasAssociatedWithAgent(@Nullable AgentNode agent) {
     if (agent == null)
       return this;
 
@@ -52,20 +65,24 @@ public class ActivityNode extends BaseProvClassNode {
 
     return new ActivityNode(
         this.getId(),
+        this.getStartTime(),
+        this.getEndTime(),
         this.getAttributes(),
         wasAssociatedWith,
         this.used);
   }
 
-  public @NonNull ActivityNode wihtWasAssociatedWith(@NonNull List<WasAssociatedWith> wasAssociatedWith) {
+  public @NonNull ActivityNode withWasAssociatedWith(@NonNull List<WasAssociatedWith> wasAssociatedWith) {
     return new ActivityNode(
         this.getId(),
+        this.getStartTime(),
+        this.getEndTime(),
         this.getAttributes(),
         wasAssociatedWith,
         this.used);
   }
 
-  public @NonNull ActivityNode wihtUsedEntity(@Nullable EntityNode entity) {
+  public @NonNull ActivityNode withUsedEntity(@Nullable EntityNode entity) {
     if (entity == null)
       return this;
 
@@ -76,17 +93,29 @@ public class ActivityNode extends BaseProvClassNode {
 
     return new ActivityNode(
         this.getId(),
+        this.getStartTime(),
+        this.getEndTime(),
         this.getAttributes(),
         this.getWasAssociatedWith(),
         used);
   }
 
-  public @NonNull ActivityNode wihtUsed(@NonNull List<Used> used) {
+  public @NonNull ActivityNode withUsed(@NonNull List<Used> used) {
     return new ActivityNode(
         this.getId(),
+        this.getStartTime(),
+        this.getEndTime(),
         this.getAttributes(),
         this.getWasAssociatedWith(),
         used);
+  }
+
+  public String getStartTime() {
+    return startTime;
+  }
+
+  public String getEndTime() {
+    return endTime;
   }
 
   public List<WasAssociatedWith> getWasAssociatedWith() {

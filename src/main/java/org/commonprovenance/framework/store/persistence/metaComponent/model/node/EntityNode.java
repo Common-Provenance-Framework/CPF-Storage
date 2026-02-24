@@ -46,6 +46,15 @@ public class EntityNode extends BaseProvClassNode {
     this.wasAttributedTo = wasAttributedTo;
   }
 
+  public EntityNode(String id, String attributesJson) {
+    super(id, attributesJson);
+
+    this.revisionOf = Collections.emptyList();
+    this.specializationOf = Collections.emptyList();
+    this.wasGeneratedBy = Collections.emptyList();
+    this.wasAttributedTo = Collections.emptyList();
+  }
+
   public EntityNode(String id) {
     super(id, "{}");
 
@@ -73,7 +82,7 @@ public class EntityNode extends BaseProvClassNode {
         this.getWasAttributedTo());
   }
 
-  public @NonNull EntityNode wihtRevisionOf(@NonNull List<RevisionOf> revisionOf) {
+  public @NonNull EntityNode withRevisionOf(@NonNull List<RevisionOf> revisionOf) {
     return new EntityNode(
         this.getId(),
         this.getAttributes(),
@@ -83,7 +92,7 @@ public class EntityNode extends BaseProvClassNode {
         this.getWasAttributedTo());
   }
 
-  public @NonNull EntityNode wihtSpecializationOfEntity(@Nullable EntityNode entity) {
+  public @NonNull EntityNode withSpecializationOfEntity(@Nullable EntityNode entity) {
     if (entity == null)
       return this;
 
@@ -101,7 +110,7 @@ public class EntityNode extends BaseProvClassNode {
         this.getWasAttributedTo());
   }
 
-  public @NonNull EntityNode wihtSpecializationOf(@NonNull List<SpecializationOf> specializationOf) {
+  public @NonNull EntityNode withSpecializationOf(@NonNull List<SpecializationOf> specializationOf) {
     return new EntityNode(
         this.getId(),
         this.getAttributes(),
@@ -111,7 +120,7 @@ public class EntityNode extends BaseProvClassNode {
         this.getWasAttributedTo());
   }
 
-  public @NonNull EntityNode wihtWasGeneratedByActivity(@Nullable ActivityNode activity) {
+  public @NonNull EntityNode withWasGeneratedByActivity(@Nullable ActivityNode activity) {
     if (activity == null)
       return this;
 
@@ -129,7 +138,7 @@ public class EntityNode extends BaseProvClassNode {
         this.getWasAttributedTo());
   }
 
-  public @NonNull EntityNode wihtWasGeneratedBy(@NonNull List<WasGeneratedBy> wasGeneratedBy) {
+  public @NonNull EntityNode withWasGeneratedBy(@NonNull List<WasGeneratedBy> wasGeneratedBy) {
     return new EntityNode(
         this.getId(),
         this.getAttributes(),
@@ -140,7 +149,7 @@ public class EntityNode extends BaseProvClassNode {
   }
 
   // --
-  public @NonNull EntityNode wihtWasAttributedToAgent(@Nullable AgentNode agent) {
+  public @NonNull EntityNode withWasAttributedToAgent(@Nullable AgentNode agent) {
     if (agent == null)
       return this;
 
@@ -158,7 +167,7 @@ public class EntityNode extends BaseProvClassNode {
         wasAttributedTo);
   }
 
-  public @NonNull EntityNode wihtWasAttributedTo(@NonNull List<WasAttributedTo> wasAttributedTo) {
+  public @NonNull EntityNode withWasAttributedTo(@NonNull List<WasAttributedTo> wasAttributedTo) {
     return new EntityNode(
         this.getId(),
         this.getAttributes(),
