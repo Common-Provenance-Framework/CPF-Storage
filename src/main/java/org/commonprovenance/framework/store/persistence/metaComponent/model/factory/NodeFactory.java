@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -16,10 +17,13 @@ import org.commonprovenance.framework.store.persistence.metaComponent.model.node
 import org.commonprovenance.framework.store.persistence.metaComponent.model.node.EntityNode;
 import org.openprovenance.prov.model.Activity;
 import org.openprovenance.prov.model.Agent;
+import org.openprovenance.prov.model.Attribute;
 import org.openprovenance.prov.model.Bundle;
 import org.openprovenance.prov.model.Document;
 import org.openprovenance.prov.model.Element;
 import org.openprovenance.prov.model.Entity;
+import org.openprovenance.prov.model.LangString;
+import org.openprovenance.prov.model.QualifiedName;
 import org.openprovenance.prov.model.SpecializationOf;
 import org.openprovenance.prov.model.Statement;
 import org.openprovenance.prov.model.Used;
@@ -40,8 +44,9 @@ public class NodeFactory {
     Function<Document, Mono<Bundle>> getBundle = (Document doc) -> Mono.justOrEmpty(doc)
         .map(Document::getStatementOrBundle)
         .flatMap(MONO.makeSure(
-            statements -> statements.size() != 1,
-            _ -> new InternalApplicationException("Document should have exact one Statement")))
+            statements -> statements.size() == 1,
+            statements -> new InternalApplicationException(
+                "Document should have exact one Statement, but has " + statements.size() + "!")))
         .map(List::getFirst)
         .flatMap(sOrB -> (sOrB instanceof Bundle b)
             ? Mono.just(b)
@@ -73,21 +78,74 @@ public class NodeFactory {
                 HashMap::new,
                 Collectors.toList()));
 
+    Function<LangString, String> getLangStringAsString = (
+        LangString ls) -> ls.getValue() + "@" + ls.getLang() == null ? "" : ls.getLang();
+
+    Function<Attribute, Optional<Map.Entry<String, String>>> attributeToMapEntry = (Attribute attr) -> {
+      String name = attr.getElementName().getPrefix() + ":" + attr.getElementName().getLocalPart();
+      Object value = attr.getValue();
+      if (value instanceof String str)
+        return Optional.of(Map.entry(name, str));
+      else if (value instanceof QualifiedName qn)
+        return Optional.of(Map.entry(name, qn.getPrefix() + ":" + qn.getLocalPart()));
+      else if (value instanceof LangString ls)
+        return Optional.of(Map.entry(name, getLangStringAsString.apply(ls)));
+
+      return Optional.empty();
+    };
+
     Function<Element, Mono<String>> getAttributesAsJsonString = (Element element) -> Mono.justOrEmpty(element)
         .map((Element e) -> {
-          Map<String, Object> attributesMap = new LinkedHashMap<>();
-          attributesMap.put("label", e.getLabel());
-          attributesMap.put("type", e.getType());
-          attributesMap.put("location", e.getLocation());
-          if (e instanceof Entity entity)
-            attributesMap.put("value", entity.getValue());
-          attributesMap.put("other", e.getOther());
+          Map<String, List<String>> attributesMap = new LinkedHashMap<>();
+
+          Map<String, List<String>> location = e.getLocation().stream()
+              .map(attributeToMapEntry)
+              .flatMap(Optional::stream)
+              .collect(Collectors.groupingBy(
+                  Map.Entry::getKey,
+                  LinkedHashMap::new,
+                  Collectors.mapping(Map.Entry::getValue, Collectors.toList())));
+
+          Map<String, List<String>> type = e.getType().stream()
+              .map(attributeToMapEntry)
+              .flatMap(Optional::stream)
+              .collect(Collectors.groupingBy(
+                  Map.Entry::getKey,
+                  LinkedHashMap::new,
+                  Collectors.mapping(Map.Entry::getValue, Collectors.toList())));
+
+          Map<String, List<String>> other = e.getOther().stream()
+              .map(attributeToMapEntry)
+              .flatMap(Optional::stream)
+              .collect(Collectors.groupingBy(
+                  Map.Entry::getKey,
+                  LinkedHashMap::new,
+                  Collectors.mapping(Map.Entry::getValue, Collectors.toList())));
+
+          Map<String, List<String>> label = e.getLabel().stream()
+              .map(l -> Map.entry("label", getLangStringAsString.apply(l)))
+              .collect(Collectors.groupingBy(
+                  Map.Entry::getKey,
+                  LinkedHashMap::new,
+                  Collectors.mapping(Map.Entry::getValue, Collectors.toList())));
+
+          attributesMap.putAll(location);
+          attributesMap.putAll(type);
+          attributesMap.putAll(other);
+          attributesMap.putAll(label);
+
+          if (e instanceof Entity entity && entity.getValue() != null) {
+            attributeToMapEntry.apply(entity.getValue())
+                .stream()
+                .forEach(x -> attributesMap.put(x.getKey(), List.of(x.getValue())));
+          }
 
           return attributesMap;
         })
         .flatMap(attrs -> Mono.fromCallable(() -> OBJECT_MAPPER.writeValueAsString(attrs)))
         .switchIfEmpty(Mono.just("{}"))
-        .onErrorMap(e -> new InternalApplicationException("Can not serialize Entity attributes to JSON", e));
+        .onErrorMap(
+            e -> new InternalApplicationException("Can not serialize Entity attributes to JSON: " + e.getMessage(), e));
 
     return Mono.justOrEmpty(document)
         .flatMap(getBundle)
@@ -156,6 +214,15 @@ public class NodeFactory {
                           waw.getActivity().getLocalPart(),
                           activities.get(waw.getActivity().getLocalPart())
                               .withWasAssociatedWithAgent(agents.get(waw.getAgent().getLocalPart())));
+                    });
+
+                statements.getOrDefault(Used.class, List.of()).stream()
+                    .map(Used.class::cast)
+                    .forEach(used -> {
+                      activities.replace(
+                          used.getActivity().getLocalPart(),
+                          activities.get(used.getActivity().getLocalPart())
+                              .withUsedEntity(entities.get(used.getEntity().getLocalPart())));
                     });
 
                 statements.getOrDefault(WasGeneratedBy.class, List.of()).stream()
