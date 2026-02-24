@@ -6,8 +6,10 @@ import java.util.UUID;
 
 import org.commonprovenance.framework.store.exceptions.NotFoundException;
 import org.commonprovenance.framework.store.persistence.metaComponent.BundlePersistence;
+import org.commonprovenance.framework.store.persistence.metaComponent.model.factory.NodeFactory;
 import org.commonprovenance.framework.store.persistence.metaComponent.model.node.BundleNode;
 import org.commonprovenance.framework.store.persistence.metaComponent.repository.BundleRepository;
+import org.openprovenance.prov.model.Document;
 import org.springframework.stereotype.Component;
 
 import jakarta.validation.constraints.NotNull;
@@ -25,8 +27,9 @@ public class BundlePersistenceImpl implements BundlePersistence {
 
   @Override
   @NotNull
-  public Mono<BundleNode> create(@NotNull BundleNode bundle) {
-    return MONO.<BundleNode>makeSureNotNullWithMessage("Bundle can not be 'null'!").apply(bundle)
+  public Mono<BundleNode> create(@NotNull Document bundle) {
+    return MONO.<Document>makeSureNotNullWithMessage("Bundle can not be 'null'!").apply(bundle)
+        .flatMap(NodeFactory::toEntity)
         .flatMap(repository::save)
         .onErrorResume(MONO.exceptionWrapper("BundleNeo4jRepository - Error while creating new Bundle"));
   }
