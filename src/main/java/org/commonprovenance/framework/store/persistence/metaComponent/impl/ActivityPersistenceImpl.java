@@ -2,8 +2,6 @@ package org.commonprovenance.framework.store.persistence.metaComponent.impl;
 
 import static org.commonprovenance.framework.store.common.publisher.PublisherHelper.MONO;
 
-import java.util.UUID;
-
 import org.commonprovenance.framework.store.exceptions.NotFoundException;
 import org.commonprovenance.framework.store.persistence.metaComponent.ActivityPersistence;
 import org.commonprovenance.framework.store.persistence.metaComponent.model.node.ActivityNode;
@@ -33,13 +31,12 @@ public class ActivityPersistenceImpl implements ActivityPersistence {
 
   @Override
   @NotNull
-  public Mono<ActivityNode> getById(@NotNull UUID uuid) {
-    return MONO.<UUID>makeSureNotNullWithMessage("Activity Id can not be 'null'!").apply(uuid)
-        .map(UUID::toString)
+  public Mono<ActivityNode> getById(@NotNull String id) {
+    return MONO.<String>makeSureNotNullWithMessage("Activity Id can not be 'null'!").apply(id)
         .flatMap(repository::findById)
         .onErrorResume(MONO.exceptionWrapper("ActivityNeo4jRepository - Error while reading activity"))
         .switchIfEmpty(Mono.defer(() -> Mono
-            .error(new NotFoundException("Activity with id '" + uuid.toString() + "' has not been found!"))));
+            .error(new NotFoundException("Activity with id '" + id + "' has not been found!"))));
   }
 
 }

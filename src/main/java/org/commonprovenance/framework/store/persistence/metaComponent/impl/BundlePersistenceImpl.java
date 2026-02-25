@@ -2,8 +2,6 @@ package org.commonprovenance.framework.store.persistence.metaComponent.impl;
 
 import static org.commonprovenance.framework.store.common.publisher.PublisherHelper.MONO;
 
-import java.util.UUID;
-
 import org.commonprovenance.framework.store.exceptions.NotFoundException;
 import org.commonprovenance.framework.store.persistence.metaComponent.BundlePersistence;
 import org.commonprovenance.framework.store.persistence.metaComponent.model.factory.NodeFactory;
@@ -37,13 +35,14 @@ public class BundlePersistenceImpl implements BundlePersistence {
 
   @Override
   @NotNull
-  public Mono<BundleNode> getById(@NotNull UUID uuid) {
-    return MONO.<UUID>makeSureNotNullWithMessage("Bundle Id can not be 'null'!").apply(uuid)
-        .map(UUID::toString)
+  public Mono<BundleNode> getById(@NotNull String id) {
+    return MONO.<String>makeSureNotNullWithMessage("Bundle Id can not be 'null'!").apply(id)
         .flatMap(repository::findById)
         .onErrorResume(MONO.exceptionWrapper("BundleNeo4jRepository - Error while reading bundle"))
         .switchIfEmpty(Mono.defer(() -> Mono
-            .error(new NotFoundException("Bundle with id '" + uuid.toString() + "' has not been found!"))));
+            .error(new NotFoundException("Bundle with id '" + id + "' has not been found!"))));
+  }
+
   @Override
   public @NotNull Mono<Boolean> exists(@NotNull String id) {
     return MONO.<String>makeSureNotNullWithMessage("Bundle Id can not be 'null'!").apply(id)

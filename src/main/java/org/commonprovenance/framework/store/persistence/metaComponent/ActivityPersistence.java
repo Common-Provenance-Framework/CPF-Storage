@@ -1,7 +1,5 @@
 package org.commonprovenance.framework.store.persistence.metaComponent;
 
-import java.util.UUID;
-
 import org.commonprovenance.framework.store.persistence.metaComponent.model.node.ActivityNode;
 
 import jakarta.validation.constraints.NotNull;
@@ -13,6 +11,6 @@ public interface ActivityPersistence {
   Mono<ActivityNode> create(@NotNull ActivityNode activity);
 
   @NotNull
-  Mono<ActivityNode> getById(@NotNull UUID id);
+  Mono<ActivityNode> getById(@NotNull String id);
 
 }

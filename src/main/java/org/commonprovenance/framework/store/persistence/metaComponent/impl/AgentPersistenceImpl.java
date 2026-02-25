@@ -2,8 +2,6 @@ package org.commonprovenance.framework.store.persistence.metaComponent.impl;
 
 import static org.commonprovenance.framework.store.common.publisher.PublisherHelper.MONO;
 
-import java.util.UUID;
-
 import org.commonprovenance.framework.store.exceptions.NotFoundException;
 import org.commonprovenance.framework.store.persistence.metaComponent.AgentPersistence;
 import org.commonprovenance.framework.store.persistence.metaComponent.model.node.AgentNode;
@@ -33,13 +31,12 @@ public class AgentPersistenceImpl implements AgentPersistence {
 
   @Override
   @NotNull
-  public Mono<AgentNode> getById(@NotNull UUID uuid) {
-    return MONO.<UUID>makeSureNotNullWithMessage("Agent Id can not be 'null'!").apply(uuid)
-        .map(UUID::toString)
+  public Mono<AgentNode> getById(@NotNull String id) {
+    return MONO.<String>makeSureNotNullWithMessage("Agent Id can not be 'null'!").apply(id)
         .flatMap(repository::findById)
         .onErrorResume(MONO.exceptionWrapper("AgentNeo4jRepository - Error while reading agent"))
         .switchIfEmpty(Mono.defer(() -> Mono
-            .error(new NotFoundException("Agent with id '" + uuid.toString() + "' has not been found!"))));
+            .error(new NotFoundException("Agent with id '" + id + "' has not been found!"))));
   }
 
 }
