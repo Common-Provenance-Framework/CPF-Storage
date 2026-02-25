@@ -44,6 +44,11 @@ public class BundlePersistenceImpl implements BundlePersistence {
         .onErrorResume(MONO.exceptionWrapper("BundleNeo4jRepository - Error while reading bundle"))
         .switchIfEmpty(Mono.defer(() -> Mono
             .error(new NotFoundException("Bundle with id '" + uuid.toString() + "' has not been found!"))));
+  @Override
+  public @NotNull Mono<Boolean> exists(@NotNull String id) {
+    return MONO.<String>makeSureNotNullWithMessage("Bundle Id can not be 'null'!").apply(id)
+        .flatMap(repository::exists)
+        .onErrorResume(MONO.exceptionWrapper("BundleNeo4jRepository - Error while checking Bundle"));
   }
 
 }

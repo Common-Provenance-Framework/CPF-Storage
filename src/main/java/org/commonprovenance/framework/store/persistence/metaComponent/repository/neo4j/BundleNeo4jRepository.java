@@ -28,4 +28,9 @@ public class BundleNeo4jRepository implements BundleRepository {
     return client.findById(id);
   }
 
+  @Override
+  public Mono<Boolean> exists(String id) {
+    return client.existsById(id);
+  }
+
 }

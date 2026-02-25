@@ -8,4 +8,6 @@ public interface BundleRepository {
   Mono<BundleNode> save(BundleNode bundle);
 
   Mono<BundleNode> findById(String id);
+
+  Mono<Boolean> exists(String id);
 }
