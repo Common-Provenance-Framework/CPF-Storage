@@ -27,11 +27,12 @@ public class BundlePersistenceImpl implements BundlePersistence {
 
   @Override
   @NotNull
-  public Mono<BundleNode> create(@NotNull Document bundle) {
+  public Mono<Document> create(@NotNull Document bundle) {
     return MONO.<Document>makeSureNotNullWithMessage("Bundle can not be 'null'!").apply(bundle)
         .flatMap(NodeFactory::toEntity)
         .flatMap(repository::save)
-        .onErrorResume(MONO.exceptionWrapper("BundleNeo4jRepository - Error while creating new Bundle"));
+        .onErrorResume(MONO.exceptionWrapper("BundleNeo4jRepository - Error while creating new Bundle"))
+        .thenReturn(bundle);
   }
 
   @Override

@@ -11,7 +11,7 @@ import reactor.core.publisher.Mono;
 
 public interface BundlePersistence {
   @NotNull
-  Mono<BundleNode> create(@NotNull Document bundle);
+  Mono<Document> create(@NotNull Document bundle);
 
   @NotNull
   Mono<BundleNode> getById(@NotNull UUID id);
