@@ -22,6 +22,11 @@ public class MetaComponentServiceImpl implements MetaComponentService {
   }
 
   @Override
+  public @NotNull Mono<Document> getById(@NotNull String id) {
+    return this.persistence.getById(id);
+  }
+
+  @Override
   public @NotNull Mono<Boolean> exists(@NotNull String id) {
     return this.persistence.exists(id);
   }

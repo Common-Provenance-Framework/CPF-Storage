@@ -2,10 +2,11 @@ package org.commonprovenance.framework.store.persistence.metaComponent.impl;
 
 import static org.commonprovenance.framework.store.common.publisher.PublisherHelper.MONO;
 
+import org.commonprovenance.framework.store.config.AppConfiguration;
 import org.commonprovenance.framework.store.exceptions.NotFoundException;
 import org.commonprovenance.framework.store.persistence.metaComponent.BundlePersistence;
 import org.commonprovenance.framework.store.persistence.metaComponent.model.factory.NodeFactory;
-import org.commonprovenance.framework.store.persistence.metaComponent.model.node.BundleNode;
+import org.commonprovenance.framework.store.persistence.metaComponent.model.factory.ProvenanceFactory;
 import org.commonprovenance.framework.store.persistence.metaComponent.repository.BundleRepository;
 import org.openprovenance.prov.model.Document;
 import org.springframework.stereotype.Component;
@@ -17,10 +18,13 @@ import reactor.core.publisher.Mono;
 public class BundlePersistenceImpl implements BundlePersistence {
 
   private final BundleRepository repository;
+  private final AppConfiguration configuration;
 
   public BundlePersistenceImpl(
-      BundleRepository repository) {
+      BundleRepository repository,
+      AppConfiguration configuration) {
     this.repository = repository;
+    this.configuration = configuration;
   }
 
   @Override
@@ -30,17 +34,18 @@ public class BundlePersistenceImpl implements BundlePersistence {
         .flatMap(NodeFactory::toEntity)
         .flatMap(repository::save)
         .onErrorResume(MONO.exceptionWrapper("BundleNeo4jRepository - Error while creating new Bundle"))
-        .thenReturn(bundle);
+        .flatMap(ProvenanceFactory.toProv(this.configuration));
   }
 
   @Override
   @NotNull
-  public Mono<BundleNode> getById(@NotNull String id) {
+  public Mono<Document> getById(@NotNull String id) {
     return MONO.<String>makeSureNotNullWithMessage("Bundle Id can not be 'null'!").apply(id)
         .flatMap(repository::findById)
         .onErrorResume(MONO.exceptionWrapper("BundleNeo4jRepository - Error while reading bundle"))
         .switchIfEmpty(Mono.defer(() -> Mono
-            .error(new NotFoundException("Bundle with id '" + id + "' has not been found!"))));
+            .error(new NotFoundException("Bundle with id '" + id + "' has not been found!"))))
+        .flatMap(ProvenanceFactory.toProv(configuration));
   }
 
   @Override

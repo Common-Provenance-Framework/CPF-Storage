@@ -1,6 +1,5 @@
 package org.commonprovenance.framework.store.persistence.metaComponent;
 
-import org.commonprovenance.framework.store.persistence.metaComponent.model.node.BundleNode;
 import org.openprovenance.prov.model.Document;
 
 import jakarta.validation.constraints.NotNull;
@@ -12,7 +11,7 @@ public interface BundlePersistence {
   Mono<Document> create(@NotNull Document bundle);
 
   @NotNull
-  Mono<BundleNode> getById(@NotNull String id);
+  Mono<Document> getById(@NotNull String id);
 
   @NotNull
   Mono<Boolean> exists(@NotNull String id);

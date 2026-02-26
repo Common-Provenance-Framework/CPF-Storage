@@ -10,6 +10,9 @@ public interface MetaComponentService {
   Mono<Document> storeMetaComponent(@NotNull Document document);
 
   @NotNull
+  Mono<Document> getById(@NotNull String id);
+
+  @NotNull
   Mono<Boolean> exists(@NotNull String id);
 
 }
