@@ -19,12 +19,7 @@ import org.openprovenance.prov.model.LangString;
 import org.openprovenance.prov.model.Namespace;
 import org.openprovenance.prov.model.ProvFactory;
 import org.openprovenance.prov.model.QualifiedName;
-import org.openprovenance.prov.model.SpecializationOf;
 import org.openprovenance.prov.model.Statement;
-import org.openprovenance.prov.model.Used;
-import org.openprovenance.prov.model.WasAssociatedWith;
-import org.openprovenance.prov.model.WasAttributedTo;
-import org.openprovenance.prov.model.WasDerivedFrom;
 
 import cz.muni.fi.cpm.constants.CpmNamespaceConstants;
 import reactor.core.publisher.Mono;
@@ -56,41 +51,41 @@ public class ProvenanceFactory {
           .map(Contains::getNode)
           .flatMap(n -> {
             if (n instanceof ActivityNode activityNode) {
-              Stream<Used> usedStream = activityNode.getUsed().stream()
-                  .map(used -> provFactory.newUsed(
+              Stream<Statement> usedStream = activityNode.getUsed().stream()
+                  .map(used -> (Statement) provFactory.newUsed(
                       ProvenanceFactory.getId(activityNode.getId(), provDocument.getNamespace()),
                       ProvenanceFactory.getId(used.getEntity().getId(), provDocument.getNamespace())));
 
-              Stream<WasAssociatedWith> wasAssociatedWithStream = activityNode.getWasAssociatedWith().stream()
-                  .map(waw -> provFactory.newWasAssociatedWith(
+              Stream<Statement> wasAssociatedWithStream = activityNode.getWasAssociatedWith().stream()
+                  .map(waw -> (Statement) provFactory.newWasAssociatedWith(
                       null,
                       ProvenanceFactory.getId(activityNode.getId(), provDocument.getNamespace()),
                       ProvenanceFactory.getId(waw.getAgent().getId(), provDocument.getNamespace())));
               return Stream.concat(usedStream, wasAssociatedWithStream);
             } else if (n instanceof EntityNode entityNode) {
-              Stream<WasDerivedFrom> wdfStream = entityNode.getRevisionOf().stream()
+              Stream<Statement> wdfStream = entityNode.getRevisionOf().stream()
                   .map(rev -> provFactory.newWasDerivedFrom(
                       ProvenanceFactory.getId(entityNode.getId(), provDocument.getNamespace()),
                       ProvenanceFactory.getId(rev.getEntity().getId(), provDocument.getNamespace())))
                   .map(wdf -> {
                     wdf.getType().add(provFactory.newType(provFactory.getName().PROV_REVISION,
                         provFactory.getName().PROV_QUALIFIED_NAME));
-                    return wdf;
+                    return (Statement) wdf;
                   });
 
-              Stream<SpecializationOf> soStream = entityNode.getSpecializationOf().stream()
-                  .map(so -> provFactory.newSpecializationOf(
+              Stream<Statement> soStream = entityNode.getSpecializationOf().stream()
+                  .map(so -> (Statement) provFactory.newSpecializationOf(
                       ProvenanceFactory.getId(entityNode.getId(), provDocument.getNamespace()),
                       ProvenanceFactory.getId(so.getEntity().getId(), provDocument.getNamespace())));
 
-              Stream<WasAttributedTo> watStream = entityNode.getWasAttributedTo().stream()
-                  .map(wat -> provFactory.newWasAttributedTo(
+              Stream<Statement> watStream = entityNode.getWasAttributedTo().stream()
+                  .map(wat -> (Statement) provFactory.newWasAttributedTo(
                       null,
                       ProvenanceFactory.getId(entityNode.getId(), provDocument.getNamespace()),
                       ProvenanceFactory.getId(wat.getAgent().getId(), provDocument.getNamespace())));
 
-              Stream<WasAttributedTo> wgbStream = entityNode.getWasGeneratedBy().stream()
-                  .map(wgb -> provFactory.newWasAttributedTo(
+              Stream<Statement> wgbStream = entityNode.getWasGeneratedBy().stream()
+                  .map(wgb -> (Statement) provFactory.newWasAttributedTo(
                       null,
                       ProvenanceFactory.getId(entityNode.getId(), provDocument.getNamespace()),
                       ProvenanceFactory.getId(wgb.getActivity().getId(), provDocument.getNamespace())));

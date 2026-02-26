@@ -2,9 +2,18 @@ package org.commonprovenance.framework.store.controller.impl;
 
 import static org.commonprovenance.framework.store.common.publisher.PublisherHelper.MONO;
 
+import java.util.ArrayList;
+import java.util.GregorianCalendar;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
+import javax.xml.datatype.DatatypeConfigurationException;
+import javax.xml.datatype.DatatypeFactory;
+import javax.xml.datatype.XMLGregorianCalendar;
+
+import org.commonprovenance.framework.store.config.AppConfiguration;
 import org.commonprovenance.framework.store.controller.DocumentController;
 import org.commonprovenance.framework.store.controller.dto.form.DocumentFormDTO;
 import org.commonprovenance.framework.store.controller.dto.response.DocumentResponseDTO;
@@ -12,7 +21,9 @@ import org.commonprovenance.framework.store.controller.dto.response.factory.DTOF
 import org.commonprovenance.framework.store.exceptions.BadRequestException;
 import org.commonprovenance.framework.store.exceptions.ConflictException;
 import org.commonprovenance.framework.store.exceptions.InternalApplicationException;
+import org.commonprovenance.framework.store.exceptions.InvalidValueException;
 import org.commonprovenance.framework.store.exceptions.NotFoundException;
+import org.commonprovenance.framework.store.model.AdditionalData;
 import org.commonprovenance.framework.store.model.Document;
 import org.commonprovenance.framework.store.model.Organization;
 import org.commonprovenance.framework.store.model.Token;
@@ -21,12 +32,19 @@ import org.commonprovenance.framework.store.model.factory.ModelFactory;
 import org.commonprovenance.framework.store.service.persistence.finalizedProvComponent.DocumentService;
 import org.commonprovenance.framework.store.service.persistence.finalizedProvComponent.OrganizationService;
 import org.commonprovenance.framework.store.service.persistence.finalizedProvComponent.TokenService;
+import org.commonprovenance.framework.store.service.persistence.metaComponent.MetaComponentService;
 import org.commonprovenance.framework.store.service.web.store.StoreWebService;
 import org.commonprovenance.framework.store.service.web.trustedParty.TrustedPartyWebService;
+import org.openprovenance.prov.model.Activity;
+import org.openprovenance.prov.model.Agent;
+import org.openprovenance.prov.model.Bundle;
 import org.openprovenance.prov.model.Element;
 import org.openprovenance.prov.model.Entity;
+import org.openprovenance.prov.model.Namespace;
+import org.openprovenance.prov.model.Other;
 import org.openprovenance.prov.model.ProvFactory;
 import org.openprovenance.prov.model.QualifiedName;
+import org.openprovenance.prov.model.Statement;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -38,6 +56,8 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import cz.muni.fi.cpm.constants.CpmAttribute;
+import cz.muni.fi.cpm.constants.CpmNamespaceConstants;
+import cz.muni.fi.cpm.model.CpmDocument;
 import cz.muni.fi.cpm.model.CpmUtilities;
 import cz.muni.fi.cpm.model.ICpmFactory;
 import cz.muni.fi.cpm.model.ICpmProvFactory;
@@ -53,6 +73,8 @@ public class DocumentControllerImpl implements DocumentController {
   private final DocumentService documentService;
   private final OrganizationService organizationService;
   private final TokenService tokenService;
+  private final MetaComponentService metaComponentService;
+
   private final TrustedPartyWebService trustedPartyWebService;
   private final StoreWebService storeWebService;
 
@@ -60,17 +82,22 @@ public class DocumentControllerImpl implements DocumentController {
   private final ICpmFactory cpmFactory;
   private final ICpmProvFactory cpmProvFactory;
 
+  private final AppConfiguration configuration;
+
   public DocumentControllerImpl(
       DocumentService documentService,
       OrganizationService organizationService,
       TokenService tokenService,
+      MetaComponentService metaComponentService,
       TrustedPartyWebService trustedPartyWebService,
       StoreWebService storeWebService,
       ProvFactory provFactory,
       ICpmFactory cpmFactory,
-      ICpmProvFactory cpmProvFactory) {
+      ICpmProvFactory cpmProvFactory,
+      AppConfiguration configuration) {
     this.documentService = documentService;
     this.organizationService = organizationService;
+    this.metaComponentService = metaComponentService;
     this.tokenService = tokenService;
     this.trustedPartyWebService = trustedPartyWebService;
     this.storeWebService = storeWebService;
@@ -78,6 +105,8 @@ public class DocumentControllerImpl implements DocumentController {
     this.provFactory = provFactory;
     this.cpmFactory = cpmFactory;
     this.cpmProvFactory = cpmProvFactory;
+
+    this.configuration = configuration;
   }
 
   @ResponseStatus(HttpStatus.CREATED)
@@ -194,19 +223,209 @@ public class DocumentControllerImpl implements DocumentController {
         // TODO: check cpm constraints
         // TODO: check provenance constraints
         // issue token
-        .flatMap(
+        .delayUntil(
             (Document document) -> this.organizationService.getOrganizationById(document.getOrganizationId())
                 .flatMap((Organization org) -> Mono.just(org)
                     .map(Organization::getTrustedParty)
                     .map(TrustedParty::getUrl)
                     .map(this.trustedPartyWebService::issueGraphToken)
+                    // Store Document with token
                     .flatMap(issueToken -> issueToken.apply(document.withOrganizationName(org.getName())))
                     .map((Token token) -> token.withDocument(document))
-                    .map((Token token) -> token.withTrustedParty(org.getTrustedParty()))))
-        // Store Document with token
-        .flatMap(tokenService::storeToken)
-        .map(Token::getDocument)
+                    .map((Token token) -> token.withTrustedParty(org.getTrustedParty())))
+                .flatMap(tokenService::storeToken))
+        .delayUntil((Document document) -> Mono.just(document)
+            .map(Document::getCpmDocument)
+            .flatMap(Mono::justOrEmpty)
+            .flatMap((CpmDocument cpm) -> Mono.just(cpm)
+                .flatMap(this::getReferenceMetaBundleId)
+                .flatMap(metaBundleId -> Mono.just(metaBundleId)
+                    .map(QualifiedName::getLocalPart)
+                    .flatMap(this.metaComponentService::getById)
+                    .onErrorResume(NotFoundException.class, e -> buildMetaComponent(document)))
+                .flatMap(this.metaComponentService::storeMetaComponent))
+
+        )
         .flatMap(DTOFactory::toDTO);
+  }
+
+  private Mono<org.openprovenance.prov.model.Document> buildMetaComponent(Document document) {
+
+    org.openprovenance.prov.model.Document provDocument = this.provFactory.newDocument();
+    provDocument.getNamespace().addKnownNamespaces();
+    provDocument.getNamespace().register(CpmNamespaceConstants.CPM_PREFIX, CpmNamespaceConstants.CPM_NS);
+    provDocument.getNamespace().register("pav", "http://purl.org/pav/");
+    provDocument.getNamespace().register("meta", this.configuration.getFqdn() + "documents/meta/");
+    provDocument.getNamespace().register("storage", this.configuration.getFqdn() + "documents/");
+
+    Mono<QualifiedName> bundleId = Mono.justOrEmpty(document.getCpmDocument())
+        .flatMap(this::getReferenceMetaBundleId);
+
+    Mono<QualifiedName> identifier = Mono.justOrEmpty(document.getCpmDocument()).map(CpmDocument::getBundleId);
+    Map<String, String> namespaces = provDocument.getNamespace().getNamespaces();
+
+    Mono<Entity> generalEntity = identifier
+        .map(i -> provFactory.newEntity(provFactory.newQualifiedName(
+            i.getNamespaceURI(),
+            i.getLocalPart() + "_general",
+            i.getPrefix())))
+        .doOnNext(general -> general.getType().add(provFactory.newType(
+            provFactory.getName().PROV_BUNDLE,
+            provFactory.getName().PROV_TYPE)));
+
+    Mono<Entity> firstVersion = identifier
+        .map(provFactory::newEntity)
+        .doOnNext(first -> {
+          first.getType().add(provFactory.newType(
+              provFactory.getName().PROV_BUNDLE,
+              provFactory.getName().PROV_TYPE));
+
+          first.getOther().add(provFactory.newOther(
+              provFactory.newQualifiedName(namespaces.get("pav"), "version", "pav"),
+              1,
+              provFactory.getName().XSD_INT));
+        });
+
+    Mono<Entity> token = identifier
+        .map(i -> provFactory.newEntity(provFactory.newQualifiedName(
+            i.getNamespaceURI(),
+            i.getLocalPart() + "_token",
+            i.getPrefix())))
+        .doOnNext(t -> {
+
+          t.getType().add(provFactory.newType(
+              cpmProvFactory.newCpmQualifiedName("token"),
+              provFactory.getName().PROV_TYPE));
+
+          t.getOther().add(provFactory.newOther(
+              cpmProvFactory.newCpmQualifiedName("originatorId"),
+              document.getOrganizationName(),
+              provFactory.getName().XSD_STRING));
+
+          t.getOther().add(provFactory.newOther(
+              cpmProvFactory.newCpmQualifiedName("authorityId"),
+              document.getToken().map(Token::getTrustedParty).map(TrustedParty::getName).get(),
+              provFactory.getName().XSD_STRING));
+
+          t.getOther().add(provFactory.newOther(
+              cpmProvFactory.newCpmQualifiedName("tokenTimestamp"),
+              document.getToken().map(Token::getCreatedOn).get(),
+              provFactory.getName().XSD_LONG));
+
+          t.getOther().add(provFactory.newOther(
+              cpmProvFactory.newCpmQualifiedName("documentCreationTimestamp"),
+              document.getToken().map(Token::getAdditionalData).map(AdditionalData::getDocumentTimestamp).get(),
+              provFactory.getName().XSD_LONG));
+
+          t.getOther().add(provFactory.newOther(
+              cpmProvFactory.newCpmQualifiedName("documentDigest"),
+              document.getToken().map(Token::getHash).get(),
+              provFactory.getName().XSD_STRING));
+
+          t.getOther().add(provFactory.newOther(
+              cpmProvFactory.newCpmQualifiedName("bundle"),
+              document.getToken().map(Token::getAdditionalData).map(AdditionalData::getBundle).get(),
+              provFactory.getName().XSD_STRING));
+
+          t.getOther().add(provFactory.newOther(
+              cpmProvFactory.newCpmQualifiedName("hashFunction"),
+              document.getToken().map(Token::getAdditionalData).map(AdditionalData::getHashFunction).get(),
+              provFactory.getName().XSD_STRING));
+
+          t.getOther().add(provFactory.newOther(
+              cpmProvFactory.newCpmQualifiedName("trustedPartyUri"),
+              document.getToken().map(Token::getAdditionalData).map(AdditionalData::getTrustedPartyUri).get(),
+              provFactory.getName().XSD_STRING));
+
+          t.getOther().add(provFactory.newOther(
+              cpmProvFactory.newCpmQualifiedName("trustedPartyCertificate"),
+              document.getToken().map(Token::getAdditionalData).map(AdditionalData::getTrustedPartyCertificate).get(),
+              provFactory.getName().XSD_STRING));
+
+          t.getOther().add(provFactory.newOther(
+              cpmProvFactory.newCpmQualifiedName("signature"),
+              document.getToken().map(Token::getSignature).get(),
+              provFactory.getName().XSD_STRING));
+        });
+
+    Mono<Agent> agent = Mono.justOrEmpty(document.getToken().map(Token::getTrustedParty).map(TrustedParty::getName))
+        .map(tpName -> provFactory.newAgent(provFactory.newQualifiedName(
+            namespaces.get("storage"),
+            tpName,
+            "storage"))) // TODO: ??identifier ns??
+        .doOnNext(a -> {
+          a.getType().add(provFactory.newType(
+              cpmProvFactory.newCpmQualifiedName("trustedParty"),
+              provFactory.getName().PROV_TYPE));
+
+          a.getOther().add(provFactory.newOther(
+              cpmProvFactory.newCpmQualifiedName("trustedPartyUri"),
+              document.getToken().map(Token::getAdditionalData).map(AdditionalData::getTrustedPartyUri).get(),
+              provFactory.getName().XSD_STRING));
+
+          a.getOther().add(provFactory.newOther(
+              cpmProvFactory.newCpmQualifiedName("trustedPartyCertificate"),
+              document.getToken().map(Token::getAdditionalData).map(AdditionalData::getTrustedPartyCertificate).get(),
+              provFactory.getName().XSD_STRING));
+        });
+
+    Mono<Activity> activity = identifier
+        .map(i -> provFactory.newActivity(provFactory.newQualifiedName(
+            i.getNamespaceURI(),
+            i.getLocalPart() + "_tokenGeneration",
+            i.getPrefix())))
+        .doOnNext(act -> {
+
+          try {
+            GregorianCalendar tokenTimestamp = new GregorianCalendar();
+            tokenTimestamp.setTimeInMillis(document.getToken().map(Token::getCreatedOn).get());
+            XMLGregorianCalendar timestampVal = DatatypeFactory.newInstance().newXMLGregorianCalendar(tokenTimestamp);
+            act.setStartTime(timestampVal);
+            act.setEndTime(timestampVal);
+
+          } catch (DatatypeConfigurationException e) {
+
+          }
+          act.getType().add(provFactory.newType(
+              cpmProvFactory.newCpmQualifiedName("tokenGeneration"),
+              provFactory.getName().PROV_TYPE));
+        });
+    Namespace bundleNs = provFactory.newNamespace();
+    bundleNs.register("meta", this.configuration.getFqdn() + "documents/meta/");
+
+    return bundleId.flatMap(
+        id -> Mono.zip(generalEntity, firstVersion, token, agent, activity)
+            .map(tuple -> {
+              List<Statement> statements = new ArrayList<>();
+              statements.add(tuple.getT1());
+              statements.add(tuple.getT2());
+              statements.add(tuple.getT3());
+              statements.add(tuple.getT4());
+              statements.add(tuple.getT5());
+              return statements;
+            })
+            .map(statements -> {
+              Bundle bundle = provFactory.newNamedBundle(id, bundleNs, statements);
+              provDocument.getStatementOrBundle().add(bundle);
+              return provDocument;
+            }));
+  }
+
+  private Mono<QualifiedName> getReferenceMetaBundleId(CpmDocument cpm) {
+    return Mono.justOrEmpty(cpm)
+        .map(CpmDocument::getMainActivity)
+        .map(INode::getAnyElement)
+        .map(Element::getOther)
+        .flatMapMany(Flux::fromIterable)
+        .filter((Other other) -> other.getElementName().getLocalPart()
+            .equals(CpmAttribute.REFERENCED_META_BUNDLE_ID.toString()))
+        .single()
+        .map(Other::getValue)
+        .flatMap(value -> (value instanceof QualifiedName qn)
+            ? Mono.just(qn)
+            : Mono.error(new InvalidValueException("Attribute '" + CpmAttribute.REFERENCED_META_BUNDLE_ID
+                .toString() + "' should has type QualifiedName!")));
+
   }
 
   private String getReferenceValue(Element element, CpmAttribute attr) {

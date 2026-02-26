@@ -11,7 +11,6 @@ import static org.mockito.Mockito.when;
 
 import java.lang.reflect.Method;
 import java.util.List;
-import java.util.Map;
 
 import org.commonprovenance.framework.store.config.AppConfiguration;
 import org.commonprovenance.framework.store.persistence.metaComponent.model.node.ActivityNode;
@@ -25,7 +24,6 @@ import org.openprovenance.prov.model.Document;
 import org.openprovenance.prov.model.LangString;
 import org.openprovenance.prov.model.Namespace;
 import org.openprovenance.prov.model.NamespacePrefixMapper;
-import org.openprovenance.prov.model.Other;
 import org.openprovenance.prov.model.QualifiedName;
 import org.openprovenance.prov.model.Statement;
 import org.openprovenance.prov.model.Type;
