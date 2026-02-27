@@ -79,17 +79,17 @@ public class NodeFactory {
                 Collectors.toList()));
 
     Function<LangString, String> getLangStringAsString = (
-        LangString ls) -> ls.getValue() + "@" + ls.getLang() == null ? "" : ls.getLang();
+        LangString ls) -> ls.getValue() + "@" + (ls.getLang() == null ? "" : ls.getLang());
 
     Function<Attribute, Optional<Map.Entry<String, String>>> attributeToMapEntry = (Attribute attr) -> {
       String name = attr.getElementName().getPrefix() + ":" + attr.getElementName().getLocalPart();
       Object value = attr.getValue();
-      if (value instanceof String str)
-        return Optional.of(Map.entry(name, str));
+      if (value instanceof LangString ls)
+        return Optional.of(Map.entry(name, getLangStringAsString.apply(ls)));
       else if (value instanceof QualifiedName qn)
         return Optional.of(Map.entry(name, qn.getPrefix() + ":" + qn.getLocalPart()));
-      else if (value instanceof LangString ls)
-        return Optional.of(Map.entry(name, getLangStringAsString.apply(ls)));
+      else if (value instanceof String str)
+        return Optional.of(Map.entry(name, str));
 
       return Optional.empty();
     };
