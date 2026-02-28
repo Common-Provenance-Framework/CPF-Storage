@@ -184,11 +184,10 @@ public class DocumentControllerImpl implements DocumentController {
             .flatMap(Mono::justOrEmpty)
             .flatMap((CpmDocument cpm) -> Mono.just(cpm)
                 .flatMap(this::getReferenceMetaBundleId)
-                .flatMap(metaBundleId -> Mono.just(metaBundleId)
-                    .map(QualifiedName::getLocalPart)
-                    .flatMap(this.metaComponentService::getById)
-                    .onErrorResume(NotFoundException.class, e -> buildMetaComponent(document)))
-                .flatMap(this.metaComponentService::storeMetaComponent))
+                .flatMap(this.metaComponentService::getMetaComponent)
+                .flatMap(this.metaComponentService.addNewVersion(cpm.getBundleId())))
+        // .onErrorResume(NotFoundException.class, _ -> buildMetaComponent(document)))
+        // .flatMap(this.metaComponentService::storeMetaComponent))
 
         )
         .flatMap(DTOFactory::toDTO);
