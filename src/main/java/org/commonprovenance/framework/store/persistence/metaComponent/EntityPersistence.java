@@ -1,6 +1,8 @@
 package org.commonprovenance.framework.store.persistence.metaComponent;
 
-import org.commonprovenance.framework.store.persistence.metaComponent.model.node.EntityNode;
+import java.util.function.Function;
+
+import org.openprovenance.prov.model.Entity;
 
 import jakarta.validation.constraints.NotNull;
 
@@ -8,9 +10,12 @@ import reactor.core.publisher.Mono;
 
 public interface EntityPersistence {
   @NotNull
-  Mono<EntityNode> create(@NotNull EntityNode entity);
+  Mono<Entity> create(@NotNull Entity entity);
 
   @NotNull
-  Mono<EntityNode> getById(@NotNull String id);
+  Function<Entity, Mono<Entity>> addFirstVersion(@NotNull Entity general);
+
+  @NotNull
+  Mono<Entity> getById(@NotNull String id);
 
 }
