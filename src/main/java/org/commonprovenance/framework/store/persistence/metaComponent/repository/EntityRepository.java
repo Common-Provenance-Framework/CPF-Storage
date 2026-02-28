@@ -7,5 +7,7 @@ import reactor.core.publisher.Mono;
 public interface EntityRepository {
   Mono<EntityNode> save(EntityNode entity);
 
+  Mono<String> getMetaBundleIdByGeneralEntity(EntityNode entity);
+
   Mono<EntityNode> findById(String id);
 }
