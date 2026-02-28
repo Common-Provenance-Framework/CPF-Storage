@@ -39,6 +39,11 @@ import tools.jackson.databind.ObjectMapper;
 public class NodeFactory {
   private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
+  public static Mono<EntityNode> toEntity(Entity entity) {
+    return NodeFactory.getAttributesAsJsonString(entity)
+        .map(attrs -> new EntityNode(entity.getId().getLocalPart(), attrs));
+  }
+
   public static Mono<BundleNode> toEntity(Document document) {
 
     Function<Document, Mono<Bundle>> getBundle = (Document doc) -> Mono.justOrEmpty(doc)
@@ -78,75 +83,6 @@ public class NodeFactory {
                 HashMap::new,
                 Collectors.toList()));
 
-    Function<LangString, String> getLangStringAsString = (
-        LangString ls) -> ls.getValue() + "@" + (ls.getLang() == null ? "" : ls.getLang());
-
-    Function<Attribute, Optional<Map.Entry<String, String>>> attributeToMapEntry = (Attribute attr) -> {
-      String name = attr.getElementName().getPrefix() + ":" + attr.getElementName().getLocalPart();
-      Object value = attr.getValue();
-      if (value instanceof LangString ls)
-        return Optional.of(Map.entry(name, getLangStringAsString.apply(ls)));
-      else if (value instanceof QualifiedName qn)
-        return Optional.of(Map.entry(name, qn.getPrefix() + ":" + qn.getLocalPart()));
-      else if (value instanceof String str)
-        return Optional.of(Map.entry(name, str));
-
-      return Optional.empty();
-    };
-
-    Function<Element, Mono<String>> getAttributesAsJsonString = (Element element) -> Mono.justOrEmpty(element)
-        .map((Element e) -> {
-          Map<String, List<String>> attributesMap = new LinkedHashMap<>();
-
-          Map<String, List<String>> location = e.getLocation().stream()
-              .map(attributeToMapEntry)
-              .flatMap(Optional::stream)
-              .collect(Collectors.groupingBy(
-                  Map.Entry::getKey,
-                  LinkedHashMap::new,
-                  Collectors.mapping(Map.Entry::getValue, Collectors.toList())));
-
-          Map<String, List<String>> type = e.getType().stream()
-              .map(attributeToMapEntry)
-              .flatMap(Optional::stream)
-              .collect(Collectors.groupingBy(
-                  Map.Entry::getKey,
-                  LinkedHashMap::new,
-                  Collectors.mapping(Map.Entry::getValue, Collectors.toList())));
-
-          Map<String, List<String>> other = e.getOther().stream()
-              .map(attributeToMapEntry)
-              .flatMap(Optional::stream)
-              .collect(Collectors.groupingBy(
-                  Map.Entry::getKey,
-                  LinkedHashMap::new,
-                  Collectors.mapping(Map.Entry::getValue, Collectors.toList())));
-
-          Map<String, List<String>> label = e.getLabel().stream()
-              .map(l -> Map.entry("label", getLangStringAsString.apply(l)))
-              .collect(Collectors.groupingBy(
-                  Map.Entry::getKey,
-                  LinkedHashMap::new,
-                  Collectors.mapping(Map.Entry::getValue, Collectors.toList())));
-
-          attributesMap.putAll(location);
-          attributesMap.putAll(type);
-          attributesMap.putAll(other);
-          attributesMap.putAll(label);
-
-          if (e instanceof Entity entity && entity.getValue() != null) {
-            attributeToMapEntry.apply(entity.getValue())
-                .stream()
-                .forEach(x -> attributesMap.put(x.getKey(), List.of(x.getValue())));
-          }
-
-          return attributesMap;
-        })
-        .flatMap(attrs -> Mono.fromCallable(() -> OBJECT_MAPPER.writeValueAsString(attrs)))
-        .switchIfEmpty(Mono.just("{}"))
-        .onErrorMap(
-            e -> new InternalApplicationException("Can not serialize Entity attributes to JSON: " + e.getMessage(), e));
-
     return Mono.justOrEmpty(document)
         .flatMap(getBundle)
         .flatMap(bundle -> {
@@ -155,20 +91,21 @@ public class NodeFactory {
           Mono<Map<String, EntityNode>> entitiesMono = Flux
               .fromIterable(statements.getOrDefault(Entity.class, List.of()))
               .cast(Entity.class)
-              .flatMap((Entity e) -> getAttributesAsJsonString.apply(e)
-                  .map(attrs -> Map.entry(e.getId().getLocalPart(), new EntityNode(e.getId().getLocalPart(), attrs))))
+              .flatMap((Entity e) -> NodeFactory.getAttributesAsJsonString(e)
+                  .map(attrs -> Map.entry(e.getId().getLocalPart(),
+                      new EntityNode(e.getId().getLocalPart(), attrs))))
               .collectMap(Map.Entry::getKey, Map.Entry::getValue);
 
           Mono<Map<String, AgentNode>> agentsMono = Flux.fromIterable(statements.getOrDefault(Agent.class, List.of()))
               .cast(Agent.class)
-              .flatMap(a -> getAttributesAsJsonString.apply(a)
+              .flatMap(a -> getAttributesAsJsonString(a)
                   .map(attrs -> Map.entry(a.getId().getLocalPart(), new AgentNode(a.getId().getLocalPart(), attrs))))
               .collectMap(Map.Entry::getKey, Map.Entry::getValue);
 
           Mono<Map<String, ActivityNode>> activitiesMono = Flux
               .fromIterable(statements.getOrDefault(Activity.class, List.of()))
               .cast(Activity.class)
-              .flatMap(a -> getAttributesAsJsonString.apply(a)
+              .flatMap(a -> NodeFactory.getAttributesAsJsonString(a)
                   .map(attrs -> Map.entry(a.getId().getLocalPart(),
                       new ActivityNode(a.getId().getLocalPart(), String.valueOf(a.getStartTime()),
                           String.valueOf(a.getEndTime()), attrs))))
@@ -240,5 +177,77 @@ public class NodeFactory {
                     activities.values());
               });
         });
+  }
+
+  private static Mono<String> getAttributesAsJsonString(Element element) {
+    return Mono.justOrEmpty(element)
+        .map((Element e) -> {
+          Map<String, List<String>> attributesMap = new LinkedHashMap<>();
+
+          Map<String, List<String>> location = e.getLocation().stream()
+              .map(NodeFactory::attributeToMapEntry)
+              .flatMap(Optional::stream)
+              .collect(Collectors.groupingBy(
+                  Map.Entry::getKey,
+                  LinkedHashMap::new,
+                  Collectors.mapping(Map.Entry::getValue, Collectors.toList())));
+
+          Map<String, List<String>> type = e.getType().stream()
+              .map(NodeFactory::attributeToMapEntry)
+              .flatMap(Optional::stream)
+              .collect(Collectors.groupingBy(
+                  Map.Entry::getKey,
+                  LinkedHashMap::new,
+                  Collectors.mapping(Map.Entry::getValue, Collectors.toList())));
+
+          Map<String, List<String>> other = e.getOther().stream()
+              .map(NodeFactory::attributeToMapEntry)
+              .flatMap(Optional::stream)
+              .collect(Collectors.groupingBy(
+                  Map.Entry::getKey,
+                  LinkedHashMap::new,
+                  Collectors.mapping(Map.Entry::getValue, Collectors.toList())));
+
+          Map<String, List<String>> label = e.getLabel().stream()
+              .map(l -> Map.entry("label", getLangStringAsString(l)))
+              .collect(Collectors.groupingBy(
+                  Map.Entry::getKey,
+                  LinkedHashMap::new,
+                  Collectors.mapping(Map.Entry::getValue, Collectors.toList())));
+
+          attributesMap.putAll(location);
+          attributesMap.putAll(type);
+          attributesMap.putAll(other);
+          attributesMap.putAll(label);
+
+          if (e instanceof Entity entity && entity.getValue() != null) {
+            attributeToMapEntry(entity.getValue())
+                .stream()
+                .forEach(x -> attributesMap.put(x.getKey(), List.of(x.getValue())));
+          }
+
+          return attributesMap;
+        })
+        .flatMap(attrs -> Mono.fromCallable(() -> OBJECT_MAPPER.writeValueAsString(attrs)))
+        .switchIfEmpty(Mono.just("{}"))
+        .onErrorMap(
+            e -> new InternalApplicationException("Can not serialize Entity attributes to JSON: " + e.getMessage(), e));
+  }
+
+  private static Optional<Map.Entry<String, String>> attributeToMapEntry(Attribute attr) {
+    String name = attr.getElementName().getPrefix() + ":" + attr.getElementName().getLocalPart();
+    Object value = attr.getValue();
+    if (value instanceof LangString ls)
+      return Optional.of(Map.entry(name, getLangStringAsString(ls)));
+    else if (value instanceof QualifiedName qn)
+      return Optional.of(Map.entry(name, qn.getPrefix() + ":" + qn.getLocalPart()));
+    else if (value instanceof String str)
+      return Optional.of(Map.entry(name, str));
+
+    return Optional.empty();
+  };
+
+  private static String getLangStringAsString(LangString ls) {
+    return ls.getValue() + "@" + (ls.getLang() == null ? "" : ls.getLang());
   }
 }
