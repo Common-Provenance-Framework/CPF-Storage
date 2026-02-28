@@ -1,6 +1,7 @@
 package org.commonprovenance.framework.store.persistence.metaComponent.repository.neo4j;
 
 import org.commonprovenance.framework.store.persistence.metaComponent.model.node.BundleNode;
+import org.commonprovenance.framework.store.persistence.metaComponent.model.node.EntityNode;
 import org.commonprovenance.framework.store.persistence.metaComponent.repository.BundleRepository;
 import org.commonprovenance.framework.store.persistence.metaComponent.repository.neo4j.client.BundleNeo4jRepositoryClient;
 import org.springframework.context.annotation.Profile;
@@ -31,6 +32,11 @@ public class BundleNeo4jRepository implements BundleRepository {
   @Override
   public Mono<Boolean> exists(String id) {
     return client.existsById(id);
+  }
+
+  @Override
+  public Mono<BundleNode> findByGeneralEntity(EntityNode entity) {
+    return client.getBundleByGeneralEntity(entity.getId());
   }
 
 }
