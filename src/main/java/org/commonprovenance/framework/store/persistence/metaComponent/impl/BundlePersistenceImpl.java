@@ -34,7 +34,7 @@ public class BundlePersistenceImpl implements BundlePersistence {
         .flatMap(NodeFactory::toEntity)
         .flatMap(repository::save)
         .onErrorResume(MONO.exceptionWrapper("BundleNeo4jRepository - Error while creating new Bundle"))
-        .flatMap(ProvenanceFactory.toProv(this.configuration));
+        .flatMap(ProvenanceFactory.bundleToProv(this.configuration));
   }
 
   @Override
@@ -45,7 +45,7 @@ public class BundlePersistenceImpl implements BundlePersistence {
         .onErrorResume(MONO.exceptionWrapper("BundleNeo4jRepository - Error while reading bundle"))
         .switchIfEmpty(Mono.defer(() -> Mono
             .error(new NotFoundException("Bundle with id '" + id + "' has not been found!"))))
-        .flatMap(ProvenanceFactory.toProv(configuration));
+        .flatMap(ProvenanceFactory.bundleToProv(configuration));
   }
 
   @Override

@@ -29,7 +29,7 @@ public class ProvenanceFactory {
   private static final ProvFactory provFactory = new org.openprovenance.prov.vanilla.ProvFactory();
   private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
-  public static Function<BundleNode, Mono<Document>> toProv(AppConfiguration config) {
+  public static Function<BundleNode, Mono<Document>> bundleToProv(AppConfiguration config) {
     return (BundleNode node) -> {
       Document provDocument = ProvenanceFactory.provFactory.newDocument();
       provDocument.getNamespace().addKnownNamespaces();

@@ -103,7 +103,7 @@ class ProvenanceFactoryTest {
 
     BundleNode bundleNode = new BundleNode("bundle-1", List.of(e1, e2), List.of(ag1), List.of(act1));
 
-    Document document = ProvenanceFactory.toProv(config).apply(bundleNode).block();
+    Document document = ProvenanceFactory.bundleToProv(config).apply(bundleNode).block();
 
     assertNotNull(document);
     assertEquals(1, document.getStatementOrBundle().size());
@@ -134,7 +134,7 @@ class ProvenanceFactoryTest {
 
     BundleNode bundleNode = new BundleNode("bundle-1", List.of(e1, e2), List.of(), List.of());
 
-    Document document = ProvenanceFactory.toProv(config).apply(bundleNode).block();
+    Document document = ProvenanceFactory.bundleToProv(config).apply(bundleNode).block();
     assertNotNull(document);
 
     Bundle bundle = assertInstanceOf(Bundle.class, document.getStatementOrBundle().getFirst());
@@ -162,7 +162,7 @@ class ProvenanceFactoryTest {
     BundleNode bundleNode = new BundleNode("bundle-1", List.of(malformed), List.of(), List.of());
 
     RuntimeException ex = assertThrows(RuntimeException.class,
-        () -> ProvenanceFactory.toProv(config).apply(bundleNode));
+        () -> ProvenanceFactory.bundleToProv(config).apply(bundleNode));
 
     assertTrue(ex.getMessage().contains("Cannot parse entity attributes JSON"));
   }
@@ -179,7 +179,7 @@ class ProvenanceFactoryTest {
     EntityNode entityNode = new EntityNode("entity-1", attributesJson);
     BundleNode bundleNode = new BundleNode("bundle-1", List.of(entityNode), List.of(), List.of());
 
-    Document document = ProvenanceFactory.toProv(config).apply(bundleNode).block();
+    Document document = ProvenanceFactory.bundleToProv(config).apply(bundleNode).block();
     assertNotNull(document);
 
     Bundle bundle = assertInstanceOf(Bundle.class, document.getStatementOrBundle().getFirst());
