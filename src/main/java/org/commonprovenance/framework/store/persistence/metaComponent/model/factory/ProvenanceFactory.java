@@ -29,6 +29,19 @@ public class ProvenanceFactory {
   private static final ProvFactory provFactory = new org.openprovenance.prov.vanilla.ProvFactory();
   private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
+  public static Function<EntityNode, Mono<Entity>> entityToProv(AppConfiguration config) {
+    Namespace namespace = provFactory.newNamespace();
+    namespace.addKnownNamespaces();
+    namespace.register(CpmNamespaceConstants.CPM_PREFIX, CpmNamespaceConstants.CPM_NS);
+    namespace.register("pav", "http://purl.org/pav/");
+    namespace.register("meta", config.getFqdn() + "documents/meta/");
+    namespace.register("storage", config.getFqdn() + "documents/");
+    return (EntityNode entity) -> Mono.justOrEmpty(entity)
+        .map(ProvenanceFactory.toProvenance(namespace))
+        .filter(Entity.class::isInstance)
+        .map(Entity.class::cast);
+  }
+
   public static Function<BundleNode, Mono<Document>> bundleToProv(AppConfiguration config) {
     return (BundleNode node) -> {
       Document provDocument = ProvenanceFactory.provFactory.newDocument();
