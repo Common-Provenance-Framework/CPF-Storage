@@ -36,7 +36,7 @@ class NodeFactoryTest {
 
   @Test
   void toEntity_nullDocument_returnsEmptyMono() {
-    StepVerifier.create(NodeFactory.toEntity(null))
+    StepVerifier.create(NodeFactory.toEntity((Document) null))
         .expectNextCount(0)
         .verifyComplete();
   }

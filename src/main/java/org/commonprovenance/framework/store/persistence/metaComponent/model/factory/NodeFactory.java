@@ -44,6 +44,20 @@ public class NodeFactory {
         .map(attrs -> new EntityNode(entity.getId().getLocalPart(), attrs));
   }
 
+  public static Mono<AgentNode> toEntity(Agent agent) {
+    return NodeFactory.getAttributesAsJsonString(agent)
+        .map(attrs -> new AgentNode(agent.getId().getLocalPart(), attrs));
+  }
+
+  public static Mono<ActivityNode> toEntity(Activity activity) {
+    return NodeFactory.getAttributesAsJsonString(activity)
+        .map(attrs -> new ActivityNode(
+            activity.getId().getLocalPart(),
+            activity.getStartTime().toString(),
+            activity.getEndTime().toString(),
+            attrs));
+  }
+
   public static Mono<BundleNode> toEntity(Document document) {
 
     Function<Document, Mono<Bundle>> getBundle = (Document doc) -> Mono.justOrEmpty(doc)
