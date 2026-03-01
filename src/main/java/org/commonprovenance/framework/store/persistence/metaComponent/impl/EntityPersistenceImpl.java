@@ -9,15 +9,20 @@ import org.commonprovenance.framework.store.exceptions.NotFoundException;
 import org.commonprovenance.framework.store.persistence.metaComponent.EntityPersistence;
 import org.commonprovenance.framework.store.persistence.metaComponent.model.factory.NodeFactory;
 import org.commonprovenance.framework.store.persistence.metaComponent.model.factory.ProvenanceFactory;
+import org.commonprovenance.framework.store.persistence.metaComponent.model.node.ActivityNode;
+import org.commonprovenance.framework.store.persistence.metaComponent.model.node.AgentNode;
 import org.commonprovenance.framework.store.persistence.metaComponent.model.node.BundleNode;
 import org.commonprovenance.framework.store.persistence.metaComponent.model.node.EntityNode;
 import org.commonprovenance.framework.store.persistence.metaComponent.repository.BundleRepository;
 import org.commonprovenance.framework.store.persistence.metaComponent.repository.EntityRepository;
+import org.openprovenance.prov.model.Activity;
+import org.openprovenance.prov.model.Agent;
 import org.openprovenance.prov.model.Entity;
 import org.springframework.stereotype.Component;
 
 import jakarta.validation.constraints.NotNull;
 import reactor.core.publisher.Mono;
+import reactor.util.function.Tuple5;
 
 @Component
 public class EntityPersistenceImpl implements EntityPersistence {
@@ -60,10 +65,51 @@ public class EntityPersistenceImpl implements EntityPersistence {
           EntityNode firstVersion = tuple.getT1();
           EntityNode getneralVersion = tuple.getT2();
           BundleNode metaComponent = tuple.getT3();
-          return bundleRepository.save(metaComponent.withNode(firstVersion))
+          return bundleRepository.save(metaComponent.withNode(firstVersion)) // TODO: ??Maybe save together??
               .then(entityRepository.save(firstVersion.withSpecializationOfEntity(getneralVersion)));
         })
         .flatMap(ProvenanceFactory.entityToProv(configuration));
+  }
+
+  @Override
+  public @NotNull Function<Entity, Mono<Entity>> addToken(
+      @NotNull Entity token,
+      @NotNull Activity generation,
+      @NotNull Agent generator) {
+
+    return (Entity version) -> {
+      return NodeFactory.toEntity(version)
+          .flatMap((EntityNode versionEntity) -> Mono.zip(
+              Mono.just(versionEntity),
+              bundleRepository.findByGeneralEntity(versionEntity),
+              Mono.justOrEmpty(token).flatMap(NodeFactory::toEntity),
+              Mono.justOrEmpty(generation).flatMap(NodeFactory::toEntity),
+              Mono.justOrEmpty(generator).flatMap(NodeFactory::toEntity)))
+
+          .delayUntil(tuple -> {
+            AgentNode generatorNode = tuple.getT5();
+            EntityNode versionEntityNode = tuple.getT1();
+
+            ActivityNode generationNode = tuple.getT4()
+                .withUsedEntity(versionEntityNode)
+                .withWasAssociatedWithAgent(generatorNode);
+
+            EntityNode tokenNode = tuple.getT3()
+                .withWasDerivedFromEntity(versionEntityNode)
+                .withWasGeneratedByActivity(generationNode)
+                .withWasAttributedToAgent(generatorNode);
+
+            BundleNode metaComponent = tuple.getT2()
+                .withNode(generatorNode)
+                .withNode(tokenNode)
+                .withNode(generationNode);
+
+            return bundleRepository.save(metaComponent);
+          })
+          .map(Tuple5<EntityNode, BundleNode, EntityNode, ActivityNode, AgentNode>::getT3)
+          .flatMap(ProvenanceFactory.entityToProv(configuration));
+    };
+
   }
 
   @Override
