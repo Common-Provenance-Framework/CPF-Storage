@@ -185,11 +185,9 @@ public class DocumentControllerImpl implements DocumentController {
             .flatMap((CpmDocument cpm) -> Mono.just(cpm)
                 .flatMap(this::getReferenceMetaBundleId)
                 .flatMap(this.metaComponentService::getMetaComponent)
-                .flatMap(this.metaComponentService.addNewVersion(cpm.getBundleId())))
-        // .onErrorResume(NotFoundException.class, _ -> buildMetaComponent(document)))
-        // .flatMap(this.metaComponentService::storeMetaComponent))
-
-        )
+                .flatMap(this.metaComponentService.addNewVersion(cpm.getBundleId()))
+                .flatMap(meta -> Mono.justOrEmpty(document.getToken())
+                    .flatMap(token -> this.metaComponentService.addTokenToLastVersion(token).apply(meta)))))
         .flatMap(DTOFactory::toDTO);
   }
 
@@ -199,174 +197,186 @@ public class DocumentControllerImpl implements DocumentController {
         .flatMap(TrustedParty::getUrl);
   }
 
-  private Mono<org.openprovenance.prov.model.Document> buildMetaComponent(Document document) {
+  // private Mono<org.openprovenance.prov.model.Document>
+  // buildMetaComponent(Document document) {
 
-    org.openprovenance.prov.model.Document provDocument = this.provFactory.newDocument();
-    provDocument.getNamespace().addKnownNamespaces();
-    provDocument.getNamespace().register(CpmNamespaceConstants.CPM_PREFIX, CpmNamespaceConstants.CPM_NS);
-    provDocument.getNamespace().register("pav", "http://purl.org/pav/");
-    provDocument.getNamespace().register("meta", this.configuration.getFqdn() + "documents/meta/");
-    provDocument.getNamespace().register("storage", this.configuration.getFqdn() + "documents/");
+  // org.openprovenance.prov.model.Document provDocument =
+  // this.provFactory.newDocument();
+  // provDocument.getNamespace().addKnownNamespaces();
+  // provDocument.getNamespace().register(CpmNamespaceConstants.CPM_PREFIX,
+  // CpmNamespaceConstants.CPM_NS);
+  // provDocument.getNamespace().register("pav", "http://purl.org/pav/");
+  // provDocument.getNamespace().register("meta", this.configuration.getFqdn() +
+  // "documents/meta/");
+  // provDocument.getNamespace().register("storage", this.configuration.getFqdn()
+  // + "documents/");
 
-    Mono<QualifiedName> bundleId = Mono.justOrEmpty(document.getCpmDocument())
-        .flatMap(this::getReferenceMetaBundleId);
+  // Mono<QualifiedName> bundleId = Mono.justOrEmpty(document.getCpmDocument())
+  // .flatMap(this::getReferenceMetaBundleId);
 
-    Mono<QualifiedName> identifier = Mono.justOrEmpty(document.getCpmDocument()).map(CpmDocument::getBundleId);
-    Map<String, String> namespaces = provDocument.getNamespace().getNamespaces();
+  // Mono<QualifiedName> identifier =
+  // Mono.justOrEmpty(document.getCpmDocument()).map(CpmDocument::getBundleId);
+  // Map<String, String> namespaces = provDocument.getNamespace().getNamespaces();
 
-    Mono<Entity> generalEntity = identifier
-        .map(i -> provFactory.newEntity(provFactory.newQualifiedName(
-            i.getNamespaceURI(),
-            UUID.randomUUID().toString(),
-            i.getPrefix())))
-        .doOnNext(general -> general.getType().add(provFactory.newType(
-            provFactory.getName().PROV_BUNDLE,
-            provFactory.getName().PROV_TYPE)));
+  // Mono<Entity> generalEntity = identifier
+  // .map(i -> provFactory.newEntity(provFactory.newQualifiedName(
+  // i.getNamespaceURI(),
+  // UUID.randomUUID().toString(),
+  // i.getPrefix())))
+  // .doOnNext(general -> general.getType().add(provFactory.newType(
+  // provFactory.getName().PROV_BUNDLE,
+  // provFactory.getName().PROV_TYPE)));
 
-    Mono<Entity> firstVersion = identifier
-        .map(provFactory::newEntity)
-        .doOnNext(first -> {
-          first.getType().add(provFactory.newType(
-              provFactory.getName().PROV_BUNDLE,
-              provFactory.getName().PROV_TYPE));
+  // Mono<Entity> firstVersion = identifier
+  // .map(provFactory::newEntity)
+  // .doOnNext(first -> {
+  // first.getType().add(provFactory.newType(
+  // provFactory.getName().PROV_BUNDLE,
+  // provFactory.getName().PROV_TYPE));
 
-          first.getOther().add(provFactory.newOther(
-              provFactory.newQualifiedName(namespaces.get("pav"), "version", "pav"),
-              1,
-              provFactory.getName().XSD_INT));
-        });
+  // first.getOther().add(provFactory.newOther(
+  // provFactory.newQualifiedName(namespaces.get("pav"), "version", "pav"),
+  // 1,
+  // provFactory.getName().XSD_INT));
+  // });
 
-    Mono<Entity> token = identifier
-        .map(i -> provFactory.newEntity(provFactory.newQualifiedName(
-            i.getNamespaceURI(),
-            UUID.randomUUID().toString(),
-            i.getPrefix())))
-        .doOnNext(t -> {
-          t.getType().add(provFactory.newType(
-              cpmProvFactory.newCpmQualifiedName("token"),
-              provFactory.getName().PROV_TYPE));
+  // Mono<Entity> token = identifier
+  // .map(i -> provFactory.newEntity(provFactory.newQualifiedName(
+  // i.getNamespaceURI(),
+  // UUID.randomUUID().toString(),
+  // i.getPrefix())))
+  // .doOnNext(t -> {
+  // t.getType().add(provFactory.newType(
+  // cpmProvFactory.newCpmQualifiedName("token"),
+  // provFactory.getName().PROV_TYPE));
 
-          t.getOther().add(provFactory.newOther(
-              cpmProvFactory.newCpmQualifiedName("originatorId"),
-              document.getToken().map(Token::getAdditionalData).map(AdditionalData::getOriginatorName).get(),
-              provFactory.getName().XSD_STRING));
+  // t.getOther().add(provFactory.newOther(
+  // cpmProvFactory.newCpmQualifiedName("originatorId"),
+  // document.getToken().map(Token::getAdditionalData).map(AdditionalData::getOriginatorName).get(),
+  // provFactory.getName().XSD_STRING));
 
-          t.getOther().add(provFactory.newOther(
-              cpmProvFactory.newCpmQualifiedName("authorityId"),
-              document.getToken().map(Token::getTrustedParty).map(TrustedParty::getName).get(),
-              provFactory.getName().XSD_STRING));
+  // t.getOther().add(provFactory.newOther(
+  // cpmProvFactory.newCpmQualifiedName("authorityId"),
+  // document.getToken().map(Token::getTrustedParty).map(TrustedParty::getName).get(),
+  // provFactory.getName().XSD_STRING));
 
-          t.getOther().add(provFactory.newOther(
-              cpmProvFactory.newCpmQualifiedName("tokenTimestamp"),
-              document.getToken().map(Token::getCreatedOn).get(),
-              provFactory.getName().XSD_LONG));
+  // t.getOther().add(provFactory.newOther(
+  // cpmProvFactory.newCpmQualifiedName("tokenTimestamp"),
+  // document.getToken().map(Token::getCreatedOn).get(),
+  // provFactory.getName().XSD_LONG));
 
-          t.getOther().add(provFactory.newOther(
-              cpmProvFactory.newCpmQualifiedName("documentCreationTimestamp"),
-              document.getToken().map(Token::getAdditionalData).map(AdditionalData::getDocumentTimestamp).get(),
-              provFactory.getName().XSD_LONG));
+  // t.getOther().add(provFactory.newOther(
+  // cpmProvFactory.newCpmQualifiedName("documentCreationTimestamp"),
+  // document.getToken().map(Token::getAdditionalData).map(AdditionalData::getDocumentTimestamp).get(),
+  // provFactory.getName().XSD_LONG));
 
-          t.getOther().add(provFactory.newOther(
-              cpmProvFactory.newCpmQualifiedName("documentDigest"),
-              document.getToken().map(Token::getHash).get(),
-              provFactory.getName().XSD_STRING));
+  // t.getOther().add(provFactory.newOther(
+  // cpmProvFactory.newCpmQualifiedName("documentDigest"),
+  // document.getToken().map(Token::getHash).get(),
+  // provFactory.getName().XSD_STRING));
 
-          t.getOther().add(provFactory.newOther(
-              cpmProvFactory.newCpmQualifiedName("bundle"),
-              document.getToken().map(Token::getAdditionalData).map(AdditionalData::getBundle).get(),
-              provFactory.getName().XSD_STRING));
+  // t.getOther().add(provFactory.newOther(
+  // cpmProvFactory.newCpmQualifiedName("bundle"),
+  // document.getToken().map(Token::getAdditionalData).map(AdditionalData::getBundle).get(),
+  // provFactory.getName().XSD_STRING));
 
-          t.getOther().add(provFactory.newOther(
-              cpmProvFactory.newCpmQualifiedName("hashFunction"),
-              document.getToken().map(Token::getAdditionalData).map(AdditionalData::getHashFunction).get(),
-              provFactory.getName().XSD_STRING));
+  // t.getOther().add(provFactory.newOther(
+  // cpmProvFactory.newCpmQualifiedName("hashFunction"),
+  // document.getToken().map(Token::getAdditionalData).map(AdditionalData::getHashFunction).get(),
+  // provFactory.getName().XSD_STRING));
 
-          t.getOther().add(provFactory.newOther(
-              cpmProvFactory.newCpmQualifiedName("trustedPartyUri"),
-              document.getToken().map(Token::getAdditionalData).map(AdditionalData::getTrustedPartyUri).get(),
-              provFactory.getName().XSD_STRING));
+  // t.getOther().add(provFactory.newOther(
+  // cpmProvFactory.newCpmQualifiedName("trustedPartyUri"),
+  // document.getToken().map(Token::getAdditionalData).map(AdditionalData::getTrustedPartyUri).get(),
+  // provFactory.getName().XSD_STRING));
 
-          t.getOther().add(provFactory.newOther(
-              cpmProvFactory.newCpmQualifiedName("trustedPartyCertificate"),
-              document.getToken().map(Token::getAdditionalData).map(AdditionalData::getTrustedPartyCertificate).get(),
-              provFactory.getName().XSD_STRING));
+  // t.getOther().add(provFactory.newOther(
+  // cpmProvFactory.newCpmQualifiedName("trustedPartyCertificate"),
+  // document.getToken().map(Token::getAdditionalData).map(AdditionalData::getTrustedPartyCertificate).get(),
+  // provFactory.getName().XSD_STRING));
 
-          t.getOther().add(provFactory.newOther(
-              cpmProvFactory.newCpmQualifiedName("signature"),
-              document.getToken().map(Token::getSignature).get(),
-              provFactory.getName().XSD_STRING));
-        });
+  // t.getOther().add(provFactory.newOther(
+  // cpmProvFactory.newCpmQualifiedName("signature"),
+  // document.getToken().map(Token::getSignature).get(),
+  // provFactory.getName().XSD_STRING));
+  // });
 
-    Mono<Agent> agent = Mono.justOrEmpty(document.getToken()
-        .map(Token::getTrustedParty)
-        .map(TrustedParty::getId))
-        .flatMap(Mono::justOrEmpty)
-        .map(uuid -> provFactory.newAgent(provFactory.newQualifiedName(
-            namespaces.get("storage"),
-            uuid.toString(),
-            "storage"))) // TODO: ??identifier ns??
-        .doOnNext(a -> {
-          a.getType().add(provFactory.newType(
-              cpmProvFactory.newCpmQualifiedName("trustedParty"),
-              provFactory.getName().PROV_TYPE));
+  // Mono<Agent> agent = Mono.justOrEmpty(document.getToken()
+  // .map(Token::getTrustedParty)
+  // .map(TrustedParty::getId))
+  // .flatMap(Mono::justOrEmpty)
+  // .map(uuid -> provFactory.newAgent(provFactory.newQualifiedName(
+  // namespaces.get("storage"),
+  // uuid.toString(),
+  // "storage"))) // TODO: ??identifier ns??
+  // .doOnNext(a -> {
+  // a.getType().add(provFactory.newType(
+  // cpmProvFactory.newCpmQualifiedName("trustedParty"),
+  // provFactory.getName().PROV_TYPE));
 
-          a.getOther().add(provFactory.newOther(
-              cpmProvFactory.newCpmQualifiedName("trustedPartyUri"),
-              document.getToken().map(Token::getAdditionalData).map(AdditionalData::getTrustedPartyUri).get(),
-              provFactory.getName().XSD_STRING));
+  // a.getOther().add(provFactory.newOther(
+  // cpmProvFactory.newCpmQualifiedName("trustedPartyUri"),
+  // document.getToken().map(Token::getAdditionalData).map(AdditionalData::getTrustedPartyUri).get(),
+  // provFactory.getName().XSD_STRING));
 
-          a.getOther().add(provFactory.newOther(
-              cpmProvFactory.newCpmQualifiedName("trustedPartyCertificate"),
-              document.getToken().map(Token::getAdditionalData).map(AdditionalData::getTrustedPartyCertificate).get(),
-              provFactory.getName().XSD_STRING));
-        });
+  // a.getOther().add(provFactory.newOther(
+  // cpmProvFactory.newCpmQualifiedName("trustedPartyCertificate"),
+  // document.getToken().map(Token::getAdditionalData).map(AdditionalData::getTrustedPartyCertificate).get(),
+  // provFactory.getName().XSD_STRING));
+  // });
 
-    Mono<Activity> activity = identifier
-        .map(i -> provFactory.newActivity(provFactory.newQualifiedName(
-            i.getNamespaceURI(),
-            UUID.randomUUID().toString(),
-            i.getPrefix())))
-        .doOnNext(act -> {
+  // Mono<Activity> activity = identifier
+  // .map(i -> provFactory.newActivity(provFactory.newQualifiedName(
+  // i.getNamespaceURI(),
+  // UUID.randomUUID().toString(),
+  // i.getPrefix())))
+  // .doOnNext(act -> {
 
-          try {
-            GregorianCalendar tokenTimestamp = new GregorianCalendar();
-            tokenTimestamp.setTimeInMillis(document.getToken().map(Token::getCreatedOn).get());
-            XMLGregorianCalendar timestampVal = DatatypeFactory.newInstance().newXMLGregorianCalendar(tokenTimestamp);
-            act.setStartTime(timestampVal);
-            act.setEndTime(timestampVal);
+  // try {
+  // GregorianCalendar tokenTimestamp = new GregorianCalendar();
+  // tokenTimestamp.setTimeInMillis(document.getToken().map(Token::getCreatedOn).get());
+  // XMLGregorianCalendar timestampVal =
+  // DatatypeFactory.newInstance().newXMLGregorianCalendar(tokenTimestamp);
+  // act.setStartTime(timestampVal);
+  // act.setEndTime(timestampVal);
 
-          } catch (DatatypeConfigurationException e) {
+  // } catch (DatatypeConfigurationException e) {
 
-          }
-          act.getType().add(provFactory.newType(
-              cpmProvFactory.newCpmQualifiedName("tokenGeneration"),
-              provFactory.getName().PROV_TYPE));
-        });
-    Namespace bundleNs = provFactory.newNamespace();
-    bundleNs.register("meta", this.configuration.getFqdn() + "documents/meta/");
+  // }
+  // act.getType().add(provFactory.newType(
+  // cpmProvFactory.newCpmQualifiedName("tokenGeneration"),
+  // provFactory.getName().PROV_TYPE));
+  // });
+  // Namespace bundleNs = provFactory.newNamespace();
+  // bundleNs.register("meta", this.configuration.getFqdn() + "documents/meta/");
 
-    return bundleId.flatMap(
-        id -> Mono.zip(generalEntity, firstVersion, token, agent, activity)
-            .map(tuple -> {
-              List<Statement> statements = new ArrayList<>();
-              statements.add(tuple.getT1());
-              statements.add(tuple.getT2());
-              statements.add(tuple.getT3());
-              statements.add(tuple.getT4());
-              statements.add(tuple.getT5());
-              statements.add(provFactory.newSpecializationOf(tuple.getT2().getId(), tuple.getT1().getId()));
-              statements.add(provFactory.newUsed(tuple.getT5().getId(), tuple.getT2().getId()));
-              statements.add(provFactory.newWasAssociatedWith(null, tuple.getT5().getId(), tuple.getT4().getId()));
-              statements.add(provFactory.newWasGeneratedBy(null, tuple.getT3().getId(), tuple.getT5().getId()));
-              statements.add(provFactory.newWasAttributedTo(null, tuple.getT3().getId(), tuple.getT4().getId()));
-              return statements;
-            })
-            .map(statements -> {
-              Bundle bundle = provFactory.newNamedBundle(id, bundleNs, statements);
-              provDocument.getStatementOrBundle().add(bundle);
-              return provDocument;
-            }));
-  }
+  // return bundleId.flatMap(
+  // id -> Mono.zip(generalEntity, firstVersion, token, agent, activity)
+  // .map(tuple -> {
+  // List<Statement> statements = new ArrayList<>();
+  // statements.add(tuple.getT1());
+  // statements.add(tuple.getT2());
+  // statements.add(tuple.getT3());
+  // statements.add(tuple.getT4());
+  // statements.add(tuple.getT5());
+  // statements.add(provFactory.newSpecializationOf(tuple.getT2().getId(),
+  // tuple.getT1().getId()));
+  // statements.add(provFactory.newUsed(tuple.getT5().getId(),
+  // tuple.getT2().getId()));
+  // statements.add(provFactory.newWasAssociatedWith(null, tuple.getT5().getId(),
+  // tuple.getT4().getId()));
+  // statements.add(provFactory.newWasGeneratedBy(null, tuple.getT3().getId(),
+  // tuple.getT5().getId()));
+  // statements.add(provFactory.newWasAttributedTo(null, tuple.getT3().getId(),
+  // tuple.getT4().getId()));
+  // return statements;
+  // })
+  // .map(statements -> {
+  // Bundle bundle = provFactory.newNamedBundle(id, bundleNs, statements);
+  // provDocument.getStatementOrBundle().add(bundle);
+  // return provDocument;
+  // }));
+  // }
 
   private Mono<QualifiedName> getReferenceMetaBundleId(CpmDocument cpm) {
     return Mono.justOrEmpty(cpm)
