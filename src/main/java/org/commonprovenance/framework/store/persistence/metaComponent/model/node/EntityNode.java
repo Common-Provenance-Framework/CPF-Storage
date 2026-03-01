@@ -8,6 +8,7 @@ import java.util.stream.Stream;
 import org.commonprovenance.framework.store.persistence.metaComponent.model.relation.RevisionOf;
 import org.commonprovenance.framework.store.persistence.metaComponent.model.relation.SpecializationOf;
 import org.commonprovenance.framework.store.persistence.metaComponent.model.relation.WasAttributedTo;
+import org.commonprovenance.framework.store.persistence.metaComponent.model.relation.WasDerivedFrom;
 import org.commonprovenance.framework.store.persistence.metaComponent.model.relation.WasGeneratedBy;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
@@ -30,6 +31,9 @@ public class EntityNode extends BaseProvClassNode {
   @Relationship(type = "was_attributed_to", direction = Relationship.Direction.OUTGOING)
   private final List<WasAttributedTo> wasAttributedTo;
 
+  @Relationship(type = "was_derived_from", direction = Relationship.Direction.OUTGOING)
+  private final List<WasDerivedFrom> wasDerivedFrom;
+
   @PersistenceCreator
   public EntityNode(
       String id,
@@ -37,13 +41,15 @@ public class EntityNode extends BaseProvClassNode {
       List<RevisionOf> revisionOf,
       List<SpecializationOf> specializationOf,
       List<WasGeneratedBy> wasGeneratedBy,
-      List<WasAttributedTo> wasAttributedTo) {
+      List<WasAttributedTo> wasAttributedTo,
+      List<WasDerivedFrom> wasDerivedFrom) {
     super(id, attributesJson);
 
     this.revisionOf = revisionOf;
     this.specializationOf = specializationOf;
     this.wasGeneratedBy = wasGeneratedBy;
     this.wasAttributedTo = wasAttributedTo;
+    this.wasDerivedFrom = wasDerivedFrom;
   }
 
   public EntityNode(String id, String attributesJson) {
@@ -53,6 +59,7 @@ public class EntityNode extends BaseProvClassNode {
     this.specializationOf = Collections.emptyList();
     this.wasGeneratedBy = Collections.emptyList();
     this.wasAttributedTo = Collections.emptyList();
+    this.wasDerivedFrom = Collections.emptyList();
   }
 
   public EntityNode(String id) {
@@ -62,6 +69,7 @@ public class EntityNode extends BaseProvClassNode {
     this.specializationOf = Collections.emptyList();
     this.wasGeneratedBy = Collections.emptyList();
     this.wasAttributedTo = Collections.emptyList();
+    this.wasDerivedFrom = Collections.emptyList();
   }
 
   public @NonNull EntityNode wihtRevisionOfEntity(@Nullable EntityNode entity) {
@@ -79,7 +87,8 @@ public class EntityNode extends BaseProvClassNode {
         revisionOf,
         this.getSpecializationOf(),
         this.getWasGeneratedBy(),
-        this.getWasAttributedTo());
+        this.getWasAttributedTo(),
+        this.getWasDerivedFrom());
   }
 
   public @NonNull EntityNode withRevisionOf(@NonNull List<RevisionOf> revisionOf) {
@@ -89,7 +98,8 @@ public class EntityNode extends BaseProvClassNode {
         revisionOf,
         this.specializationOf,
         this.getWasGeneratedBy(),
-        this.getWasAttributedTo());
+        this.getWasAttributedTo(),
+        this.getWasDerivedFrom());
   }
 
   public @NonNull EntityNode withSpecializationOfEntity(@Nullable EntityNode entity) {
@@ -107,7 +117,8 @@ public class EntityNode extends BaseProvClassNode {
         this.getRevisionOf(),
         specializationOf,
         this.getWasGeneratedBy(),
-        this.getWasAttributedTo());
+        this.getWasAttributedTo(),
+        this.getWasDerivedFrom());
   }
 
   public @NonNull EntityNode withSpecializationOf(@NonNull List<SpecializationOf> specializationOf) {
@@ -117,7 +128,8 @@ public class EntityNode extends BaseProvClassNode {
         this.getRevisionOf(),
         specializationOf,
         this.getWasGeneratedBy(),
-        this.getWasAttributedTo());
+        this.getWasAttributedTo(),
+        this.getWasDerivedFrom());
   }
 
   public @NonNull EntityNode withWasGeneratedByActivity(@Nullable ActivityNode activity) {
@@ -135,7 +147,8 @@ public class EntityNode extends BaseProvClassNode {
         this.getRevisionOf(),
         this.getSpecializationOf(),
         wasGeneratedBy,
-        this.getWasAttributedTo());
+        this.getWasAttributedTo(),
+        this.getWasDerivedFrom());
   }
 
   public @NonNull EntityNode withWasGeneratedBy(@NonNull List<WasGeneratedBy> wasGeneratedBy) {
@@ -145,10 +158,10 @@ public class EntityNode extends BaseProvClassNode {
         this.getRevisionOf(),
         this.getSpecializationOf(),
         wasGeneratedBy,
-        this.getWasAttributedTo());
+        this.getWasAttributedTo(),
+        this.getWasDerivedFrom());
   }
 
-  // --
   public @NonNull EntityNode withWasAttributedToAgent(@Nullable AgentNode agent) {
     if (agent == null)
       return this;
@@ -164,7 +177,8 @@ public class EntityNode extends BaseProvClassNode {
         this.getRevisionOf(),
         this.getSpecializationOf(),
         this.getWasGeneratedBy(),
-        wasAttributedTo);
+        wasAttributedTo,
+        this.getWasDerivedFrom());
   }
 
   public @NonNull EntityNode withWasAttributedTo(@NonNull List<WasAttributedTo> wasAttributedTo) {
@@ -174,10 +188,41 @@ public class EntityNode extends BaseProvClassNode {
         this.getRevisionOf(),
         this.getSpecializationOf(),
         this.getWasGeneratedBy(),
-        wasAttributedTo);
+        wasAttributedTo,
+        this.getWasDerivedFrom());
   }
 
   // ---
+  public @NonNull EntityNode withWasDerivedFromEntity(@Nullable EntityNode entity) {
+    if (entity == null)
+      return this;
+
+    List<WasDerivedFrom> wasDerivedFrom = Stream.concat(
+        this.getWasDerivedFrom().stream(),
+        Stream.of(new WasDerivedFrom(entity)))
+        .collect(Collectors.toList());
+
+    return new EntityNode(
+        this.getId(),
+        this.getAttributes(),
+        this.getRevisionOf(),
+        this.getSpecializationOf(),
+        this.getWasGeneratedBy(),
+        this.getWasAttributedTo(),
+        wasDerivedFrom);
+  }
+
+  public @NonNull EntityNode withWasDerivedFrom(@NonNull List<WasDerivedFrom> wasDerivedFrom) {
+    return new EntityNode(
+        this.getId(),
+        this.getAttributes(),
+        this.getRevisionOf(),
+        this.getSpecializationOf(),
+        this.getWasGeneratedBy(),
+        this.getWasAttributedTo(),
+        wasDerivedFrom);
+  }
+
   public List<RevisionOf> getRevisionOf() {
     return this.revisionOf;
   }
@@ -192,6 +237,10 @@ public class EntityNode extends BaseProvClassNode {
 
   public List<WasAttributedTo> getWasAttributedTo() {
     return this.wasAttributedTo;
+  }
+
+  public List<WasDerivedFrom> getWasDerivedFrom() {
+    return this.wasDerivedFrom;
   }
 
 }
