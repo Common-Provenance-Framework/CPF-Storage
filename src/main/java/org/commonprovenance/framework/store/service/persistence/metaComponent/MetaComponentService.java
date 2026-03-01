@@ -2,6 +2,7 @@ package org.commonprovenance.framework.store.service.persistence.metaComponent;
 
 import java.util.function.Function;
 
+import org.commonprovenance.framework.store.model.Token;
 import org.openprovenance.prov.model.Document;
 import org.openprovenance.prov.model.QualifiedName;
 
@@ -17,6 +18,9 @@ public interface MetaComponentService {
 
   @NotNull
   Function<Document, Mono<Document>> addNewVersion(QualifiedName identifier);
+
+  @NotNull
+  Function<Document, Mono<Document>> addTokenToLastVersion(Token tokenModel);
 
   @NotNull
   Mono<Document> getMetaComponent(@NotNull QualifiedName metaBundleId);
