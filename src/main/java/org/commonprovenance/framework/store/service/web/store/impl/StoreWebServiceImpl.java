@@ -1,11 +1,11 @@
 package org.commonprovenance.framework.store.service.web.store.impl;
 
+import org.commonprovenance.framework.store.exceptions.NotFoundException;
 import org.commonprovenance.framework.store.service.web.store.StoreWebService;
 import org.commonprovenance.framework.store.web.store.PingClient;
 import org.openprovenance.prov.model.QualifiedName;
 import org.springframework.stereotype.Service;
 
-import jakarta.ws.rs.NotFoundException;
 import reactor.core.publisher.Mono;
 
 @Service
