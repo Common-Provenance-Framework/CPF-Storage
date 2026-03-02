@@ -155,7 +155,8 @@ public class DocumentControllerImpl implements DocumentController {
             .withId(document.getCpmDocument().map(cpm -> cpm.getBundleId().getLocalPart()).orElse(null)))
         // validate bundle identifier namespace uri.
         .delayUntil(document -> Mono.justOrEmpty(document.getCpmDocument())
-            .map(cpm -> cpm.getBundleId().getNamespaceURI())
+            .map(CpmDocument::getBundleId)
+            .map(QualifiedName::getNamespaceURI)
             .flatMap(MONO.makeSure(uri -> uri.equals(this.configuration.getFqdn() + "documents/"),
                 _ -> new BadRequestException("The bundle identifier does not resolve into document: "))))
         .flatMap(this::checkDocumentDoesNotExists)
