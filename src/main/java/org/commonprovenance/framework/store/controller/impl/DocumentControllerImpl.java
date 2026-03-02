@@ -142,13 +142,17 @@ public class DocumentControllerImpl implements DocumentController {
         // validate bundle identifier namespace uri.
         .delayUntil(document -> Mono.justOrEmpty(document.getCpmDocument())
             .map(CpmDocument::getBundleId)
+            .flatMap(MONO.makeSure(
+                qn -> Objects.nonNull(qn.getNamespaceURI()),
+                uri -> new BadRequestException(
+                    "The bundle namespace uri '" + uri + "' does not resolve into known storage!!")))
             .map(QualifiedName::getNamespaceURI)
-            .flatMap(MONO.makeSure(uri -> uri.equals(this.configuration.getFqdn() + "documents/"),
-                _ -> new BadRequestException("The bundle identifier does not resolve into document: "))))
-        .flatMap(this::checkDocumentDoesNotExists)
-        .delayUntil(this::checkBackwardConnetorsAttrs)
-        .flatMap(this::checkForwardConnetorsAttrs)
-        .delayUntil(this::checkBackwardConnectorResolvable)
+            .flatMap(MONO.makeSure(
+                uri -> uri.equals(this.configuration.getFqdn() + "documents/"),
+                uri -> new BadRequestException(
+                    "The bundle namespace uri '" + uri + "' does not resolve into known storage!!"))))
+        .flatMap(this::checkDocumentDoesNotExists).delayUntil(this::checkBackwardConnetorsAttrs)
+        .flatMap(this::checkForwardConnetorsAttrs).delayUntil(this::checkBackwardConnectorResolvable)
         .delayUntil(this::checkForwardConnetorsResolvable)
 
         // TODO: check hashes in connectors
