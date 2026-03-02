@@ -491,7 +491,7 @@ public class DocumentControllerImpl implements DocumentController {
             .flatMap(this.documentService::getDocumentById)
             .thenReturn(false)
             .onErrorResume(NotFoundException.class, _ -> Mono.just(true)),
-        doc -> new ConflictException("Document with id '" + doc.getId().map(UUID::toString).get() + "' exists!!"))
+        doc -> new ConflictException("Document with id '" + doc.getId() + "' exists!!"))
         .apply(document);
   }
 
@@ -564,7 +564,7 @@ public class DocumentControllerImpl implements DocumentController {
   @NotNull
   @GetMapping("/{uuid}")
   public Mono<DocumentResponseDTO> getProvDocumentById(@PathVariable String uuid) {
-    return ModelFactory.toUUID(uuid)
+    return Mono.justOrEmpty(uuid)
         .flatMap(this.documentService::getDocumentById)
         .flatMap(DTOFactory::toDTO);
   }

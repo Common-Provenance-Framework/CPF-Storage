@@ -2,8 +2,6 @@ package org.commonprovenance.framework.store.persistence.finalizedProvComponent.
 
 import static org.commonprovenance.framework.store.common.publisher.PublisherHelper.MONO;
 
-import java.util.UUID;
-
 import org.commonprovenance.framework.store.exceptions.NotFoundException;
 import org.commonprovenance.framework.store.model.Document;
 import org.commonprovenance.framework.store.model.factory.ModelFactory;
@@ -46,9 +44,8 @@ public class DocumentPersistenceImpl implements DocumentPersistence {
 
   @Override
   @NotNull
-  public Mono<Document> getById(@NotNull UUID uuid) {
-    return MONO.<UUID>makeSureNotNullWithMessage("Document Id can not be 'null'!").apply(uuid)
-        .map(UUID::toString)
+  public Mono<Document> getById(@NotNull String uuid) {
+    return MONO.<String>makeSureNotNullWithMessage("Document Id can not be 'null'!").apply(uuid)
         .flatMap(repository::findById)
         .onErrorResume(MONO.exceptionWrapper("DocumentNeo4jRepository - Error while reading document"))
         .flatMap(ModelFactory::toDomain)
@@ -58,9 +55,8 @@ public class DocumentPersistenceImpl implements DocumentPersistence {
 
   @Override
   @NotNull
-  public Mono<Void> deleteById(@NotNull UUID uuid) {
-    return MONO.<UUID>makeSureNotNullWithMessage("Document Id can not be 'null'!").apply(uuid)
-        .map(UUID::toString)
+  public Mono<Void> deleteById(@NotNull String uuid) {
+    return MONO.<String>makeSureNotNullWithMessage("Document Id can not be 'null'!").apply(uuid)
         .flatMap(repository::deleteById)
         .onErrorResume(MONO.exceptionWrapper("DocumentNeo4jRepository - Error while reading document"));
   }

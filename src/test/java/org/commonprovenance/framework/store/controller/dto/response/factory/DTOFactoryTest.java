@@ -27,7 +27,7 @@ public class DTOFactoryTest {
     String signature = "..";
 
     Document document = new Document(
-        UUID.fromString(testId),
+        testId,
         UUID.fromString(organizationId),
         orgName,
         base64StringGraph,

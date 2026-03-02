@@ -239,7 +239,7 @@ public class ModelFactory {
   public static Mono<Document> toDomain(DocumentNode entity) {
     return MONO.makeSureNotNull(entity)
         .map(ModelFactory::fromPersistance)
-        .flatMap((Document document) -> ModelFactory.getId(entity).map(document::withId))
+        .map((Document document) -> document.withId(entity.getId()))
         .flatMap((Document document) -> ModelFactory.getFormat(entity).map(document::withFormat));
 
   }

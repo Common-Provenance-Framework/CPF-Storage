@@ -16,7 +16,7 @@ import reactor.core.publisher.Mono;
 public class DTOFactory {
   private static DocumentResponseDTO fromModel(Document model) {
     return new DocumentResponseDTO(
-        model.getId().map(UUID::toString).orElse(null),
+        model.getId(),
         Optional.ofNullable(model.getOrganizationId()).map(UUID::toString).orElse("???"),
         model.getGraph(),
         model.getFormat().map(Format::toString).orElse(null));

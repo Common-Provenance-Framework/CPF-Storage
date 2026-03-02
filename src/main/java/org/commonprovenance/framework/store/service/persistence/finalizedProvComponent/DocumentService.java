@@ -14,8 +14,8 @@ public interface DocumentService {
   Flux<Document> getAllDocuments();
 
   @NotNull
-  Mono<Document> getDocumentById(@NotNull java.util.UUID id);
+  Mono<Document> getDocumentById(@NotNull String id);
 
   @NotNull
-  Mono<Void> deleteDocumentById(@NotNull java.util.UUID id);
+  Mono<Void> deleteDocumentById(@NotNull String id);
 }

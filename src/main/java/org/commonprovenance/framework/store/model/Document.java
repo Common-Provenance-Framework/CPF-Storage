@@ -15,7 +15,7 @@ import cz.muni.fi.cpm.model.ICpmFactory;
 import cz.muni.fi.cpm.model.ICpmProvFactory;
 
 public class Document {
-  private final Optional<UUID> id;
+  private final String id;
   private final UUID organizationId;
   private final String organizationName;
   private final String graph;
@@ -25,9 +25,9 @@ public class Document {
   private final Optional<CpmDocument> cpmDocument;
   private final Optional<Token> token;
 
-  public Document(UUID id, UUID organizationId, String organizationName, String graph, Format format,
+  public Document(String id, UUID organizationId, String organizationName, String graph, Format format,
       String signature) {
-    this.id = Optional.ofNullable(id);
+    this.id = id;
     this.organizationId = organizationId;
     this.organizationName = organizationName;
     this.graph = graph;
@@ -37,10 +37,10 @@ public class Document {
     this.token = Optional.empty();
   }
 
-  public Document(UUID id, UUID organizationId,
+  public Document(String id, UUID organizationId,
       String organizationName, String graph, Format format, String signature,
       CpmDocument cpmDocument, Token token) {
-    this.id = Optional.ofNullable(id);
+    this.id = id;
     this.organizationId = organizationId;
     this.organizationName = organizationName;
     this.graph = graph;
@@ -51,7 +51,7 @@ public class Document {
     this.token = Optional.ofNullable(token);
   }
 
-  public Document withId(UUID id) {
+  public Document withId(String id) {
     return new Document(
         id,
         this.getOrganizationId(),
@@ -65,7 +65,7 @@ public class Document {
 
   public Document withOrganizationId(UUID organizationId) {
     return new Document(
-        this.getId().orElse(null),
+        this.getId(),
         organizationId,
         this.getOrganizationName(),
         this.getGraph(),
@@ -77,7 +77,7 @@ public class Document {
 
   public Document withOrganizationName(String organizationName) {
     return new Document(
-        this.getId().orElse(null),
+        this.getId(),
         this.getOrganizationId(),
         organizationName,
         this.getGraph(),
@@ -89,7 +89,7 @@ public class Document {
 
   public Document withFormat(Format format) {
     return new Document(
-        this.getId().orElse(null),
+        this.getId(),
         this.getOrganizationId(),
         this.getOrganizationName(),
         this.getGraph(),
@@ -118,7 +118,7 @@ public class Document {
                 })
             .map(this.cpmFactory(provFactory, cpmProvFactory, cpmFactory))
             .map((CpmDocument cpmDocument) -> new Document(
-                this.getId().orElse(null),
+                this.getId(),
                 this.getOrganizationId(),
                 this.getOrganizationName(),
                 this.getGraph(),
@@ -131,7 +131,7 @@ public class Document {
 
   public Document withToken(Token token) {
     return new Document(
-        this.getId().orElse(null),
+        this.getId(),
         this.getOrganizationId(),
         this.getOrganizationName(),
         this.getGraph(),
@@ -150,7 +150,7 @@ public class Document {
     };
   }
 
-  public Optional<UUID> getId() {
+  public String getId() {
     return id;
   }
 

@@ -26,7 +26,7 @@ public class NodeFactory {
         .flatMap(MONO.makeSure(Optional::isPresent, "Document format is missing!"))
         .map(Optional::get)
         .map((Format format) -> new DocumentNode(
-            model.getId().orElse(UUID.randomUUID()).toString(),
+            model.getId(),
             model.getGraph(),
             format.toString()));
   }

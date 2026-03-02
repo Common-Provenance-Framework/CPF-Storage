@@ -33,13 +33,13 @@ class DocumentServiceSpec {
 
   private DocumentServiceImpl documentService;
 
-  private final UUID UUID_1 = UUID.fromString("e3cf8742-b595-47f4-8aae-a1e94b62a856");
+  private final String UUID_1 = "e3cf8742-b595-47f4-8aae-a1e94b62a856";
   private final UUID TEST_ORG_ID_1 = UUID.fromString("6ee9d79b-0615-4cb1-b0f3-2303d10c8cff");
   private final String ORG_NAME_1 = "ORG1";
   private final String BASE64_STRING_GRAPH_1 = "AAAAQQAAAGIAAAByAAAAYQAAAGsAAABhAAAAIAAAAEQAAABhAAAAYgAAAHIAAABhAAAALgAAAC4=";
   private final Format FORMAT_1 = Format.JSON;
 
-  private final UUID UUID_2 = UUID.fromString("dc3b1fc8-d01e-4405-8cf8-94320a11ba4c");
+  private final String UUID_2 = "dc3b1fc8-d01e-4405-8cf8-94320a11ba4c";
   private final UUID TEST_ORG_ID_2 = UUID.fromString("6ee9d79b-0615-4cb1-b0f3-2303d10c8cff");
   private final String ORG_NAME_2 = "ORG2";
   private final String BASE64_STRING_GRAPH_2 = "AAAASAAAAGUAAABsAAAAbAAAAG8AAAAgAAAAVwAAAG8AAAByAAAAbAAAAGQAAAAh";
@@ -74,7 +74,7 @@ class DocumentServiceSpec {
         .create(captor.capture());
 
     Document capturedEntity = captor.getValue();
-    assertTrue(capturedEntity.getId().map(UUID_1::equals).orElse(false)
+    assertTrue(capturedEntity.getId().equals(UUID_1)
         && capturedEntity.getGraph().equals(BASE64_STRING_GRAPH_1)
         && capturedEntity.getFormat().map(FORMAT_1::equals).orElse(false),
         "should be called with exact Document");
@@ -110,14 +110,14 @@ class DocumentServiceSpec {
         .expectNext(document)
         .verifyComplete();
 
-    ArgumentCaptor<UUID> captor = ArgumentCaptor.forClass(UUID.class);
+    ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
     verify(
         documentRepository,
         times(1)
             .description("Repository getById method should be invoked once"))
         .getById(captor.capture());
 
-    UUID capturedId = captor.getValue();
+    String capturedId = captor.getValue();
     assertTrue(capturedId.equals(UUID_1),
         "should be called with exact id");
   }
@@ -129,14 +129,14 @@ class DocumentServiceSpec {
     StepVerifier.create(documentService.deleteDocumentById(UUID_1))
         .verifyComplete();
 
-    ArgumentCaptor<UUID> captor = ArgumentCaptor.forClass(UUID.class);
+    ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
     verify(
         documentRepository,
         times(1)
             .description("Repository deleteById method should be invoked once"))
         .deleteById(captor.capture());
 
-    UUID capturedId = captor.getValue();
+    String capturedId = captor.getValue();
     assertTrue(capturedId.equals(UUID_1),
         "should be called with exact id");
   }

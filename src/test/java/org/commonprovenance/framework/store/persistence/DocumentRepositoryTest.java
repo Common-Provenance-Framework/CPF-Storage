@@ -58,7 +58,7 @@ class DocumentRepositoryTest {
   @DisplayName("HappyPath - create - should create new entity in neo4j DB")
   void create_should_create_new_entity() {
     Document document = new Document(
-        UUID.fromString(TEST_ID_1),
+        TEST_ID_1,
         UUID.fromString(TEST_ORG_ID_1),
         ORG_NAME_1,
         BASE64_STRING_GRAPH_1,
@@ -72,7 +72,7 @@ class DocumentRepositoryTest {
 
     StepVerifier.create(repository.create(document))
         .assertNext(doc -> {
-          assertEquals(TEST_ID_1, doc.getId().map(UUID::toString).orElse("?uuid?"));
+          assertEquals(TEST_ID_1, doc.getId());
           assertEquals(FORMAT_1, doc.getFormat().map(Format::toString).orElse("?format?"));
           assertEquals(BASE64_STRING_GRAPH_1, doc.getGraph());
         })
@@ -84,7 +84,7 @@ class DocumentRepositoryTest {
   void create_should_handle_terminated_IllegalArgumentException() {
     String errMessage = "Wrong Argumnent..";
     Document document = new Document(
-        UUID.fromString(TEST_ID_1),
+        TEST_ID_1,
         UUID.fromString(TEST_ORG_ID_1),
         ORG_NAME_1,
         BASE64_STRING_GRAPH_1,
@@ -114,7 +114,7 @@ class DocumentRepositoryTest {
   void create_should_handle_terminated_OptimisticLockingFailureException() {
     String errMessage = "Optimistic Locking..";
     Document document = new Document(
-        UUID.fromString(TEST_ID_1),
+        TEST_ID_1,
         UUID.fromString(TEST_ORG_ID_1),
         ORG_NAME_1,
         BASE64_STRING_GRAPH_1,
@@ -145,7 +145,7 @@ class DocumentRepositoryTest {
   void create_should_handle_thrown_IllegalArgumentException() {
     String errMessage = "Wrong Argumnent..";
     Document document = new Document(
-        UUID.fromString(TEST_ID_1),
+        TEST_ID_1,
         UUID.fromString(TEST_ORG_ID_1),
         ORG_NAME_1,
         BASE64_STRING_GRAPH_1,
@@ -183,7 +183,7 @@ class DocumentRepositoryTest {
         .assertNext(doc -> {
           assertInstanceOf(Document.class, doc, "should return Document");
 
-          assertEquals(TEST_ID_1, doc.getId().map(UUID::toString).orElse("?uuid?"),
+          assertEquals(TEST_ID_1, doc.getId(),
               "should return document with exact id");
           assertEquals(BASE64_STRING_GRAPH_1, doc.getGraph(), "should return document with exact graph");
           assertEquals(FORMAT_1, doc.getFormat().map(Format::toString).orElse("?format?"),
@@ -192,7 +192,7 @@ class DocumentRepositoryTest {
         .assertNext(doc -> {
           assertInstanceOf(Document.class, doc, "should return Document");
 
-          assertEquals(TEST_ID_2, doc.getId().map(UUID::toString).orElse("?uuid?"),
+          assertEquals(TEST_ID_2, doc.getId(),
               "should return document with exact id");
           assertEquals(BASE64_STRING_GRAPH_2, doc.getGraph(), "should return document with exact graph");
           assertEquals(FORMAT_2, doc.getFormat().map(Format::toString).orElse("?format?"),
@@ -218,11 +218,11 @@ class DocumentRepositoryTest {
       }
     });
 
-    StepVerifier.create(repository.getById(UUID.fromString(TEST_ID_1)))
+    StepVerifier.create(repository.getById(TEST_ID_1))
         .assertNext(doc -> {
           assertInstanceOf(Document.class, doc, "should return Document");
 
-          assertEquals(TEST_ID_1, doc.getId().map(UUID::toString).orElse("?uuid?"),
+          assertEquals(TEST_ID_1, doc.getId(),
               "should return document with exact id");
           assertEquals(BASE64_STRING_GRAPH_1, doc.getGraph(), "should return document with exact graph");
           assertEquals(FORMAT_1, doc.getFormat().map(Format::toString).orElse("?format?"),
@@ -248,7 +248,7 @@ class DocumentRepositoryTest {
       }
     });
 
-    StepVerifier.create(repository.getById(UUID.fromString("6f6fed6d-f5c3-44b3-bcca-db9453564122")))
+    StepVerifier.create(repository.getById("6f6fed6d-f5c3-44b3-bcca-db9453564122"))
         .verifyErrorSatisfies(err -> {
           assertInstanceOf(ApplicationException.class, err);
           assertInstanceOf(NotFoundException.class, err);
@@ -259,7 +259,7 @@ class DocumentRepositoryTest {
   @Test
   @DisplayName("ErrorPath - getById - should handle terminated IllegalArgumentException")
   void getById_should_handle_terminated_IllegalArgumentException() {
-    StepVerifier.create(repository.getById((UUID) null))
+    StepVerifier.create(repository.getById((String) null))
         .verifyErrorSatisfies(err -> {
           assertInstanceOf(
               InternalApplicationException.class, err,
@@ -290,7 +290,7 @@ class DocumentRepositoryTest {
       }
     });
 
-    StepVerifier.create(repository.deleteById(UUID.fromString(TEST_ID_1)))
+    StepVerifier.create(repository.deleteById(TEST_ID_1))
         .expectNextCount(0)
         .verifyComplete();
   }
@@ -298,7 +298,7 @@ class DocumentRepositoryTest {
   @Test
   @DisplayName("ErrorPath - deleteById - should handle terminated IllegalArgumentException")
   void deleteById_should_handle_terminated_IllegalArgumentException() {
-    StepVerifier.create(repository.deleteById((UUID) null))
+    StepVerifier.create(repository.deleteById((String) null))
         .verifyErrorSatisfies(err -> {
           assertInstanceOf(
               InternalApplicationException.class, err,

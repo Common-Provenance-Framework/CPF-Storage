@@ -22,28 +22,7 @@ public class ModelFactoryTest {
   @Test
   @DisplayName("HappyPath - should return Mono with Document")
   public void should_map_DocumentEntity_to_Document() {
-    UUID testId = UUID.randomUUID();
-    String base64StringGraph = "AAAAQQAAAGIAAAByAAAAYQAAAGsAAABhAAAAIAAAAEQAAABhAAAAYgAAAHIAAABhAAAALgAAAC4=";
-    Format format = Format.JSON;
-
-    DocumentNode entity = new DocumentNode(
-        testId.toString(),
-        base64StringGraph,
-        format.toString());
-
-    StepVerifier.create(ModelFactory.toDomain(entity))
-        .assertNext(doc -> {
-          assertEquals(testId, doc.getId().orElse(null));
-          assertEquals(Format.JSON, doc.getFormat().orElse(null));
-          assertEquals(base64StringGraph, doc.getGraph());
-        })
-        .verifyComplete();
-  }
-
-  @Test
-  @DisplayName("ErrorPath - should return Mono with InternalApplicationException, if Id is not valid UUID string")
-  void should_fail_id_InternalApplicationException() {
-    String testId = "test_uuid";
+    String testId = UUID.randomUUID().toString();
     String base64StringGraph = "AAAAQQAAAGIAAAByAAAAYQAAAGsAAABhAAAAIAAAAEQAAABhAAAAYgAAAHIAAABhAAAALgAAAC4=";
     Format format = Format.JSON;
 
@@ -53,12 +32,36 @@ public class ModelFactoryTest {
         format.toString());
 
     StepVerifier.create(ModelFactory.toDomain(entity))
-        .expectErrorMatches(error -> error instanceof ArgumentValidatorException
-            && error.getCause() == null
-            // && error.getCause() instanceof IllegalArgumentException
-            && error.getMessage().equals("Id '" + testId + "' is not valid UUID string."))
-        .verify();
+        .assertNext(doc -> {
+          assertEquals(testId, doc.getId());
+          assertEquals(Format.JSON, doc.getFormat().orElse(null));
+          assertEquals(base64StringGraph, doc.getGraph());
+        })
+        .verifyComplete();
   }
+
+  // @Test
+  // @DisplayName("ErrorPath - should return Mono with
+  // InternalApplicationException, if Id is not valid UUID string")
+  // void should_fail_id_InternalApplicationException() {
+  // String testId = "test_uuid";
+  // String base64StringGraph =
+  // "AAAAQQAAAGIAAAByAAAAYQAAAGsAAABhAAAAIAAAAEQAAABhAAAAYgAAAHIAAABhAAAALgAAAC4=";
+  // Format format = Format.JSON;
+
+  // DocumentNode entity = new DocumentNode(
+  // testId,
+  // base64StringGraph,
+  // format.toString());
+
+  // StepVerifier.create(ModelFactory.toDomain(entity))
+  // .expectErrorMatches(error -> error instanceof ArgumentValidatorException
+  // && error.getCause() == null
+  // // && error.getCause() instanceof IllegalArgumentException
+  // && error.getMessage().equals("Id '" + testId + "' is not valid UUID
+  // string."))
+  // .verify();
+  // }
 
   @Test
   @DisplayName("ErrorPath - should return Mono with InternalApplicationException, if format is not valid Format string")
@@ -107,7 +110,7 @@ public class ModelFactoryTest {
         .assertNext(doc -> {
           // assertInstanceOf(UUID.class, doc.getId().orElse(null),
           // "should have Id which is UUID");
-          assertNull(doc.getId().orElse(null));
+          assertNull(doc.getId());
           assertEquals(Format.JSON, doc.getFormat().orElse(null),
               "should have exact format");
           assertEquals(base64StringGraph, doc.getGraph(),

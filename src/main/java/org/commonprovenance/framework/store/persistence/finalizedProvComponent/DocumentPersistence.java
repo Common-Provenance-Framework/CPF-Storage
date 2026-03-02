@@ -1,7 +1,5 @@
 package org.commonprovenance.framework.store.persistence.finalizedProvComponent;
 
-import java.util.UUID;
-
 import org.commonprovenance.framework.store.model.Document;
 
 import jakarta.validation.constraints.NotNull;
@@ -17,8 +15,8 @@ public interface DocumentPersistence {
   Flux<Document> getAll();
 
   @NotNull
-  Mono<Document> getById(@NotNull UUID id);
+  Mono<Document> getById(@NotNull String id);
 
   @NotNull
-  Mono<Void> deleteById(@NotNull UUID id);
+  Mono<Void> deleteById(@NotNull String id);
 }

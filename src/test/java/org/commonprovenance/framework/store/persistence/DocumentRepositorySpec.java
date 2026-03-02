@@ -52,7 +52,7 @@ class DocumentRepositorySpec {
   @DisplayName("Create - should call save method with exact parameters")
   void created_should_call_save_method_with_exact_paramters() {
     Document doucment = new Document(
-        UUID.fromString(TEST_ID_1),
+        TEST_ID_1,
         UUID.fromString(TEST_ORG_ID_2),
         ORG_NAME,
         BASE64_STRING_GRAPH_1,
@@ -103,7 +103,7 @@ class DocumentRepositorySpec {
   void getById_should_call_findById_method_with_exact_paramters() {
     when(documentRepository.findById(anyString())).thenReturn(Mono.empty());
 
-    StepVerifier.create(documentPersistence.getById(UUID.fromString(TEST_ID_1)))
+    StepVerifier.create(documentPersistence.getById(TEST_ID_1))
         // .expectNextCount(0)
         .verifyError();
 
@@ -122,7 +122,7 @@ class DocumentRepositorySpec {
   void deleteById_should_call_deleteById_method_with_exact_paramters_when_getbyid() {
     when(documentRepository.deleteById(anyString())).thenReturn(Mono.empty().then());
 
-    StepVerifier.create(documentPersistence.deleteById(UUID.fromString(TEST_ID_1)))
+    StepVerifier.create(documentPersistence.deleteById(TEST_ID_1))
         .expectNextCount(0)
         .verifyComplete();
 

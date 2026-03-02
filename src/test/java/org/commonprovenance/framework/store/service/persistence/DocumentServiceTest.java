@@ -23,23 +23,23 @@ import java.util.UUID;
 class DocumentServiceTest {
   private class DocumentRepositoryStub implements DocumentPersistence {
     final static String UUID_STR_1 = "e3cf8742-b595-47f4-8aae-a1e94b62a856";
-    final static UUID UUID_1 = UUID.fromString(UUID_STR_1);
     final static UUID TEST_ORG_ID_1 = UUID.fromString("6ee9d79b-0615-4cb1-b0f3-2303d10c8cff");
     final static String ORG_NAME_1 = "ORG1";
     final static String BASE64_STRING_GRAPH_1 = "AAAAQQAAAGIAAAByAAAAYQAAAGsAAABhAAAAIAAAAEQAAABhAAAAYgAAAHIAAABhAAAALgAAAC4=";
     final static Format FORMAT_1 = Format.JSON;
     final static String SIGNATURE = "...";
 
-    final static Document DOCUMENT_1 = new Document(UUID_1, TEST_ORG_ID_1, ORG_NAME_1, BASE64_STRING_GRAPH_1, FORMAT_1,
+    final static Document DOCUMENT_1 = new Document(UUID_STR_1, TEST_ORG_ID_1, ORG_NAME_1, BASE64_STRING_GRAPH_1,
+        FORMAT_1,
         SIGNATURE);
 
     final static String UUID_STR_2 = "dc3b1fc8-d01e-4405-8cf8-94320a11ba4c";
-    final static UUID UUID_2 = UUID.fromString(UUID_STR_2);
     final static UUID TEST_ORG_ID_2 = UUID.fromString("6ee9d79b-0615-4cb1-b0f3-2303d10c8cff");
     final static String ORG_NAME_2 = "ORG2";
     final static String BASE64_STRING_GRAPH_2 = "AAAASAAAAGUAAABsAAAAbAAAAG8AAAAgAAAAVwAAAG8AAAByAAAAbAAAAGQAAAAh";
     final static Format FORMAT_2 = Format.JSON;
-    final static Document DOCUMENT_2 = new Document(UUID_2, TEST_ORG_ID_2, ORG_NAME_2, BASE64_STRING_GRAPH_2, FORMAT_2,
+    final static Document DOCUMENT_2 = new Document(UUID_STR_2, TEST_ORG_ID_2, ORG_NAME_2, BASE64_STRING_GRAPH_2,
+        FORMAT_2,
         SIGNATURE);
 
     @Override
@@ -56,7 +56,7 @@ class DocumentServiceTest {
     }
 
     @Override
-    public Mono<Document> getById(UUID uuid) {
+    public Mono<Document> getById(String uuid) {
       if (uuid == null)
         return Mono.error(new InternalApplicationException(
             "DocumentNeo4jRepository - Error while reading document",
@@ -74,7 +74,7 @@ class DocumentServiceTest {
     }
 
     @Override
-    public Mono<Void> deleteById(UUID uuid) {
+    public Mono<Void> deleteById(String uuid) {
       return Mono.empty().then();
     }
 
@@ -100,7 +100,7 @@ class DocumentServiceTest {
     StepVerifier.create(documentService.storeDocument(DocumentRepositoryStub.DOCUMENT_1))
         .assertNext(doc -> {
           assertEquals(
-              DocumentRepositoryStub.UUID_STR_1, doc.getId().map(UUID::toString).orElse("?uuid?"),
+              DocumentRepositoryStub.UUID_STR_1, doc.getId(),
               "should have exact Id");
           assertEquals(DocumentRepositoryStub.BASE64_STRING_GRAPH_1, doc.getGraph(),
               "should have exact graph");
@@ -141,11 +141,11 @@ class DocumentServiceTest {
 
     StepVerifier.create(documentService.getAllDocuments())
         .assertNext(doc -> {
-          assertEquals(DocumentRepositoryStub.UUID_STR_1, doc.getId().map(UUID::toString).orElse("?uuid?"),
+          assertEquals(DocumentRepositoryStub.UUID_STR_1, doc.getId(),
               "should have exact id");
         })
         .assertNext(doc -> {
-          assertEquals(DocumentRepositoryStub.UUID_STR_2, doc.getId().map(UUID::toString).orElse("?uuid?"),
+          assertEquals(DocumentRepositoryStub.UUID_STR_2, doc.getId(),
               "should have exact id");
         })
         .verifyComplete();
@@ -155,9 +155,9 @@ class DocumentServiceTest {
   @DisplayName("HappyPath - getDocumentById - should return Mono with exact document from repository.")
   void getDocumentById_should_return_mono_with_exact_document() {
 
-    StepVerifier.create(documentService.getDocumentById(DocumentRepositoryStub.UUID_1))
+    StepVerifier.create(documentService.getDocumentById(DocumentRepositoryStub.UUID_STR_1))
         .assertNext(doc -> {
-          assertEquals(DocumentRepositoryStub.UUID_STR_1, doc.getId().map(UUID::toString).orElse("?uuid?"),
+          assertEquals(DocumentRepositoryStub.UUID_STR_1, doc.getId(),
               "should have exact id");
         })
         .verifyComplete();
@@ -167,7 +167,7 @@ class DocumentServiceTest {
   @DisplayName("HappyPath - getDocumentById - should return empty Mono.")
   void getDocumentById_should_return_empty_mono() {
 
-    StepVerifier.create(documentService.getDocumentById(UUID.randomUUID()))
+    StepVerifier.create(documentService.getDocumentById(UUID.randomUUID().toString()))
         .expectNextCount(0)
         .verifyComplete();
   }
@@ -202,7 +202,7 @@ class DocumentServiceTest {
 
   void deleteDocumentById_should_delete_document() {
 
-    StepVerifier.create(documentService.deleteDocumentById(DocumentRepositoryStub.UUID_1))
+    StepVerifier.create(documentService.deleteDocumentById(DocumentRepositoryStub.UUID_STR_1))
         .verifyComplete();
   }
 }

@@ -28,12 +28,12 @@ public class DocumentServiceImpl implements DocumentService {
   }
 
   @NotNull
-  public Mono<Document> getDocumentById(@NotNull java.util.UUID id) {
+  public Mono<Document> getDocumentById(@NotNull String id) {
     return this.persistence.getById(id);
   }
 
   @NotNull
-  public Mono<Void> deleteDocumentById(@NotNull java.util.UUID id) {
+  public Mono<Void> deleteDocumentById(@NotNull String id) {
     return this.persistence.deleteById(id);
   }
 }
