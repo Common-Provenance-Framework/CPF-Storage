@@ -2,7 +2,6 @@ package org.commonprovenance.framework.store.controller;
 
 import org.commonprovenance.framework.store.controller.dto.form.DocumentFormDTO;
 import org.commonprovenance.framework.store.controller.dto.response.DocumentResponseDTO;
-import org.commonprovenance.framework.store.controller.validator.IsUUID;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
@@ -15,4 +14,6 @@ public interface DocumentController {
   Flux<DocumentResponseDTO> getAllProvDocuments();
 
   Mono<DocumentResponseDTO> getProvDocumentById(String uuid);
+
+  Mono<Void> exists(String uuid);
 }

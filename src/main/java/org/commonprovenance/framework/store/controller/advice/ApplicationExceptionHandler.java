@@ -5,9 +5,11 @@ import java.util.List;
 import org.commonprovenance.framework.store.controller.dto.error.BadRequestDTO;
 import org.commonprovenance.framework.store.controller.dto.error.ErrorDTO;
 import org.commonprovenance.framework.store.controller.dto.error.InternalServerErrorDTO;
+import org.commonprovenance.framework.store.controller.dto.error.NotFoundDTO;
 import org.commonprovenance.framework.store.exceptions.BadRequestException;
 import org.commonprovenance.framework.store.exceptions.ConflictException;
 import org.commonprovenance.framework.store.exceptions.InternalApplicationException;
+import org.commonprovenance.framework.store.exceptions.NotFoundException;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -46,5 +48,15 @@ public class ApplicationExceptionHandler {
     System.out.println("-----------------------------------------------");
 
     return ResponseEntity.status(HttpStatus.CONFLICT).body(new BadRequestDTO(List.of(badRequest.getMessage())));
+  }
+
+  @ExceptionHandler(NotFoundException.class)
+  public ResponseEntity<ErrorDTO> handleBadRequest(NotFoundException notFound) {
+    System.err.println("*** NotFound Error ***");
+    System.out.println("-----------------------------------------------");
+    System.err.println(notFound.getMessage());
+    System.out.println("-----------------------------------------------");
+
+    return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new NotFoundDTO(notFound.getMessage()));
   }
 }

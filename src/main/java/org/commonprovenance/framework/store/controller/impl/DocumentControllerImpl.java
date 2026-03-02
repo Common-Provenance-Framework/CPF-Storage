@@ -53,6 +53,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -567,5 +568,14 @@ public class DocumentControllerImpl implements DocumentController {
     return Mono.justOrEmpty(uuid)
         .flatMap(this.documentService::getDocumentById)
         .flatMap(DTOFactory::toDTO);
+  }
+
+  @Override
+  @NotNull
+  @RequestMapping(path = "/{uuid}", method = RequestMethod.HEAD)
+  public Mono<Void> exists(@PathVariable String uuid) {
+    return Mono.justOrEmpty(uuid).log()
+        .flatMap(this.documentService::getDocumentById)
+        .then();
   }
 }
