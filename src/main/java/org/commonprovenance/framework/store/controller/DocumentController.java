@@ -14,5 +14,5 @@ public interface DocumentController {
 
   Flux<DocumentResponseDTO> getAllProvDocuments();
 
-  Mono<DocumentResponseDTO> getProvDocumentById(@IsUUID String uuid);
+  Mono<DocumentResponseDTO> getProvDocumentById(String uuid);
 }
