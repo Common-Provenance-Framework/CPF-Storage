@@ -152,8 +152,7 @@ public class DocumentControllerImpl implements DocumentController {
         // get document id from deserialized document - has to be bundle identifier
         // local part
         .map(document -> document
-            .withId(document.getCpmDocument().map(cpm -> cpm.getBundleId().getLocalPart()).map(UUID::fromString)
-                .orElse(null)))
+            .withId(document.getCpmDocument().map(cpm -> cpm.getBundleId().getLocalPart()).orElse(null)))
         // validate bundle identifier namespace uri.
         .delayUntil(document -> Mono.justOrEmpty(document.getCpmDocument())
             .map(cpm -> cpm.getBundleId().getNamespaceURI())
