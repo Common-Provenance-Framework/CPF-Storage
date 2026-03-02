@@ -6,14 +6,6 @@
   "additionalProperties": false,
   "required": ["bundle"],
   "properties": {
-    "prefix": {
-      "type": "object",
-      "patternProperties": {
-        "^[a-zA-Z0-9_\\-]+$": {
-          "type": "string"
-        }
-      }
-    },
     "bundle": {
       "type": "object",
       "minProperties": 1,
