@@ -107,10 +107,9 @@ public class Document {
             .flatMap(
                 (String json) -> {
                   try {
-                    return Optional
-                        .of(ProvDocumentUtils.deserialize(
-                            json,
-                            this.format.map(Format::toProvFormat).orElse(Formats.ProvFormat.JSON)));
+                    return Optional.of(ProvDocumentUtils.deserialize(
+                        json,
+                        this.format.map(Format::toProvFormat).orElse(Formats.ProvFormat.JSON)));
                   } catch (IOException e) {
                     System.err.println("Can not deserialize document!");
                     return Optional.empty();

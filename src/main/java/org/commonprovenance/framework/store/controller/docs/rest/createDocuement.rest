@@ -1,6 +1,5 @@
 # Create an document
 
-@co=$(date +%s)
 POST http://{{$dotenv STORE_HOST}}:{{$dotenv STORE_PORT}}/api/v1/documents HTTP/1.1
 Accept: application/json
 Content-Type: application/json

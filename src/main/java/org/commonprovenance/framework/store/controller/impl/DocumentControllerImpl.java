@@ -2,17 +2,10 @@ package org.commonprovenance.framework.store.controller.impl;
 
 import static org.commonprovenance.framework.store.common.publisher.PublisherHelper.MONO;
 
-import java.util.ArrayList;
-import java.util.GregorianCalendar;
-import java.util.List;
-import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Function;
-
-import javax.xml.datatype.DatatypeConfigurationException;
-import javax.xml.datatype.DatatypeFactory;
-import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.commonprovenance.framework.store.config.AppConfiguration;
 import org.commonprovenance.framework.store.controller.DocumentController;
@@ -24,7 +17,6 @@ import org.commonprovenance.framework.store.exceptions.ConflictException;
 import org.commonprovenance.framework.store.exceptions.InternalApplicationException;
 import org.commonprovenance.framework.store.exceptions.InvalidValueException;
 import org.commonprovenance.framework.store.exceptions.NotFoundException;
-import org.commonprovenance.framework.store.model.AdditionalData;
 import org.commonprovenance.framework.store.model.Document;
 import org.commonprovenance.framework.store.model.Organization;
 import org.commonprovenance.framework.store.model.Token;
@@ -36,16 +28,11 @@ import org.commonprovenance.framework.store.service.persistence.finalizedProvCom
 import org.commonprovenance.framework.store.service.persistence.metaComponent.MetaComponentService;
 import org.commonprovenance.framework.store.service.web.store.StoreWebService;
 import org.commonprovenance.framework.store.service.web.trustedParty.TrustedPartyWebService;
-import org.openprovenance.prov.model.Activity;
-import org.openprovenance.prov.model.Agent;
-import org.openprovenance.prov.model.Bundle;
 import org.openprovenance.prov.model.Element;
 import org.openprovenance.prov.model.Entity;
-import org.openprovenance.prov.model.Namespace;
 import org.openprovenance.prov.model.Other;
 import org.openprovenance.prov.model.ProvFactory;
 import org.openprovenance.prov.model.QualifiedName;
-import org.openprovenance.prov.model.Statement;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -58,7 +45,6 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import cz.muni.fi.cpm.constants.CpmAttribute;
-import cz.muni.fi.cpm.constants.CpmNamespaceConstants;
 import cz.muni.fi.cpm.model.CpmDocument;
 import cz.muni.fi.cpm.model.CpmUtilities;
 import cz.muni.fi.cpm.model.ICpmFactory;
@@ -169,17 +155,18 @@ public class DocumentControllerImpl implements DocumentController {
         // TODO: check cpm constraints
         // TODO: check provenance constraints
         // issue token
-        .flatMap(
-            (Document document) -> this.organizationService.getOrganizationById(document.getOrganizationId())
-                .flatMap((Organization org) -> Mono.just(getTrustedPartyUrl(org))
-                    .map(this.trustedPartyWebService::issueGraphToken)
-                    // Store Document with token
-                    .flatMap((Function<Document, Mono<Token>> issueToken) -> issueToken
-                        .apply(document.withOrganizationName(org.getName())))
-                    .map((Token token) -> token.withDocument(document))
-                    .map((Token token) -> token.withTrustedParty(org.getTrustedParty())))
-                .flatMap(tokenService::storeToken)
-                .map(token -> document.withToken(token)))
+        .flatMap((Document document) -> Mono.justOrEmpty(document)
+            .map(Document::getOrganizationId)
+            .flatMap(this.organizationService::getOrganizationById)
+            .flatMap((Organization org) -> Mono.just(getTrustedPartyUrl(org))
+                .map(this.trustedPartyWebService::issueGraphToken)
+                // Store Document with token
+                .flatMap((Function<Document, Mono<Token>> issueToken) -> issueToken
+                    .apply(document.withOrganizationName(org.getName())))
+                .map((Token token) -> token.withDocument(document))
+                .map((Token token) -> token.withTrustedParty(org.getTrustedParty())))
+            .flatMap(tokenService::storeToken)
+            .map(token -> document.withToken(token)))
         .delayUntil((Document document) -> Mono.just(document)
             .map(Document::getCpmDocument)
             .flatMap(Mono::justOrEmpty)
@@ -574,7 +561,7 @@ public class DocumentControllerImpl implements DocumentController {
   @NotNull
   @RequestMapping(path = "/{uuid}", method = RequestMethod.HEAD)
   public Mono<Void> exists(@PathVariable String uuid) {
-    return Mono.justOrEmpty(uuid).log()
+    return Mono.justOrEmpty(uuid)
         .flatMap(this.documentService::getDocumentById)
         .then();
   }
