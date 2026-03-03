@@ -66,8 +66,42 @@ public class EntityPersistenceImpl implements EntityPersistence {
           EntityNode firstVersion = tuple.getT1();
           EntityNode getneralVersion = tuple.getT2();
           BundleNode metaComponent = tuple.getT3();
-          return bundleRepository.save(metaComponent.withNode(firstVersion)) // TODO: ??Maybe save together??
+
+          return bundleRepository.save(metaComponent.withEntity(firstVersion)) // TODO: ??Maybe save together??
               .then(entityRepository.save(firstVersion.withSpecializationOfEntity(getneralVersion)));
+        })
+        .flatMap(ProvenanceFactory.entityToProv(configuration));
+  }
+
+  @Override
+  public @NotNull Function<Entity, Mono<Entity>> addNewVersion(
+      @NotNull Entity general,
+      @NotNull Entity lastVersion) {
+    return (Entity version) -> Mono.zip(
+        Mono.justOrEmpty(version)
+            .flatMap(NodeFactory::toEntity),
+
+        Mono.justOrEmpty(lastVersion)
+            .flatMap(NodeFactory::toEntity),
+
+        Mono.justOrEmpty(general)
+            .flatMap(NodeFactory::toEntity))
+        .flatMap(tuple -> Mono.zip(
+            Mono.just(tuple.getT1()),
+            Mono.just(tuple.getT2()),
+            Mono.just(tuple.getT3()),
+            bundleRepository.findByGeneralEntity(tuple.getT2())))
+        .flatMap(tuple -> {
+          EntityNode newVersion = tuple.getT1();
+          EntityNode prevVersion = tuple.getT2();
+          EntityNode getneralVersion = tuple.getT3();
+          BundleNode metaComponent = tuple.getT4();
+          return bundleRepository.save(metaComponent
+              .withEntity(newVersion
+                  .wihtRevisionOfEntity(prevVersion)
+                  .withSpecializationOfEntity(getneralVersion)))
+              .thenReturn(newVersion);
+
         })
         .flatMap(ProvenanceFactory.entityToProv(configuration));
   }
@@ -101,9 +135,9 @@ public class EntityPersistenceImpl implements EntityPersistence {
                 .withWasAttributedToAgent(generatorNode);
 
             BundleNode metaComponent = tuple.getT2()
-                .withNode(generatorNode)
-                .withNode(tokenNode)
-                .withNode(generationNode);
+                .withAgent(generatorNode)
+                .withEntity(tokenNode)
+                .withActivity(generationNode);
 
             return bundleRepository.save(metaComponent);
           })

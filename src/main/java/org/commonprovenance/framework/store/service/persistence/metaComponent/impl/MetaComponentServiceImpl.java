@@ -34,6 +34,7 @@ import org.openprovenance.prov.model.QualifiedName;
 import org.openprovenance.prov.model.Statement;
 import org.openprovenance.prov.model.Type;
 import org.openprovenance.prov.model.WasDerivedFrom;
+import org.openprovenance.prov.vanilla.LangString;
 import org.openprovenance.prov.vanilla.ProvUtilities;
 import org.springframework.stereotype.Service;
 
@@ -115,11 +116,16 @@ public class MetaComponentServiceImpl implements MetaComponentService {
 
       return Mono.zip(newVersionEntity, lastVersionEntity, generalEntity)
           .delayUntil(tuple -> {
-            if (tuple.getT2().getId().equals(tuple.getT3().getId())) {
+            Entity newVersion = tuple.getT1();
+            Entity lastVersion = tuple.getT2();
+            Entity general = tuple.getT3();
+
+            if (lastVersion.getId().equals(general.getId())) {
               // if new version is 1, last version is general
-              return entityPersistence.addFirstVersion(tuple.getT3()).apply(tuple.getT1());
+              return entityPersistence.addFirstVersion(general).apply(newVersion);
+            } else {
+              return entityPersistence.addNewVersion(general, lastVersion).apply(newVersion);
             }
-            return Mono.just(null); // TODO: next version add
           })
           .map(tuple -> {
             List<Statement> statements = new ArrayList<>();
@@ -385,7 +391,7 @@ public class MetaComponentServiceImpl implements MetaComponentService {
         .filter(entity -> getVersion(document.getNamespace().getNamespaces())
             .apply(entity)
             .isEmpty())
-        .next();
+        .single();
   }
 
   private Mono<Integer> getLastVersion(Document document) {
@@ -400,13 +406,15 @@ public class MetaComponentServiceImpl implements MetaComponentService {
   private Function<Entity, Optional<Integer>> getVersion(Map<String, String> namespaces) {
     return (Entity entity) -> {
       List<Integer> versions = entity.getOther().stream()
-          .filter(other -> other.getElementName().equals(provFactory.newQualifiedName(
-              namespaces.get("pav"),
-              "version",
-              "pav")))
+          .filter(
+              other -> other.getElementName().getLocalPart().equals("version")
+                  && other.getElementName().getNamespaceURI().equals("http://purl.org/pav/")
+                  && other.getElementName().getPrefix().equals("pav"))
+
           .map(Other::getValue)
-          .filter(String.class::isInstance)
-          .map(String.class::cast)
+          .filter(LangString.class::isInstance)
+          .map(LangString.class::cast)
+          .map(LangString::getValue)
           .map(Integer::valueOf)
           .toList();
       return versions.size() == 1

@@ -18,6 +18,11 @@ public interface EntityPersistence {
   Function<Entity, Mono<Entity>> addFirstVersion(@NotNull Entity general);
 
   @NotNull
+  Function<Entity, Mono<Entity>> addNewVersion(
+      @NotNull Entity general,
+      @NotNull Entity lastVersion);
+
+  @NotNull
   Function<Entity, Mono<Entity>> addToken(
       @NotNull Entity token,
       @NotNull Activity generation,
