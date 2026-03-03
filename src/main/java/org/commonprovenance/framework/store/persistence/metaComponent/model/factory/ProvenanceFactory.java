@@ -10,7 +10,6 @@ import org.commonprovenance.framework.store.persistence.metaComponent.model.node
 import org.commonprovenance.framework.store.persistence.metaComponent.model.node.BaseProvClassNode;
 import org.commonprovenance.framework.store.persistence.metaComponent.model.node.BundleNode;
 import org.commonprovenance.framework.store.persistence.metaComponent.model.node.EntityNode;
-import org.commonprovenance.framework.store.persistence.metaComponent.model.relation.Contains;
 import org.openprovenance.prov.model.Bundle;
 import org.openprovenance.prov.model.Document;
 import org.openprovenance.prov.model.Element;
@@ -56,12 +55,10 @@ public class ProvenanceFactory {
           node.getId(),
           "mata");
 
-      Stream<Statement> provNodeStatements = node.getContains().stream()
-          .map(Contains::getNode)
+      Stream<Statement> provNodeStatements = node.getAllNodes().stream()
           .map(ProvenanceFactory.toProvenance(provDocument.getNamespace()));
 
-      Stream<Statement> provRelatioStatements = node.getContains().stream()
-          .map(Contains::getNode)
+      Stream<Statement> provRelatioStatements = node.getAllNodes().stream()
           .flatMap(n -> {
             if (n instanceof ActivityNode activityNode) {
               Stream<Statement> usedStream = activityNode.getUsed().stream()
@@ -147,6 +144,10 @@ public class ProvenanceFactory {
       String attributesJson,
       Namespace ns) {
     try {
+      if (attributesJson == null || attributesJson.isBlank()) {
+        return;
+      }
+
       Map<String, Object> attrs = ProvenanceFactory.OBJECT_MAPPER.readValue(
           attributesJson, new tools.jackson.core.type.TypeReference<Map<String, Object>>() {
           });
