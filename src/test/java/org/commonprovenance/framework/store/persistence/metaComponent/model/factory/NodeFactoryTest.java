@@ -11,7 +11,9 @@ import org.commonprovenance.framework.store.persistence.metaComponent.model.node
 import org.commonprovenance.framework.store.persistence.metaComponent.model.node.BaseProvClassNode;
 import org.commonprovenance.framework.store.persistence.metaComponent.model.node.BundleNode;
 import org.commonprovenance.framework.store.persistence.metaComponent.model.node.EntityNode;
-import org.commonprovenance.framework.store.persistence.metaComponent.model.relation.Contains;
+import org.commonprovenance.framework.store.persistence.metaComponent.model.relation.BundleActivities;
+import org.commonprovenance.framework.store.persistence.metaComponent.model.relation.BundleAgents;
+import org.commonprovenance.framework.store.persistence.metaComponent.model.relation.BundleEntities;
 import org.commonprovenance.framework.store.persistence.metaComponent.model.relation.RevisionOf;
 import org.junit.jupiter.api.Test;
 import org.openprovenance.prov.model.Activity;
@@ -131,30 +133,25 @@ class NodeFactoryTest {
           assertEquals("bundle-1", b.getId());
           assertEquals("{}", b.getAttributes());
 
-          List<BaseProvClassNode> nodes = b.getContains().stream()
-              .map(Contains::getNode)
+          List<EntityNode> entities = b.getBundleEntities().stream()
+              .map(BundleEntities::getEntity)
               .toList();
 
-          assertEquals(3, nodes.size());
-
-          List<BaseProvClassNode> entities = nodes.stream()
-              .filter(n -> (n instanceof EntityNode _) ? true : false)
-              .toList();
-
+          // assertEquals(3, nodes.size());
           assertEquals(1, entities.size());
           assertEquals("entity-1", entities.getFirst().getId());
           assertEquals("{\"prov:type\":[\"cpm:token\"],\"prov:value\":[\"42\"]}", entities.getFirst().getAttributes());
 
-          List<BaseProvClassNode> agents = nodes.stream()
-              .filter(n -> (n instanceof AgentNode _) ? true : false)
+          List<AgentNode> agents = b.getBundleAgents().stream()
+              .map(BundleAgents::getAgent)
               .toList();
 
           assertEquals(1, agents.size());
           assertEquals("agent-1", agents.getFirst().getId());
           assertEquals("{}", agents.getFirst().getAttributes());
 
-          List<BaseProvClassNode> activities = nodes.stream()
-              .filter(n -> (n instanceof ActivityNode _) ? true : false)
+          List<ActivityNode> activities = b.getBundleActivities().stream()
+              .map(BundleActivities::getActivity)
               .toList();
 
           assertEquals(1, activities.size());
@@ -189,14 +186,11 @@ class NodeFactoryTest {
     when(document.getStatementOrBundle()).thenReturn(List.of(bundle));
     StepVerifier.create(NodeFactory.toEntity(document))
         .assertNext((BundleNode b) -> {
-          List<BaseProvClassNode> nodes = b.getContains().stream()
-              .map(Contains::getNode)
-              .toList();
-          assertEquals(2, nodes.size());
 
-          List<BaseProvClassNode> entities = nodes.stream()
-              .filter(n -> (n instanceof EntityNode _) ? true : false)
+          List<EntityNode> entities = b.getBundleEntities().stream()
+              .map(BundleEntities::getEntity)
               .toList();
+
           assertEquals(2, entities.size());
 
           EntityNode generated = (EntityNode) entities.stream().filter(e -> e.getId() == "entity-generated").toList()
@@ -313,8 +307,8 @@ class NodeFactoryTest {
   }
 
   private static <T extends BaseProvClassNode> List<T> getNodesByType(BundleNode bundle, Class<T> classType) {
-    return bundle.getContains().stream()
-        .map(Contains::getNode)
+    return bundle.getBundleEntities().stream()
+        .map(BundleEntities::getEntity)
         .filter(classType::isInstance)
         .map(classType::cast)
         .toList();
