@@ -24,13 +24,6 @@ public class EntityNeo4jRepository implements EntityRepository {
   }
 
   @Override
-  public Mono<String> getMetaBundleIdByGeneralEntity(EntityNode entity) {
-    return Mono.justOrEmpty(entity)
-        .map(EntityNode::getId)
-        .flatMap(client::getBundleIdByGenenralEntity);
-  }
-
-  @Override
   public Mono<EntityNode> findById(String id) {
     return client.findById(id);
   }
