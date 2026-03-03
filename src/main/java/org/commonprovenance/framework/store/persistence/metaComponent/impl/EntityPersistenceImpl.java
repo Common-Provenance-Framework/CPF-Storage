@@ -21,6 +21,7 @@ import org.openprovenance.prov.model.Entity;
 import org.springframework.stereotype.Component;
 
 import jakarta.validation.constraints.NotNull;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.util.function.Tuple5;
 
@@ -123,4 +124,11 @@ public class EntityPersistenceImpl implements EntityPersistence {
             .error(new NotFoundException("Entity with id '" + id + "' has not been found!"))));
   }
 
+  @Override
+  public @NotNull Flux<Entity> getAllEntities(@NotNull String bundleId) {
+    return MONO.<String>makeSureNotNullWithMessage("Bundle Id can not be 'null'!").apply(bundleId)
+        .flatMapMany(entityRepository::getAllEntitiesByBundleId)
+        .onErrorResume(MONO.exceptionWrapper("EntityNeo4jRepository - Error while reading entity"))
+        .flatMap(ProvenanceFactory.entityToProv(configuration));
+  }
 }

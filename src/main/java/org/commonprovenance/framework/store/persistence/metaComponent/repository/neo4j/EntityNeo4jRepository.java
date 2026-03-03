@@ -6,6 +6,7 @@ import org.commonprovenance.framework.store.persistence.metaComponent.repository
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
 
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @Profile("live & neo4j")
@@ -26,6 +27,11 @@ public class EntityNeo4jRepository implements EntityRepository {
   @Override
   public Mono<EntityNode> findById(String id) {
     return client.findById(id);
+  }
+
+  @Override
+  public Flux<EntityNode> getAllEntitiesByBundleId(String bundleId) {
+    return client.getAllEntitiesByBundleId(bundleId);
   }
 
 }

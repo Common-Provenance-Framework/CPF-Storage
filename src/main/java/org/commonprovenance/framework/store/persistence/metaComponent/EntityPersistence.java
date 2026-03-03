@@ -7,7 +7,7 @@ import org.openprovenance.prov.model.Agent;
 import org.openprovenance.prov.model.Entity;
 
 import jakarta.validation.constraints.NotNull;
-
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 public interface EntityPersistence {
@@ -26,4 +26,6 @@ public interface EntityPersistence {
   @NotNull
   Mono<Entity> getById(@NotNull String id);
 
+  @NotNull
+  Flux<Entity> getAllEntities(@NotNull String bundleId);
 }
