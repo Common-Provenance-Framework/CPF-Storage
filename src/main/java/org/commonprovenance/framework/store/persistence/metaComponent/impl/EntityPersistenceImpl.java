@@ -135,7 +135,8 @@ public class EntityPersistenceImpl implements EntityPersistence {
                 .withWasAttributedToAgent(generatorNode);
 
             BundleNode metaComponent = tuple.getT2()
-                .withAgent(generatorNode)
+                .withAgent(generatorNode) // TODO: I guess we should add agent to bundle only if it is not already
+                                          // there!!
                 .withEntity(tokenNode)
                 .withActivity(generationNode);
 
