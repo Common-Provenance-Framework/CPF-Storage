@@ -20,12 +20,16 @@ public class DTOFactoryTest {
   @DisplayName("HappyPath - should return Mono with DocumentResponseDTO")
   void should_map_Document_to_DocumentResponseDTO() {
     String testId = "6ee9d79b-0615-4cb1-b0f3-2303d10c8cff";
+    String organizationId = "6ee9d79b-0615-4cb1-b0f3-2303d10c8cff";
+    String orgName = "ORG1";
     String base64StringGraph = "AAAAQQAAAGIAAAByAAAAYQAAAGsAAABhAAAAIAAAAEQAAABhAAAAYgAAAHIAAABhAAAALgAAAC4=";
     String format = "JSON";
     String signature = "..";
 
     Document document = new Document(
-        UUID.fromString(testId),
+        testId,
+        UUID.fromString(organizationId),
+        orgName,
         base64StringGraph,
         Format.from(format).get(),
         signature);
@@ -34,6 +38,8 @@ public class DTOFactoryTest {
         .assertNext(response -> {
           assertEquals(testId, response.getId(),
               "response should have Id field with exact value");
+          assertEquals(organizationId, response.getOrganizationId(),
+              "response should have organizationId field with exact value");
           assertEquals(base64StringGraph, response.getGraph(),
               "response should have graph field with exact value");
           assertEquals(format, response.getFormat(),
@@ -50,8 +56,9 @@ public class DTOFactoryTest {
         .expectErrorSatisfies(error -> {
           assertInstanceOf(InternalApplicationException.class, error);
           assertEquals("Input parameter can not be null.", error.getMessage());
-          assertInstanceOf(IllegalArgumentException.class, error.getCause());
-          assertNull(error.getCause().getMessage());
+          assertNull(error.getCause());
+          // assertInstanceOf(InternalApplicationException.class, error.getCause());
+          // assertNull(error.getCause().getMessage());
         })
         .verify();
   }

@@ -38,13 +38,15 @@ public interface PublisherHelper {
     }
 
     public <T> Function<T, Mono<T>> makeSure(Predicate<T> validator, String message) {
-      return this.<T>makeSure(validator, _ -> message);
+      return this.<T>makeSure(validator, _ -> new InternalApplicationException(message));
     }
 
-    public <T> Function<T, Mono<T>> makeSure(Predicate<T> validator, Function<T, String> messageBuilder) {
+    public <T> Function<T, Mono<T>> makeSure(
+        Predicate<T> validator,
+        Function<T, ApplicationException> applicationExceptionBuilder) {
       return (T value) -> validator.test(value)
           ? Mono.just(value)
-          : Mono.error(new InternalApplicationException(messageBuilder.apply(value), new IllegalArgumentException()));
+          : Mono.error(applicationExceptionBuilder.apply(value));
     }
 
     public <T> Function<T, Mono<T>> makeSureAsync(

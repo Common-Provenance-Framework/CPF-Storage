@@ -1,0 +1,15 @@
+# Create an document
+
+POST http://{{$dotenv STORE_HOST}}:{{$dotenv STORE_PORT}}/api/v1/documents HTTP/1.1
+Accept: application/json
+Content-Type: application/json
+
+{
+  "organizationId": "{{$dotenv ORGANIZATION_ID}}",
+  "document": "{{$dotenv SAMPLINGBUNDLE_V0}}",
+  "documentFormat": "json",
+  "signature": "{{$dotenv SIGNATURE}}",
+
+  "createdOn": 842565600,
+  "clearancePeriod": 30
+}

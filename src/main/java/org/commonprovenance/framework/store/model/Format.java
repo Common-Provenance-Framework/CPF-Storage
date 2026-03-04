@@ -6,6 +6,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.openprovenance.prov.model.interop.Formats;
+
 public enum Format {
   JSON("json");
 
@@ -26,5 +28,14 @@ public enum Format {
     if (s == null)
       return Optional.empty();
     return Optional.ofNullable(LOOKUP.get(s.trim().toLowerCase()));
+  }
+
+  public Formats.ProvFormat toProvFormat() {
+    switch (this) {
+      case JSON:
+        return Formats.ProvFormat.JSON;
+      default:
+        throw new IllegalStateException("Unsupported format: " + this);
+    }
   }
 }

@@ -30,6 +30,7 @@
   <properties>
     <java.version>25</java.version>
     <prov.ver>2.2.2</prov.ver>
+    <cpm.ver>1.0.0</cpm.ver>
     <springboot.ver>4.0.2</springboot.ver>
     <bouncycastle.ver>1.83</bouncycastle.ver>
     <jackson.ver>3.0.4</jackson.ver>
@@ -79,6 +80,26 @@
       <version>${prov.ver}</version>
     </dependency>
     <dependency>
+      <groupId>org.openprovenance.prov</groupId>
+      <artifactId>prov-model</artifactId>
+      <version>${prov.ver}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.openprovenance.prov</groupId>
+      <artifactId>prov-nf</artifactId>
+      <version>${prov.ver}</version>
+    </dependency>
+    <dependency>
+      <groupId>cz.muni.fi.cpm</groupId>
+      <artifactId>cpm-core</artifactId>
+      <version>${cpm.ver}</version>
+    </dependency>
+    <dependency>
+      <groupId>cz.muni.fi.cpm</groupId>
+      <artifactId>cpm-template</artifactId>
+      <version>${cpm.ver}</version>
+    </dependency>
+    <dependency>
       <groupId>com.networknt</groupId>
       <artifactId>json-schema-validator</artifactId>
       <version>${networknt.ver}</version>
@@ -93,6 +114,44 @@
 
   <build>
     <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-install-plugin</artifactId>
+        <version>3.1.4</version>
+        <executions>
+          <execution>
+            <id>install-core</id>
+            <phase>clean</phase>
+            <configuration>
+              <file>${project.basedir}/src/main/resources/cpm-core-1.0.0.jar</file>
+              <groupId>cz.muni.fi.cpm</groupId>
+              <artifactId>cpm-core</artifactId>
+              <version>${cpm.ver}</version>
+              <packaging>jar</packaging>
+              <generatePom>true</generatePom>
+            </configuration>
+            <goals>
+              <goal>install-file</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>install-template</id>
+            <phase>clean</phase>
+            <configuration>
+              <file>${project.basedir}/src/main/resources/cpm-template-1.0.0.jar</file>
+              <groupId>cz.muni.fi.cpm</groupId>
+              <artifactId>cpm-template</artifactId>
+              <version>${cpm.ver}</version>
+              <packaging>jar</packaging>
+              <generatePom>true</generatePom>
+            </configuration>
+            <goals>
+              <goal>install-file</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
       <plugin>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-maven-plugin</artifactId>

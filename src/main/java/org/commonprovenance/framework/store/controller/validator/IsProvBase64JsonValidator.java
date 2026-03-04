@@ -6,6 +6,7 @@ import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.core.JacksonException;
 
+import java.util.Base64;
 import java.util.List;
 
 import com.networknt.schema.SchemaRegistry;
@@ -19,8 +20,7 @@ public class IsProvBase64JsonValidator implements ConstraintValidator<IsProvBase
   @Override
   public boolean isValid(String value, ConstraintValidatorContext context) {
     try {
-      ObjectMapper mapper = new ObjectMapper();
-      JsonNode jsonNode = mapper.readTree(value);
+      JsonNode jsonNode = new ObjectMapper().readTree(Base64.getDecoder().decode(value));
 
       List<com.networknt.schema.Error> errors = SchemaRegistry
           .withDefaultDialect(SpecificationVersion.DRAFT_2020_12)

@@ -38,3 +38,5 @@ build/
 application.properties
 application-*.properties
 !application.properties.tmp
+.env
+sandbox_data

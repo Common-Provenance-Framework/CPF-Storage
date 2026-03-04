@@ -1,5 +1,6 @@
 package org.commonprovenance.framework.store.model;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -10,6 +11,14 @@ public class Organization {
   private final String clientCertificate;
   private final List<String> intermediateCertificates;
   private final TrustedParty trustedParty;
+
+  public Organization() {
+    this.id = Optional.empty();
+    this.name = null;
+    this.clientCertificate = null;
+    this.intermediateCertificates = Collections.emptyList();
+    this.trustedParty = null;
+  }
 
   public Organization(
       UUID id,

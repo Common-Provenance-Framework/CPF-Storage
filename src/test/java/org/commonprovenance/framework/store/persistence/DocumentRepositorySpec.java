@@ -12,9 +12,9 @@ import java.util.UUID;
 
 import org.commonprovenance.framework.store.model.Document;
 import org.commonprovenance.framework.store.model.Format;
-import org.commonprovenance.framework.store.persistence.entity.DocumentEntity;
-import org.commonprovenance.framework.store.persistence.impl.DocumentPersistenceImpl;
-import org.commonprovenance.framework.store.persistence.repository.DocumentRepository;
+import org.commonprovenance.framework.store.persistence.finalizedProvComponent.impl.DocumentPersistenceImpl;
+import org.commonprovenance.framework.store.persistence.finalizedProvComponent.model.node.DocumentNode;
+import org.commonprovenance.framework.store.persistence.finalizedProvComponent.repository.DocumentRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -37,6 +37,8 @@ class DocumentRepositorySpec {
   private DocumentPersistenceImpl documentPersistence;
 
   private final String TEST_ID_1 = "e3cf8742-b595-47f4-8aae-a1e94b62a856";
+  private final String TEST_ORG_ID_2 = "6ee9d79b-0615-4cb1-b0f3-2303d10c8cff";
+  private final String ORG_NAME = "ORG1";
   private final String BASE64_STRING_GRAPH_1 = "AAAAQQAAAGIAAAByAAAAYQAAAGsAAABhAAAAIAAAAEQAAABhAAAAYgAAAHIAAABhAAAALgAAAC4=";
   private final String FORMAT_1 = "JSON";
   private final String SIGNATURE = "..";
@@ -50,13 +52,15 @@ class DocumentRepositorySpec {
   @DisplayName("Create - should call save method with exact parameters")
   void created_should_call_save_method_with_exact_paramters() {
     Document doucment = new Document(
-        UUID.fromString(TEST_ID_1),
+        TEST_ID_1,
+        UUID.fromString(TEST_ORG_ID_2),
+        ORG_NAME,
         BASE64_STRING_GRAPH_1,
         Format.from(FORMAT_1).get(),
         SIGNATURE);
 
     when(documentRepository.save(any())).thenAnswer(invocation -> {
-      DocumentEntity argumentEntity = invocation.getArgument(0);
+      DocumentNode argumentEntity = invocation.getArgument(0);
       return Mono.just(argumentEntity);
     });
 
@@ -64,14 +68,14 @@ class DocumentRepositorySpec {
         .expectNextCount(1)
         .verifyComplete();
 
-    ArgumentCaptor<DocumentEntity> captor = ArgumentCaptor.forClass(DocumentEntity.class);
+    ArgumentCaptor<DocumentNode> captor = ArgumentCaptor.forClass(DocumentNode.class);
     verify(
         documentRepository,
         times(1)
             .description("Repository save method should be invoked once"))
         .save(captor.capture());
 
-    DocumentEntity capturedEntity = captor.getValue();
+    DocumentNode capturedEntity = captor.getValue();
     assertTrue(capturedEntity.getId().equals(TEST_ID_1)
         && capturedEntity.getGraph().equals(BASE64_STRING_GRAPH_1)
         && capturedEntity.getFormat().equals(FORMAT_1),
@@ -99,9 +103,9 @@ class DocumentRepositorySpec {
   void getById_should_call_findById_method_with_exact_paramters() {
     when(documentRepository.findById(anyString())).thenReturn(Mono.empty());
 
-    StepVerifier.create(documentPersistence.getById(UUID.fromString(TEST_ID_1)))
-        .expectNextCount(0)
-        .verifyComplete();
+    StepVerifier.create(documentPersistence.getById(TEST_ID_1))
+        // .expectNextCount(0)
+        .verifyError();
 
     ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
     verify(
@@ -118,7 +122,7 @@ class DocumentRepositorySpec {
   void deleteById_should_call_deleteById_method_with_exact_paramters_when_getbyid() {
     when(documentRepository.deleteById(anyString())).thenReturn(Mono.empty().then());
 
-    StepVerifier.create(documentPersistence.deleteById(UUID.fromString(TEST_ID_1)))
+    StepVerifier.create(documentPersistence.deleteById(TEST_ID_1))
         .expectNextCount(0)
         .verifyComplete();
 

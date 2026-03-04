@@ -1,5 +1,7 @@
 package org.commonprovenance.framework.store.web.trustedParty.dto.form;
 
+import java.time.Instant;
+
 import org.commonprovenance.framework.store.common.dto.HasCreatedOn;
 import org.commonprovenance.framework.store.common.dto.HasDocument;
 import org.commonprovenance.framework.store.common.dto.HasOrganizationId;
@@ -21,7 +23,7 @@ public class IssueTokenTPFormDTO extends ValidatableDTO
     this.documentFormat = null;
     this.signature = null;
     this.type = null;
-    this.createdOn = System.currentTimeMillis();
+    this.createdOn = Instant.now().getEpochSecond();
   }
 
   public IssueTokenTPFormDTO(

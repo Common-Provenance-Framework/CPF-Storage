@@ -1,6 +1,7 @@
 package org.commonprovenance.framework.store.web.trustedParty.impl;
 
 import java.util.Optional;
+import java.util.function.Function;
 
 import org.commonprovenance.framework.store.model.Document;
 import org.commonprovenance.framework.store.model.GraphType;
@@ -9,7 +10,7 @@ import org.commonprovenance.framework.store.model.Token;
 import org.commonprovenance.framework.store.model.TrustedParty;
 import org.commonprovenance.framework.store.model.factory.ModelFactory;
 import org.commonprovenance.framework.store.web.trustedParty.TrustedPartyClient;
-import org.commonprovenance.framework.store.web.trustedParty.client.Client;
+import org.commonprovenance.framework.store.web.trustedParty.client.ClientTP;
 import org.commonprovenance.framework.store.web.trustedParty.dto.form.factory.DTOFactory;
 import org.commonprovenance.framework.store.web.trustedParty.dto.response.TokenTPResponseDTO;
 import org.commonprovenance.framework.store.web.trustedParty.dto.response.TrustedPartyTPResponseDTO;
@@ -19,10 +20,10 @@ import reactor.core.publisher.Mono;
 
 @Component
 public class TrustedPartyClientImpl implements TrustedPartyClient {
-  private final Client client;
+  private final ClientTP client;
 
   public TrustedPartyClientImpl(
-      Client client) {
+      ClientTP client) {
     this.client = client;
   }
 
@@ -38,12 +39,8 @@ public class TrustedPartyClientImpl implements TrustedPartyClient {
   }
 
   @Override
-  public Mono<Token> issueToken(
-      Organization organization,
-      Document document,
-      GraphType type,
-      Optional<String> trustedPartyUrl) {
-    return DTOFactory.toForm(organization, document, type)
+  public Function<Document, Mono<Token>> issueGraphToken(Optional<String> trustedPartyUrl) {
+    return (Document document) -> DTOFactory.toForm(document, GraphType.GRAPH)
         .flatMap(trustedPartyUrl
             .map(this.client::buildWebClient)
             .map(this.client.sendCustomPostRequest("/issueToken", TokenTPResponseDTO.class))
@@ -52,12 +49,14 @@ public class TrustedPartyClientImpl implements TrustedPartyClient {
   }
 
   @Override
-  public Mono<Boolean> verifySignature(Organization organization, Document document, Optional<String> trustedPartyUrl) {
-    return DTOFactory.toForm(organization, document)
-        .flatMap(trustedPartyUrl
+  public Function<Document, Mono<Boolean>> verifySignature(Organization organization) {
+    return (Document document) -> DTOFactory.toForm(organization, document)
+        .flatMap(organization.getTrustedParty().getUrl()
             .map(this.client::buildWebClient)
-            .map(this.client.sendCustomPostRequest("/verifySignature", TokenTPResponseDTO.class))
-            .orElse(this.client.sendPostRequest("/verifySignature", TokenTPResponseDTO.class)))
-        .then(Mono.just(true));
+            .map(this.client.sendCustomPostRequest("/verifySignature", Void.class))
+            .orElse(this.client.sendPostRequest("/verifySignature", Void.class)))
+        .then(Mono.just(true))
+        .onErrorResume(org.springframework.web.reactive.function.client.WebClientResponseException.BadRequest.class,
+            ex -> Mono.just(false));
   }
 }

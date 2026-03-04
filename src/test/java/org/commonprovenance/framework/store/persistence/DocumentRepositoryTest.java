@@ -9,12 +9,14 @@ import static org.mockito.Mockito.when;
 
 import java.util.UUID;
 
+import org.commonprovenance.framework.store.exceptions.ApplicationException;
 import org.commonprovenance.framework.store.exceptions.InternalApplicationException;
+import org.commonprovenance.framework.store.exceptions.NotFoundException;
 import org.commonprovenance.framework.store.model.Document;
 import org.commonprovenance.framework.store.model.Format;
-import org.commonprovenance.framework.store.persistence.entity.DocumentEntity;
-import org.commonprovenance.framework.store.persistence.impl.DocumentPersistenceImpl;
-import org.commonprovenance.framework.store.persistence.repository.DocumentRepository;
+import org.commonprovenance.framework.store.persistence.finalizedProvComponent.impl.DocumentPersistenceImpl;
+import org.commonprovenance.framework.store.persistence.finalizedProvComponent.model.node.DocumentNode;
+import org.commonprovenance.framework.store.persistence.finalizedProvComponent.repository.DocumentRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -37,6 +39,8 @@ class DocumentRepositoryTest {
   private DocumentPersistenceImpl repository;
 
   private final String TEST_ID_1 = "e3cf8742-b595-47f4-8aae-a1e94b62a856";
+  private final String TEST_ORG_ID_1 = "6ee9d79b-0615-4cb1-b0f3-2303d10c8cff";
+  private final String ORG_NAME_1 = "ORG1";
   private final String BASE64_STRING_GRAPH_1 = "AAAAQQAAAGIAAAByAAAAYQAAAGsAAABhAAAAIAAAAEQAAABhAAAAYgAAAHIAAABhAAAALgAAAC4=";
   private final String FORMAT_1 = "JSON";
 
@@ -54,19 +58,21 @@ class DocumentRepositoryTest {
   @DisplayName("HappyPath - create - should create new entity in neo4j DB")
   void create_should_create_new_entity() {
     Document document = new Document(
-        UUID.fromString(TEST_ID_1),
+        TEST_ID_1,
+        UUID.fromString(TEST_ORG_ID_1),
+        ORG_NAME_1,
         BASE64_STRING_GRAPH_1,
         Format.from(FORMAT_1).get(),
         SIGNATURE);
 
     when(documentRepository.save(any())).thenAnswer(invocation -> {
-      DocumentEntity argumentEntity = invocation.getArgument(0);
+      DocumentNode argumentEntity = invocation.getArgument(0);
       return Mono.just(argumentEntity);
     });
 
     StepVerifier.create(repository.create(document))
         .assertNext(doc -> {
-          assertEquals(TEST_ID_1, doc.getId().map(UUID::toString).orElse("?uuid?"));
+          assertEquals(TEST_ID_1, doc.getId());
           assertEquals(FORMAT_1, doc.getFormat().map(Format::toString).orElse("?format?"));
           assertEquals(BASE64_STRING_GRAPH_1, doc.getGraph());
         })
@@ -78,7 +84,9 @@ class DocumentRepositoryTest {
   void create_should_handle_terminated_IllegalArgumentException() {
     String errMessage = "Wrong Argumnent..";
     Document document = new Document(
-        UUID.fromString(TEST_ID_1),
+        TEST_ID_1,
+        UUID.fromString(TEST_ORG_ID_1),
+        ORG_NAME_1,
         BASE64_STRING_GRAPH_1,
         Format.from(FORMAT_1).get(),
         SIGNATURE);
@@ -106,7 +114,9 @@ class DocumentRepositoryTest {
   void create_should_handle_terminated_OptimisticLockingFailureException() {
     String errMessage = "Optimistic Locking..";
     Document document = new Document(
-        UUID.fromString(TEST_ID_1),
+        TEST_ID_1,
+        UUID.fromString(TEST_ORG_ID_1),
+        ORG_NAME_1,
         BASE64_STRING_GRAPH_1,
         Format.from(FORMAT_1).get(),
         SIGNATURE);
@@ -135,7 +145,9 @@ class DocumentRepositoryTest {
   void create_should_handle_thrown_IllegalArgumentException() {
     String errMessage = "Wrong Argumnent..";
     Document document = new Document(
-        UUID.fromString(TEST_ID_1),
+        TEST_ID_1,
+        UUID.fromString(TEST_ORG_ID_1),
+        ORG_NAME_1,
         BASE64_STRING_GRAPH_1,
         Format.from(FORMAT_1).get(),
         SIGNATURE);
@@ -163,15 +175,15 @@ class DocumentRepositoryTest {
   void getAll_should_load_all_entities() {
     when(documentRepository.findAll()).thenAnswer(_invocation -> {
       return Flux.just(
-          new DocumentEntity(TEST_ID_1, BASE64_STRING_GRAPH_1, FORMAT_1, SIGNATURE),
-          new DocumentEntity(TEST_ID_2, BASE64_STRING_GRAPH_2, FORMAT_2, SIGNATURE));
+          new DocumentNode(TEST_ID_1, BASE64_STRING_GRAPH_1, FORMAT_1),
+          new DocumentNode(TEST_ID_2, BASE64_STRING_GRAPH_2, FORMAT_2));
     });
 
     StepVerifier.create(repository.getAll())
         .assertNext(doc -> {
           assertInstanceOf(Document.class, doc, "should return Document");
 
-          assertEquals(TEST_ID_1, doc.getId().map(UUID::toString).orElse("?uuid?"),
+          assertEquals(TEST_ID_1, doc.getId(),
               "should return document with exact id");
           assertEquals(BASE64_STRING_GRAPH_1, doc.getGraph(), "should return document with exact graph");
           assertEquals(FORMAT_1, doc.getFormat().map(Format::toString).orElse("?format?"),
@@ -180,7 +192,7 @@ class DocumentRepositoryTest {
         .assertNext(doc -> {
           assertInstanceOf(Document.class, doc, "should return Document");
 
-          assertEquals(TEST_ID_2, doc.getId().map(UUID::toString).orElse("?uuid?"),
+          assertEquals(TEST_ID_2, doc.getId(),
               "should return document with exact id");
           assertEquals(BASE64_STRING_GRAPH_2, doc.getGraph(), "should return document with exact graph");
           assertEquals(FORMAT_2, doc.getFormat().map(Format::toString).orElse("?format?"),
@@ -196,9 +208,9 @@ class DocumentRepositoryTest {
       String id = invocation.getArgument(0);
       switch (id) {
         case TEST_ID_1:
-          return Mono.just(new DocumentEntity(TEST_ID_1, BASE64_STRING_GRAPH_1, FORMAT_1, SIGNATURE));
+          return Mono.just(new DocumentNode(TEST_ID_1, BASE64_STRING_GRAPH_1, FORMAT_1));
         case TEST_ID_2:
-          return Mono.just(new DocumentEntity(TEST_ID_2, BASE64_STRING_GRAPH_2, FORMAT_2, SIGNATURE));
+          return Mono.just(new DocumentNode(TEST_ID_2, BASE64_STRING_GRAPH_2, FORMAT_2));
         case null:
           return Mono.error(new IllegalArgumentException("Id can not be 'null'"));
         default:
@@ -206,11 +218,11 @@ class DocumentRepositoryTest {
       }
     });
 
-    StepVerifier.create(repository.getById(UUID.fromString(TEST_ID_1)))
+    StepVerifier.create(repository.getById(TEST_ID_1))
         .assertNext(doc -> {
           assertInstanceOf(Document.class, doc, "should return Document");
 
-          assertEquals(TEST_ID_1, doc.getId().map(UUID::toString).orElse("?uuid?"),
+          assertEquals(TEST_ID_1, doc.getId(),
               "should return document with exact id");
           assertEquals(BASE64_STRING_GRAPH_1, doc.getGraph(), "should return document with exact graph");
           assertEquals(FORMAT_1, doc.getFormat().map(Format::toString).orElse("?format?"),
@@ -226,9 +238,9 @@ class DocumentRepositoryTest {
       String id = invocation.getArgument(0);
       switch (id) {
         case TEST_ID_1:
-          return Mono.just(new DocumentEntity(TEST_ID_1, BASE64_STRING_GRAPH_1, FORMAT_1, SIGNATURE));
+          return Mono.just(new DocumentNode(TEST_ID_1, BASE64_STRING_GRAPH_1, FORMAT_1));
         case TEST_ID_2:
-          return Mono.just(new DocumentEntity(TEST_ID_2, BASE64_STRING_GRAPH_2, FORMAT_2, SIGNATURE));
+          return Mono.just(new DocumentNode(TEST_ID_2, BASE64_STRING_GRAPH_2, FORMAT_2));
         case null:
           return Mono.error(new IllegalArgumentException("Id can not be 'null'"));
         default:
@@ -236,15 +248,18 @@ class DocumentRepositoryTest {
       }
     });
 
-    StepVerifier.create(repository.getById(UUID.fromString("6f6fed6d-f5c3-44b3-bcca-db9453564122")))
-        .expectNextCount(0)
-        .verifyComplete();
+    StepVerifier.create(repository.getById("6f6fed6d-f5c3-44b3-bcca-db9453564122"))
+        .verifyErrorSatisfies(err -> {
+          assertInstanceOf(ApplicationException.class, err);
+          assertInstanceOf(NotFoundException.class, err);
+          assertEquals(err.getMessage(), "Document with id '6f6fed6d-f5c3-44b3-bcca-db9453564122' has not been found!");
+        });
   }
 
   @Test
   @DisplayName("ErrorPath - getById - should handle terminated IllegalArgumentException")
   void getById_should_handle_terminated_IllegalArgumentException() {
-    StepVerifier.create(repository.getById((UUID) null))
+    StepVerifier.create(repository.getById((String) null))
         .verifyErrorSatisfies(err -> {
           assertInstanceOf(
               InternalApplicationException.class, err,
@@ -254,11 +269,12 @@ class DocumentRepositoryTest {
               err.getMessage(),
               "should have exact error message");
 
-          assertInstanceOf(
-              IllegalArgumentException.class, err.getCause(),
-              "should be IllegalArgumentException - Exception cause");
-          assertNull(err.getCause().getMessage(),
-              "should have exact error message");
+          assertNull(err.getCause());
+          // assertInstanceOf(
+          // IllegalArgumentException.class, err.getCause(),
+          // "should be IllegalArgumentException - Exception cause");
+          // assertNull(err.getCause().getMessage(),
+          // "should have exact error message");
         });
   }
 
@@ -274,7 +290,7 @@ class DocumentRepositoryTest {
       }
     });
 
-    StepVerifier.create(repository.deleteById(UUID.fromString(TEST_ID_1)))
+    StepVerifier.create(repository.deleteById(TEST_ID_1))
         .expectNextCount(0)
         .verifyComplete();
   }
@@ -282,7 +298,7 @@ class DocumentRepositoryTest {
   @Test
   @DisplayName("ErrorPath - deleteById - should handle terminated IllegalArgumentException")
   void deleteById_should_handle_terminated_IllegalArgumentException() {
-    StepVerifier.create(repository.deleteById((UUID) null))
+    StepVerifier.create(repository.deleteById((String) null))
         .verifyErrorSatisfies(err -> {
           assertInstanceOf(
               InternalApplicationException.class, err,
@@ -291,12 +307,13 @@ class DocumentRepositoryTest {
               "Document Id can not be 'null'!",
               err.getMessage(),
               "should have exact error message");
+          assertNull(err.getCause());
 
-          assertInstanceOf(
-              IllegalArgumentException.class, err.getCause(),
-              "should be IllegalArgumentException - Exception cause");
-          assertNull(err.getCause().getMessage(),
-              "should have exact error message");
+          // assertInstanceOf(
+          // IllegalArgumentException.class, err.getCause(),
+          // "should be IllegalArgumentException - Exception cause");
+          // assertNull(err.getCause().getMessage(),
+          // "should have exact error message");
         });
   }
 }
