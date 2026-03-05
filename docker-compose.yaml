@@ -1,0 +1,92 @@
+services:
+  cpf-postgres:
+    image: postgres:18-alpine
+    container_name: cpf-tp-postgres
+    networks:
+      cpf-net:
+        aliases:
+          - postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: dbprov
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d dbprov -h 127.0.0.1 -p 5432 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - 5432:5432
+
+  cpf-neo4j:
+    image: neo4j:5.26-trixie
+    container_name: cpf-store-neo4j
+    networks:
+      - cpf-net
+    environment:
+      NEO4J_dbms_usage__report_enabled: false
+      NEO4J_AUTH: neo4j/cpm_neo4j_pwd
+    ports:
+      - "8082:7474"
+      - "7682:7687"
+    volumes:
+      - neo4j_data:/data
+    healthcheck:
+      test: ["CMD-SHELL", "cypher-shell -a bolt://localhost:7687 -u neo4j -p cpm_neo4j_pwd 'RETURN 1' || exit 1"]
+      interval: 10s
+      timeout: 10s
+      retries: 12
+
+  cpf-store:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: cpf-store-app
+    networks:
+      - cpf-net
+    depends_on:
+      cpf-neo4j:
+        condition: service_healthy
+      cpf-trusted-party:
+        condition: service_healthy
+    # healthcheck:
+    #   timeout: 5s
+    #   retries: 10
+    #   test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider localhost:8080/health/ || exit 1"]
+    environment:
+      NEO4J_URI: bolt://cpf-neo4j:7687
+      NEO4J_USERNAME: neo4j
+      NEO4J_PASSWORD: cpm_neo4j_pwd
+      STORE_URL: ${STORE_URL:?STORE_URL must be set (e.g. http://localhost:8081/api/v1/)}
+      TRUSTED_PARTY_URL: http://cpf-trusted-party:8020/api/v1/
+    ports:
+      - "8081:8080"
+
+  cpf-trusted-party:
+    build:
+      context: ./../CPF-Search-API/prov-storage/
+      dockerfile: Dockerfile.TrustedParty
+    container_name: cpf-trusted-party
+    networks:
+      - cpf-net
+    ports:
+      - 8083:8020
+    depends_on:
+      cpf-postgres:
+        condition: service_healthy
+        restart: true
+    healthcheck:
+      timeout: 5s
+      retries: 10
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider localhost:8020/health/ || exit 1"]
+
+volumes:
+  postgres_data:
+  neo4j_data:
+
+networks:
+  cpf-net:
+    name: cpf-net
+    driver: bridge
