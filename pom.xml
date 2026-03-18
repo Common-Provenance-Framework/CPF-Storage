@@ -30,7 +30,7 @@
   <properties>
     <java.version>25</java.version>
     <prov.ver>2.2.2</prov.ver>
-    <cpm.ver>1.0.0</cpm.ver>
+    <cpm.ver>2.2.0</cpm.ver>
     <springboot.ver>4.0.2</springboot.ver>
     <bouncycastle.ver>1.83</bouncycastle.ver>
     <jackson.ver>3.0.4</jackson.ver>
