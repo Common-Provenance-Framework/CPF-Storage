@@ -30,17 +30,13 @@ public class OrganizationNeo4jRepository implements OrganizationRepository {
   }
 
   @Override
-  public Mono<OrganizationNode> findById(String id) {
-    return client.findById(id);
+  public Mono<OrganizationNode> findByIdentifier(String identifier) {
+    return client.findByIdentifier(identifier)
+        .next();
   }
 
   @Override
-  public Mono<OrganizationNode> findByName(String name) {
-    return client.findByName(name);
-  }
-
-  @Override
-  public Mono<Void> deleteById(String id) {
-    return client.deleteById(id);
+  public Mono<Void> deleteByIdentifier(String identifier) {
+    return client.deleteById(identifier);
   }
 }

@@ -8,9 +8,8 @@ import java.util.stream.Stream;
 import org.commonprovenance.framework.store.common.dto.HasId;
 import org.commonprovenance.framework.store.persistence.finalizedProvComponent.model.relation.BelongsTo;
 import org.commonprovenance.framework.store.persistence.finalizedProvComponent.model.relation.WasIssuedBy;
-import org.jspecify.annotations.NonNull;
-import org.jspecify.annotations.Nullable;
 import org.springframework.data.annotation.PersistenceCreator;
+import org.springframework.data.neo4j.core.schema.GeneratedValue;
 import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
 import org.springframework.data.neo4j.core.schema.Property;
@@ -20,16 +19,25 @@ import org.springframework.data.neo4j.core.schema.Relationship;
 public class TokenNode implements HasId {
 
   @Id
-  private final @NonNull String id;
+  @GeneratedValue
+  private final String id;
 
   private final String hash;
   private final String signature;
 
-  @Property("originator_id")
-  private final String originatorId;
+  @Property("organization_identifier")
+  private final String organizationIdentifier;
 
-  @Property("additional_data")
-  private final String additionalData;
+  private final String bundle;
+
+  @Property("hash_function")
+  private final String hashFunction;
+
+  @Property("trusted_party_uri")
+  private final String trustedPartyUri;
+
+  @Property("trusted_party_certificate")
+  private final String trustedPartyCertificate;
 
   @Property("message_timestamp")
   private final Long messageTimestamp;
@@ -43,13 +51,17 @@ public class TokenNode implements HasId {
   @Relationship(type = "belongs_to", direction = Relationship.Direction.OUTGOING)
   private final List<BelongsTo> belongsTo;
 
+  // Constructor for full initialization (used by Neo4j when reading)
   @PersistenceCreator
   public TokenNode(
       String id,
       String hash,
       String signature,
-      String originatorId,
-      String additionalData,
+      String organizationIdentifier,
+      String bundle,
+      String hashFunction,
+      String trustedPartyUri,
+      String trustedPartyCertificate,
       Long messageTimestamp,
       Long tokenTimestamp,
       List<WasIssuedBy> wasIssuedBy,
@@ -57,8 +69,11 @@ public class TokenNode implements HasId {
     this.id = id;
     this.hash = hash;
     this.signature = signature;
-    this.originatorId = originatorId;
-    this.additionalData = additionalData;
+    this.organizationIdentifier = organizationIdentifier;
+    this.bundle = bundle;
+    this.hashFunction = hashFunction;
+    this.trustedPartyUri = trustedPartyUri;
+    this.trustedPartyCertificate = trustedPartyCertificate;
     this.messageTimestamp = messageTimestamp;
     this.tokenTimestamp = tokenTimestamp;
 
@@ -66,19 +81,25 @@ public class TokenNode implements HasId {
     this.belongsTo = belongsTo;
   }
 
+  // Constructor for creating new node (id will be generated)
   public TokenNode(
-      String id,
       String hash,
       String signature,
-      String originatorId,
-      String additionalData,
+      String organizationIdentifier,
+      String bundle,
+      String hashFunction,
+      String trustedPartyUri,
+      String trustedPartyCertificate,
       Long messageTimestamp,
       Long tokenTimestamp) {
-    this.id = id;
+    this.id = null;
     this.hash = hash;
     this.signature = signature;
-    this.originatorId = originatorId;
-    this.additionalData = additionalData;
+    this.organizationIdentifier = organizationIdentifier;
+    this.bundle = bundle;
+    this.hashFunction = hashFunction;
+    this.trustedPartyUri = trustedPartyUri;
+    this.trustedPartyCertificate = trustedPartyCertificate;
     this.messageTimestamp = messageTimestamp;
     this.tokenTimestamp = tokenTimestamp;
 
@@ -87,7 +108,7 @@ public class TokenNode implements HasId {
   }
 
   // Factory methods
-  public @NonNull TokenNode withTrustedParty(@Nullable TrustedPartyNode trustedPartyEntity) {
+  public TokenNode withTrustedParty(TrustedPartyNode trustedPartyEntity) {
     if (trustedPartyEntity == null) {
       return this;
     }
@@ -101,8 +122,11 @@ public class TokenNode implements HasId {
         this.getId(),
         this.getHash(),
         this.getSignature(),
-        this.getOriginatorId(),
-        this.getAdditionalData(),
+        this.getOrganizationIdentifier(),
+        this.getBundle(),
+        this.getHashFunction(),
+        this.getTrustedPartyUri(),
+        this.getTrustedPartyCertificate(),
         this.getMessageTimestamp(),
         this.getTokenTimestamp(),
         updatedWasIssuedBy,
@@ -110,21 +134,23 @@ public class TokenNode implements HasId {
   }
 
   // Wither method for Neo4j to set relationships
-  public @NonNull TokenNode withWasIssuedBy(@NonNull List<WasIssuedBy> wasIssuedBy) {
+  public TokenNode withWasIssuedBy(List<WasIssuedBy> wasIssuedBy) {
     return new TokenNode(
         this.getId(),
         this.getHash(),
         this.getSignature(),
-        this.getOriginatorId(),
-        this.getAdditionalData(),
+        this.getOrganizationIdentifier(),
+        this.getBundle(),
+        this.getHashFunction(),
+        this.getTrustedPartyUri(),
+        this.getTrustedPartyCertificate(),
         this.getMessageTimestamp(),
         this.getTokenTimestamp(),
         wasIssuedBy,
         this.getBelongsTo());
   }
 
-  // Factory methods
-  public @NonNull TokenNode withDocument(@Nullable DocumentNode documentEntity) {
+  public TokenNode withDocument(DocumentNode documentEntity) {
     if (documentEntity == null) {
       return this;
     }
@@ -138,21 +164,28 @@ public class TokenNode implements HasId {
         this.getId(),
         this.getHash(),
         this.getSignature(),
-        this.getOriginatorId(),
-        this.getAdditionalData(),
+        this.getOrganizationIdentifier(),
+        this.getBundle(),
+        this.getHashFunction(),
+        this.getTrustedPartyUri(),
+        this.getTrustedPartyCertificate(),
         this.getMessageTimestamp(),
         this.getTokenTimestamp(),
         this.getWasIssuedBy(),
         updatedBelongsTo);
   }
 
-  public @NonNull TokenNode withBelongsTo(@NonNull List<BelongsTo> belongsTo) {
+  // Wither method for Neo4j to set relationships
+  public TokenNode withBelongsTo(List<BelongsTo> belongsTo) {
     return new TokenNode(
         this.getId(),
         this.getHash(),
         this.getSignature(),
-        this.getOriginatorId(),
-        this.getAdditionalData(),
+        this.getOrganizationIdentifier(),
+        this.getBundle(),
+        this.getHashFunction(),
+        this.getTrustedPartyUri(),
+        this.getTrustedPartyCertificate(),
         this.getMessageTimestamp(),
         this.getTokenTimestamp(),
         this.getWasIssuedBy(),
@@ -171,12 +204,24 @@ public class TokenNode implements HasId {
     return signature;
   }
 
-  public String getOriginatorId() {
-    return originatorId;
+  public String getOrganizationIdentifier() {
+    return organizationIdentifier;
   }
 
-  public String getAdditionalData() {
-    return additionalData;
+  public String getBundle() {
+    return bundle;
+  }
+
+  public String getHashFunction() {
+    return hashFunction;
+  }
+
+  public String getTrustedPartyUri() {
+    return trustedPartyUri;
+  }
+
+  public String getTrustedPartyCertificate() {
+    return trustedPartyCertificate;
   }
 
   public Long getMessageTimestamp() {

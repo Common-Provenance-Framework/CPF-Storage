@@ -2,9 +2,8 @@ package org.commonprovenance.framework.store.persistence.finalizedProvComponent.
 
 import static org.commonprovenance.framework.store.common.publisher.PublisherHelper.MONO;
 
-import java.util.Optional;
-import java.util.UUID;
-
+import org.commonprovenance.framework.store.common.dto.HasOptionalFormat;
+import org.commonprovenance.framework.store.common.dto.HasOptionalIdentifier;
 import org.commonprovenance.framework.store.exceptions.InternalApplicationException;
 import org.commonprovenance.framework.store.model.Document;
 import org.commonprovenance.framework.store.model.Format;
@@ -17,65 +16,81 @@ import org.commonprovenance.framework.store.persistence.finalizedProvComponent.m
 import org.commonprovenance.framework.store.persistence.finalizedProvComponent.model.node.TrustedPartyNode;
 
 import reactor.core.publisher.Mono;
-import tools.jackson.databind.ObjectMapper;
 
 public class NodeFactory {
-  private static Mono<DocumentNode> fromModel(Document model) {
-    return Mono.just(model.getFormat())
-        .flatMap(MONO.makeSureNotNullWithMessage("Doucument format can not be null!"))
-        .flatMap(MONO.makeSure(Optional::isPresent, "Document format is missing!"))
-        .map(Optional::get)
-        .map((Format format) -> new DocumentNode(
-            model.getId(),
-            model.getGraph(),
-            format.toString()));
+
+  private static <T extends HasOptionalIdentifier> Mono<String> getIdentifier(T dto) {
+    return MONO.makeSureNotNull(dto)
+        .map(HasOptionalIdentifier::getIdentifier)
+        .flatMap(Mono::justOrEmpty)
+        .switchIfEmpty(
+            Mono.defer(() -> Mono.error(new InternalApplicationException("Document do not have valid identifier!"))));
+  }
+
+  private static <T extends HasOptionalFormat> Mono<String> getFormat(T dto) {
+    return MONO.makeSureNotNull(dto)
+        .map(HasOptionalFormat::getFormat)
+        .flatMap(Mono::justOrEmpty)
+        .map(Format::toString)
+        .switchIfEmpty(
+            Mono.defer(() -> Mono.error(new InternalApplicationException("Document do not have valid format"))));
+  }
+
+  private static DocumentNode fromModel(Document model) {
+    return new DocumentNode(model.getGraph());
   }
 
   private static OrganizationNode fromModel(Organization model) {
-    return new OrganizationNode(
-        model.getId().map(UUID::toString).orElse(UUID.randomUUID().toString()),
-        model.getName(),
+    OrganizationNode node = new OrganizationNode(
+        model.getIdentifier(),
         model.getClientCertificate(),
         model.getIntermediateCertificates());
+
+    return model.getId().map(node::withId)
+        .orElse(node);
   }
 
   private static TrustedPartyNode fromModel(TrustedParty model) {
-    return new TrustedPartyNode(
-        model.getId().map(UUID::toString).orElse(UUID.randomUUID().toString()),
+    TrustedPartyNode node = new TrustedPartyNode(
         model.getName(),
         model.getCertificate(),
         model.getUrl().orElse(null),
         model.getIsChecked(),
         model.getIsValid(),
         model.getIsDefault());
+
+    return model.getId().map(node::withId)
+        .orElse(node);
   }
 
-  private static Mono<TokenNode> fromModel(Token model) {
-    try {
-      return Mono.just(new TokenNode(
-          model.getId().map(UUID::toString).orElse(UUID.randomUUID().toString()),
-          model.getHash(),
-          model.getSignature(),
-          model.getAdditionalData().getOriginatorName(),
-          new ObjectMapper().writeValueAsString(model.getAdditionalData()),
-          model.getAdditionalData().getDocumentTimestamp(),
-          model.getCreatedOn()));
-
-    } catch (Exception e) {
-      return Mono.error(new InternalApplicationException("Can not create TokenEntity from Token"));
-    }
+  private static TokenNode fromModel(Token model) {
+    return new TokenNode(
+        model.getHash(),
+        model.getSignature(),
+        model.getAdditionalData().getOrganizationIdentifier(),
+        model.getAdditionalData().getBundle(),
+        model.getAdditionalData().getHashFunction(),
+        model.getAdditionalData().getTrustedPartyUri(),
+        model.getAdditionalData().getTrustedPartyCertificate(),
+        model.getAdditionalData().getDocumentTimestamp(),
+        model.getCreatedOn());
   }
 
   // ---
 
   public static Mono<DocumentNode> toEntity(Document document) {
     return MONO.makeSureNotNull(document)
-        .flatMap(NodeFactory::fromModel);
+        .map(NodeFactory::fromModel)
+        .flatMap(node -> NodeFactory.getIdentifier(document).map(node::withIdentifier))
+        .flatMap(node -> NodeFactory.getFormat(document).map(node::withFormat));
   }
 
   public static Mono<OrganizationNode> toEntity(Organization organization) {
-    return MONO.makeSureNotNull(organization)
-        .map(NodeFactory::fromModel);
+    return Mono.zip(
+        MONO.makeSureNotNull(organization).map(NodeFactory::fromModel),
+        Mono.justOrEmpty(organization.getTrustedParty()).map(NodeFactory::fromModel))
+        .map(t -> t.getT1().withTrustedParty(t.getT2()));
+
   }
 
   public static Mono<TrustedPartyNode> toEntity(TrustedParty trustedParty) {
@@ -85,7 +100,7 @@ public class NodeFactory {
 
   public static Mono<TokenNode> toEntity(Token token) {
     return MONO.makeSureNotNull(token)
-        .flatMap(NodeFactory::fromModel)
+        .map(NodeFactory::fromModel)
         .flatMap(entity -> NodeFactory.toEntity(token.getTrustedParty()).map(entity::withTrustedParty))
         .flatMap(entity -> NodeFactory.toEntity(token.getDocument()).map(entity::withDocument));
   }

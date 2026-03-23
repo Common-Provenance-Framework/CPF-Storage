@@ -1,22 +1,20 @@
 package org.commonprovenance.framework.store.controller.dto.form;
 
 import org.commonprovenance.framework.store.common.dto.HasDocumentFormat;
-import org.commonprovenance.framework.store.common.dto.HasOrganizationId;
+import org.commonprovenance.framework.store.common.dto.HasOrganizationIdentifier;
 import org.commonprovenance.framework.store.controller.validator.IsBase64String;
 import org.commonprovenance.framework.store.controller.validator.IsJsonBase64;
 import org.commonprovenance.framework.store.controller.validator.IsProvBase64Json;
-import org.commonprovenance.framework.store.controller.validator.IsUUID;
 import org.commonprovenance.framework.store.controller.validator.IsValueOfEnum;
 import org.commonprovenance.framework.store.model.Format;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
-public class DocumentFormDTO implements HasDocumentFormat, HasOrganizationId<DocumentFormDTO> {
+public class DocumentFormDTO implements HasDocumentFormat, HasOrganizationIdentifier<DocumentFormDTO> {
 
-  @NotBlank(message = "OrganizationId should not be null or empty.")
-  @IsUUID(message = "OrganizationId should be a valid UUID.")
-  private final String organizationId;
+  @NotBlank(message = "OrganizationIdentifier should not be null or empty.")
+  private final String organizationIdentifier;
 
   @NotBlank(message = "Document should not be null or empty.")
   @IsBase64String(message = "Document should be Base64 string.")
@@ -34,26 +32,30 @@ public class DocumentFormDTO implements HasDocumentFormat, HasOrganizationId<Doc
   @NotNull(message = "CreatedOn should not be null.")
   private final Long createdOn;
 
-  public DocumentFormDTO(String organizationId, String document, String documentFormat, String signature,
+  public DocumentFormDTO(
+      String organizationIdentifier,
+      String document,
+      String documentFormat,
+      String signature,
       Long createdOn) {
-    this.organizationId = organizationId;
+    this.organizationIdentifier = organizationIdentifier;
     this.document = document;
     this.documentFormat = documentFormat;
     this.signature = signature;
     this.createdOn = createdOn;
   }
 
-  public DocumentFormDTO withOrganizationId(String organizationId) {
+  public DocumentFormDTO withOrganizationIdentifier(String organizationIdentifier) {
     return new DocumentFormDTO(
-        organizationId,
+        organizationIdentifier,
         this.getDocument(),
         this.getDocumentFormat(),
         this.getSignature(),
         this.getCreatedOn());
   }
 
-  public String getOrganizationId() {
-    return organizationId;
+  public String getOrganizationIdentifier() {
+    return organizationIdentifier;
   }
 
   public String getDocument() {

@@ -1,7 +1,5 @@
 package org.commonprovenance.framework.store.service.persistence.finalizedProvComponent;
 
-import java.util.UUID;
-
 import org.commonprovenance.framework.store.model.TrustedParty;
 
 import jakarta.validation.constraints.NotNull;
@@ -18,7 +16,7 @@ public interface TrustedPartyService {
   Mono<TrustedParty> getDefaultTrustedParty();
 
   @NotNull
-  Mono<TrustedParty> getTrustedPartyById(@NotNull UUID id);
+  Mono<TrustedParty> getTrustedPartyById(@NotNull String id);
 
   @NotNull
   Mono<TrustedParty> getTrustedPartyByName(@NotNull String name);

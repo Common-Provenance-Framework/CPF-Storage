@@ -5,13 +5,13 @@ import static org.commonprovenance.framework.store.common.publisher.PublisherHel
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
-import java.util.function.Function;
 import java.util.function.UnaryOperator;
 
 import org.commonprovenance.framework.store.common.composition.MonoidComposition;
 import org.commonprovenance.framework.store.common.dto.HasCreatedOn;
 import org.commonprovenance.framework.store.common.dto.HasDocument;
 import org.commonprovenance.framework.store.common.dto.HasOrganizationId;
+import org.commonprovenance.framework.store.common.dto.HasSignature;
 import org.commonprovenance.framework.store.model.Document;
 import org.commonprovenance.framework.store.model.Format;
 import org.commonprovenance.framework.store.model.GraphType;
@@ -24,45 +24,12 @@ import org.commonprovenance.framework.store.web.trustedParty.dto.form.IssueToken
 import reactor.core.publisher.Mono;
 
 public class DTOFactory {
-  // private static UnaryOperator<RegisterOrganizationTPFormDTO>
-  // organizationFormFromOrganizationModel(
-  // Organization model) {
-  // return form -> Optional.ofNullable(model)
-  // .map(organization -> new RegisterOrganizationTPFormDTO(
-  // model.getName(),
-  // model.getClientCertificate(),
-  // model.getIntermediateCertificates()))
-  // .orElse(form);
-  // }
 
   private static <T extends HasCreatedOn<T>> UnaryOperator<T> addCreatedOn() {
     return (T form) -> form.withCreatedOn(Instant.now().getEpochSecond());
   }
 
-  private static <T extends HasOrganizationId<T>> UnaryOperator<T> addOrganizationId(Organization model) {
-    return (T form) -> Optional.ofNullable(model)
-        .map(Organization::getName)
-        .flatMap(Optional::ofNullable)
-        .map(form::withOrganizationId)
-        .orElse(form);
-  }
-
-  private static <T extends HasDocument<T>> UnaryOperator<T> addGraph(Document model) {
-    return (T form) -> Optional.ofNullable(model)
-        .map(Document::getGraph)
-        .flatMap(Optional::ofNullable)
-        .map(form::withDocument)
-        .orElse(form);
-  }
-
-  private static UnaryOperator<IssueTokenTPFormDTO> tokenFormFromGraphTypeModel(GraphType graphType) {
-    return form -> Optional.ofNullable(graphType)
-        .map(GraphType::toString)
-        .map(form::withGraphType)
-        .orElse(form);
-  }
-
-  private static UnaryOperator<IssueTokenTPFormDTO> tokenFormAddFormatfromDocumentModel(Document model) {
+  private static UnaryOperator<IssueTokenTPFormDTO> addFormatfromDocumentModel(Document model) {
     return form -> Optional
         .ofNullable(model)
         .flatMap(Document::getFormat)
@@ -72,71 +39,61 @@ public class DTOFactory {
         .orElse(form);
   }
 
-  private static UnaryOperator<IssueTokenTPFormDTO> tokenFormAddOrganizationIdfromDocumentModel(Document model) {
-    Function<Document, UnaryOperator<IssueTokenTPFormDTO>> addFormat = document -> form -> Optional
-        .ofNullable(document)
-        .map(Document::getOrganizationName)
-        .map(form::withOrganizationId)
-        .orElse(form);
+  // private static UnaryOperator<IssueTokenTPFormDTO>
+  // addOrganizationIdentifierfromDocumentModel(Document model) {
+  // return form -> Optional
+  // .ofNullable(model)
+  // .flatMap(Document::getOrganizationIdentifier)
+  // .map(form::withOrganizationIdentifier)
+  // .orElse(form);
+  // }
 
-    Function<Document, UnaryOperator<IssueTokenTPFormDTO>> addSignature = document -> form -> Optional
-        .ofNullable(document)
+  private static <T extends HasSignature<T>> UnaryOperator<T> addSignatureFromDocumentModel(Document model) {
+    return form -> Optional
+        .ofNullable(model)
         .map(Document::getSignature)
         .flatMap(Optional::ofNullable)
         .map(form::withSignature)
         .orElse(form);
-
-    return MonoidComposition.composeOperators(List.of(
-        addGraph(model),
-        addFormat.apply(model),
-        addSignature.apply(model)));
   }
 
-  private static UnaryOperator<VerifySignatureTPFormDTO> verifySigFormFromDocumentModel(Document model) {
-    Function<Document, UnaryOperator<VerifySignatureTPFormDTO>> fromTokenSig = document -> form -> Optional
-        .ofNullable(document)
-        .map(Document::getSignature)
-        .flatMap(Optional::ofNullable)
-        .map(form::withSignature)
+  private static UnaryOperator<IssueTokenTPFormDTO> addTypeFromGraphType(GraphType graphType) {
+    return form -> Optional
+        .ofNullable(graphType)
+        .map(GraphType::toString)
+        .map(String::toLowerCase)
+        .map(form::withGraphType)
         .orElse(form);
-
-    return MonoidComposition.composeOperators(List.of(
-        addGraph(model),
-        fromTokenSig.apply(model)));
   }
 
   // ---
 
   public static Mono<IssueTokenTPFormDTO> toForm(Document document, GraphType graphType) {
-    Function<GraphType, UnaryOperator<IssueTokenTPFormDTO>> addGrapType = type -> form -> Optional
-        .ofNullable(type)
-        .map(GraphType::toString)
-        .map(String::toLowerCase)
-        .map(form::withGraphType)
-        .orElse(form);
 
     return Mono.justOrEmpty(MonoidComposition.compose(
         new IssueTokenTPFormDTO(),
         List.of(
-            tokenFormAddFormatfromDocumentModel(document),
-            tokenFormAddOrganizationIdfromDocumentModel(document),
-            addGrapType.apply(graphType),
+            HasOrganizationId.addIdentifier(document),
+            HasDocument.addGraph(document),
+            addFormatfromDocumentModel(document),
+            addSignatureFromDocumentModel(document),
+            addTypeFromGraphType(graphType),
             addCreatedOn())))
         .flatMap(MONO::validateDTO);
   }
 
-  public static Mono<RegisterOrganizationTPFormDTO> toForm(Organization model) {
+  public static Mono<RegisterOrganizationTPFormDTO> toForm(Organization organization) {
     return Mono.justOrEmpty(new RegisterOrganizationTPFormDTO(
-        model.getName(),
-        model.getClientCertificate(),
-        model.getIntermediateCertificates()))
+        organization.getIdentifier(),
+        organization.getClientCertificate(),
+        organization.getIntermediateCertificates()))
         .flatMap(MONO::validateDTO);
   }
 
-  public static Mono<UpdateOrganizationTPFormDTO> toUpdateForm(Organization model) {
+  public static Mono<UpdateOrganizationTPFormDTO> toUpdateForm(Organization organization) {
     return Mono.justOrEmpty(new UpdateOrganizationTPFormDTO(
-        model.getClientCertificate(),
-        model.getIntermediateCertificates()))
+        organization.getClientCertificate(),
+        organization.getIntermediateCertificates()))
         .flatMap(MONO::validateDTO);
   }
 
@@ -144,8 +101,9 @@ public class DTOFactory {
     return Mono.justOrEmpty(MonoidComposition.compose(
         new VerifySignatureTPFormDTO(),
         List.of(
-            addOrganizationId(organization),
-            verifySigFormFromDocumentModel(document))))
+            HasOrganizationId.addIdentifier(organization),
+            HasDocument.addGraph(document),
+            HasSignature.addSignature(document))))
         .flatMap(MONO::validateDTO);
   }
 }

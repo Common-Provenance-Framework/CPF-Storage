@@ -1,7 +1,5 @@
 package org.commonprovenance.framework.store.persistence.finalizedProvComponent;
 
-import java.util.UUID;
-
 import org.commonprovenance.framework.store.model.TrustedParty;
 
 import jakarta.validation.constraints.NotNull;
@@ -20,7 +18,7 @@ public interface TrustedPartyPersistence {
   Flux<TrustedParty> getAll();
 
   @NotNull
-  Mono<TrustedParty> getById(@NotNull UUID id);
+  Mono<TrustedParty> getById(@NotNull String id);
 
   @NotNull
   Mono<TrustedParty> getDefault();
@@ -29,5 +27,5 @@ public interface TrustedPartyPersistence {
   Mono<TrustedParty> getByName(@NotNull String name);
 
   @NotNull
-  Mono<Void> deleteById(@NotNull UUID id);
+  Mono<Void> deleteById(@NotNull String id);
 }

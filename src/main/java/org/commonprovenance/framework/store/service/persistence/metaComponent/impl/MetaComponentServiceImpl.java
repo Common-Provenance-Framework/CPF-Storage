@@ -292,7 +292,7 @@ public class MetaComponentServiceImpl implements MetaComponentService {
 
           tokenEntity.getOther().add(provFactory.newOther(
               cpmProvFactory.newCpmQualifiedName("originatorId"),
-              tokenModel.getAdditionalData().getOriginatorName(),
+              tokenModel.getAdditionalData().getOrganizationIdentifier(),
               provFactory.getName().XSD_STRING));
 
           tokenEntity.getOther().add(provFactory.newOther(

@@ -51,7 +51,8 @@ public class TrustedPartyClientImpl implements TrustedPartyClient {
   @Override
   public Function<Document, Mono<Boolean>> verifySignature(Organization organization) {
     return (Document document) -> DTOFactory.toForm(organization, document)
-        .flatMap(organization.getTrustedParty().getUrl()
+        .flatMap(organization.getTrustedParty()
+            .flatMap(TrustedParty::getUrl)
             .map(this.client::buildWebClient)
             .map(this.client.sendCustomPostRequest("/verifySignature", Void.class))
             .orElse(this.client.sendPostRequest("/verifySignature", Void.class)))

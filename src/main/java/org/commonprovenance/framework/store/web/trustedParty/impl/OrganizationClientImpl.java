@@ -32,9 +32,9 @@ public class OrganizationClientImpl implements OrganizationClient {
         .flatMap(DTOFactory::toForm)
         .flatMap(trustedPartyUrl
             .map(this.client::buildWebClient)
-            .map(this.client.sendCustomPostRequest("/organizations/" + organization.getName(),
+            .map(this.client.sendCustomPostRequest("/organizations/" + organization.getIdentifier(),
                 Void.class))
-            .orElse(this.client.sendPostRequest("/organizations/" + organization.getName(),
+            .orElse(this.client.sendPostRequest("/organizations/" + organization.getIdentifier(),
                 Void.class)))
         .thenReturn(organization);
   }

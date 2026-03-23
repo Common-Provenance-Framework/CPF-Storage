@@ -28,12 +28,12 @@ public class TokenServiceImpl implements TokenService {
   }
 
   @NotNull
-  public Mono<Token> getTokenById(@NotNull java.util.UUID id) {
+  public Mono<Token> getTokenById(@NotNull String id) {
     return this.persistence.getById(id);
   }
 
   @NotNull
-  public Mono<Void> deleteTokenById(@NotNull java.util.UUID id) {
+  public Mono<Void> deleteTokenById(@NotNull String id) {
     return this.persistence.deleteById(id);
   }
 }

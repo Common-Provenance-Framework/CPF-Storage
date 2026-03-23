@@ -27,9 +27,9 @@ public class RegisterOrganizationTPFormDTO extends ValidatableDTO
   }
 
   @Override
-  public RegisterOrganizationTPFormDTO withOrganizationId(String id) {
+  public RegisterOrganizationTPFormDTO withOrganizationId(String organizationId) {
     return new RegisterOrganizationTPFormDTO(
-        id,
+        organizationId,
         this.getClientCertificate(),
         this.getIntermediateCertificates());
   }

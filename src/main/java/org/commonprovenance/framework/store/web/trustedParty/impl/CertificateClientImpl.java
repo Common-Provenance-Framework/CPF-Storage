@@ -48,8 +48,8 @@ public class CertificateClientImpl implements CertificateClient {
     return (@NotNull Organization organization) -> DTOFactory.toUpdateForm(organization)
         .flatMap(trustedPartyUrl
             .map(this.client::buildWebClient)
-            .map(this.client.sendCustomPutRequest(getUri(organization.getName()), Void.class))
-            .orElse(this.client.sendPutRequest(getUri(organization.getName()), Void.class)))
+            .map(this.client.sendCustomPutRequest(getUri(organization.getIdentifier()), Void.class))
+            .orElse(this.client.sendPutRequest(getUri(organization.getIdentifier()), Void.class)))
         .thenReturn(organization);
   }
 

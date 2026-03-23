@@ -19,7 +19,7 @@ public class DocumentDummyRepository implements DocumentRepository {
   private static Map<String, DocumentNode> documents = new HashMap<>();
 
   private void add(DocumentNode entity) {
-    documents.put(entity.getId(), entity);
+    documents.put(entity.getIdentifier(), entity);
   }
 
   @Override
@@ -34,15 +34,15 @@ public class DocumentDummyRepository implements DocumentRepository {
   }
 
   @Override
-  public Mono<DocumentNode> findById(String id) {
-    return MONO.makeSureNotNull(id)
+  public Mono<DocumentNode> findByIdentifier(String identifier) {
+    return MONO.makeSureNotNull(identifier)
         .map(documents::get)
         .flatMap(MONO::makeSureNotNull);
   }
 
   @Override
-  public Mono<Void> deleteById(String id) {
-    return MONO.makeSureNotNull(id)
+  public Mono<Void> deleteByIdentifier(String identifier) {
+    return MONO.makeSureNotNull(identifier)
         .map(documents::remove)
         .then();
   }

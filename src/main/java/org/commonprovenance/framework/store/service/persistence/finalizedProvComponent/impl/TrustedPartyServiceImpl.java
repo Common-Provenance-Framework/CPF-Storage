@@ -44,8 +44,8 @@ public class TrustedPartyServiceImpl implements TrustedPartyService {
 
   @Override
   @NotNull
-  public Mono<TrustedParty> getTrustedPartyById(@NotNull UUID id) {
-    return MONO.<UUID>makeSureNotNullWithMessage("TrustedParty id can not be null").apply(id)
+  public Mono<TrustedParty> getTrustedPartyById(@NotNull String id) {
+    return MONO.<String>makeSureNotNullWithMessage("TrustedParty id can not be null").apply(id)
         .flatMap(this.persistence::getById);
   }
 

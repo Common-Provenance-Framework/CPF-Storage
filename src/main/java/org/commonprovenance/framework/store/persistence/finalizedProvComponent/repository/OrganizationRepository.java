@@ -10,9 +10,7 @@ public interface OrganizationRepository {
 
   Flux<OrganizationNode> findAll();
 
-  Mono<OrganizationNode> findById(String id);
+  Mono<OrganizationNode> findByIdentifier(String identifier);
 
-  Mono<OrganizationNode> findByName(String name);
-
-  Mono<Void> deleteById(String id);
+  Mono<Void> deleteByIdentifier(String identifier);
 }

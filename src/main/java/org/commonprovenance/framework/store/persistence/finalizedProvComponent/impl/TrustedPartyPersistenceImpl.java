@@ -11,12 +11,14 @@ import org.commonprovenance.framework.store.persistence.finalizedProvComponent.T
 import org.commonprovenance.framework.store.persistence.finalizedProvComponent.model.factory.NodeFactory;
 import org.commonprovenance.framework.store.persistence.finalizedProvComponent.repository.TrustedPartyRepository;
 import org.springframework.stereotype.Component;
+import org.springframework.validation.annotation.Validated;
 
 import jakarta.validation.constraints.NotNull;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @Component
+@Validated
 public class TrustedPartyPersistenceImpl implements TrustedPartyPersistence {
 
   private final TrustedPartyRepository repository;
@@ -55,9 +57,8 @@ public class TrustedPartyPersistenceImpl implements TrustedPartyPersistence {
 
   @Override
   @NotNull
-  public Mono<TrustedParty> getById(@NotNull UUID id) {
-    return MONO.<UUID>makeSureNotNullWithMessage("TrustedParty Id can not be 'null'!").apply(id)
-        .map(UUID::toString)
+  public Mono<TrustedParty> getById(@NotNull String id) {
+    return MONO.<String>makeSureNotNullWithMessage("TrustedParty Id can not be 'null'!").apply(id)
         .flatMap(repository::findById)
         .onErrorResume(MONO.exceptionWrapper("TrustedPartyPersistence - Error while reading trusted party"))
         .switchIfEmpty(Mono.error(new NotFoundException("TrustedParty with id '" + id + "' not found!")))
@@ -75,9 +76,8 @@ public class TrustedPartyPersistenceImpl implements TrustedPartyPersistence {
 
   @Override
   @NotNull
-  public Mono<Void> deleteById(@NotNull UUID uuid) {
-    return MONO.<UUID>makeSureNotNullWithMessage("TrustedParty Id can not be 'null'!").apply(uuid)
-        .map(UUID::toString)
+  public Mono<Void> deleteById(@NotNull String uuid) {
+    return MONO.<String>makeSureNotNullWithMessage("TrustedParty Id can not be 'null'!").apply(uuid)
         .flatMap(repository::deleteById)
         .onErrorResume(MONO.exceptionWrapper("TrustedPartyPersistence - Error while reading TrustedParty"));
   }

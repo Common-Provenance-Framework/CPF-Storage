@@ -2,8 +2,6 @@ package org.commonprovenance.framework.store.persistence.finalizedProvComponent.
 
 import static org.commonprovenance.framework.store.common.publisher.PublisherHelper.MONO;
 
-import java.util.UUID;
-
 import org.commonprovenance.framework.store.exceptions.NotFoundException;
 import org.commonprovenance.framework.store.model.Organization;
 import org.commonprovenance.framework.store.model.factory.ModelFactory;
@@ -11,12 +9,14 @@ import org.commonprovenance.framework.store.persistence.finalizedProvComponent.O
 import org.commonprovenance.framework.store.persistence.finalizedProvComponent.model.factory.NodeFactory;
 import org.commonprovenance.framework.store.persistence.finalizedProvComponent.repository.OrganizationRepository;
 import org.springframework.stereotype.Component;
+import org.springframework.validation.annotation.Validated;
 
 import jakarta.validation.constraints.NotNull;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @Component
+@Validated
 public class OrganizationPersistenceImpl implements OrganizationPersistence {
 
   private final OrganizationRepository repository;
@@ -30,10 +30,7 @@ public class OrganizationPersistenceImpl implements OrganizationPersistence {
   @NotNull
   public Mono<Organization> create(@NotNull Organization organization) {
     return MONO.<Organization>makeSureNotNullWithMessage("Organization can not be 'null'!").apply(organization)
-        .flatMap(org -> Mono.zip(
-            NodeFactory.toEntity(org),
-            NodeFactory.toEntity(org.getTrustedParty())))
-        .map(tuple -> tuple.getT1().withTrustedParty(tuple.getT2()))
+        .flatMap(NodeFactory::toEntity)
         .flatMap(repository::save)
         .onErrorResume(MONO.exceptionWrapper("OrganizationPersistence - Error while creating new Organization"))
         .flatMap(ModelFactory::toDomain);
@@ -58,32 +55,19 @@ public class OrganizationPersistenceImpl implements OrganizationPersistence {
 
   @Override
   @NotNull
-  public Mono<Organization> getById(@NotNull UUID id) {
-    return MONO.<UUID>makeSureNotNullWithMessage("Organization Id can not be 'null'!").apply(id)
-        .map(UUID::toString)
-        .flatMap(repository::findById)
+  public Mono<Organization> getByIdentifier(@NotNull String identifier) {
+    return MONO.<String>makeSureNotNullWithMessage("Organization identifier can not be 'null'!").apply(identifier)
+        .flatMap(repository::findByIdentifier)
         .onErrorResume(MONO.exceptionWrapper("DocumentNeo4jRepository - Error while reading document"))
-        .switchIfEmpty(Mono.error(new NotFoundException("Organization with id '" + id + "' not found!")))
-        .flatMap(ModelFactory::toDomain);
-  }
-
-  @Override
-  public @NotNull Mono<Organization> getByName(@NotNull String name) {
-    return MONO.<String>makeSureNotNullWithMessage("Organization name can not be 'null'!").apply(name)
-        .flatMap(repository::findByName)
-        .onErrorResume(
-            MONO.exceptionWrapper(e -> "OrganizationPersistence - Error while reading organization by name: " + name
-                + ". Message: " + e.getMessage()))
-        .switchIfEmpty(Mono.error(new NotFoundException("Organization with name '" + name + "' not found!")))
+        .switchIfEmpty(Mono.error(new NotFoundException("Organization with id '" + identifier + "' not found!")))
         .flatMap(ModelFactory::toDomain);
   }
 
   @Override
   @NotNull
-  public Mono<Void> deleteById(@NotNull UUID uuid) {
-    return MONO.<UUID>makeSureNotNullWithMessage("Organization Id can not be 'null'!").apply(uuid)
-        .map(UUID::toString)
-        .flatMap(repository::deleteById)
+  public Mono<Void> deleteByIdentifier(@NotNull String identifier) {
+    return MONO.<String>makeSureNotNullWithMessage("Organization identifier can not be 'null'!").apply(identifier)
+        .flatMap(repository::deleteByIdentifier)
         .onErrorResume(MONO.exceptionWrapper("DocumentNeo4jRepository - Error while reading document"));
   }
 

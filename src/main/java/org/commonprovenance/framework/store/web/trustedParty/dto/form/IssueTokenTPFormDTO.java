@@ -5,11 +5,12 @@ import java.time.Instant;
 import org.commonprovenance.framework.store.common.dto.HasCreatedOn;
 import org.commonprovenance.framework.store.common.dto.HasDocument;
 import org.commonprovenance.framework.store.common.dto.HasOrganizationId;
+import org.commonprovenance.framework.store.common.dto.HasSignature;
 import org.commonprovenance.framework.store.common.validation.ValidatableDTO;
 
 public class IssueTokenTPFormDTO extends ValidatableDTO
     implements HasOrganizationId<IssueTokenTPFormDTO>, HasDocument<IssueTokenTPFormDTO>,
-    HasCreatedOn<IssueTokenTPFormDTO> {
+    HasSignature<IssueTokenTPFormDTO>, HasCreatedOn<IssueTokenTPFormDTO> {
   private final String organizationId;
   private final String document;
   private final String documentFormat;
@@ -42,9 +43,9 @@ public class IssueTokenTPFormDTO extends ValidatableDTO
   }
 
   @Override
-  public IssueTokenTPFormDTO withOrganizationId(String id) {
+  public IssueTokenTPFormDTO withOrganizationId(String organizationId) {
     return new IssueTokenTPFormDTO(
-        id,
+        organizationId,
         this.getDocument(),
         this.getDocumentFormat(),
         this.getSignature(),
@@ -53,10 +54,10 @@ public class IssueTokenTPFormDTO extends ValidatableDTO
   }
 
   @Override
-  public IssueTokenTPFormDTO withDocument(String graph) {
+  public IssueTokenTPFormDTO withDocument(String document) {
     return new IssueTokenTPFormDTO(
         this.getOrganizationId(),
-        graph,
+        document,
         this.getDocumentFormat(),
         this.getSignature(),
         this.getType(),

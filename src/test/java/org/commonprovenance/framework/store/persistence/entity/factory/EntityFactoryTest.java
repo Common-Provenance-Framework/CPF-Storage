@@ -2,8 +2,6 @@ package org.commonprovenance.framework.store.persistence.entity.factory;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import java.util.UUID;
-
 import org.commonprovenance.framework.store.model.Document;
 import org.commonprovenance.framework.store.model.Format;
 import org.commonprovenance.framework.store.persistence.finalizedProvComponent.model.factory.NodeFactory;
@@ -20,22 +18,20 @@ class EntityFactoryTest {
   void should_map_Document_to_DocumentEntity() {
     String testId = "6ee9d79b-0615-4cb1-b0f3-2303d10c8cff";
     String organizationId = "6ee9d79b-0615-4cb1-b0f3-2303d10c8cff";
-    String orgName = "ORG1";
     String base64StringGraph = "AAAAQQAAAGIAAAByAAAAYQAAAGsAAABhAAAAIAAAAEQAAABhAAAAYgAAAHIAAABhAAAALgAAAC4=";
     String format = "JSON";
     String signature = "...";
 
     Document document = new Document(
         testId,
-        UUID.fromString(organizationId),
-        orgName,
+        organizationId,
         base64StringGraph,
         Format.from(format).get(),
         signature);
 
     StepVerifier.create(NodeFactory.toEntity(document))
         .assertNext(entity -> {
-          assertEquals(testId, entity.getId());
+          assertEquals(testId, entity.getIdentifier());
           assertEquals(base64StringGraph, entity.getGraph());
           assertEquals(format, entity.getFormat());
         })

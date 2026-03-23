@@ -5,7 +5,6 @@ import static org.commonprovenance.framework.store.common.publisher.PublisherHel
 import java.util.HashMap;
 import java.util.Map;
 
-import org.commonprovenance.framework.store.exceptions.NotFoundException;
 import org.commonprovenance.framework.store.persistence.finalizedProvComponent.model.node.OrganizationNode;
 import org.commonprovenance.framework.store.persistence.finalizedProvComponent.repository.OrganizationRepository;
 import org.springframework.context.annotation.Profile;
@@ -20,7 +19,7 @@ public class OrganizationDummyRepository implements OrganizationRepository {
   private static Map<String, OrganizationNode> organizations = new HashMap<>();
 
   private void add(OrganizationNode entity) {
-    organizations.put(entity.getId(), entity);
+    organizations.put(entity.getIdentifier(), entity);
   }
 
   @Override
@@ -35,25 +34,15 @@ public class OrganizationDummyRepository implements OrganizationRepository {
   }
 
   @Override
-  public Mono<OrganizationNode> findById(String id) {
-    return MONO.makeSureNotNull(id)
+  public Mono<OrganizationNode> findByIdentifier(String identifier) {
+    return MONO.makeSureNotNull(identifier)
         .map(organizations::get)
         .flatMap(MONO::makeSureNotNull);
   }
 
   @Override
-  public Mono<OrganizationNode> findByName(String name) {
-    return MONO.makeSureNotNull(name)
-        .thenMany(this.findAll())
-        .filter(o -> o.getName().equals(name))
-        .singleOrEmpty()
-        .onErrorResume(MONO.exceptionWrapper("OrganizationPersistence - Error while reading organization by name"))
-        .switchIfEmpty(Mono.error(new NotFoundException("Organization with name '" + name + "' not found!")));
-  }
-
-  @Override
-  public Mono<Void> deleteById(String id) {
-    return MONO.makeSureNotNull(id)
+  public Mono<Void> deleteByIdentifier(String identifier) {
+    return MONO.makeSureNotNull(identifier)
         .map(organizations::remove)
         .then();
   }

@@ -8,8 +8,6 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.util.UUID;
-
 import org.commonprovenance.framework.store.model.Document;
 import org.commonprovenance.framework.store.model.Format;
 import org.commonprovenance.framework.store.persistence.finalizedProvComponent.impl.DocumentPersistenceImpl;
@@ -38,7 +36,6 @@ class DocumentRepositorySpec {
 
   private final String TEST_ID_1 = "e3cf8742-b595-47f4-8aae-a1e94b62a856";
   private final String TEST_ORG_ID_2 = "6ee9d79b-0615-4cb1-b0f3-2303d10c8cff";
-  private final String ORG_NAME = "ORG1";
   private final String BASE64_STRING_GRAPH_1 = "AAAAQQAAAGIAAAByAAAAYQAAAGsAAABhAAAAIAAAAEQAAABhAAAAYgAAAHIAAABhAAAALgAAAC4=";
   private final String FORMAT_1 = "JSON";
   private final String SIGNATURE = "..";
@@ -53,8 +50,7 @@ class DocumentRepositorySpec {
   void created_should_call_save_method_with_exact_paramters() {
     Document doucment = new Document(
         TEST_ID_1,
-        UUID.fromString(TEST_ORG_ID_2),
-        ORG_NAME,
+        TEST_ORG_ID_2,
         BASE64_STRING_GRAPH_1,
         Format.from(FORMAT_1).get(),
         SIGNATURE);
@@ -76,7 +72,7 @@ class DocumentRepositorySpec {
         .save(captor.capture());
 
     DocumentNode capturedEntity = captor.getValue();
-    assertTrue(capturedEntity.getId().equals(TEST_ID_1)
+    assertTrue(capturedEntity.getIdentifier().equals(TEST_ID_1)
         && capturedEntity.getGraph().equals(BASE64_STRING_GRAPH_1)
         && capturedEntity.getFormat().equals(FORMAT_1),
         "should be called with exact entity");
@@ -99,11 +95,11 @@ class DocumentRepositorySpec {
   }
 
   @Test
-  @DisplayName("GetById - should call findById method with exact parameters")
-  void getById_should_call_findById_method_with_exact_paramters() {
-    when(documentRepository.findById(anyString())).thenReturn(Mono.empty());
+  @DisplayName("GetByIdentifier - should call findByIdentifier method with exact parameters")
+  void getByIdentifier_should_call_findByIdentifier_method_with_exact_paramters() {
+    when(documentRepository.findByIdentifier(anyString())).thenReturn(Mono.empty());
 
-    StepVerifier.create(documentPersistence.getById(TEST_ID_1))
+    StepVerifier.create(documentPersistence.getByIdentifier(TEST_ID_1))
         // .expectNextCount(0)
         .verifyError();
 
@@ -111,18 +107,18 @@ class DocumentRepositorySpec {
     verify(
         documentRepository,
         times(1)
-            .description("Repository findById method should be invoked once"))
-        .findById(captor.capture());
+            .description("Repository findByIdentifier method should be invoked once"))
+        .findByIdentifier(captor.capture());
 
     assertEquals(TEST_ID_1, captor.getValue(), "Repository findById method should be invoked with exact argument");
   }
 
   @Test
-  @DisplayName("DeleteById - should call deleteById method with exact parameters")
+  @DisplayName("DeleteByIdentifier - should call deleteByIdentifier method with exact parameters")
   void deleteById_should_call_deleteById_method_with_exact_paramters_when_getbyid() {
-    when(documentRepository.deleteById(anyString())).thenReturn(Mono.empty().then());
+    when(documentRepository.deleteByIdentifier(anyString())).thenReturn(Mono.empty().then());
 
-    StepVerifier.create(documentPersistence.deleteById(TEST_ID_1))
+    StepVerifier.create(documentPersistence.deleteByIdentifier(TEST_ID_1))
         .expectNextCount(0)
         .verifyComplete();
 
@@ -130,10 +126,10 @@ class DocumentRepositorySpec {
     verify(
         documentRepository,
         times(1)
-            .description("Repository deleteById method should be invoked once"))
-        .deleteById(captor.capture());
+            .description("Repository deleteByIdentifier method should be invoked once"))
+        .deleteByIdentifier(captor.capture());
 
     assertEquals(TEST_ID_1, captor.getValue(),
-        "Repository deleteById method should be invoked with exact argument");
+        "Repository deleteByIdentifier method should be invoked with exact argument");
   }
 }

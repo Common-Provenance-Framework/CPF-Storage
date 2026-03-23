@@ -33,7 +33,7 @@ public class ModelFactoryTest {
 
     StepVerifier.create(ModelFactory.toDomain(entity))
         .assertNext(doc -> {
-          assertEquals(testId, doc.getId());
+          assertEquals(testId, doc.getIdentifier());
           assertEquals(Format.JSON, doc.getFormat().orElse(null));
           assertEquals(base64StringGraph, doc.getGraph());
         })
@@ -110,7 +110,7 @@ public class ModelFactoryTest {
         .assertNext(doc -> {
           // assertInstanceOf(UUID.class, doc.getId().orElse(null),
           // "should have Id which is UUID");
-          assertNull(doc.getId());
+          assertNull(doc.getIdentifier());
           assertEquals(Format.JSON, doc.getFormat().orElse(null),
               "should have exact format");
           assertEquals(base64StringGraph, doc.getGraph(),

@@ -14,8 +14,8 @@ public interface TokenService {
   Flux<Token> getAllTokens();
 
   @NotNull
-  Mono<Token> getTokenById(@NotNull java.util.UUID id);
+  Mono<Token> getTokenById(@NotNull String id);
 
   @NotNull
-  Mono<Void> deleteTokenById(@NotNull java.util.UUID id);
+  Mono<Void> deleteTokenById(@NotNull String id);
 }

@@ -2,8 +2,6 @@ package org.commonprovenance.framework.store.persistence.finalizedProvComponent.
 
 import static org.commonprovenance.framework.store.common.publisher.PublisherHelper.MONO;
 
-import java.util.UUID;
-
 import org.commonprovenance.framework.store.exceptions.NotFoundException;
 import org.commonprovenance.framework.store.model.Token;
 import org.commonprovenance.framework.store.model.factory.ModelFactory;
@@ -11,12 +9,14 @@ import org.commonprovenance.framework.store.persistence.finalizedProvComponent.T
 import org.commonprovenance.framework.store.persistence.finalizedProvComponent.model.factory.NodeFactory;
 import org.commonprovenance.framework.store.persistence.finalizedProvComponent.repository.TokenRepository;
 import org.springframework.stereotype.Component;
+import org.springframework.validation.annotation.Validated;
 
 import jakarta.validation.constraints.NotNull;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @Component
+@Validated
 public class TokenPersistenceImpl implements TokenPersistence {
 
   private final TokenRepository repository;
@@ -46,21 +46,19 @@ public class TokenPersistenceImpl implements TokenPersistence {
 
   @Override
   @NotNull
-  public Mono<Token> getById(@NotNull UUID uuid) {
-    return MONO.<UUID>makeSureNotNullWithMessage("Token Id can not be 'null'!").apply(uuid)
-        .map(UUID::toString)
+  public Mono<Token> getById(@NotNull String id) {
+    return MONO.<String>makeSureNotNullWithMessage("Token Id can not be 'null'!").apply(id)
         .flatMap(repository::findById)
         .onErrorResume(MONO.exceptionWrapper("TokenNeo4jRepository - Error while reading document"))
         .flatMap(ModelFactory::toDomain)
         .switchIfEmpty(
-            Mono.error(new NotFoundException("Token with id '" + uuid.toString() + "' has not been found!")));
+            Mono.error(new NotFoundException("Token with id '" + id.toString() + "' has not been found!")));
   }
 
   @Override
   @NotNull
-  public Mono<Void> deleteById(@NotNull UUID uuid) {
-    return MONO.<UUID>makeSureNotNullWithMessage("Token Id can not be 'null'!").apply(uuid)
-        .map(UUID::toString)
+  public Mono<Void> deleteById(@NotNull String id) {
+    return MONO.<String>makeSureNotNullWithMessage("Token Id can not be 'null'!").apply(id)
         .flatMap(repository::deleteById)
         .onErrorResume(MONO.exceptionWrapper("TokenNeo4jRepository - Error while reading document"));
   }

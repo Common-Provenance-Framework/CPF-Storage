@@ -2,18 +2,19 @@ package org.commonprovenance.framework.store.service.persistence.finalizedProvCo
 
 import static org.commonprovenance.framework.store.common.publisher.PublisherHelper.MONO;
 
-import java.util.UUID;
 import org.commonprovenance.framework.store.exceptions.NotFoundException;
 import org.commonprovenance.framework.store.model.Organization;
 import org.commonprovenance.framework.store.persistence.finalizedProvComponent.OrganizationPersistence;
 import org.commonprovenance.framework.store.service.persistence.finalizedProvComponent.OrganizationService;
 import org.springframework.stereotype.Service;
+import org.springframework.validation.annotation.Validated;
 
 import jakarta.validation.constraints.NotNull;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @Service
+@Validated
 public class OrganizationServiceImpl implements OrganizationService {
 
   private final OrganizationPersistence persistence;
@@ -29,7 +30,7 @@ public class OrganizationServiceImpl implements OrganizationService {
   }
 
   @Override
-  public @NotNull Mono<Organization> updateOrganization(@NotNull Organization organization) {
+  public @NotNull Mono<Organization> updateOrganization(Organization organization) {
     return MONO.<Organization>makeSureNotNullWithMessage("Organization can not be null").apply(organization)
         .flatMap(this.persistence::update);
   }
@@ -37,10 +38,8 @@ public class OrganizationServiceImpl implements OrganizationService {
   @NotNull
   public Mono<Boolean> exists(@NotNull Organization organization) {
     return MONO.<Organization>makeSureNotNullWithMessage("Organization can not be null").apply(organization)
-        .map(Organization::getId)
-        .flatMap(Mono::justOrEmpty)
-        .flatMap(this::getOrganizationById)
-        .switchIfEmpty(this.getOrganizationByName(organization.getName()))
+        .map(Organization::getIdentifier)
+        .flatMap(this::getOrganizationByIdentifier)
         .thenReturn(true)
         .onErrorResume(NotFoundException.class, _ -> Mono.just(false));
   }
@@ -56,18 +55,13 @@ public class OrganizationServiceImpl implements OrganizationService {
   }
 
   @NotNull
-  public Mono<Organization> getOrganizationById(@NotNull UUID id) {
-    return this.persistence.getById(id);
+  public Mono<Organization> getOrganizationByIdentifier(@NotNull String identifier) {
+    return this.persistence.getByIdentifier(identifier);
   }
 
   @NotNull
-  public Mono<Organization> getOrganizationByName(@NotNull String name) {
-    return this.persistence.getByName(name);
-  }
-
-  @NotNull
-  public Mono<Void> deleteOrganizationById(@NotNull UUID id) {
-    return this.persistence.deleteById(id);
+  public Mono<Void> deleteOrganizationByIdentifier(@NotNull String identifier) {
+    return this.persistence.deleteByIdentifier(identifier);
   }
 
 }

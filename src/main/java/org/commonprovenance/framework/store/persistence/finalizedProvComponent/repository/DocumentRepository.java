@@ -10,7 +10,7 @@ public interface DocumentRepository {
 
   Flux<DocumentNode> findAll();
 
-  Mono<DocumentNode> findById(String id);
+  Mono<DocumentNode> findByIdentifier(String identifier);
 
-  Mono<Void> deleteById(String id);
+  Mono<Void> deleteByIdentifier(String identifier);
 }

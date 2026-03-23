@@ -1,7 +1,5 @@
 package org.commonprovenance.framework.store.service.persistence.finalizedProvComponent;
 
-import java.util.UUID;
-
 import org.commonprovenance.framework.store.model.Organization;
 
 import jakarta.validation.constraints.NotNull;
@@ -25,11 +23,8 @@ public interface OrganizationService {
   Flux<Organization> getAllOrganizations();
 
   @NotNull
-  Mono<Organization> getOrganizationById(@NotNull UUID id);
+  Mono<Organization> getOrganizationByIdentifier(@NotNull String identifier);
 
   @NotNull
-  Mono<Organization> getOrganizationByName(@NotNull String name);
-
-  @NotNull
-  Mono<Void> deleteOrganizationById(@NotNull UUID id);
+  Mono<Void> deleteOrganizationByIdentifier(@NotNull String identifier);
 }

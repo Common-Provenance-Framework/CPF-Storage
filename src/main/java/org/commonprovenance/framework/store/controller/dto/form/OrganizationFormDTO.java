@@ -7,8 +7,8 @@ import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 
 public class OrganizationFormDTO {
-  @NotBlank(message = "Organization name should not be null or empty.")
-  private final String name;
+  @NotBlank(message = "Organization identifier should not be null or empty.")
+  private final String identifier;
   @NotBlank(message = "Organization client certificate should not be null or empty.")
   private final String clientCertificate;
   @NotNull(message = "Organization intermediate certificates should not be null.")
@@ -19,20 +19,20 @@ public class OrganizationFormDTO {
   private final Integer clearancePeriod;
 
   public OrganizationFormDTO(
-      String name,
+      String identifier,
       String clientCertificate,
       List<String> intermediateCertificates,
       String trustedPartyUri,
       Integer clearancePeriod) {
-    this.name = name;
+    this.identifier = identifier;
     this.clientCertificate = clientCertificate;
     this.intermediateCertificates = intermediateCertificates;
     this.trustedPartyUri = trustedPartyUri;
     this.clearancePeriod = clearancePeriod;
   }
 
-  public String getName() {
-    return name;
+  public String getIdentifier() {
+    return identifier;
   }
 
   public String getClientCertificate() {

@@ -15,8 +15,8 @@ public interface DocumentPersistence {
   Flux<Document> getAll();
 
   @NotNull
-  Mono<Document> getById(@NotNull String id);
+  Mono<Document> getByIdentifier(@NotNull String identifier);
 
   @NotNull
-  Mono<Void> deleteById(@NotNull String id);
+  Mono<Void> deleteByIdentifier(@NotNull String identifier);
 }

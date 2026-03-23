@@ -1,7 +1,5 @@
 package org.commonprovenance.framework.store.persistence.finalizedProvComponent;
 
-import java.util.UUID;
-
 import org.commonprovenance.framework.store.model.Token;
 
 import jakarta.validation.constraints.NotNull;
@@ -17,8 +15,8 @@ public interface TokenPersistence {
   Flux<Token> getAll();
 
   @NotNull
-  Mono<Token> getById(@NotNull UUID id);
+  Mono<Token> getById(@NotNull String id);
 
   @NotNull
-  Mono<Void> deleteById(@NotNull UUID id);
+  Mono<Void> deleteById(@NotNull String id);
 }

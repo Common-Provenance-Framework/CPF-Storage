@@ -3,12 +3,11 @@ package org.commonprovenance.framework.store.model;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class TrustedParty {
-  private final Optional<UUID> id;
+  private final Optional<String> id;
   private final String name;
   private final String certificate;
   private final Optional<String> url;
@@ -20,7 +19,7 @@ public class TrustedParty {
   private final List<Token> hasIssued;
 
   public TrustedParty(
-      UUID id,
+      String id,
       String name,
       String certificate,
       String url,
@@ -40,9 +39,14 @@ public class TrustedParty {
     this.hasIssued = hasIssued;
   }
 
-  public TrustedParty(UUID id, String name, String certificate, String url, Boolean isChecked, Boolean isValid,
+  public TrustedParty(
+      String name,
+      String certificate,
+      String url,
+      Boolean isChecked,
+      Boolean isValid,
       Boolean isDefault) {
-    this.id = Optional.ofNullable(id);
+    this.id = Optional.empty();
     this.name = name;
     this.certificate = certificate;
     this.url = Optional.ofNullable(url);
@@ -53,7 +57,12 @@ public class TrustedParty {
     this.hasIssued = Collections.emptyList();
   }
 
-  public TrustedParty(UUID id, String name, String certificate, String url, Boolean isDefault) {
+  public TrustedParty(
+      String id,
+      String name,
+      String certificate,
+      String url,
+      Boolean isDefault) {
     this.id = Optional.ofNullable(id);
     this.name = name;
     this.certificate = certificate;
@@ -77,7 +86,7 @@ public class TrustedParty {
     this.hasIssued = Collections.emptyList();
   }
 
-  public TrustedParty withId(UUID id) {
+  public TrustedParty withId(String id) {
     return new TrustedParty(
         id,
         this.getName(),
@@ -174,7 +183,7 @@ public class TrustedParty {
             .collect(Collectors.toList()));
   }
 
-  public Optional<UUID> getId() {
+  public Optional<String> getId() {
     return id;
   }
 

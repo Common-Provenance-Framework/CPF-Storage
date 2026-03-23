@@ -4,12 +4,14 @@ import org.commonprovenance.framework.store.model.Document;
 import org.commonprovenance.framework.store.persistence.finalizedProvComponent.DocumentPersistence;
 import org.commonprovenance.framework.store.service.persistence.finalizedProvComponent.DocumentService;
 import org.springframework.stereotype.Service;
+import org.springframework.validation.annotation.Validated;
 
 import jakarta.validation.constraints.NotNull;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @Service
+@Validated
 public class DocumentServiceImpl implements DocumentService {
   private final DocumentPersistence persistence;
 
@@ -28,12 +30,12 @@ public class DocumentServiceImpl implements DocumentService {
   }
 
   @NotNull
-  public Mono<Document> getDocumentById(@NotNull String id) {
-    return this.persistence.getById(id);
+  public Mono<Document> getDocumentByIdentifier(@NotNull String identifier) {
+    return this.persistence.getByIdentifier(identifier);
   }
 
   @NotNull
-  public Mono<Void> deleteDocumentById(@NotNull String id) {
-    return this.persistence.deleteById(id);
+  public Mono<Void> deleteDocumentByIdentifier(@NotNull String identifier) {
+    return this.persistence.deleteByIdentifier(identifier);
   }
 }
