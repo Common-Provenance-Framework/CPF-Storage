@@ -6,11 +6,10 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 public interface DocumentRepository {
-  Mono<DocumentNode> save(DocumentNode entity);
+  Mono<DocumentNode> save(DocumentNode document);
 
   Flux<DocumentNode> findAll();
 
   Mono<DocumentNode> findByIdentifier(String identifier);
 
-  Mono<Void> deleteByIdentifier(String identifier);
 }

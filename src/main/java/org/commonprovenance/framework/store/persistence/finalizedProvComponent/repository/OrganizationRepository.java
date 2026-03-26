@@ -6,11 +6,10 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 public interface OrganizationRepository {
-  Mono<OrganizationNode> save(OrganizationNode entity);
+  Mono<OrganizationNode> save(OrganizationNode organization);
 
   Flux<OrganizationNode> findAll();
 
   Mono<OrganizationNode> findByIdentifier(String identifier);
 
-  Mono<Void> deleteByIdentifier(String identifier);
 }

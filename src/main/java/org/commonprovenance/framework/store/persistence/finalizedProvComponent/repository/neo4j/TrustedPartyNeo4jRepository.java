@@ -30,22 +30,12 @@ public class TrustedPartyNeo4jRepository implements TrustedPartyRepository {
   }
 
   @Override
-  public Mono<TrustedPartyNode> findById(String id) {
-    return client.findById(id);
-  }
-
-  @Override
   public Mono<TrustedPartyNode> findByName(String name) {
     return client.findByName(name);
   }
 
   @Override
-  public Mono<Void> deleteById(String id) {
-    return client.deleteById(id);
-  }
-
-  @Override
   public Mono<TrustedPartyNode> findDefault() {
-    return client.findByIsDefaultTrue();
+    return client.findDefault();
   }
 }
