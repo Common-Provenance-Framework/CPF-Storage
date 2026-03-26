@@ -2,13 +2,12 @@ package org.commonprovenance.framework.store.persistence.metaComponent.model.nod
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.commonprovenance.framework.store.persistence.metaComponent.model.relation.Used;
 import org.commonprovenance.framework.store.persistence.metaComponent.model.relation.WasAssociatedWith;
-import org.jspecify.annotations.NonNull;
-import org.jspecify.annotations.Nullable;
 import org.springframework.data.annotation.PersistenceCreator;
 import org.springframework.data.neo4j.core.schema.Node;
 import org.springframework.data.neo4j.core.schema.Property;
@@ -28,15 +27,18 @@ public class ActivityNode extends BaseProvClassNode {
   @Relationship(type = "used", direction = Relationship.Direction.OUTGOING)
   private final List<Used> used;
 
+  // Constructor for full initialization (used by Neo4j when reading)
   @PersistenceCreator
   public ActivityNode(
       String id,
+      String identifier,
+      String provType,
       String startTime,
       String endTime,
-      String attributesJson,
+      Map<String, Object> cpm,
       List<WasAssociatedWith> wasAssociatedWith,
       List<Used> used) {
-    super(id, attributesJson);
+    super(id, identifier, provType, cpm);
 
     this.startTime = startTime;
     this.endTime = endTime;
@@ -45,8 +47,14 @@ public class ActivityNode extends BaseProvClassNode {
     this.used = used;
   }
 
-  public ActivityNode(String id, String startTime, String endTime, String attributes) {
-    super(id, attributes);
+  // Constructor for creating new node (id will be generated)
+  public ActivityNode(
+      String identifier,
+      String provType,
+      String startTime,
+      String endTime,
+      Map<String, Object> cpm) {
+    super(identifier, provType, cpm);
 
     this.startTime = startTime;
     this.endTime = endTime;
@@ -54,7 +62,32 @@ public class ActivityNode extends BaseProvClassNode {
     this.used = Collections.emptyList();
   }
 
-  public @NonNull ActivityNode withWasAssociatedWithAgent(@Nullable AgentNode agent) {
+  // Factory methods
+  public ActivityNode withId(String id) {
+    return new ActivityNode(
+        id,
+        this.getIdentifier(),
+        this.getProvType(),
+        this.getStartTime(),
+        this.getEndTime(),
+        this.getCpm(),
+        this.getWasAssociatedWith(),
+        this.getUsed());
+  }
+
+  public ActivityNode withWasAssociatedWith(List<WasAssociatedWith> wasAssociatedWith) {
+    return new ActivityNode(
+        this.getId(),
+        this.getIdentifier(),
+        this.getProvType(),
+        this.getStartTime(),
+        this.getEndTime(),
+        this.getCpm(),
+        wasAssociatedWith,
+        this.getUsed());
+  }
+
+  public ActivityNode withWasAssociatedWithAgent(AgentNode agent) {
     if (agent == null)
       return this;
 
@@ -65,24 +98,28 @@ public class ActivityNode extends BaseProvClassNode {
 
     return new ActivityNode(
         this.getId(),
+        this.getIdentifier(),
+        this.getProvType(),
         this.getStartTime(),
         this.getEndTime(),
-        this.getAttributes(),
+        this.getCpm(),
         wasAssociatedWith,
         this.used);
   }
 
-  public @NonNull ActivityNode withWasAssociatedWith(@NonNull List<WasAssociatedWith> wasAssociatedWith) {
+  public ActivityNode withUsed(List<Used> used) {
     return new ActivityNode(
         this.getId(),
+        this.getIdentifier(),
+        this.getProvType(),
         this.getStartTime(),
         this.getEndTime(),
-        this.getAttributes(),
-        wasAssociatedWith,
-        this.used);
+        this.getCpm(),
+        this.getWasAssociatedWith(),
+        used);
   }
 
-  public @NonNull ActivityNode withUsedEntity(@Nullable EntityNode entity) {
+  public ActivityNode withUsedEntity(EntityNode entity) {
     if (entity == null)
       return this;
 
@@ -93,23 +130,16 @@ public class ActivityNode extends BaseProvClassNode {
 
     return new ActivityNode(
         this.getId(),
+        this.getIdentifier(),
+        this.getProvType(),
         this.getStartTime(),
         this.getEndTime(),
-        this.getAttributes(),
+        this.getCpm(),
         this.getWasAssociatedWith(),
         used);
   }
 
-  public @NonNull ActivityNode withUsed(@NonNull List<Used> used) {
-    return new ActivityNode(
-        this.getId(),
-        this.getStartTime(),
-        this.getEndTime(),
-        this.getAttributes(),
-        this.getWasAssociatedWith(),
-        used);
-  }
-
+  // Getters
   public String getStartTime() {
     return startTime;
   }

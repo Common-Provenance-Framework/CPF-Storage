@@ -9,16 +9,21 @@ import java.util.stream.Stream;
 import org.commonprovenance.framework.store.persistence.metaComponent.model.relation.BundleActivities;
 import org.commonprovenance.framework.store.persistence.metaComponent.model.relation.BundleAgents;
 import org.commonprovenance.framework.store.persistence.metaComponent.model.relation.BundleEntities;
-import org.jspecify.annotations.Nullable;
-import org.jspecify.annotations.NonNull;
 import org.springframework.data.annotation.PersistenceCreator;
+import org.springframework.data.neo4j.core.schema.GeneratedValue;
+import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
 import org.springframework.data.neo4j.core.schema.Relationship;
 
 import jakarta.validation.constraints.NotNull;
 
 @Node("Bundle")
-public class BundleNode extends BaseProvClassNode {
+public class BundleNode {
+  @Id
+  @GeneratedValue
+  private final String id;
+
+  private final String identifier;
 
   @Relationship(type = "bundle_entities", direction = Relationship.Direction.OUTGOING)
   private final List<BundleEntities> bundleEntities;
@@ -29,39 +34,42 @@ public class BundleNode extends BaseProvClassNode {
   @Relationship(type = "bundle_agents", direction = Relationship.Direction.OUTGOING)
   private final List<BundleAgents> bundleAgents;
 
+  // Constructor for full initialization (used by Neo4j when reading)
   @PersistenceCreator
   public BundleNode(
       String id,
-      String attributesJson,
+      String identifier,
       List<BundleEntities> bundleEntities,
       List<BundleActivities> bundleActivities,
       List<BundleAgents> bundleAgents) {
-    super(id, attributesJson);
+
+    this.id = id;
+    this.identifier = identifier;
 
     this.bundleEntities = bundleEntities;
     this.bundleActivities = bundleActivities;
     this.bundleAgents = bundleAgents;
   }
 
-  public BundleNode(String id,
-      Collection<EntityNode> entities,
-      Collection<AgentNode> agents,
-      Collection<ActivityNode> activities) {
-    super(id, "{}");
-    this.bundleEntities = entities.stream().map(e -> new BundleEntities(e)).collect(Collectors.toList());
-    this.bundleActivities = activities.stream().map(e -> new BundleActivities(e)).collect(Collectors.toList());
-    this.bundleAgents = agents.stream().map(e -> new BundleAgents(e)).collect(Collectors.toList());
-  }
-
-  public BundleNode(String id) {
-    super(id, "{}");
-
+  // Constructor for creating new node (id will be generated)
+  public BundleNode(String identifier) {
+    this.id = null;
+    this.identifier = identifier;
     this.bundleEntities = Collections.emptyList();
     this.bundleActivities = Collections.emptyList();
     this.bundleAgents = Collections.emptyList();
   }
 
-  public @NonNull BundleNode withEntity(@Nullable EntityNode entity) {
+  public BundleNode withBundleEntities(List<BundleEntities> bundleEntities) {
+    return new BundleNode(
+        this.getId(),
+        this.getIdentifier(),
+        bundleEntities,
+        this.getBundleActivities(),
+        this.getBundleAgents());
+  }
+
+  public BundleNode withEntity(EntityNode entity) {
     if (entity == null)
       return this;
 
@@ -72,22 +80,39 @@ public class BundleNode extends BaseProvClassNode {
 
     return new BundleNode(
         this.getId(),
-        this.getAttributes(),
+        this.getIdentifier(),
         bundleEntities,
         this.getBundleActivities(),
         this.getBundleAgents());
   }
 
-  public @NonNull BundleNode withBundleEntities(@NonNull List<BundleEntities> bundleEntities) {
+  public BundleNode withEntities(Collection<EntityNode> entities) {
+    if (entities == null || entities.isEmpty())
+      return this;
+
+    List<BundleEntities> bundleEntities = Stream.concat(
+        this.getBundleEntities().stream(),
+        entities.stream().map(BundleEntities::new))
+        .collect(Collectors.toList());
+
     return new BundleNode(
         this.getId(),
-        this.getAttributes(),
+        this.getIdentifier(),
         bundleEntities,
         this.getBundleActivities(),
         this.getBundleAgents());
   }
 
-  public @NonNull BundleNode withActivity(@Nullable ActivityNode activity) {
+  public BundleNode withBundleActivities(List<BundleActivities> bundleActivities) {
+    return new BundleNode(
+        this.getId(),
+        this.getIdentifier(),
+        this.getBundleEntities(),
+        bundleActivities,
+        this.getBundleAgents());
+  }
+
+  public BundleNode withActivity(ActivityNode activity) {
     if (activity == null)
       return this;
 
@@ -98,22 +123,39 @@ public class BundleNode extends BaseProvClassNode {
 
     return new BundleNode(
         this.getId(),
-        this.getAttributes(),
+        this.getIdentifier(),
         this.getBundleEntities(),
         bundleActivities,
         this.getBundleAgents());
   }
 
-  public @NonNull BundleNode withBundleActivities(@NonNull List<BundleActivities> bundleActivities) {
+  public BundleNode withActivities(Collection<ActivityNode> activities) {
+    if (activities == null || activities.isEmpty())
+      return this;
+
+    List<BundleActivities> bundleActivities = Stream.concat(
+        this.getBundleActivities().stream(),
+        activities.stream().map(BundleActivities::new))
+        .collect(Collectors.toList());
+
     return new BundleNode(
         this.getId(),
-        this.getAttributes(),
+        this.getIdentifier(),
         this.getBundleEntities(),
         bundleActivities,
         this.getBundleAgents());
   }
 
-  public @NonNull BundleNode withAgent(@Nullable AgentNode agent) {
+  public BundleNode withBundleAgents(List<BundleAgents> bundleAgents) {
+    return new BundleNode(
+        this.getId(),
+        this.getIdentifier(),
+        this.getBundleEntities(),
+        this.getBundleActivities(),
+        bundleAgents);
+  }
+
+  public BundleNode withAgent(AgentNode agent) {
     if (agent == null)
       return this;
 
@@ -124,16 +166,24 @@ public class BundleNode extends BaseProvClassNode {
 
     return new BundleNode(
         this.getId(),
-        this.getAttributes(),
+        this.getIdentifier(),
         this.getBundleEntities(),
         this.getBundleActivities(),
         bundleAgents);
   }
 
-  public @NonNull BundleNode withBundleAgents(@NonNull List<BundleAgents> bundleAgents) {
+  public BundleNode withAgents(Collection<AgentNode> agents) {
+    if (agents == null || agents.isEmpty())
+      return this;
+
+    List<BundleAgents> bundleAgents = Stream.concat(
+        this.getBundleAgents().stream(),
+        agents.stream().map(BundleAgents::new))
+        .collect(Collectors.toList());
+
     return new BundleNode(
         this.getId(),
-        this.getAttributes(),
+        this.getIdentifier(),
         this.getBundleEntities(),
         this.getBundleActivities(),
         bundleAgents);
@@ -145,7 +195,7 @@ public class BundleNode extends BaseProvClassNode {
       @NotNull List<BundleAgents> bundleAgents) {
     return new BundleNode(
         this.getId(),
-        this.getAttributes(),
+        this.getIdentifier(),
         bundleEntities,
         bundleActivities,
         bundleAgents);
@@ -154,7 +204,7 @@ public class BundleNode extends BaseProvClassNode {
   public @NotNull BundleNode withBundleNodes(@NotNull List<BaseProvClassNode> nodes) {
     return new BundleNode(
         this.getId(),
-        this.getAttributes(),
+        this.getIdentifier(),
         nodes.stream()
             .filter(BundleEntities.class::isInstance)
             .map(BundleEntities.class::cast)
@@ -167,6 +217,14 @@ public class BundleNode extends BaseProvClassNode {
             .filter(BundleAgents.class::isInstance)
             .map(BundleAgents.class::cast)
             .collect(Collectors.toList()));
+  }
+
+  public String getId() {
+    return id;
+  }
+
+  public String getIdentifier() {
+    return identifier;
   }
 
   public List<BundleEntities> getBundleEntities() {
@@ -189,4 +247,5 @@ public class BundleNode extends BaseProvClassNode {
         this.getBundleAgents().stream().map(BundleAgents::getAgent))
         .collect(Collectors.toList());
   }
+
 }

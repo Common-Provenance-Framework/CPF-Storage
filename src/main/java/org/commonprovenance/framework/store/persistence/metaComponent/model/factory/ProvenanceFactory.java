@@ -5,28 +5,32 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
+import javax.xml.datatype.DatatypeConfigurationException;
+import javax.xml.datatype.DatatypeFactory;
+
 import org.commonprovenance.framework.store.config.AppConfiguration;
 import org.commonprovenance.framework.store.persistence.metaComponent.model.node.ActivityNode;
 import org.commonprovenance.framework.store.persistence.metaComponent.model.node.BaseProvClassNode;
 import org.commonprovenance.framework.store.persistence.metaComponent.model.node.BundleNode;
 import org.commonprovenance.framework.store.persistence.metaComponent.model.node.EntityNode;
+import org.openprovenance.prov.model.Activity;
+import org.openprovenance.prov.model.Attribute;
 import org.openprovenance.prov.model.Bundle;
 import org.openprovenance.prov.model.Document;
 import org.openprovenance.prov.model.Element;
 import org.openprovenance.prov.model.Entity;
-import org.openprovenance.prov.model.LangString;
 import org.openprovenance.prov.model.Namespace;
+import org.openprovenance.prov.model.Other;
 import org.openprovenance.prov.model.ProvFactory;
 import org.openprovenance.prov.model.QualifiedName;
 import org.openprovenance.prov.model.Statement;
+import org.openprovenance.prov.model.Type;
 
 import cz.muni.fi.cpm.constants.CpmNamespaceConstants;
 import reactor.core.publisher.Mono;
-import tools.jackson.databind.ObjectMapper;
 
 public class ProvenanceFactory {
   private static final ProvFactory provFactory = new org.openprovenance.prov.vanilla.ProvFactory();
-  private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
   public static Function<EntityNode, Mono<Entity>> entityToProv(AppConfiguration config) {
     Namespace namespace = provFactory.newNamespace();
@@ -35,6 +39,7 @@ public class ProvenanceFactory {
     namespace.register("pav", "http://purl.org/pav/");
     namespace.register("meta", config.getFqdn() + "documents/meta/");
     namespace.register("storage", config.getFqdn() + "documents/");
+
     return (EntityNode entity) -> Mono.justOrEmpty(entity)
         .map(ProvenanceFactory.toProvenance(namespace))
         .filter(Entity.class::isInstance)
@@ -52,7 +57,7 @@ public class ProvenanceFactory {
 
       QualifiedName bundleId = ProvenanceFactory.provFactory.newQualifiedName(
           config.getFqdn() + "documents/meta/",
-          node.getId(),
+          node.getIdentifier(),
           "mata");
 
       Stream<Statement> provNodeStatements = node.getAllNodes().stream()
@@ -63,42 +68,43 @@ public class ProvenanceFactory {
             if (n instanceof ActivityNode activityNode) {
               Stream<Statement> usedStream = activityNode.getUsed().stream()
                   .map(used -> (Statement) provFactory.newUsed(
-                      ProvenanceFactory.getId(activityNode.getId(), provDocument.getNamespace()),
-                      ProvenanceFactory.getId(used.getEntity().getId(), provDocument.getNamespace())));
+                      ProvenanceFactory.getIdentifier(activityNode.getIdentifier(), provDocument.getNamespace()),
+                      ProvenanceFactory.getIdentifier(used.getEntity().getIdentifier(), provDocument.getNamespace())));
 
               Stream<Statement> wasAssociatedWithStream = activityNode.getWasAssociatedWith().stream()
                   .map(waw -> (Statement) provFactory.newWasAssociatedWith(
                       null,
-                      ProvenanceFactory.getId(activityNode.getId(), provDocument.getNamespace()),
-                      ProvenanceFactory.getId(waw.getAgent().getId(), provDocument.getNamespace())));
+                      ProvenanceFactory.getIdentifier(activityNode.getIdentifier(), provDocument.getNamespace()),
+                      ProvenanceFactory.getIdentifier(waw.getAgent().getIdentifier(), provDocument.getNamespace())));
               return Stream.concat(usedStream, wasAssociatedWithStream);
             } else if (n instanceof EntityNode entityNode) {
               Stream<Statement> wdfStream = entityNode.getRevisionOf().stream()
                   .map(rev -> provFactory.newWasDerivedFrom(
-                      ProvenanceFactory.getId(entityNode.getId(), provDocument.getNamespace()),
-                      ProvenanceFactory.getId(rev.getEntity().getId(), provDocument.getNamespace())))
+                      ProvenanceFactory.getIdentifier(entityNode.getIdentifier(), provDocument.getNamespace()),
+                      ProvenanceFactory.getIdentifier(rev.getEntity().getIdentifier(), provDocument.getNamespace())))
                   .map(wdf -> {
-                    wdf.getType().add(provFactory.newType(provFactory.getName().PROV_REVISION,
+                    wdf.getType().add(provFactory.newType(
+                        provFactory.getName().PROV_REVISION,
                         provFactory.getName().PROV_QUALIFIED_NAME));
                     return (Statement) wdf;
                   });
 
               Stream<Statement> soStream = entityNode.getSpecializationOf().stream()
                   .map(so -> (Statement) provFactory.newSpecializationOf(
-                      ProvenanceFactory.getId(entityNode.getId(), provDocument.getNamespace()),
-                      ProvenanceFactory.getId(so.getEntity().getId(), provDocument.getNamespace())));
+                      ProvenanceFactory.getIdentifier(entityNode.getIdentifier(), provDocument.getNamespace()),
+                      ProvenanceFactory.getIdentifier(so.getEntity().getIdentifier(), provDocument.getNamespace())));
 
               Stream<Statement> watStream = entityNode.getWasAttributedTo().stream()
                   .map(wat -> (Statement) provFactory.newWasAttributedTo(
                       null,
-                      ProvenanceFactory.getId(entityNode.getId(), provDocument.getNamespace()),
-                      ProvenanceFactory.getId(wat.getAgent().getId(), provDocument.getNamespace())));
+                      ProvenanceFactory.getIdentifier(entityNode.getIdentifier(), provDocument.getNamespace()),
+                      ProvenanceFactory.getIdentifier(wat.getAgent().getIdentifier(), provDocument.getNamespace())));
 
               Stream<Statement> wgbStream = entityNode.getWasGeneratedBy().stream()
                   .map(wgb -> (Statement) provFactory.newWasAttributedTo(
                       null,
-                      ProvenanceFactory.getId(entityNode.getId(), provDocument.getNamespace()),
-                      ProvenanceFactory.getId(wgb.getActivity().getId(), provDocument.getNamespace())));
+                      ProvenanceFactory.getIdentifier(entityNode.getIdentifier(), provDocument.getNamespace()),
+                      ProvenanceFactory.getIdentifier(wgb.getActivity().getIdentifier(), provDocument.getNamespace())));
 
               return Stream.of(wdfStream, soStream, watStream, wgbStream)
                   .flatMap(Function.identity());
@@ -115,141 +121,112 @@ public class ProvenanceFactory {
     };
   }
 
-  private static QualifiedName getId(String id, Namespace ns) {
+  private static QualifiedName getIdentifier(String localPart, Namespace ns) {
     return ProvenanceFactory.provFactory.newQualifiedName(
-        ns.getNamespaces().get("storage"),
-        id,
+        ns.getPrefixes().get("storage"),
+        localPart,
         "storage");
   }
 
   private static Function<BaseProvClassNode, Statement> toProvenance(Namespace ns) {
     return (BaseProvClassNode node) -> {
-      QualifiedName elementId = ProvenanceFactory.getId(node.getId(), ns);
+      QualifiedName elementIdentifier = ProvenanceFactory.getIdentifier(node.getIdentifier(), ns);
 
       Element element;
-      if (node instanceof EntityNode _) {
-        element = ProvenanceFactory.provFactory.newEntity(elementId);
-      } else if (node instanceof ActivityNode _) {
-        element = ProvenanceFactory.provFactory.newActivity(elementId);
+      if (node instanceof EntityNode e) {
+        element = ProvenanceFactory.provFactory.newEntity(elementIdentifier);
+        ProvenanceFactory.applyPavAttributesToElement(element, e, ns);
+      } else if (node instanceof ActivityNode ag) {
+        element = ProvenanceFactory.provFactory.newActivity(elementIdentifier);
+        try {
+          DatatypeFactory dtf = DatatypeFactory.newInstance();
+          ((Activity) element).setStartTime(dtf.newXMLGregorianCalendar(ag.getStartTime()));
+          ((Activity) element).setEndTime(dtf.newXMLGregorianCalendar(ag.getEndTime()));
+        } catch (DatatypeConfigurationException e) {
+          throw new RuntimeException(e);
+        }
       } else {
-        element = ProvenanceFactory.provFactory.newAgent(elementId);
+        element = ProvenanceFactory.provFactory.newAgent(elementIdentifier);
       }
-      ProvenanceFactory.applyAttributesJsonToEntity(element, node.getAttributes(), ns);
+
+      element.getType().add(ProvenanceFactory.getTypeFromString(node.getProvType(), ns));
+
+      ProvenanceFactory.applyCpmAttributesToElement(element, node, ns);
       return element;
     };
   }
 
-  private static void applyAttributesJsonToEntity(
+  private static void applyCpmAttributesToElement(
       Element element,
-      String attributesJson,
+      BaseProvClassNode node,
       Namespace ns) {
-    try {
-      if (attributesJson == null || attributesJson.isBlank()) {
-        return;
-      }
 
-      Map<String, Object> attrs = ProvenanceFactory.OBJECT_MAPPER.readValue(
-          attributesJson, new tools.jackson.core.type.TypeReference<Map<String, Object>>() {
-          });
+    node.getCpm().entrySet().stream()
+        .forEach(entry -> {
+          Map<String, String> prefixes = ns.getPrefixes();
 
-      attrs.entrySet().stream()
-          .forEach(entry -> {
-            String key = entry.getKey();
-            Object rawValue = entry.getValue();
-            List<Object> values = (rawValue instanceof List<?>)
-                ? ((List<?>) rawValue).stream().map(Object.class::cast).toList()
-                : List.of(rawValue);
+          element.getOther().add(((Other) guessAttribute(
+              ProvenanceFactory.provFactory.newQualifiedName(prefixes.get("cpm"), entry.getKey(), "cpm"),
+              entry.getValue())));
 
-            QualifiedName attrName = ProvenanceFactory.toQualifiedName(key, ns);
-
-            if (attrName.equals(provFactory.getName().PROV_TYPE)) {
-              values.forEach(value -> {
-                element.getType()
-                    .add(provFactory.newType(ProvenanceFactory.toValue(String.valueOf(value), ns), attrName));
-              });
-            } else if (attrName.equals(provFactory.getName().PROV_LABEL)) {
-              values.forEach(value -> {
-                element.getLabel().add(ProvenanceFactory.toLangString(String.valueOf(value)));
-              });
-            } else if (attrName.equals(provFactory.getName().PROV_LOCATION)) {
-              values.forEach(value -> {
-                element.getLocation()
-                    .add(provFactory.newLocation(ProvenanceFactory.toValue(String.valueOf(value), ns), attrName));
-              });
-            } else if (attrName.equals(provFactory.getName().PROV_VALUE) && element instanceof Entity entity) {
-              values.forEach(value -> {
-                String stringValue = String.valueOf(value);
-                if (isInteger(stringValue)) {
-                  entity.setValue(provFactory.newValue(Integer.parseInt(stringValue)));
-                } else {
-                  entity.setValue(provFactory.newValue(stringValue));
-                }
-              });
-            } else {
-              values.forEach(value -> {
-                element.getOther().add(provFactory.newOther(
-                    attrName,
-                    value,
-                    ProvenanceFactory.guessDatatype(value, provFactory)));
-              });
-            }
-          });
-    } catch (Exception e) {
-      throw new RuntimeException("Cannot parse entity attributes JSON", e);
-    }
+        });
   }
 
-  private static boolean isInteger(String value) {
-    if (value == null || value.isBlank())
-      return false;
-    try {
-      Integer.parseInt(value);
-      return true;
-    } catch (NumberFormatException e) {
-      return false;
-    }
+  private static void applyPavAttributesToElement(
+      Element element,
+      EntityNode node,
+      Namespace ns) {
+
+    node.getPav().entrySet().stream()
+        .forEach(entry -> {
+          Map<String, String> prefixes = ns.getPrefixes();
+
+          element.getOther().add(((Other) guessAttribute(
+              ProvenanceFactory.provFactory.newQualifiedName(prefixes.get("pav"), entry.getKey(), "pav"),
+              entry.getValue())));
+
+        });
   }
 
-  private static QualifiedName guessDatatype(Object value, ProvFactory provFactory) {
-    if (value instanceof Integer)
-      return provFactory.getName().XSD_INT;
-    if (value instanceof Long)
-      return provFactory.getName().XSD_LONG;
-    if (value instanceof Boolean)
-      return provFactory.getName().XSD_BOOLEAN;
-    if (value instanceof Number)
-      return provFactory.getName().XSD_DOUBLE;
-    return provFactory.getName().XSD_STRING;
-  }
-
-  private static QualifiedName toQualifiedName(String value, Namespace ns) {
-    String[] parts = value.split(":", 2);
+  private static Type getTypeFromString(String value, Namespace ns) {
+    String[] partsQN = value.split(":", 2);
+    String[] partsLS = value.split("@", 2);
     Map<String, String> prefixes = ns.getPrefixes();
-    if (parts.length == 2 && prefixes.containsKey(parts[0])) {
-      return ProvenanceFactory.provFactory
-          .newQualifiedName(prefixes.get(parts[0]), parts[1], parts[0]);
-    }
-    return ProvenanceFactory.provFactory
-        .newQualifiedName(ProvenanceFactory.provFactory.getName().XSD_STRING.getNamespaceURI(),
-            "string",
-            "xsd");
+
+    if (partsQN.length == 2 && prefixes.containsKey(partsQN[0]))
+      return ProvenanceFactory.provFactory.newType(
+          ProvenanceFactory.provFactory.newQualifiedName(prefixes.get(partsQN[0]), partsQN[1], partsQN[0]),
+          ProvenanceFactory.provFactory.getName().PROV_QUALIFIED_NAME);
+    else if (partsLS.length == 2)
+      return ProvenanceFactory.provFactory.newType(
+          ProvenanceFactory.provFactory.newInternationalizedString(partsLS[0], partsLS[1]),
+          ProvenanceFactory.provFactory.getName().PROV_LANG_STRING);
+    else if (partsQN.length == 2 || partsLS.length == 2)
+      return ProvenanceFactory.provFactory.newType(
+          value,
+          ProvenanceFactory.provFactory.getName().XSD_STRING);
+    else
+      return ((Type) ProvenanceFactory.guessAttribute(
+          ProvenanceFactory.provFactory.newQualifiedName(prefixes.get("prov"), "type", "prov"),
+          value));
   }
 
-  private static LangString toLangString(String value) {
-    String[] parts = value.split("@", 2);
-    return parts[1].isEmpty()
-        ? ProvenanceFactory.provFactory.newInternationalizedString(parts[0])
-        : ProvenanceFactory.provFactory.newInternationalizedString(parts[0], parts[1]);
-
+  private static Attribute guessAttribute(QualifiedName elementName, Object value) {
+    if (value instanceof Integer)
+      return ProvenanceFactory.provFactory.newAttribute(elementName, value,
+          ProvenanceFactory.provFactory.getName().XSD_INT);
+    else if (value instanceof Long)
+      return ProvenanceFactory.provFactory.newAttribute(elementName, value,
+          ProvenanceFactory.provFactory.getName().XSD_LONG);
+    else if (value instanceof Boolean)
+      return ProvenanceFactory.provFactory.newAttribute(elementName, value,
+          ProvenanceFactory.provFactory.getName().XSD_BOOLEAN);
+    else if (value instanceof Double)
+      return ProvenanceFactory.provFactory.newAttribute(elementName, value,
+          ProvenanceFactory.provFactory.getName().XSD_DOUBLE);
+    else
+      return ProvenanceFactory.provFactory.newAttribute(elementName, value,
+          ProvenanceFactory.provFactory.getName().XSD_STRING);
   }
 
-  private static Object toValue(String value, Namespace ns) {
-    if (value.contains(":")) {
-      return ProvenanceFactory.toQualifiedName(value, ns);
-    } else if (value.contains("@")) {
-      return ProvenanceFactory.toLangString(value);
-    } else {
-      return (String) value;
-    }
-  }
 }
