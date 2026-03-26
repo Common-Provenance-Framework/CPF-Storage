@@ -147,4 +147,26 @@ public class EntityPersistenceImpl implements EntityPersistence {
         .onErrorResume(MONO.exceptionWrapper("EntityPersistence - Error while reading entities"))
         .flatMap(ProvenanceFactory.entityToProv(configuration));
   }
+
+  @Override
+  public Mono<Entity> getGeneralVersion(String bundleIdentifier) {
+    return MONO.<String>makeSureNotNullWithMessage("Bundle identifier can not be 'null'!").apply(bundleIdentifier)
+        .flatMap(entityRepository::getGeneralEntityByBundleIdentifier)
+        .onErrorResume(MONO.exceptionWrapper("EntityPersistence - Error while reading general entity"))
+        .flatMap(ProvenanceFactory.entityToProv(configuration))
+        .switchIfEmpty(Mono.defer(() -> Mono
+            .error(new NotFoundException(
+                "General version Entity for bundle with identifier '" + bundleIdentifier + "' has not been found!"))));
+  }
+
+  @Override
+  public Mono<Entity> getLastVersion(String bundleIdentifier) {
+    return MONO.<String>makeSureNotNullWithMessage("Bundle identifier can not be 'null'!").apply(bundleIdentifier)
+        .flatMap(entityRepository::getLastVersionEntityByBundleIdentifier)
+        .onErrorResume(MONO.exceptionWrapper("EntityPersistence - Error while reading last version entity"))
+        .flatMap(ProvenanceFactory.entityToProv(configuration))
+        .switchIfEmpty(Mono.defer(() -> Mono
+            .error(new NotFoundException(
+                "Last version Entity for bundle with identifier '" + bundleIdentifier + "' has not been found!"))));
+  }
 }

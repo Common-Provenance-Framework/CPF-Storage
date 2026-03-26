@@ -21,5 +21,10 @@ public interface EntityPersistence {
 
   Mono<Entity> getByIdentifier(String identifier);
 
-  Flux<Entity> getAllEntities(String bundleId);
+  Flux<Entity> getAllEntities(String bundleIdentifier);
+
+  Mono<Entity> getGeneralVersion(String bundleIdentifier);
+
+  Mono<Entity> getLastVersion(String bundleIdentifier);
+
 }
