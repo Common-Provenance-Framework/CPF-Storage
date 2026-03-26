@@ -12,14 +12,14 @@ public final class WasAttributedTo {
 
   @Id
   @GeneratedValue
-  private final Long id;
+  private final String id;
 
   @TargetNode
   private final AgentNode agent;
 
   // Constructor for full initialization (used by Neo4j when reading)
   @PersistenceCreator
-  public WasAttributedTo(Long id, AgentNode agent) {
+  public WasAttributedTo(String id, AgentNode agent) {
     this.id = id;
     this.agent = agent;
   }
@@ -31,7 +31,7 @@ public final class WasAttributedTo {
   }
 
   // Wither methods for immutability
-  public WasAttributedTo withId(Long id) {
+  public WasAttributedTo withId(String id) {
     return new WasAttributedTo(id, this.getAgent());
   }
 
@@ -40,7 +40,7 @@ public final class WasAttributedTo {
   }
 
   // Getters
-  public Long getId() {
+  public String getId() {
     return this.id;
   }
 

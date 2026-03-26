@@ -12,14 +12,14 @@ public final class WasGeneratedBy {
 
   @Id
   @GeneratedValue
-  private final Long id;
+  private final String id;
 
   @TargetNode
   private final ActivityNode activity;
 
   // Constructor for full initialization (used by Neo4j when reading)
   @PersistenceCreator
-  public WasGeneratedBy(Long id, ActivityNode activity) {
+  public WasGeneratedBy(String id, ActivityNode activity) {
     this.id = id;
     this.activity = activity;
   }
@@ -31,7 +31,7 @@ public final class WasGeneratedBy {
   }
 
   // Wither methods for immutability
-  public WasGeneratedBy withId(Long id) {
+  public WasGeneratedBy withId(String id) {
     return new WasGeneratedBy(id, this.getActivity());
   }
 
@@ -40,7 +40,7 @@ public final class WasGeneratedBy {
   }
 
   // Getters
-  public Long getId() {
+  public String getId() {
     return this.id;
   }
 

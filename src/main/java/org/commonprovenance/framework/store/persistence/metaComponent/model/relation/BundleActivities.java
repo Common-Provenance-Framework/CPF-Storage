@@ -12,14 +12,14 @@ public final class BundleActivities {
 
   @Id
   @GeneratedValue
-  private final Long id;
+  private final String id;
 
   @TargetNode
   private final ActivityNode activity;
 
   // Constructor for full initialization (used by Neo4j when reading)
   @PersistenceCreator
-  public BundleActivities(Long id, ActivityNode activity) {
+  public BundleActivities(String id, ActivityNode activity) {
     this.id = id;
     this.activity = activity;
   }
@@ -31,7 +31,7 @@ public final class BundleActivities {
   }
 
   // Wither methods for immutability
-  public BundleActivities withId(Long id) {
+  public BundleActivities withId(String id) {
     return new BundleActivities(id, this.getActivity());
   }
 
@@ -40,7 +40,7 @@ public final class BundleActivities {
   }
 
   // Getters
-  public Long getId() {
+  public String getId() {
     return this.id;
   }
 

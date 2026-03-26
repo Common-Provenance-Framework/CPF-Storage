@@ -12,14 +12,14 @@ public final class BundleAgents {
 
   @Id
   @GeneratedValue
-  private final Long id;
+  private final String id;
 
   @TargetNode
   private final AgentNode agent;
 
   // Constructor for full initialization (used by Neo4j when reading)
   @PersistenceCreator
-  public BundleAgents(Long id, AgentNode agent) {
+  public BundleAgents(String id, AgentNode agent) {
     this.id = id;
     this.agent = agent;
   }
@@ -31,7 +31,7 @@ public final class BundleAgents {
   }
 
   // Wither methods for immutability
-  public BundleAgents withId(Long id) {
+  public BundleAgents withId(String id) {
     return new BundleAgents(id, this.getAgent());
   }
 
@@ -40,7 +40,7 @@ public final class BundleAgents {
   }
 
   // Getters
-  public Long getId() {
+  public String getId() {
     return this.id;
   }
 

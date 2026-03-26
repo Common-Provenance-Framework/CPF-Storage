@@ -12,14 +12,14 @@ public final class SpecializationOf {
 
   @Id
   @GeneratedValue
-  private final Long id;
+  private final String id;
 
   @TargetNode
   private final EntityNode entity;
 
   // Constructor for full initialization (used by Neo4j when reading)
   @PersistenceCreator
-  public SpecializationOf(Long id, EntityNode entity) {
+  public SpecializationOf(String id, EntityNode entity) {
     this.id = id;
     this.entity = entity;
   }
@@ -31,7 +31,7 @@ public final class SpecializationOf {
   }
 
   // Wither methods for immutability
-  public SpecializationOf withId(Long id) {
+  public SpecializationOf withId(String id) {
     return new SpecializationOf(id, this.getEntity());
   }
 
@@ -40,7 +40,7 @@ public final class SpecializationOf {
   }
 
   // Getters
-  public Long getId() {
+  public String getId() {
     return this.id;
   }
 

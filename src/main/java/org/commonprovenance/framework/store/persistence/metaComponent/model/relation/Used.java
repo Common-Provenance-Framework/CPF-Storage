@@ -12,14 +12,14 @@ public final class Used {
 
   @Id
   @GeneratedValue
-  private final Long id;
+  private final String id;
 
   @TargetNode
   private final EntityNode entity;
 
   // Constructor for full initialization (used by Neo4j when reading)
   @PersistenceCreator
-  public Used(Long id, EntityNode entity) {
+  public Used(String id, EntityNode entity) {
     this.id = id;
     this.entity = entity;
   }
@@ -31,7 +31,7 @@ public final class Used {
   }
 
   // Wither methods for immutability
-  public Used withId(Long id) {
+  public Used withId(String id) {
     return new Used(id, this.getEntity());
   }
 
@@ -40,7 +40,7 @@ public final class Used {
   }
 
   // Getters
-  public Long getId() {
+  public String getId() {
     return this.id;
   }
 

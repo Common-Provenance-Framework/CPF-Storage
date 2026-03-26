@@ -12,14 +12,14 @@ public final class WasDerivedFrom {
 
   @Id
   @GeneratedValue
-  private final Long id;
+  private final String id;
 
   @TargetNode
   private final EntityNode entity;
 
   // Constructor for full initialization (used by Neo4j when reading)
   @PersistenceCreator
-  public WasDerivedFrom(Long id, EntityNode entity) {
+  public WasDerivedFrom(String id, EntityNode entity) {
     this.id = id;
     this.entity = entity;
   }
@@ -31,7 +31,7 @@ public final class WasDerivedFrom {
   }
 
   // Wither methods for immutability
-  public WasDerivedFrom withId(Long id) {
+  public WasDerivedFrom withId(String id) {
     return new WasDerivedFrom(id, this.getEntity());
   }
 
@@ -40,7 +40,7 @@ public final class WasDerivedFrom {
   }
 
   // Getters
-  public Long getId() {
+  public String getId() {
     return this.id;
   }
 
