@@ -11,7 +11,6 @@ import org.commonprovenance.framework.store.persistence.metaComponent.repository
 import org.openprovenance.prov.model.Document;
 import org.springframework.stereotype.Component;
 
-import jakarta.validation.constraints.NotNull;
 import reactor.core.publisher.Mono;
 
 @Component
@@ -28,31 +27,29 @@ public class BundlePersistenceImpl implements BundlePersistence {
   }
 
   @Override
-  @NotNull
-  public Mono<Document> create(@NotNull Document bundle) {
-    return MONO.<Document>makeSureNotNullWithMessage("Bundle can not be 'null'!").apply(bundle)
+  public Mono<Document> create(Document document) {
+    return MONO.<Document>makeSureNotNullWithMessage("Document can not be 'null'!").apply(document)
         .flatMap(NodeFactory::toEntity)
         .flatMap(repository::save)
-        .onErrorResume(MONO.exceptionWrapper("BundleNeo4jRepository - Error while creating new Bundle"))
+        .onErrorResume(MONO.exceptionWrapper("BundlePersistence - Error while creating new Bundle"))
         .flatMap(ProvenanceFactory.bundleToProv(this.configuration));
   }
 
   @Override
-  @NotNull
-  public Mono<Document> getById(@NotNull String id) {
-    return MONO.<String>makeSureNotNullWithMessage("Bundle Id can not be 'null'!").apply(id)
-        .flatMap(repository::findById)
-        .onErrorResume(MONO.exceptionWrapper("BundleNeo4jRepository - Error while reading bundle"))
+  public Mono<Document> getByIdentifier(String identifier) {
+    return MONO.<String>makeSureNotNullWithMessage("Bundle identifier can not be 'null'!").apply(identifier)
+        .flatMap(repository::findByIdentifier)
+        .onErrorResume(MONO.exceptionWrapper("BundlePersistence - Error while reading bundle"))
         .switchIfEmpty(Mono.defer(() -> Mono
-            .error(new NotFoundException("Bundle with id '" + id + "' has not been found!"))))
+            .error(new NotFoundException("Bundle with identifier '" + identifier + "' has not been found!"))))
         .flatMap(ProvenanceFactory.bundleToProv(configuration));
   }
 
   @Override
-  public @NotNull Mono<Boolean> exists(@NotNull String id) {
-    return MONO.<String>makeSureNotNullWithMessage("Bundle Id can not be 'null'!").apply(id)
+  public Mono<Boolean> exists(String identifier) {
+    return MONO.<String>makeSureNotNullWithMessage("Bundle identifier can not be 'null'!").apply(identifier)
         .flatMap(repository::exists)
-        .onErrorResume(MONO.exceptionWrapper("BundleNeo4jRepository - Error while checking Bundle"));
+        .onErrorResume(MONO.exceptionWrapper("BundlePersistence - Error while checking Bundle"));
   }
 
 }

@@ -6,31 +6,20 @@ import org.openprovenance.prov.model.Activity;
 import org.openprovenance.prov.model.Agent;
 import org.openprovenance.prov.model.Entity;
 
-import jakarta.validation.constraints.NotNull;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 public interface EntityPersistence {
-  @NotNull
-  Mono<Entity> create(@NotNull Entity entity);
 
-  @NotNull
-  Function<Entity, Mono<Entity>> addFirstVersion(@NotNull Entity general);
+  Mono<Entity> create(Entity entity);
 
-  @NotNull
-  Function<Entity, Mono<Entity>> addNewVersion(
-      @NotNull Entity general,
-      @NotNull Entity lastVersion);
+  Function<Entity, Mono<Entity>> addFirstVersion(Entity general);
 
-  @NotNull
-  Function<Entity, Mono<Entity>> addToken(
-      @NotNull Entity token,
-      @NotNull Activity generation,
-      @NotNull Agent generator);
+  Function<Entity, Mono<Entity>> addNewVersion(Entity general, Entity lastVersion);
 
-  @NotNull
-  Mono<Entity> getById(@NotNull String id);
+  Function<Entity, Mono<Entity>> addToken(Entity token, Activity generation, Agent generator);
 
-  @NotNull
-  Flux<Entity> getAllEntities(@NotNull String bundleId);
+  Mono<Entity> getByIdentifier(String identifier);
+
+  Flux<Entity> getAllEntities(String bundleId);
 }
