@@ -36,6 +36,15 @@ public interface EntityNeo4jRepositoryClient extends ReactiveNeo4jRepository<Ent
 
   @Query("""
           MATCH (bundle:Bundle {identifier: $bundleIdentifier})-[r:bundle_entities]->(entity:Entity)
+          WHERE entity.`pav:version` IS NOT NULL
+          RETURN toInteger(entity.`pav:version`)
+          ORDER BY toInteger(entity.`pav:version`) DESC
+          LIMIT 1
+      """)
+  Mono<Integer> getLastVersion(@Param("bundleIdentifier") String identifier);
+
+  @Query("""
+          MATCH (bundle:Bundle {identifier: $bundleIdentifier})-[r:bundle_entities]->(entity:Entity)
           RETURN entity
       """)
   Flux<EntityNode> getAllEntitiesByBundleIdentifier(@Param("bundleIdentifier") String bundleIdentifier);
