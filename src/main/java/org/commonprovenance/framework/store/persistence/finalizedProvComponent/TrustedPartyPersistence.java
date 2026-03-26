@@ -2,30 +2,18 @@ package org.commonprovenance.framework.store.persistence.finalizedProvComponent;
 
 import org.commonprovenance.framework.store.model.TrustedParty;
 
-import jakarta.validation.constraints.NotNull;
-
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 public interface TrustedPartyPersistence {
-  @NotNull
-  Mono<TrustedParty> create(@NotNull TrustedParty trustedParty);
 
-  @NotNull
-  Mono<TrustedParty> update(@NotNull TrustedParty trustedParty);
+  Mono<TrustedParty> create(TrustedParty trustedParty);
 
-  @NotNull
+  Mono<TrustedParty> update(TrustedParty trustedParty);
+
   Flux<TrustedParty> getAll();
 
-  @NotNull
-  Mono<TrustedParty> getById(@NotNull String id);
+  Mono<TrustedParty> getByName(String name);
 
-  @NotNull
   Mono<TrustedParty> getDefault();
-
-  @NotNull
-  Mono<TrustedParty> getByName(@NotNull String name);
-
-  @NotNull
-  Mono<Void> deleteById(@NotNull String id);
 }

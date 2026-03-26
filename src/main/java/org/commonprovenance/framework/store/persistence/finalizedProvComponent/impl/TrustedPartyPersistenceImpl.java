@@ -2,8 +2,6 @@ package org.commonprovenance.framework.store.persistence.finalizedProvComponent.
 
 import static org.commonprovenance.framework.store.common.publisher.PublisherHelper.MONO;
 
-import java.util.UUID;
-
 import org.commonprovenance.framework.store.exceptions.NotFoundException;
 import org.commonprovenance.framework.store.model.TrustedParty;
 import org.commonprovenance.framework.store.model.factory.ModelFactory;
@@ -11,14 +9,10 @@ import org.commonprovenance.framework.store.persistence.finalizedProvComponent.T
 import org.commonprovenance.framework.store.persistence.finalizedProvComponent.model.factory.NodeFactory;
 import org.commonprovenance.framework.store.persistence.finalizedProvComponent.repository.TrustedPartyRepository;
 import org.springframework.stereotype.Component;
-import org.springframework.validation.annotation.Validated;
-
-import jakarta.validation.constraints.NotNull;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @Component
-@Validated
 public class TrustedPartyPersistenceImpl implements TrustedPartyPersistence {
 
   private final TrustedPartyRepository repository;
@@ -29,8 +23,7 @@ public class TrustedPartyPersistenceImpl implements TrustedPartyPersistence {
   }
 
   @Override
-  @NotNull
-  public Mono<TrustedParty> create(@NotNull TrustedParty trustedParty) {
+  public Mono<TrustedParty> create(TrustedParty trustedParty) {
     return MONO.<TrustedParty>makeSureNotNullWithMessage("TrustedParty can not be 'null'!").apply(trustedParty)
         .flatMap(NodeFactory::toEntity)
         .flatMap(repository::save)
@@ -39,7 +32,7 @@ public class TrustedPartyPersistenceImpl implements TrustedPartyPersistence {
   }
 
   @Override
-  public @NotNull Mono<TrustedParty> update(@NotNull TrustedParty trustedParty) {
+  public Mono<TrustedParty> update(TrustedParty trustedParty) {
     return MONO.<TrustedParty>makeSureNotNullWithMessage("TrustedParty can not be 'null'!").apply(trustedParty)
         .flatMap(NodeFactory::toEntity)
         .flatMap(repository::save)
@@ -48,7 +41,6 @@ public class TrustedPartyPersistenceImpl implements TrustedPartyPersistence {
   }
 
   @Override
-  @NotNull
   public Flux<TrustedParty> getAll() {
     return repository.findAll()
         .onErrorResume(MONO.exceptionWrapper("TrustedPartyPersistence - Error while reading trusted parties"))
@@ -56,17 +48,7 @@ public class TrustedPartyPersistenceImpl implements TrustedPartyPersistence {
   }
 
   @Override
-  @NotNull
-  public Mono<TrustedParty> getById(@NotNull String id) {
-    return MONO.<String>makeSureNotNullWithMessage("TrustedParty Id can not be 'null'!").apply(id)
-        .flatMap(repository::findById)
-        .onErrorResume(MONO.exceptionWrapper("TrustedPartyPersistence - Error while reading trusted party"))
-        .switchIfEmpty(Mono.error(new NotFoundException("TrustedParty with id '" + id + "' not found!")))
-        .flatMap(ModelFactory::toDomain);
-  }
-
-  @Override
-  public @NotNull Mono<TrustedParty> getByName(@NotNull String name) {
+  public Mono<TrustedParty> getByName(String name) {
     return MONO.<String>makeSureNotNullWithMessage("TrustedParty name can not be 'null'!").apply(name)
         .flatMap(repository::findByName)
         .onErrorResume(MONO.exceptionWrapper("TrustedPartyPersistence - Error while reading TrustedParty by name"))
@@ -75,15 +57,7 @@ public class TrustedPartyPersistenceImpl implements TrustedPartyPersistence {
   }
 
   @Override
-  @NotNull
-  public Mono<Void> deleteById(@NotNull String uuid) {
-    return MONO.<String>makeSureNotNullWithMessage("TrustedParty Id can not be 'null'!").apply(uuid)
-        .flatMap(repository::deleteById)
-        .onErrorResume(MONO.exceptionWrapper("TrustedPartyPersistence - Error while reading TrustedParty"));
-  }
-
-  @Override
-  public @NotNull Mono<TrustedParty> getDefault() {
+  public Mono<TrustedParty> getDefault() {
     return repository.findDefault()
         .onErrorResume(MONO.exceptionWrapper("TrustedPartyPersistence - Error while reading default TrustedParty"))
         .flatMap(ModelFactory::toDomain);

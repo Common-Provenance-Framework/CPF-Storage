@@ -9,14 +9,11 @@ import org.commonprovenance.framework.store.persistence.finalizedProvComponent.O
 import org.commonprovenance.framework.store.persistence.finalizedProvComponent.model.factory.NodeFactory;
 import org.commonprovenance.framework.store.persistence.finalizedProvComponent.repository.OrganizationRepository;
 import org.springframework.stereotype.Component;
-import org.springframework.validation.annotation.Validated;
 
-import jakarta.validation.constraints.NotNull;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @Component
-@Validated
 public class OrganizationPersistenceImpl implements OrganizationPersistence {
 
   private final OrganizationRepository repository;
@@ -27,8 +24,7 @@ public class OrganizationPersistenceImpl implements OrganizationPersistence {
   }
 
   @Override
-  @NotNull
-  public Mono<Organization> create(@NotNull Organization organization) {
+  public Mono<Organization> create(Organization organization) {
     return MONO.<Organization>makeSureNotNullWithMessage("Organization can not be 'null'!").apply(organization)
         .flatMap(NodeFactory::toEntity)
         .flatMap(repository::save)
@@ -37,7 +33,7 @@ public class OrganizationPersistenceImpl implements OrganizationPersistence {
   }
 
   @Override
-  public @NotNull Mono<Organization> update(@NotNull Organization organization) {
+  public Mono<Organization> update(Organization organization) {
     return MONO.<Organization>makeSureNotNullWithMessage("Organization can not be 'null'!").apply(organization)
         .flatMap(NodeFactory::toEntity)
         .flatMap(repository::save)
@@ -46,29 +42,21 @@ public class OrganizationPersistenceImpl implements OrganizationPersistence {
   }
 
   @Override
-  @NotNull
   public Flux<Organization> getAll() {
     return repository.findAll()
-        .onErrorResume(MONO.exceptionWrapper("DocumentNeo4jRepository - Error while reading documents"))
+        .onErrorResume(MONO.exceptionWrapper("OrganizationPersistence - Error while reading Organizations"))
         .flatMap(ModelFactory::toDomain);
   }
 
   @Override
-  @NotNull
-  public Mono<Organization> getByIdentifier(@NotNull String identifier) {
+
+  public Mono<Organization> getByIdentifier(String identifier) {
     return MONO.<String>makeSureNotNullWithMessage("Organization identifier can not be 'null'!").apply(identifier)
         .flatMap(repository::findByIdentifier)
-        .onErrorResume(MONO.exceptionWrapper("DocumentNeo4jRepository - Error while reading document"))
-        .switchIfEmpty(Mono.error(new NotFoundException("Organization with id '" + identifier + "' not found!")))
+        .onErrorResume(MONO.exceptionWrapper("OrganizationPersistence - Error while reading Organization"))
+        .switchIfEmpty(
+            Mono.error(new NotFoundException("Organization with identifier '" + identifier + "' not found!")))
         .flatMap(ModelFactory::toDomain);
-  }
-
-  @Override
-  @NotNull
-  public Mono<Void> deleteByIdentifier(@NotNull String identifier) {
-    return MONO.<String>makeSureNotNullWithMessage("Organization identifier can not be 'null'!").apply(identifier)
-        .flatMap(repository::deleteByIdentifier)
-        .onErrorResume(MONO.exceptionWrapper("DocumentNeo4jRepository - Error while reading document"));
   }
 
 }
