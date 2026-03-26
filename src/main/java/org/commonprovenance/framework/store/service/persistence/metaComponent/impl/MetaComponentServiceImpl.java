@@ -4,14 +4,11 @@ import static org.commonprovenance.framework.store.common.publisher.PublisherHel
 
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Function;
-import java.util.function.Predicate;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
@@ -28,19 +25,14 @@ import org.openprovenance.prov.model.Bundle;
 import org.openprovenance.prov.model.Document;
 import org.openprovenance.prov.model.Entity;
 import org.openprovenance.prov.model.Namespace;
-import org.openprovenance.prov.model.Other;
 import org.openprovenance.prov.model.ProvFactory;
 import org.openprovenance.prov.model.QualifiedName;
 import org.openprovenance.prov.model.Statement;
-import org.openprovenance.prov.model.Type;
-import org.openprovenance.prov.model.WasDerivedFrom;
-import org.openprovenance.prov.vanilla.LangString;
 import org.openprovenance.prov.vanilla.ProvUtilities;
 import org.springframework.stereotype.Service;
 
 import cz.muni.fi.cpm.constants.CpmNamespaceConstants;
 import cz.muni.fi.cpm.model.ICpmProvFactory;
-import jakarta.validation.constraints.NotNull;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -68,25 +60,18 @@ public class MetaComponentServiceImpl implements MetaComponentService {
   }
 
   @Override
-  public @NotNull Mono<Document> storeMetaComponent(@NotNull Document document) {
-    return this.bundlePersistence.create(document);
-  }
-
-  @Override
-  public @NotNull Mono<Document> createMetaComponent(@NotNull QualifiedName metaBundleId) {
+  public Mono<Document> createMetaComponent(QualifiedName metaBundleIdentifier) {
     Entity generalEntity = this.provFactory.newEntity(
         this.provFactory.newQualifiedName(
-            this.configuration.getFqdn() + "documents/",
-            UUID.randomUUID().toString(),
-            "storage"),
+            this.configuration.getFqdn() + "documents/", UUID.randomUUID().toString(), "storage"),
         List.of(provFactory.newType(
             provFactory.getName().PROV_BUNDLE,
-            provFactory.getName().PROV_TYPE)));
+            provFactory.getName().PROV_QUALIFIED_NAME)));
 
     Namespace bundleNs = provFactory.newNamespace();
     bundleNs.register("meta", this.configuration.getFqdn() + "documents/meta/");
 
-    Bundle bundle = provFactory.newNamedBundle(metaBundleId, bundleNs, List.of(generalEntity));
+    Bundle bundle = provFactory.newNamedBundle(metaBundleIdentifier, bundleNs, List.of(generalEntity));
 
     Document provDocument = this.provFactory.newDocument();
     provDocument.getNamespace().addKnownNamespaces();
@@ -96,65 +81,64 @@ public class MetaComponentServiceImpl implements MetaComponentService {
     provDocument.getNamespace().register("storage", this.configuration.getFqdn() + "documents/");
     provDocument.getStatementOrBundle().add(bundle);
 
-    return this.storeMetaComponent(provDocument);
+    return this.bundlePersistence.create(provDocument);
 
   }
 
+  private Function<Entity, Mono<Entity>> addNextVersion(Document document, QualifiedName nextVersionIdentifier) {
+    return (Entity lastVersion) -> this.getBundleIdentifier(document)
+        .map(QualifiedName::getLocalPart)
+        .flatMap((String identifier) -> Mono.zip(
+            this.entityPersistence.getGeneralVersionEntity(identifier),
+            this.entityPersistence.getLastVersion(identifier)
+                .onErrorResume(NotFoundException.class, _ -> Mono.just(0))
+                .map(this::incrementVersion)
+                .map(this.createNewVersion(document.getNamespace().getNamespaces(), nextVersionIdentifier))))
+        .flatMap(tuple -> {
+          Entity general = tuple.getT1();
+          Entity newVersion = tuple.getT2();
+          return entityPersistence.addNewVersion(general, lastVersion).apply(newVersion);
+        });
+  }
+
+  private Mono<Entity> addFirstVersion(Document document, QualifiedName nextVersionIdentifier) {
+    return this.getBundleIdentifier(document)
+        .map(QualifiedName::getLocalPart)
+        .flatMap((String identifier) -> Mono.zip(
+            this.entityPersistence.getGeneralVersionEntity(identifier),
+            this.entityPersistence.getLastVersion(identifier)
+                .onErrorResume(NotFoundException.class, _ -> Mono.just(0))
+                .map(this::incrementVersion)
+                .map(this.createNewVersion(document.getNamespace().getNamespaces(), nextVersionIdentifier))))
+        .flatMap(tuple -> {
+          Entity general = tuple.getT1();
+          Entity newVersion = tuple.getT2();
+          return entityPersistence.addFirstVersion(general).apply(newVersion);
+        });
+  }
+
   @Override
-  public @NotNull Function<Document, Mono<Document>> addNewVersion(QualifiedName identifier) {
+  public Function<Document, Mono<Document>> addNewVersion(QualifiedName identifier) {
     return (Document document) -> {
-      Mono<Entity> generalEntity = this.getGeneralVersionEntity(document).cache();
-      Mono<Entity> lastVersionEntity = this.getLastVersionEntity(document).cache();
-
-      Mono<Entity> newVersionEntity = lastVersionEntity
-          .map(getVersion(document.getNamespace().getNamespaces()))
-          .flatMap(Mono::justOrEmpty)
-          .switchIfEmpty(Mono.just(0))
-          .map(this::incrementVersion)
-          .map(this.createNewVersion(document.getNamespace().getNamespaces(), identifier))
-          .cache();
-
-      return Mono.zip(newVersionEntity, lastVersionEntity, generalEntity)
-          .delayUntil(tuple -> {
-            Entity newVersion = tuple.getT1();
-            Entity lastVersion = tuple.getT2();
-            Entity general = tuple.getT3();
-
-            if (lastVersion.getId().equals(general.getId())) {
-              // if new version is 1, last version is general
-              return entityPersistence.addFirstVersion(general).apply(newVersion);
-            } else {
-              return entityPersistence.addNewVersion(general, lastVersion).apply(newVersion);
-            }
-          })
-          .map(tuple -> {
-            List<Statement> statements = new ArrayList<>();
-            statements.add(tuple.getT1());
-            statements.add(provFactory.newSpecializationOf(tuple.getT1().getId(),
-                tuple.getT3().getId()));
-
-            if (!tuple.getT2().getId().equals(tuple.getT3().getId())) {
-              // if new version is 1, last version is general
-              WasDerivedFrom wdf = provFactory.newWasDerivedFrom(
-                  tuple.getT1().getId(),
-                  tuple.getT2().getId());
-              wdf.getType().add(provFactory.newType(
-                  provFactory.getName().PROV_REVISION,
-                  provFactory.getName().PROV_TYPE));
-              statements.add(wdf);
-            }
-            return statements;
-          })
-          .flatMap(this.addStatementsToBundle(document));
+      return this.getBundleIdentifier(document)
+          .map(QualifiedName::getLocalPart)
+          .flatMap(this.entityPersistence::getLastVersionEntity)
+          .flatMap(this.addNextVersion(document, identifier))
+          .onErrorResume(NotFoundException.class, _ -> this.addFirstVersion(document, identifier))
+          .then(this.getBundleIdentifier(document)
+              .map(QualifiedName::getLocalPart)
+              .flatMap(this.bundlePersistence::getByIdentifier));
     };
 
   }
 
   @Override
-  public @NotNull Function<Document, Mono<Document>> addTokenToLastVersion(Token tokenModel) {
+  public Function<Document, Mono<Document>> addTokenToLastVersion(Token tokenModel) {
     return (Document document) -> {
-      Mono<Entity> lastVersionEntity = this.getLastVersionEntity(document)
-          .cache(); // TODO: Mono is lazy and cold!!! Need to be refactored!!!
+      Mono<Entity> lastVersionEntity = this.getBundleIdentifier(document)
+          .map(QualifiedName::getLocalPart)
+          .flatMap(this.entityPersistence::getLastVersionEntity)
+          .cache();// TODO: Mono is lazy and cold!!! Need to be refactored!!!
 
       Mono<Entity> tokenNode = lastVersionEntity
           .map(Entity::getId)
@@ -210,25 +194,27 @@ public class MetaComponentServiceImpl implements MetaComponentService {
 
             return statements;
           })
-          .flatMap(this.addStatementsToBundle(document));
+          .then(this.getBundleIdentifier(document)
+              .map(QualifiedName::getLocalPart)
+              .flatMap(this.bundlePersistence::getByIdentifier));
     };
   }
 
   @Override
-  public @NotNull Mono<Document> getMetaComponent(@NotNull QualifiedName metaBundleId) {
+  public Mono<Document> getMetaComponent(QualifiedName metaBundleId) {
     return Mono.justOrEmpty(metaBundleId)
-        .flatMap(this::getById)
+        .flatMap(this::getByIdentifier)
         .onErrorResume(NotFoundException.class,
             _ -> this.createMetaComponent(metaBundleId));
   }
 
   @Override
-  public @NotNull Mono<Document> getById(@NotNull QualifiedName id) {
-    return this.bundlePersistence.getById(id.getLocalPart());
+  public Mono<Document> getByIdentifier(QualifiedName id) {
+    return this.bundlePersistence.getByIdentifier(id.getLocalPart());
   }
 
   @Override
-  public @NotNull Mono<Boolean> exists(@NotNull String id) {
+  public Mono<Boolean> exists(String id) {
     return this.bundlePersistence.exists(id);
   }
 
@@ -343,20 +329,8 @@ public class MetaComponentServiceImpl implements MetaComponentService {
 
   }
 
-  private Function<List<Statement>, Mono<Document>> addStatementsToBundle(Document document) {
-    return (List<Statement> statements) -> Mono.justOrEmpty(document)
-        .flatMap(doc -> getBundle(doc)
-            .map(bundle -> provFactory.newNamedBundle(bundle.getId(), bundle.getNamespace(), Collections.emptyList()))
-            .doOnNext(bundle -> statements.forEach(bundle.getStatement()::add))
-            .map(bundle -> provFactory.newDocument(doc.getNamespace(), List.of(bundle))));
-  }
-
   private Integer incrementVersion(Integer version) {
     return version + 1;
-  }
-
-  private QualifiedName getIdentifier(Map<String, String> namespaces, String local, String prefix) {
-    return provFactory.newQualifiedName(namespaces.get(prefix), local, prefix);
   }
 
   private Function<QualifiedName, QualifiedName> generateIdentifierFrom(String local) {
@@ -366,80 +340,9 @@ public class MetaComponentServiceImpl implements MetaComponentService {
         identifier.getPrefix());
   }
 
-  private Flux<Entity> getBundleEntities(Document document) {
-    return getBundle(document)
-        .map(Bundle::getStatement)
-        .flatMapMany(Flux::fromIterable)
-        .filter(Entity.class::isInstance)
-        .map(Entity.class::cast)
-        .filter(this.isTypeOf(provFactory.getName().PROV_BUNDLE));
-  }
-
-  private Mono<Entity> getLastVersionEntity(Document document) {
-    return getBundleEntities(document)
-        .reduce((current, candidate) -> {
-          Integer currentVersion = getVersion(document.getNamespace().getNamespaces())
-              .apply(current).orElse(0);
-          Integer candidateVersion = getVersion(document.getNamespace().getNamespaces())
-              .apply(candidate).orElse(0);
-          return candidateVersion > currentVersion ? candidate : current;
-        });
-  }
-
-  private Mono<Entity> getGeneralVersionEntity(Document document) {
-    return getBundleEntities(document)
-        .filter(entity -> getVersion(document.getNamespace().getNamespaces())
-            .apply(entity)
-            .isEmpty())
-        .single();
-  }
-
-  private Mono<Integer> getLastVersion(Document document) {
-    return getBundleEntities(document)
-        .map(this.getVersion(document.getNamespace().getNamespaces()))
-        .flatMap(Mono::justOrEmpty)
-        .sort()
-        .last()
-        .defaultIfEmpty(0);
-  }
-
-  private Function<Entity, Optional<Integer>> getVersion(Map<String, String> namespaces) {
-    return (Entity entity) -> {
-      List<Integer> versions = entity.getOther().stream()
-          .filter(
-              other -> other.getElementName().getLocalPart().equals("version")
-                  && other.getElementName().getNamespaceURI().equals("http://purl.org/pav/")
-                  && other.getElementName().getPrefix().equals("pav"))
-
-          .map(Other::getValue)
-          .filter(LangString.class::isInstance)
-          .map(LangString.class::cast)
-          .map(LangString::getValue)
-          .map(Integer::valueOf)
-          .toList();
-      return versions.size() == 1
-          ? Optional.of(versions.getFirst())
-          : Optional.empty();
-
-    };
-  }
-
-  private Predicate<Entity> hasAttribure(QualifiedName attrName) {
-    return (Entity entity) -> !entity.getOther().stream()
-        .map(Other::getElementName)
-        .filter(attrName::equals)
-        .toList()
-        .isEmpty();
-  }
-
-  private Predicate<Entity> isTypeOf(QualifiedName type) {
-    return (Entity entity) -> !entity.getType().stream()
-        .map(Type::getValue)
-        .filter(QualifiedName.class::isInstance)
-        .map(QualifiedName.class::cast)
-        .filter(type::equals)
-        .toList()
-        .isEmpty();
+  private Mono<QualifiedName> getBundleIdentifier(Document document) {
+    return this.getBundle(document)
+        .map(Bundle::getId);
   }
 
   private Mono<Bundle> getBundle(Document document) {
