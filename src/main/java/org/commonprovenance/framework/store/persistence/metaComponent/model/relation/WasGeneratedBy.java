@@ -7,8 +7,6 @@ import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.RelationshipProperties;
 import org.springframework.data.neo4j.core.schema.TargetNode;
 
-import jakarta.validation.constraints.NotNull;
-
 @RelationshipProperties
 public final class WasGeneratedBy {
 
@@ -33,11 +31,11 @@ public final class WasGeneratedBy {
   }
 
   // Wither methods for immutability
-  public @NotNull WasGeneratedBy withId(Long id) {
+  public WasGeneratedBy withId(Long id) {
     return new WasGeneratedBy(id, this.getActivity());
   }
 
-  public @NotNull WasGeneratedBy withActivity(@NotNull ActivityNode activity) {
+  public WasGeneratedBy withActivity(ActivityNode activity) {
     return new WasGeneratedBy(this.getId(), activity);
   }
 

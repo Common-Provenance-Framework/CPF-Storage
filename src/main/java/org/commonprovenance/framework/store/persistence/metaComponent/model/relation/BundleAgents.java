@@ -7,8 +7,6 @@ import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.RelationshipProperties;
 import org.springframework.data.neo4j.core.schema.TargetNode;
 
-import jakarta.validation.constraints.NotNull;
-
 @RelationshipProperties
 public final class BundleAgents {
 
@@ -33,11 +31,11 @@ public final class BundleAgents {
   }
 
   // Wither methods for immutability
-  public @NotNull BundleAgents withId(Long id) {
+  public BundleAgents withId(Long id) {
     return new BundleAgents(id, this.getAgent());
   }
 
-  public @NotNull BundleAgents withAgetn(@NotNull AgentNode agent) {
+  public BundleAgents withAgetn(AgentNode agent) {
     return new BundleAgents(this.getId(), agent);
   }
 

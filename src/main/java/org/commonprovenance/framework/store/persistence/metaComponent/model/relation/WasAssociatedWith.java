@@ -7,8 +7,6 @@ import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.RelationshipProperties;
 import org.springframework.data.neo4j.core.schema.TargetNode;
 
-import jakarta.validation.constraints.NotNull;
-
 @RelationshipProperties
 public final class WasAssociatedWith {
 
@@ -33,11 +31,11 @@ public final class WasAssociatedWith {
   }
 
   // Wither methods for immutability
-  public @NotNull WasAssociatedWith withId(Long id) {
+  public WasAssociatedWith withId(Long id) {
     return new WasAssociatedWith(id, this.getAgent());
   }
 
-  public @NotNull WasAssociatedWith withAgent(@NotNull AgentNode agent) {
+  public WasAssociatedWith withAgent(AgentNode agent) {
     return new WasAssociatedWith(this.getId(), agent);
   }
 

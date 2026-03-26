@@ -7,8 +7,6 @@ import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.RelationshipProperties;
 import org.springframework.data.neo4j.core.schema.TargetNode;
 
-import jakarta.validation.constraints.NotNull;
-
 @RelationshipProperties
 public final class SpecializationOf {
 
@@ -33,11 +31,11 @@ public final class SpecializationOf {
   }
 
   // Wither methods for immutability
-  public @NotNull SpecializationOf withId(Long id) {
+  public SpecializationOf withId(Long id) {
     return new SpecializationOf(id, this.getEntity());
   }
 
-  public @NotNull SpecializationOf withEntity(@NotNull EntityNode entity) {
+  public SpecializationOf withEntity(EntityNode entity) {
     return new SpecializationOf(this.getId(), entity);
   }
 

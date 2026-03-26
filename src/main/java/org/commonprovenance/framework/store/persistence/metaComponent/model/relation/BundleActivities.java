@@ -7,8 +7,6 @@ import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.RelationshipProperties;
 import org.springframework.data.neo4j.core.schema.TargetNode;
 
-import jakarta.validation.constraints.NotNull;
-
 @RelationshipProperties
 public final class BundleActivities {
 
@@ -33,11 +31,11 @@ public final class BundleActivities {
   }
 
   // Wither methods for immutability
-  public @NotNull BundleActivities withId(Long id) {
+  public BundleActivities withId(Long id) {
     return new BundleActivities(id, this.getActivity());
   }
 
-  public @NotNull BundleActivities withActivity(@NotNull ActivityNode activity) {
+  public BundleActivities withActivity(ActivityNode activity) {
     return new BundleActivities(this.getId(), activity);
   }
 

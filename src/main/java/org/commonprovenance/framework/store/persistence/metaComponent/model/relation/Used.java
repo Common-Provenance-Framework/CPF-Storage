@@ -7,8 +7,6 @@ import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.RelationshipProperties;
 import org.springframework.data.neo4j.core.schema.TargetNode;
 
-import jakarta.validation.constraints.NotNull;
-
 @RelationshipProperties
 public final class Used {
 
@@ -33,11 +31,11 @@ public final class Used {
   }
 
   // Wither methods for immutability
-  public @NotNull Used withId(Long id) {
+  public Used withId(Long id) {
     return new Used(id, this.getEntity());
   }
 
-  public @NotNull Used withEntity(@NotNull EntityNode entity) {
+  public Used withEntity(EntityNode entity) {
     return new Used(this.getId(), entity);
   }
 

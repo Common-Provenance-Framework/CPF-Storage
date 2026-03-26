@@ -7,8 +7,6 @@ import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.RelationshipProperties;
 import org.springframework.data.neo4j.core.schema.TargetNode;
 
-import jakarta.validation.constraints.NotNull;
-
 @RelationshipProperties
 public final class RevisionOf {
 
@@ -33,11 +31,11 @@ public final class RevisionOf {
   }
 
   // Wither methods for immutability
-  public @NotNull RevisionOf withId(Long id) {
+  public RevisionOf withId(Long id) {
     return new RevisionOf(id, this.getEntity());
   }
 
-  public @NotNull RevisionOf withEntity(@NotNull EntityNode entity) {
+  public RevisionOf withEntity(EntityNode entity) {
     return new RevisionOf(this.getId(), entity);
   }
 

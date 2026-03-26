@@ -7,8 +7,6 @@ import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.RelationshipProperties;
 import org.springframework.data.neo4j.core.schema.TargetNode;
 
-import jakarta.validation.constraints.NotNull;
-
 @RelationshipProperties
 public final class WasDerivedFrom {
 
@@ -33,11 +31,11 @@ public final class WasDerivedFrom {
   }
 
   // Wither methods for immutability
-  public @NotNull WasDerivedFrom withId(Long id) {
+  public WasDerivedFrom withId(Long id) {
     return new WasDerivedFrom(id, this.getEntity());
   }
 
-  public @NotNull WasDerivedFrom withEntity(@NotNull EntityNode entity) {
+  public WasDerivedFrom withEntity(EntityNode entity) {
     return new WasDerivedFrom(this.getId(), entity);
   }
 
