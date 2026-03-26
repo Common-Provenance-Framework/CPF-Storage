@@ -5,11 +5,13 @@ import java.util.Objects;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import jakarta.validation.constraints.NotNull;
 
 @Configuration
+@Validated
 public class WebConfigTP {
   private final Environment env;
 

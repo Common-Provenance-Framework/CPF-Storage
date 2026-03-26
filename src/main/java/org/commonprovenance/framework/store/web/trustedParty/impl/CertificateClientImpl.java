@@ -13,7 +13,6 @@ import org.commonprovenance.framework.store.web.trustedParty.dto.form.factory.DT
 import org.commonprovenance.framework.store.web.trustedParty.dto.response.CertificateTPResponseDTO;
 import org.springframework.stereotype.Component;
 
-import jakarta.validation.constraints.NotNull;
 import reactor.core.publisher.Mono;
 
 @Component
@@ -30,8 +29,8 @@ public class CertificateClientImpl implements CertificateClient {
   }
 
   @Override
-  public @NotNull Function<String, Mono<Organization>> getOrganizationCertificate(Optional<String> trustedPartyUrl) {
-    return (@NotNull String organizationId) -> MONO
+  public Function<String, Mono<Organization>> getOrganizationCertificate(Optional<String> trustedPartyUrl) {
+    return (String organizationId) -> MONO
         .<String>makeSureNotNullWithMessage("Organization id can not be null!").apply(organizationId)
         .flatMap((String id) -> {
           return trustedPartyUrl
@@ -43,9 +42,9 @@ public class CertificateClientImpl implements CertificateClient {
   }
 
   @Override
-  public @NotNull Function<Organization, Mono<Organization>> updateOrganizationCertificate(
+  public Function<Organization, Mono<Organization>> updateOrganizationCertificate(
       Optional<String> trustedPartyUrl) {
-    return (@NotNull Organization organization) -> DTOFactory.toUpdateForm(organization)
+    return (Organization organization) -> DTOFactory.toUpdateForm(organization)
         .flatMap(trustedPartyUrl
             .map(this.client::buildWebClient)
             .map(this.client.sendCustomPutRequest(getUri(organization.getIdentifier()), Void.class))

@@ -11,7 +11,6 @@ import org.commonprovenance.framework.store.web.trustedParty.dto.response.Docume
 import org.openprovenance.prov.model.QualifiedName;
 import org.springframework.stereotype.Component;
 
-import jakarta.validation.constraints.NotNull;
 import reactor.core.publisher.Mono;
 
 @Component
@@ -24,10 +23,10 @@ public class DocumentClientImpl implements DocumentClient {
   }
 
   @Override
-  public @NotNull Mono<Document> getById(
-      @NotNull String organizationId,
-      @NotNull QualifiedName bundle_identifier,
-      @NotNull Format documentFormat,
+  public Mono<Document> getById(
+      String organizationId,
+      QualifiedName bundle_identifier,
+      Format documentFormat,
       Optional<String> trustedPartyUrl) {
     String uri = "organizations/" + organizationId + "/documents/" + bundle_identifier.getUri() + "/"
         + documentFormat.toString();
