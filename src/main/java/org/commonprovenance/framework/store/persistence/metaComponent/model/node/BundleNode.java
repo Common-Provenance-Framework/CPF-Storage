@@ -15,8 +15,6 @@ import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
 import org.springframework.data.neo4j.core.schema.Relationship;
 
-import jakarta.validation.constraints.NotNull;
-
 @Node("Bundle")
 public class BundleNode {
   @Id
@@ -189,10 +187,10 @@ public class BundleNode {
         bundleAgents);
   }
 
-  public @NotNull BundleNode withBundleNodes(
-      @NotNull List<BundleEntities> bundleEntities,
-      @NotNull List<BundleActivities> bundleActivities,
-      @NotNull List<BundleAgents> bundleAgents) {
+  public BundleNode withBundleNodes(
+      List<BundleEntities> bundleEntities,
+      List<BundleActivities> bundleActivities,
+      List<BundleAgents> bundleAgents) {
     return new BundleNode(
         this.getId(),
         this.getIdentifier(),
@@ -201,7 +199,7 @@ public class BundleNode {
         bundleAgents);
   }
 
-  public @NotNull BundleNode withBundleNodes(@NotNull List<BaseProvClassNode> nodes) {
+  public BundleNode withBundleNodes(List<BaseProvClassNode> nodes) {
     return new BundleNode(
         this.getId(),
         this.getIdentifier(),
