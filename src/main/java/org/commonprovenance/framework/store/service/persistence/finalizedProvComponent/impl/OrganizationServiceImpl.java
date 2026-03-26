@@ -7,14 +7,11 @@ import org.commonprovenance.framework.store.model.Organization;
 import org.commonprovenance.framework.store.persistence.finalizedProvComponent.OrganizationPersistence;
 import org.commonprovenance.framework.store.service.persistence.finalizedProvComponent.OrganizationService;
 import org.springframework.stereotype.Service;
-import org.springframework.validation.annotation.Validated;
 
-import jakarta.validation.constraints.NotNull;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @Service
-@Validated
 public class OrganizationServiceImpl implements OrganizationService {
 
   private final OrganizationPersistence persistence;
@@ -23,20 +20,20 @@ public class OrganizationServiceImpl implements OrganizationService {
     this.persistence = persistence;
   }
 
-  @NotNull
-  public Mono<Organization> storeOrganization(@NotNull Organization organization) {
+  @Override
+  public Mono<Organization> storeOrganization(Organization organization) {
     return MONO.<Organization>makeSureNotNullWithMessage("Organization can not be null").apply(organization)
         .flatMap(this.persistence::create);
   }
 
   @Override
-  public @NotNull Mono<Organization> updateOrganization(Organization organization) {
+  public Mono<Organization> updateOrganization(Organization organization) {
     return MONO.<Organization>makeSureNotNullWithMessage("Organization can not be null").apply(organization)
         .flatMap(this.persistence::update);
   }
 
-  @NotNull
-  public Mono<Boolean> exists(@NotNull Organization organization) {
+  @Override
+  public Mono<Boolean> exists(Organization organization) {
     return MONO.<Organization>makeSureNotNullWithMessage("Organization can not be null").apply(organization)
         .map(Organization::getIdentifier)
         .flatMap(this::getOrganizationByIdentifier)
@@ -45,23 +42,18 @@ public class OrganizationServiceImpl implements OrganizationService {
   }
 
   @Override
-  public @NotNull Mono<Boolean> notExists(@NotNull Organization organization) {
+  public Mono<Boolean> notExists(Organization organization) {
     return exists(organization).map(result -> !result);
   }
 
-  @NotNull
+  @Override
   public Flux<Organization> getAllOrganizations() {
     return this.persistence.getAll();
   }
 
-  @NotNull
-  public Mono<Organization> getOrganizationByIdentifier(@NotNull String identifier) {
+  @Override
+  public Mono<Organization> getOrganizationByIdentifier(String identifier) {
     return this.persistence.getByIdentifier(identifier);
-  }
-
-  @NotNull
-  public Mono<Void> deleteOrganizationByIdentifier(@NotNull String identifier) {
-    return this.persistence.deleteByIdentifier(identifier);
   }
 
 }
