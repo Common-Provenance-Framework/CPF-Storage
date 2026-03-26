@@ -8,7 +8,11 @@ import reactor.core.publisher.Mono;
 public interface EntityRepository {
   Mono<EntityNode> save(EntityNode entity);
 
-  Mono<EntityNode> findById(String id);
+  Mono<EntityNode> findByIdentifier(String identifier);
 
-  Flux<EntityNode> getAllEntitiesByBundleId(String bundleId);
+  Flux<EntityNode> getAllEntitiesByBundleIdentifier(String bundleIdentifier);
+
+  Mono<EntityNode> getGeneralEntityByBundleIdentifier(String bundleIdentifier);
+
+  Mono<EntityNode> getLastVersionEntityByBundleIdentifier(String bundleIdentifier);
 }

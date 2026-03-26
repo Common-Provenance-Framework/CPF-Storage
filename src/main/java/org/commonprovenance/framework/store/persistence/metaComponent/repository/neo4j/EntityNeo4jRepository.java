@@ -25,13 +25,23 @@ public class EntityNeo4jRepository implements EntityRepository {
   }
 
   @Override
-  public Mono<EntityNode> findById(String id) {
-    return client.findById(id);
+  public Mono<EntityNode> findByIdentifier(String identifier) {
+    return client.findByIdentifier(identifier);
   }
 
   @Override
-  public Flux<EntityNode> getAllEntitiesByBundleId(String bundleId) {
-    return client.getAllEntitiesByBundleId(bundleId);
+  public Flux<EntityNode> getAllEntitiesByBundleIdentifier(String bundleIdentifier) {
+    return client.getAllEntitiesByBundleIdentifier(bundleIdentifier);
+  }
+
+  @Override
+  public Mono<EntityNode> getGeneralEntityByBundleIdentifier(String bundleIdentifier) {
+    return client.findGeneralVersion(bundleIdentifier);
+  }
+
+  @Override
+  public Mono<EntityNode> getLastVersionEntityByBundleIdentifier(String bundleIdentifier) {
+    return client.findLastVersion(bundleIdentifier);
   }
 
 }

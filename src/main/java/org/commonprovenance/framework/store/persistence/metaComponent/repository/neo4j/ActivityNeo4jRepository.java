@@ -24,8 +24,8 @@ public class ActivityNeo4jRepository implements ActivityRepository {
   }
 
   @Override
-  public Mono<ActivityNode> findById(String id) {
-    return client.findById(id);
+  public Mono<ActivityNode> findByIdentifier(String identifier) {
+    return client.findByIdentifier(identifier);
   }
 
 }

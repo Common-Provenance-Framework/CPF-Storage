@@ -10,8 +10,16 @@ import reactor.core.publisher.Mono;
 
 @Repository
 public interface BundleNeo4jRepositoryClient extends ReactiveNeo4jRepository<BundleNode, String> {
+  @Query("""
+          MATCH (bundle:Bundle {identifier: $identifier})
+          RETURN bundle
+      """)
+  Mono<BundleNode> findByIdentifier(@Param("identifier") String identifier);
 
-  @Query("MATCH (bundle:Bundle) -[r:bundle_entities]->(entity:Entity {id: $generalEntityId}) RETURN bundle")
+  @Query("""
+          MATCH (bundle:Bundle) -[r:bundle_entities]->(entity:Entity {identifier: $generalEntityIdentifier})
+          RETURN bundle
+      """)
+  Mono<BundleNode> getBundleByGeneralEntity(@Param("generalEntityIdentifier") String generalEntityIdentifier);
 
-  Mono<BundleNode> getBundleByGeneralEntity(@Param("generalEntityId") String generalEntityId);
 }
