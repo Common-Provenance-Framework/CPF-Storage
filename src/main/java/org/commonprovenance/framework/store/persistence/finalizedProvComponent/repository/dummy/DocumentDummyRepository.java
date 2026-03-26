@@ -23,8 +23,8 @@ public class DocumentDummyRepository implements DocumentRepository {
   }
 
   @Override
-  public Mono<DocumentNode> save(DocumentNode entity) {
-    return MONO.makeSureNotNull(entity)
+  public Mono<DocumentNode> save(DocumentNode document) {
+    return MONO.makeSureNotNull(document)
         .doOnNext(this::add);
   }
 
@@ -40,10 +40,4 @@ public class DocumentDummyRepository implements DocumentRepository {
         .flatMap(MONO::makeSureNotNull);
   }
 
-  @Override
-  public Mono<Void> deleteByIdentifier(String identifier) {
-    return MONO.makeSureNotNull(identifier)
-        .map(documents::remove)
-        .then();
-  }
 }

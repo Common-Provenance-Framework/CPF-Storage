@@ -23,8 +23,8 @@ public class OrganizationDummyRepository implements OrganizationRepository {
   }
 
   @Override
-  public Mono<OrganizationNode> save(OrganizationNode entity) {
-    return MONO.makeSureNotNull(entity)
+  public Mono<OrganizationNode> save(OrganizationNode organization) {
+    return MONO.makeSureNotNull(organization)
         .doOnNext(this::add);
   }
 
@@ -40,10 +40,4 @@ public class OrganizationDummyRepository implements OrganizationRepository {
         .flatMap(MONO::makeSureNotNull);
   }
 
-  @Override
-  public Mono<Void> deleteByIdentifier(String identifier) {
-    return MONO.makeSureNotNull(identifier)
-        .map(organizations::remove)
-        .then();
-  }
 }
