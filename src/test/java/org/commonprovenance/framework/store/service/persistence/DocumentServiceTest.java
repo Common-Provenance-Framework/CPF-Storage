@@ -3,6 +3,8 @@ package org.commonprovenance.framework.store.service.persistence;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 
+import java.util.UUID;
+
 import org.commonprovenance.framework.store.exceptions.InternalApplicationException;
 import org.commonprovenance.framework.store.model.Document;
 import org.commonprovenance.framework.store.model.Format;
@@ -15,8 +17,6 @@ import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
-
-import java.util.UUID;
 
 @DisplayName("Service - DocumentServiceImpl UnitTest")
 
@@ -69,11 +69,6 @@ class DocumentServiceTest {
         default:
           return Mono.empty();
       }
-    }
-
-    @Override
-    public Mono<Void> deleteByIdentifier(String identifier) {
-      return Mono.empty().then();
     }
 
   }
@@ -192,14 +187,5 @@ class DocumentServiceTest {
               err.getCause().getMessage(),
               "should have exact error message");
         });
-  }
-
-  @Test
-  @DisplayName("HappyPath - deleteByIdentifier - should return empty Mono.")
-
-  void deleteDocumentByIdentifier_should_delete_document() {
-
-    StepVerifier.create(documentService.deleteDocumentByIdentifier(DocumentRepositoryStub.UUID_STR_1))
-        .verifyComplete();
   }
 }

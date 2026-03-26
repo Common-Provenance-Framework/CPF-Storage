@@ -112,24 +112,4 @@ class DocumentRepositorySpec {
 
     assertEquals(TEST_ID_1, captor.getValue(), "Repository findById method should be invoked with exact argument");
   }
-
-  @Test
-  @DisplayName("DeleteByIdentifier - should call deleteByIdentifier method with exact parameters")
-  void deleteById_should_call_deleteById_method_with_exact_paramters_when_getbyid() {
-    when(documentRepository.deleteByIdentifier(anyString())).thenReturn(Mono.empty().then());
-
-    StepVerifier.create(documentPersistence.deleteByIdentifier(TEST_ID_1))
-        .expectNextCount(0)
-        .verifyComplete();
-
-    ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
-    verify(
-        documentRepository,
-        times(1)
-            .description("Repository deleteByIdentifier method should be invoked once"))
-        .deleteByIdentifier(captor.capture());
-
-    assertEquals(TEST_ID_1, captor.getValue(),
-        "Repository deleteByIdentifier method should be invoked with exact argument");
-  }
 }

@@ -274,42 +274,4 @@ class DocumentRepositoryTest {
         });
   }
 
-  @Test
-  @DisplayName("HappyPath - deleteByIdentifier - should delete entity from neo4j DB")
-  void deleteByIdentifier_should_delete_entity() {
-    when(documentRepository.deleteByIdentifier(anyString())).thenAnswer(invocation -> {
-      String id = invocation.getArgument(0);
-      if (id == null) {
-        return Mono.error(new IllegalArgumentException("Id can not be 'null'"));
-      } else {
-        return Mono.empty().then();
-      }
-    });
-
-    StepVerifier.create(repository.deleteByIdentifier(TEST_ID_1))
-        .expectNextCount(0)
-        .verifyComplete();
-  }
-
-  @Test
-  @DisplayName("ErrorPath - deleteByIdentifier - should handle terminated IllegalArgumentException")
-  void deleteByIdentifier_should_handle_terminated_IllegalArgumentException() {
-    StepVerifier.create(repository.deleteByIdentifier((String) null))
-        .verifyErrorSatisfies(err -> {
-          assertInstanceOf(
-              InternalApplicationException.class, err,
-              "should be InternalApplicationException - Exception");
-          assertEquals(
-              "Document identifier can not be 'null'!",
-              err.getMessage(),
-              "should have exact error message");
-          assertNull(err.getCause());
-
-          // assertInstanceOf(
-          // IllegalArgumentException.class, err.getCause(),
-          // "should be IllegalArgumentException - Exception cause");
-          // assertNull(err.getCause().getMessage(),
-          // "should have exact error message");
-        });
-  }
 }

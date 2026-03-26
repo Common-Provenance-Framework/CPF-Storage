@@ -118,22 +118,4 @@ class DocumentServiceSpec {
         "should be called with exact id");
   }
 
-  @Test
-  void deleteDocumentByIdentifier_shouldDeleteDocument() {
-    when(documentRepository.deleteByIdentifier(UUID_1)).thenReturn(Mono.empty().then());
-
-    StepVerifier.create(documentService.deleteDocumentByIdentifier(UUID_1))
-        .verifyComplete();
-
-    ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
-    verify(
-        documentRepository,
-        times(1)
-            .description("Repository deleteByIdentifier method should be invoked once"))
-        .deleteByIdentifier(captor.capture());
-
-    String capturedId = captor.getValue();
-    assertTrue(capturedId.equals(UUID_1),
-        "should be called with exact id");
-  }
 }
