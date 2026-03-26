@@ -12,9 +12,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
 import org.springframework.data.neo4j.config.AbstractReactiveNeo4jConfig;
 
-// import jakarta.annotation.PostConstruct;
-import jakarta.validation.constraints.NotNull;
-
 @Configuration
 public class Neo4jConfig extends AbstractReactiveNeo4jConfig {
   private final Environment env;
@@ -24,7 +21,6 @@ public class Neo4jConfig extends AbstractReactiveNeo4jConfig {
   }
 
   @Bean(destroyMethod = "close")
-  @NotNull
   public Driver driver() {
     String uri = env.getProperty(
         "spring.neo4j.uri",
@@ -56,11 +52,4 @@ public class Neo4jConfig extends AbstractReactiveNeo4jConfig {
         "Neo4j Driver can not be null!");
   }
 
-  // @PostConstruct
-  // public void initializeConstraints() {
-  // try (var session = driver().session()) {
-  // session.run("CREATE CONSTRAINT organization_name_unique IF NOT EXISTS " +
-  // "FOR (o:Organization) REQUIRE o.name IS UNIQUE");
-  // }
-  // }
 }
