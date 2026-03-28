@@ -13,4 +13,9 @@ public interface BundleRepository {
   Mono<BundleNode> findByGeneralEntity(EntityNode entity);
 
   Mono<Boolean> exists(String identifier);
+
+  Mono<Boolean> hasVersionEntity(String identifier);
+
+  Mono<Boolean> hasNotVersionEntity(String identifier);
+
 }

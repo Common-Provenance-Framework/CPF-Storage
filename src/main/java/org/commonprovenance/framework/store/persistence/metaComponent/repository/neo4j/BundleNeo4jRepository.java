@@ -37,8 +37,16 @@ public class BundleNeo4jRepository implements BundleRepository {
   @Override
   public Mono<Boolean> exists(String identifier) {
     return this.findByIdentifier(identifier)
-        .thenReturn(true)
-        .switchIfEmpty(Mono.just(false));
+        .hasElement();
   }
 
+  @Override
+  public Mono<Boolean> hasVersionEntity(String identifier) {
+    return client.hasVersionEntity(identifier);
+  }
+
+  @Override
+  public Mono<Boolean> hasNotVersionEntity(String identifier) {
+    return client.hasVersionEntity(identifier).map(v -> !v);
+  }
 }
