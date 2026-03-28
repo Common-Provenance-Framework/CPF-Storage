@@ -1,8 +1,10 @@
 package org.commonprovenance.framework.store.persistence.metaComponent.model.node;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -49,9 +51,9 @@ public class EntityNode extends BaseProvClassNode {
       List<WasGeneratedBy> wasGeneratedBy,
       List<WasAttributedTo> wasAttributedTo,
       List<WasDerivedFrom> wasDerivedFrom) {
-    super(id, identifier, provType, cpm);
+    super(id, identifier, provType, Optional.ofNullable(cpm).map(Map::copyOf).orElse(Map.of()));
 
-    this.pav = pav;
+    this.pav = Optional.ofNullable(pav).map(Map::copyOf).orElse(Map.of());
 
     this.revisionOf = revisionOf;
     this.specializationOf = specializationOf;
@@ -66,9 +68,38 @@ public class EntityNode extends BaseProvClassNode {
       String provType,
       Map<String, Object> cpm,
       Map<String, Object> pav) {
-    super(identifier, provType, cpm);
+    super(identifier, provType, Optional.ofNullable(cpm).map(Map::copyOf).orElse(Map.of()));
 
-    this.pav = pav;
+    this.pav = Optional.ofNullable(pav).map(Map::copyOf).orElse(Map.of());
+
+    this.revisionOf = Collections.emptyList();
+    this.specializationOf = Collections.emptyList();
+    this.wasGeneratedBy = Collections.emptyList();
+    this.wasAttributedTo = Collections.emptyList();
+    this.wasDerivedFrom = Collections.emptyList();
+  }
+
+  public EntityNode(
+      String identifier,
+      String provType,
+      Map<String, Object> cpm) {
+    super(identifier, provType, Optional.ofNullable(cpm).map(Map::copyOf).orElse(Map.of()));
+
+    this.pav = Map.of();
+
+    this.revisionOf = Collections.emptyList();
+    this.specializationOf = Collections.emptyList();
+    this.wasGeneratedBy = Collections.emptyList();
+    this.wasAttributedTo = Collections.emptyList();
+    this.wasDerivedFrom = Collections.emptyList();
+  }
+
+  public EntityNode(
+      String identifier,
+      String provType) {
+    super(identifier, provType, Map.of());
+
+    this.pav = Map.of();
 
     this.revisionOf = Collections.emptyList();
     this.specializationOf = Collections.emptyList();
@@ -92,7 +123,7 @@ public class EntityNode extends BaseProvClassNode {
         this.getWasDerivedFrom());
   }
 
-  public EntityNode wihtRevisionOfEntity(EntityNode entity) {
+  public EntityNode withRevisionOfEntity(EntityNode entity) {
     if (entity == null)
       return this;
 
@@ -256,6 +287,22 @@ public class EntityNode extends BaseProvClassNode {
         this.getWasGeneratedBy(),
         this.getWasAttributedTo(),
         wasDerivedFrom);
+  }
+
+  public EntityNode withVersion(Integer version) {
+    Map<String, Object> pav = new HashMap<>(this.getPav());
+    pav.put("version", version);
+    return new EntityNode(
+        this.getId(),
+        this.getIdentifier(),
+        this.getProvType(),
+        this.getCpm(),
+        pav,
+        this.getRevisionOf(),
+        this.getSpecializationOf(),
+        this.getWasGeneratedBy(),
+        this.getWasAttributedTo(),
+        this.getWasDerivedFrom());
   }
 
   public Map<String, Object> getPav() {

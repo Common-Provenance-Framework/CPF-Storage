@@ -1,6 +1,7 @@
 package org.commonprovenance.framework.store.persistence.metaComponent.model.node;
 
 import java.util.Map;
+import java.util.Optional;
 
 import org.springframework.data.annotation.PersistenceCreator;
 import org.springframework.data.neo4j.core.schema.Node;
@@ -15,7 +16,7 @@ public class AgentNode extends BaseProvClassNode {
       String identifier,
       String provType,
       Map<String, Object> cpm) {
-    super(id, identifier, provType, cpm);
+    super(id, identifier, provType, Optional.ofNullable(cpm).map(Map::copyOf).orElse(Map.of()));
   }
 
   // Constructor for creating new node (id will be generated)
@@ -23,7 +24,7 @@ public class AgentNode extends BaseProvClassNode {
       String identifier,
       String provType,
       Map<String, Object> cpm) {
-    super(identifier, provType, cpm);
+    super(identifier, provType, Optional.ofNullable(cpm).map(Map::copyOf).orElse(Map.of()));
   }
 
   // Factory methods

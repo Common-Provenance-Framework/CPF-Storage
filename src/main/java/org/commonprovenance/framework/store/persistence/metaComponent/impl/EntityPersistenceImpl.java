@@ -83,7 +83,7 @@ public class EntityPersistenceImpl implements EntityPersistence {
           EntityNode prevVersion = tuple.getT2();
           EntityNode generalVersion = tuple.getT3();
           EntityNode newVersion = tuple.getT1()
-              .wihtRevisionOfEntity(prevVersion)
+              .withRevisionOfEntity(prevVersion)
               .withSpecializationOfEntity(generalVersion);
           BundleNode metaComponent = tuple.getT4()
               .withEntity(newVersion);
@@ -179,4 +179,5 @@ public class EntityPersistenceImpl implements EntityPersistence {
             .error(new NotFoundException(
                 "Last version Entity for bundle with identifier '" + bundleIdentifier + "' has not been found!"))));
   }
+
 }

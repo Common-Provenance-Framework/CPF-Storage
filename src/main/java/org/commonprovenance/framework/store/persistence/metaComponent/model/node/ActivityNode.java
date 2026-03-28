@@ -3,6 +3,7 @@ package org.commonprovenance.framework.store.persistence.metaComponent.model.nod
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -38,7 +39,7 @@ public class ActivityNode extends BaseProvClassNode {
       Map<String, Object> cpm,
       List<WasAssociatedWith> wasAssociatedWith,
       List<Used> used) {
-    super(id, identifier, provType, cpm);
+    super(id, identifier, provType, Optional.ofNullable(cpm).map(Map::copyOf).orElse(Map.of()));
 
     this.startTime = startTime;
     this.endTime = endTime;
@@ -54,7 +55,20 @@ public class ActivityNode extends BaseProvClassNode {
       String startTime,
       String endTime,
       Map<String, Object> cpm) {
-    super(identifier, provType, cpm);
+    super(identifier, provType, Optional.ofNullable(cpm).map(Map::copyOf).orElse(Map.of()));
+
+    this.startTime = startTime;
+    this.endTime = endTime;
+    this.wasAssociatedWith = Collections.emptyList();
+    this.used = Collections.emptyList();
+  }
+
+  public ActivityNode(
+      String identifier,
+      String provType,
+      String startTime,
+      String endTime) {
+    super(identifier, provType, Map.of());
 
     this.startTime = startTime;
     this.endTime = endTime;

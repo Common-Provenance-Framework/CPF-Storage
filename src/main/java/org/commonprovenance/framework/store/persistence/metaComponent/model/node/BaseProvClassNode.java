@@ -1,6 +1,7 @@
 package org.commonprovenance.framework.store.persistence.metaComponent.model.node;
 
 import java.util.Map;
+import java.util.Optional;
 
 import org.commonprovenance.framework.store.common.dto.HasId;
 import org.springframework.data.annotation.PersistenceCreator;
@@ -32,7 +33,7 @@ public class BaseProvClassNode implements HasId {
     this.id = id;
     this.identifier = identifier;
     this.provType = provType;
-    this.cpm = cpm;
+    this.cpm = Optional.ofNullable(cpm).map(Map::copyOf).orElse(Map.of());
   }
 
   // Constructor for creating new node (id will be generated)
@@ -43,7 +44,7 @@ public class BaseProvClassNode implements HasId {
     this.id = null;
     this.identifier = identifier;
     this.provType = provType;
-    this.cpm = cpm;
+    this.cpm = Optional.ofNullable(cpm).map(Map::copyOf).orElse(Map.of());
   }
 
   public String getId() {

@@ -140,7 +140,7 @@ public class NodeFactory {
                 entities.replace(
                     wdf.getGeneratedEntity().getLocalPart(),
                     entities.get(wdf.getGeneratedEntity().getLocalPart())
-                        .wihtRevisionOfEntity(entities.get(wdf.getUsedEntity().getLocalPart())));
+                        .withRevisionOfEntity(entities.get(wdf.getUsedEntity().getLocalPart())));
               });
 
           statements.getOrDefault(SpecializationOf.class, List.of()).stream()
