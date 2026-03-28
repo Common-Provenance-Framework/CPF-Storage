@@ -11,8 +11,15 @@ import reactor.core.publisher.Mono;
 @Repository
 public interface ActivityNeo4jRepositoryClient extends ReactiveNeo4jRepository<ActivityNode, String> {
   @Query("""
-          MATCH (activity:Activity {identifier: $identifier})
+          MATCH (activity:Activity)
+          WHERE activity.identifier = $identifier
+
+          OPTIONAL MATCH (activity)-[rAssociation:was_associated_with]->(agent:Agent)
+          OPTIONAL MATCH (activity)-[rUsed:used]->(entity:Entity)
+
           RETURN activity
+            collect(DISTINCT rAssociation), collect(DISTINCT agent),
+            collect(DISTINCT rUsed),  collect(DISTINCT entity)
       """)
   Mono<ActivityNode> findByIdentifier(@Param("identifier") String identifier);
 
