@@ -28,7 +28,7 @@ import org.springframework.stereotype.Component;
 
 import reactor.core.publisher.Mono;
 import reactor.util.function.Tuple2;
-import reactor.util.function.Tuple4;
+import reactor.util.function.Tuple3;
 
 @Component
 public class BundlePersistenceImpl implements BundlePersistence {
@@ -85,8 +85,7 @@ public class BundlePersistenceImpl implements BundlePersistence {
         .flatMap(bundleIdentifier -> Mono.zip(
             bundleRepository.findByIdentifier(bundleIdentifier),
             entityRepository.getGeneralEntityByBundleIdentifier(bundleIdentifier),
-            entityRepository.getLastVersionEntityByBundleIdentifier(identifier),
-            entityRepository.getLastVersionByBundleIdentifier(bundleIdentifier)))
+            entityRepository.getLastVersionEntityByBundleIdentifier(identifier)))
         .map(this.buildBundleWithVersion(versionIdenifier))
         .flatMap(this.bundleRepository::save)
         .flatMap(ProvenanceFactory.bundleToProv(configuration));
@@ -167,13 +166,13 @@ public class BundlePersistenceImpl implements BundlePersistence {
     };
   }
 
-  private Function<Tuple4<BundleNode, EntityNode, EntityNode, Integer>, BundleNode> buildBundleWithVersion(
+  private Function<Tuple3<BundleNode, EntityNode, EntityNode>, BundleNode> buildBundleWithVersion(
       String versionIdenifier) {
-    return (Tuple4<BundleNode, EntityNode, EntityNode, Integer> tuple) -> {
+    return (Tuple3<BundleNode, EntityNode, EntityNode> tuple) -> {
       BundleNode bundle = tuple.getT1();
       EntityNode generalEntity = tuple.getT2();
       EntityNode lastVersion = tuple.getT3();
-      Integer lastVersionNo = tuple.getT4();
+      Integer lastVersionNo = Integer.valueOf(lastVersion.getPav().get("version").toString());
 
       // TODO: Create factory method for this
       EntityNode newVersion = new EntityNode(versionIdenifier, "prov:Bundle")
