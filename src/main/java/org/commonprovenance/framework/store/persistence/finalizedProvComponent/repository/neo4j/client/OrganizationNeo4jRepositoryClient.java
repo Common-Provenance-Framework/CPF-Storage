@@ -11,8 +11,11 @@ import reactor.core.publisher.Mono;
 @Repository
 public interface OrganizationNeo4jRepositoryClient extends ReactiveNeo4jRepository<OrganizationNode, String> {
   @Query("""
-          MATCH (organization:Organization {identifier: $identifier})
-          RETURN organization
+        MATCH (organization:Organization)
+        WHERE organization.identifier = $identifier
+        OPTIONAL MATCH (organization)-[r:trusts]->(trustedParty:TrustedParty)
+        RETURN organization,
+          collect(r), collect(trustedParty)
       """)
   Mono<OrganizationNode> findByIdentifier(@Param("identifier") String identifier);
 

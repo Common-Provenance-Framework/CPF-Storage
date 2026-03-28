@@ -12,14 +12,16 @@ import reactor.core.publisher.Mono;
 public interface TrustedPartyNeo4jRepositoryClient extends ReactiveNeo4jRepository<TrustedPartyNode, String> {
 
   @Query("""
-          MATCH (trustedParty:TrustedParty {name: $name})
-          RETURN trustedParty
+        MATCH (trustedParty:TrustedParty)
+        WHERE trustedParty.name = $name
+        RETURN trustedParty
       """)
   Mono<TrustedPartyNode> findByName(@Param("name") String name);
 
   @Query("""
-          MATCH (trustedParty:TrustedParty {is_default: TRUE})
-          RETURN trustedParty
+        MATCH (trustedParty:TrustedParty)
+        WHERE trustedParty.is_default = TRUE
+        RETURN trustedParty
       """)
   Mono<TrustedPartyNode> findDefault();
 }
