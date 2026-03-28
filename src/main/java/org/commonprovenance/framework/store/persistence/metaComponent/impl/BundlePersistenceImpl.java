@@ -60,20 +60,6 @@ public class BundlePersistenceImpl implements BundlePersistence {
         .flatMap(ProvenanceFactory.bundleToProv(this.configuration));
   }
 
-  private Function<Tuple2<BundleNode, EntityNode>, BundleNode> buildBundleWithFirstVersion(String versionIdenifier) {
-    return (Tuple2<BundleNode, EntityNode> tuple) -> {
-      BundleNode bundle = tuple.getT1();
-      EntityNode generalEntity = tuple.getT2();
-
-      // TODO: Create factory method for this
-      EntityNode firstVersion = new EntityNode(versionIdenifier, "prov:Bundle")
-          .withVersion(1)
-          .withSpecializationOfEntity(generalEntity);
-
-      return bundle.withEntity(firstVersion);
-    };
-  }
-
   @Override
   public Function<String, Mono<Document>> createFirstVersion(String identifier) {
     return (String versionIdenifier) -> MONO.<String>makeSureNotNullWithMessage("Bundle identifier can not be 'null'!")
@@ -87,24 +73,6 @@ public class BundlePersistenceImpl implements BundlePersistence {
         .map(this.buildBundleWithFirstVersion(versionIdenifier))
         .flatMap(this.bundleRepository::save)
         .flatMap(ProvenanceFactory.bundleToProv(configuration));
-  }
-
-  private Function<Tuple4<BundleNode, EntityNode, EntityNode, Integer>, BundleNode> buildBundleWithVersion(
-      String versionIdenifier) {
-    return (Tuple4<BundleNode, EntityNode, EntityNode, Integer> tuple) -> {
-      BundleNode bundle = tuple.getT1();
-      EntityNode generalEntity = tuple.getT2();
-      EntityNode lastVersion = tuple.getT3();
-      Integer lastVersionNo = tuple.getT4();
-
-      // TODO: Create factory method for this
-      EntityNode newVersion = new EntityNode(versionIdenifier, "prov:Bundle")
-          .withVersion(lastVersionNo + 1)
-          .withSpecializationOfEntity(generalEntity)
-          .withRevisionOfEntity(lastVersion);
-
-      return bundle.withEntity(newVersion);
-    };
   }
 
   @Override
@@ -124,16 +92,6 @@ public class BundlePersistenceImpl implements BundlePersistence {
         .flatMap(ProvenanceFactory.bundleToProv(configuration));
   }
 
-  private Function<String, Mono<Document>> createVersionFlipFunction(String versionIdenifier) {
-    return (String bundleIdenifier) -> Mono.just(versionIdenifier)
-        .flatMap(this.createVersion(bundleIdenifier));
-  }
-
-  private Mono<Document> createFirstVersionSimple(String bundleIdenifier, String versionIdenifier) {
-    return Mono.just(versionIdenifier)
-        .flatMap(this.createFirstVersion(bundleIdenifier));
-  }
-
   @Override
   public Function<String, Mono<Document>> createNewVersion(String identifier) {
     return (String versionIdenifier) -> MONO.<String>makeSureNotNullWithMessage("Bundle identifier can not be 'null'!")
@@ -145,6 +103,86 @@ public class BundlePersistenceImpl implements BundlePersistence {
         .onErrorResume(
             ConflictException.class,
             _ -> this.createFirstVersionSimple(identifier, versionIdenifier));
+  }
+
+  @Override
+  public Function<Token, Mono<Document>> createToken(String identifier) {
+    return (Token token) -> MONO.<String>makeSureNotNullWithMessage("Bundle identifier can not be 'null'!")
+        .apply(identifier)
+        .flatMap(entityRepository::getLastVersionEntityByBundleIdentifier)
+        .flatMap(MONO.<EntityNode>makeSureAsync(
+            this::hasNotToken,
+            _ -> new ConflictException("Last version entity already has Token!")))
+        .flatMap((EntityNode lastVersion) -> Mono.zip(
+            bundleRepository.findByIdentifier(identifier),
+            Mono.just(lastVersion)))
+        .map(this.buildBundleWithToken(token))
+        .flatMap(this.bundleRepository::save)
+        .flatMap(ProvenanceFactory.bundleToProv(configuration));
+  }
+
+  @Override
+  public Mono<Document> getByIdentifier(String identifier) {
+    return MONO.<String>makeSureNotNullWithMessage("Bundle identifier can not be 'null'!").apply(identifier)
+        .flatMap(bundleRepository::findByIdentifier)
+        .onErrorResume(MONO.exceptionWrapper("BundlePersistence - Error while reading bundle"))
+        .switchIfEmpty(Mono.defer(() -> Mono
+            .error(new NotFoundException("Bundle with identifier '" + identifier + "' has not been found!"))))
+        .flatMap(ProvenanceFactory.bundleToProv(configuration));
+  }
+
+  @Override
+  public Mono<Boolean> exists(String identifier) {
+    return MONO.<String>makeSureNotNullWithMessage("Bundle identifier can not be 'null'!").apply(identifier)
+        .flatMap(bundleRepository::exists)
+        .onErrorResume(MONO.exceptionWrapper("BundlePersistence - Error while checking Bundle"));
+  }
+
+  @Override
+  public Mono<Boolean> notExists(String identifier) {
+    return this.exists(identifier).map(v -> !v);
+  }
+
+  private Mono<Document> createFirstVersionSimple(String bundleIdenifier, String versionIdenifier) {
+    return Mono.just(versionIdenifier)
+        .flatMap(this.createFirstVersion(bundleIdenifier));
+  }
+
+  private Function<String, Mono<Document>> createVersionFlipFunction(String versionIdenifier) {
+    return (String bundleIdenifier) -> Mono.just(versionIdenifier)
+        .flatMap(this.createVersion(bundleIdenifier));
+  }
+
+  private Function<Tuple2<BundleNode, EntityNode>, BundleNode> buildBundleWithFirstVersion(String versionIdenifier) {
+    return (Tuple2<BundleNode, EntityNode> tuple) -> {
+      BundleNode bundle = tuple.getT1();
+      EntityNode generalEntity = tuple.getT2();
+
+      // TODO: Create factory method for this
+      EntityNode firstVersion = new EntityNode(versionIdenifier, "prov:Bundle")
+          .withVersion(1)
+          .withSpecializationOfEntity(generalEntity);
+
+      return bundle.withEntity(firstVersion);
+    };
+  }
+
+  private Function<Tuple4<BundleNode, EntityNode, EntityNode, Integer>, BundleNode> buildBundleWithVersion(
+      String versionIdenifier) {
+    return (Tuple4<BundleNode, EntityNode, EntityNode, Integer> tuple) -> {
+      BundleNode bundle = tuple.getT1();
+      EntityNode generalEntity = tuple.getT2();
+      EntityNode lastVersion = tuple.getT3();
+      Integer lastVersionNo = tuple.getT4();
+
+      // TODO: Create factory method for this
+      EntityNode newVersion = new EntityNode(versionIdenifier, "prov:Bundle")
+          .withVersion(lastVersionNo + 1)
+          .withSpecializationOfEntity(generalEntity)
+          .withRevisionOfEntity(lastVersion);
+
+      return bundle.withEntity(newVersion);
+    };
   }
 
   private Mono<Boolean> hasToken(EntityNode version) {
@@ -211,41 +249,4 @@ public class BundlePersistenceImpl implements BundlePersistence {
     };
   }
 
-  @Override
-  public Function<Token, Mono<Document>> createToken(String identifier) {
-    return (Token token) -> MONO.<String>makeSureNotNullWithMessage("Bundle identifier can not be 'null'!")
-        .apply(identifier)
-        .flatMap(entityRepository::getLastVersionEntityByBundleIdentifier)
-        .flatMap(MONO.<EntityNode>makeSureAsync(
-            this::hasNotToken,
-            _ -> new ConflictException("Last version entity already has Token!")))
-        .flatMap((EntityNode lastVersion) -> Mono.zip(
-            bundleRepository.findByIdentifier(identifier),
-            Mono.just(lastVersion)))
-        .map(this.buildBundleWithToken(token))
-        .flatMap(this.bundleRepository::save)
-        .flatMap(ProvenanceFactory.bundleToProv(configuration));
-  }
-
-  @Override
-  public Mono<Document> getByIdentifier(String identifier) {
-    return MONO.<String>makeSureNotNullWithMessage("Bundle identifier can not be 'null'!").apply(identifier)
-        .flatMap(bundleRepository::findByIdentifier)
-        .onErrorResume(MONO.exceptionWrapper("BundlePersistence - Error while reading bundle"))
-        .switchIfEmpty(Mono.defer(() -> Mono
-            .error(new NotFoundException("Bundle with identifier '" + identifier + "' has not been found!"))))
-        .flatMap(ProvenanceFactory.bundleToProv(configuration));
-  }
-
-  @Override
-  public Mono<Boolean> exists(String identifier) {
-    return MONO.<String>makeSureNotNullWithMessage("Bundle identifier can not be 'null'!").apply(identifier)
-        .flatMap(bundleRepository::exists)
-        .onErrorResume(MONO.exceptionWrapper("BundlePersistence - Error while checking Bundle"));
-  }
-
-  @Override
-  public Mono<Boolean> notExists(String identifier) {
-    return this.exists(identifier).map(v -> !v);
-  }
 }
