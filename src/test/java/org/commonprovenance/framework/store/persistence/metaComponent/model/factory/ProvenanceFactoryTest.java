@@ -49,7 +49,7 @@ class ProvenanceFactoryTest {
         Map.of());
     AgentNode ag1 = new AgentNode("ag1", "cpm:trustedParty", Map.of("trustedPartyUri", "trusted-party:8020"));
     EntityNode e1 = new EntityNode("e1", "prov:Bundle", Map.of(), Map.of("version", 1))
-        .wihtRevisionOfEntity(e2)
+        .withRevisionOfEntity(e2)
         .withWasAttributedToAgent(ag1);
     ActivityNode act1 = new ActivityNode("act1", "cpm:tokenGeneration", "2024-01-01T10:15:30Z", "2024-01-01T10:16:30Z",
         Map.of())
@@ -222,7 +222,7 @@ class ProvenanceFactoryTest {
 
     EntityNode e2 = new EntityNode("e2", "prov:Bundle", Map.of(), Map.of());
     EntityNode e1 = new EntityNode("e1", "prov:Bundle", Map.of(), Map.of("version", 1))
-        .wihtRevisionOfEntity(e2);
+        .withRevisionOfEntity(e2);
 
     BundleNode bundleNode = new BundleNode("bundle-1")
         .withEntities(List.of(e1, e2));
