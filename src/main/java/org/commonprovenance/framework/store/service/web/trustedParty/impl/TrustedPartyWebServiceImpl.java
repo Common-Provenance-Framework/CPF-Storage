@@ -58,8 +58,7 @@ public class TrustedPartyWebServiceImpl implements TrustedPartyWebService {
         .map(Organization::getIdentifier)
         .flatMap(Mono::justOrEmpty)
         .flatMap(this.organizationClient.getById(Optional.empty()))
-        .thenReturn(true)
-        .switchIfEmpty(Mono.just(false))
+        .hasElement()
         .onErrorResume(NotFoundException.class, _ -> Mono.just(false));
   }
 
