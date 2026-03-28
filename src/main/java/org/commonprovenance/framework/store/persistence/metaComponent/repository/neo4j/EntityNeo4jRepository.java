@@ -49,4 +49,9 @@ public class EntityNeo4jRepository implements EntityRepository {
     return client.getLastVersion(bundleIdentifier);
   }
 
+  @Override
+  public Mono<EntityNode> getTokenByVersionEntityIdentifier(String versionIdentifier) {
+    return client.getTokenByVersionEntityIdentifier(versionIdentifier);
+  }
+
 }

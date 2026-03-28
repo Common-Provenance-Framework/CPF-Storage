@@ -17,4 +17,6 @@ public interface EntityRepository {
   Mono<EntityNode> getLastVersionEntityByBundleIdentifier(String bundleIdentifier);
 
   Mono<Integer> getLastVersionByBundleIdentifier(String bundleIdentifier);
+
+  Mono<EntityNode> getTokenByVersionEntityIdentifier(String versionIdentifier);
 }
