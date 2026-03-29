@@ -4,7 +4,6 @@ import static org.commonprovenance.framework.store.common.publisher.PublisherHel
 
 import java.util.Objects;
 import java.util.Optional;
-import java.util.UUID;
 import java.util.function.Function;
 
 import org.commonprovenance.framework.store.config.AppConfiguration;
@@ -105,14 +104,15 @@ public class DocumentControllerImpl implements DocumentController {
     return ModelFactory.toDomain(body)
         // validate Organization and TrustedParty first
         .delayUntil((Document document) -> Mono.just(new Organization())
-            .map(organization -> organization.withId(document.getOrganizationId()))
+            .map(organization -> organization.withIdentifier(document.getOrganizationIdentifier()))
             .flatMap(MONO.makeSureAsync(
                 this.organizationService::exists,
-                org -> new ConflictException("Organization with id " + org.getId().map(UUID::toString).orElse("")
-                    + " has not been registered yet!")))
-            .flatMap(organization -> Mono.justOrEmpty(organization.getId())
-                .flatMap(this.organizationService::getOrganizationById))
+                org -> new ConflictException(
+                    "Organization with identifier " + org.getIdentifier() + " has not been registered yet!")))
+            .flatMap(organization -> Mono.justOrEmpty(organization.getIdentifier())
+                .flatMap(this.organizationService::getOrganizationByIdentifier))
             .map(organization -> organization.getTrustedParty())
+            .flatMap(Mono::justOrEmpty)
             .flatMap(MONO.makeSure(
                 tp -> tp.getIsChecked(),
                 _ -> new ConflictException(
@@ -123,8 +123,8 @@ public class DocumentControllerImpl implements DocumentController {
                     "Trusted party has been checked, but has not been considered as vaid!"))))
         // --------------------------
         // validate document signature
-        .delayUntil((Document document) -> Mono.justOrEmpty(document.getOrganizationId())
-            .flatMap(this.organizationService::getOrganizationById)
+        .delayUntil((Document document) -> Mono.justOrEmpty(document.getOrganizationIdentifier())
+            .flatMap(this.organizationService::getOrganizationByIdentifier)
             .flatMap(MONO.makeSureAsync(
                 trustedPartyWebService.verifySignature(document),
                 _ -> new BadRequestException("Invalid signature!"))))
@@ -138,7 +138,7 @@ public class DocumentControllerImpl implements DocumentController {
         // get document id from deserialized document - has to be bundle identifier
         // local part
         .map(document -> document
-            .withId(document.getCpmDocument().map(cpm -> cpm.getBundleId().getLocalPart()).orElse(null)))
+            .withIdentifier(document.getCpmDocument().map(cpm -> cpm.getBundleId().getLocalPart()).orElse(null)))
         // validate bundle identifier namespace uri.
         .delayUntil(document -> Mono.justOrEmpty(document.getCpmDocument())
             .map(CpmDocument::getBundleId)
@@ -151,8 +151,10 @@ public class DocumentControllerImpl implements DocumentController {
                 uri -> uri.equals(this.configuration.getFqdn() + "documents/"),
                 uri -> new BadRequestException(
                     "The bundle namespace uri '" + uri + "' does not resolve into known storage!!"))))
-        .flatMap(this::checkDocumentDoesNotExists).delayUntil(this::checkBackwardConnetorsAttrs)
-        .flatMap(this::checkForwardConnetorsAttrs).delayUntil(this::checkBackwardConnectorResolvable)
+        .flatMap(this::checkDocumentDoesNotExists)
+        .delayUntil(this::checkBackwardConnetorsAttrs)
+        .flatMap(this::checkForwardConnetorsAttrs)
+        .delayUntil(this::checkBackwardConnectorResolvable)
         .delayUntil(this::checkForwardConnetorsResolvable)
 
         // TODO: check hashes in connectors
@@ -160,15 +162,14 @@ public class DocumentControllerImpl implements DocumentController {
         // TODO: check provenance constraints
         // issue token
         .flatMap((Document document) -> Mono.justOrEmpty(document)
-            .map(Document::getOrganizationId)
-            .flatMap(this.organizationService::getOrganizationById)
+            .map(Document::getOrganizationIdentifier)
+            .flatMap(this.organizationService::getOrganizationByIdentifier)
             .flatMap((Organization org) -> Mono.just(getTrustedPartyUrl(org))
                 .map(this.trustedPartyWebService::issueGraphToken)
                 // Store Document with token
-                .flatMap((Function<Document, Mono<Token>> issueToken) -> issueToken
-                    .apply(document.withOrganizationName(org.getName())))
+                .flatMap((Function<Document, Mono<Token>> issueToken) -> issueToken.apply(document))
                 .map((Token token) -> token.withDocument(document))
-                .map((Token token) -> token.withTrustedParty(org.getTrustedParty())))
+                .map((Token token) -> token.withTrustedParty(org.getTrustedParty().get())))
             .flatMap(tokenService::storeToken)
             .map(token -> document.withToken(token)))
         .delayUntil((Document document) -> Mono.just(document)
@@ -185,190 +186,9 @@ public class DocumentControllerImpl implements DocumentController {
 
   private Optional<String> getTrustedPartyUrl(Organization organization) {
     return Optional.ofNullable(organization)
-        .map(Organization::getTrustedParty)
+        .flatMap(Organization::getTrustedParty)
         .flatMap(TrustedParty::getUrl);
   }
-
-  // private Mono<org.openprovenance.prov.model.Document>
-  // buildMetaComponent(Document document) {
-
-  // org.openprovenance.prov.model.Document provDocument =
-  // this.provFactory.newDocument();
-  // provDocument.getNamespace().addKnownNamespaces();
-  // provDocument.getNamespace().register(CpmNamespaceConstants.CPM_PREFIX,
-  // CpmNamespaceConstants.CPM_NS);
-  // provDocument.getNamespace().register("pav", "http://purl.org/pav/");
-  // provDocument.getNamespace().register("meta", this.configuration.getFqdn() +
-  // "documents/meta/");
-  // provDocument.getNamespace().register("storage", this.configuration.getFqdn()
-  // + "documents/");
-
-  // Mono<QualifiedName> bundleId = Mono.justOrEmpty(document.getCpmDocument())
-  // .flatMap(this::getReferenceMetaBundleId);
-
-  // Mono<QualifiedName> identifier =
-  // Mono.justOrEmpty(document.getCpmDocument()).map(CpmDocument::getBundleId);
-  // Map<String, String> namespaces = provDocument.getNamespace().getNamespaces();
-
-  // Mono<Entity> generalEntity = identifier
-  // .map(i -> provFactory.newEntity(provFactory.newQualifiedName(
-  // i.getNamespaceURI(),
-  // UUID.randomUUID().toString(),
-  // i.getPrefix())))
-  // .doOnNext(general -> general.getType().add(provFactory.newType(
-  // provFactory.getName().PROV_BUNDLE,
-  // provFactory.getName().PROV_TYPE)));
-
-  // Mono<Entity> firstVersion = identifier
-  // .map(provFactory::newEntity)
-  // .doOnNext(first -> {
-  // first.getType().add(provFactory.newType(
-  // provFactory.getName().PROV_BUNDLE,
-  // provFactory.getName().PROV_TYPE));
-
-  // first.getOther().add(provFactory.newOther(
-  // provFactory.newQualifiedName(namespaces.get("pav"), "version", "pav"),
-  // 1,
-  // provFactory.getName().XSD_INT));
-  // });
-
-  // Mono<Entity> token = identifier
-  // .map(i -> provFactory.newEntity(provFactory.newQualifiedName(
-  // i.getNamespaceURI(),
-  // UUID.randomUUID().toString(),
-  // i.getPrefix())))
-  // .doOnNext(t -> {
-  // t.getType().add(provFactory.newType(
-  // cpmProvFactory.newCpmQualifiedName("token"),
-  // provFactory.getName().PROV_TYPE));
-
-  // t.getOther().add(provFactory.newOther(
-  // cpmProvFactory.newCpmQualifiedName("originatorId"),
-  // document.getToken().map(Token::getAdditionalData).map(AdditionalData::getOriginatorName).get(),
-  // provFactory.getName().XSD_STRING));
-
-  // t.getOther().add(provFactory.newOther(
-  // cpmProvFactory.newCpmQualifiedName("authorityId"),
-  // document.getToken().map(Token::getTrustedParty).map(TrustedParty::getName).get(),
-  // provFactory.getName().XSD_STRING));
-
-  // t.getOther().add(provFactory.newOther(
-  // cpmProvFactory.newCpmQualifiedName("tokenTimestamp"),
-  // document.getToken().map(Token::getCreatedOn).get(),
-  // provFactory.getName().XSD_LONG));
-
-  // t.getOther().add(provFactory.newOther(
-  // cpmProvFactory.newCpmQualifiedName("documentCreationTimestamp"),
-  // document.getToken().map(Token::getAdditionalData).map(AdditionalData::getDocumentTimestamp).get(),
-  // provFactory.getName().XSD_LONG));
-
-  // t.getOther().add(provFactory.newOther(
-  // cpmProvFactory.newCpmQualifiedName("documentDigest"),
-  // document.getToken().map(Token::getHash).get(),
-  // provFactory.getName().XSD_STRING));
-
-  // t.getOther().add(provFactory.newOther(
-  // cpmProvFactory.newCpmQualifiedName("bundle"),
-  // document.getToken().map(Token::getAdditionalData).map(AdditionalData::getBundle).get(),
-  // provFactory.getName().XSD_STRING));
-
-  // t.getOther().add(provFactory.newOther(
-  // cpmProvFactory.newCpmQualifiedName("hashFunction"),
-  // document.getToken().map(Token::getAdditionalData).map(AdditionalData::getHashFunction).get(),
-  // provFactory.getName().XSD_STRING));
-
-  // t.getOther().add(provFactory.newOther(
-  // cpmProvFactory.newCpmQualifiedName("trustedPartyUri"),
-  // document.getToken().map(Token::getAdditionalData).map(AdditionalData::getTrustedPartyUri).get(),
-  // provFactory.getName().XSD_STRING));
-
-  // t.getOther().add(provFactory.newOther(
-  // cpmProvFactory.newCpmQualifiedName("trustedPartyCertificate"),
-  // document.getToken().map(Token::getAdditionalData).map(AdditionalData::getTrustedPartyCertificate).get(),
-  // provFactory.getName().XSD_STRING));
-
-  // t.getOther().add(provFactory.newOther(
-  // cpmProvFactory.newCpmQualifiedName("signature"),
-  // document.getToken().map(Token::getSignature).get(),
-  // provFactory.getName().XSD_STRING));
-  // });
-
-  // Mono<Agent> agent = Mono.justOrEmpty(document.getToken()
-  // .map(Token::getTrustedParty)
-  // .map(TrustedParty::getId))
-  // .flatMap(Mono::justOrEmpty)
-  // .map(uuid -> provFactory.newAgent(provFactory.newQualifiedName(
-  // namespaces.get("storage"),
-  // uuid.toString(),
-  // "storage"))) // TODO: ??identifier ns??
-  // .doOnNext(a -> {
-  // a.getType().add(provFactory.newType(
-  // cpmProvFactory.newCpmQualifiedName("trustedParty"),
-  // provFactory.getName().PROV_TYPE));
-
-  // a.getOther().add(provFactory.newOther(
-  // cpmProvFactory.newCpmQualifiedName("trustedPartyUri"),
-  // document.getToken().map(Token::getAdditionalData).map(AdditionalData::getTrustedPartyUri).get(),
-  // provFactory.getName().XSD_STRING));
-
-  // a.getOther().add(provFactory.newOther(
-  // cpmProvFactory.newCpmQualifiedName("trustedPartyCertificate"),
-  // document.getToken().map(Token::getAdditionalData).map(AdditionalData::getTrustedPartyCertificate).get(),
-  // provFactory.getName().XSD_STRING));
-  // });
-
-  // Mono<Activity> activity = identifier
-  // .map(i -> provFactory.newActivity(provFactory.newQualifiedName(
-  // i.getNamespaceURI(),
-  // UUID.randomUUID().toString(),
-  // i.getPrefix())))
-  // .doOnNext(act -> {
-
-  // try {
-  // GregorianCalendar tokenTimestamp = new GregorianCalendar();
-  // tokenTimestamp.setTimeInMillis(document.getToken().map(Token::getCreatedOn).get());
-  // XMLGregorianCalendar timestampVal =
-  // DatatypeFactory.newInstance().newXMLGregorianCalendar(tokenTimestamp);
-  // act.setStartTime(timestampVal);
-  // act.setEndTime(timestampVal);
-
-  // } catch (DatatypeConfigurationException e) {
-
-  // }
-  // act.getType().add(provFactory.newType(
-  // cpmProvFactory.newCpmQualifiedName("tokenGeneration"),
-  // provFactory.getName().PROV_TYPE));
-  // });
-  // Namespace bundleNs = provFactory.newNamespace();
-  // bundleNs.register("meta", this.configuration.getFqdn() + "documents/meta/");
-
-  // return bundleId.flatMap(
-  // id -> Mono.zip(generalEntity, firstVersion, token, agent, activity)
-  // .map(tuple -> {
-  // List<Statement> statements = new ArrayList<>();
-  // statements.add(tuple.getT1());
-  // statements.add(tuple.getT2());
-  // statements.add(tuple.getT3());
-  // statements.add(tuple.getT4());
-  // statements.add(tuple.getT5());
-  // statements.add(provFactory.newSpecializationOf(tuple.getT2().getId(),
-  // tuple.getT1().getId()));
-  // statements.add(provFactory.newUsed(tuple.getT5().getId(),
-  // tuple.getT2().getId()));
-  // statements.add(provFactory.newWasAssociatedWith(null, tuple.getT5().getId(),
-  // tuple.getT4().getId()));
-  // statements.add(provFactory.newWasGeneratedBy(null, tuple.getT3().getId(),
-  // tuple.getT5().getId()));
-  // statements.add(provFactory.newWasAttributedTo(null, tuple.getT3().getId(),
-  // tuple.getT4().getId()));
-  // return statements;
-  // })
-  // .map(statements -> {
-  // Bundle bundle = provFactory.newNamedBundle(id, bundleNs, statements);
-  // provDocument.getStatementOrBundle().add(bundle);
-  // return provDocument;
-  // }));
-  // }
 
   private Mono<QualifiedName> getReferenceMetaBundleId(CpmDocument cpm) {
     return Mono.justOrEmpty(cpm)
@@ -479,11 +299,11 @@ public class DocumentControllerImpl implements DocumentController {
 
   private Mono<Document> checkDocumentDoesNotExists(Document document) {
     return MONO.<Document>makeSureAsync(
-        doc -> Mono.justOrEmpty(doc.getId())
-            .flatMap(this.documentService::getDocumentById)
+        doc -> Mono.justOrEmpty(doc.getIdentifier())
+            .flatMap(this.documentService::getDocumentByIdentifier)
             .thenReturn(false)
             .onErrorResume(NotFoundException.class, _ -> Mono.just(true)),
-        doc -> new ConflictException("Document with id '" + doc.getId() + "' exists!!"))
+        doc -> new ConflictException("Document with identifier '" + doc.getIdentifier() + "' exists!!"))
         .apply(document);
   }
 
@@ -557,7 +377,7 @@ public class DocumentControllerImpl implements DocumentController {
   @GetMapping("/{uuid}")
   public Mono<DocumentResponseDTO> getProvDocumentById(@PathVariable String uuid) {
     return Mono.justOrEmpty(uuid)
-        .flatMap(this.documentService::getDocumentById)
+        .flatMap(this.documentService::getDocumentByIdentifier)
         .flatMap(DTOFactory::toDTO);
   }
 
@@ -566,7 +386,7 @@ public class DocumentControllerImpl implements DocumentController {
   @RequestMapping(path = "/{uuid}", method = RequestMethod.HEAD)
   public Mono<Void> exists(@PathVariable String uuid) {
     return Mono.justOrEmpty(uuid)
-        .flatMap(this.documentService::getDocumentById)
+        .flatMap(this.documentService::getDocumentByIdentifier)
         .then();
   }
 }

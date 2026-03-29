@@ -10,6 +10,8 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import javax.xml.datatype.XMLGregorianCalendar;
+
 import org.commonprovenance.framework.store.exceptions.InternalApplicationException;
 import org.commonprovenance.framework.store.persistence.metaComponent.model.node.ActivityNode;
 import org.commonprovenance.framework.store.persistence.metaComponent.model.node.AgentNode;
@@ -31,31 +33,37 @@ import org.openprovenance.prov.model.WasAssociatedWith;
 import org.openprovenance.prov.model.WasAttributedTo;
 import org.openprovenance.prov.model.WasDerivedFrom;
 import org.openprovenance.prov.model.WasGeneratedBy;
+import org.openprovenance.prov.vanilla.ProvFactory;
 
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import tools.jackson.databind.ObjectMapper;
 
 public class NodeFactory {
-  private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+  private static final ProvFactory provFactory = new org.openprovenance.prov.vanilla.ProvFactory();
 
-  public static Mono<EntityNode> toEntity(Entity entity) {
-    return NodeFactory.getAttributesAsJsonString(entity)
-        .map(attrs -> new EntityNode(entity.getId().getLocalPart(), attrs));
+  public static EntityNode toEntity(Entity entity) {
+    return new EntityNode(
+        entity.getId().getLocalPart(),
+        NodeFactory.getType(entity),
+        NodeFactory.getCpmAttributes(entity),
+        NodeFactory.getPavAttributes(entity));
   }
 
-  public static Mono<AgentNode> toEntity(Agent agent) {
-    return NodeFactory.getAttributesAsJsonString(agent)
-        .map(attrs -> new AgentNode(agent.getId().getLocalPart(), attrs));
+  public static AgentNode toEntity(Agent agent) {
+    return new AgentNode(
+        agent.getId().getLocalPart(),
+        NodeFactory.getType(agent),
+        NodeFactory.getCpmAttributes(agent));
   }
 
-  public static Mono<ActivityNode> toEntity(Activity activity) {
-    return NodeFactory.getAttributesAsJsonString(activity)
-        .map(attrs -> new ActivityNode(
-            activity.getId().getLocalPart(),
-            activity.getStartTime().toString(),
-            activity.getEndTime().toString(),
-            attrs));
+  public static ActivityNode toEntity(Activity activity) {
+    return new ActivityNode(
+        activity.getId().getLocalPart(),
+        NodeFactory.getType(activity),
+        Optional.ofNullable(activity.getStartTime())
+            .map(XMLGregorianCalendar::toString).orElse(""),
+        Optional.ofNullable(activity.getEndTime())
+            .map(XMLGregorianCalendar::toString).orElse(""),
+        NodeFactory.getCpmAttributes(activity));
   }
 
   public static Mono<BundleNode> toEntity(Document document) {
@@ -94,174 +102,160 @@ public class NodeFactory {
                 return WasGeneratedBy.class;
               return Statement.class; // fallback bucket
             },
-                HashMap::new,
+                LinkedHashMap::new,
                 Collectors.toList()));
 
     return Mono.justOrEmpty(document)
         .flatMap(getBundle)
-        .flatMap(bundle -> {
+        .map((Bundle bundle) -> {
           Map<Class<?>, List<Statement>> statements = getIndexedStatements.apply(bundle.getStatement());
 
-          Mono<Map<String, EntityNode>> entitiesMono = Flux
-              .fromIterable(statements.getOrDefault(Entity.class, List.of()))
-              .cast(Entity.class)
-              .flatMap((Entity e) -> NodeFactory.getAttributesAsJsonString(e)
-                  .map(attrs -> Map.entry(e.getId().getLocalPart(),
-                      new EntityNode(e.getId().getLocalPart(), attrs))))
-              .collectMap(Map.Entry::getKey, Map.Entry::getValue);
+          Map<String, EntityNode> entities = statements.getOrDefault(Entity.class, List.of())
+              .stream()
+              .map(Entity.class::cast)
+              .map((Entity e) -> Map.entry(
+                  e.getId().getLocalPart(),
+                  NodeFactory.toEntity(e)))
+              .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
-          Mono<Map<String, AgentNode>> agentsMono = Flux.fromIterable(statements.getOrDefault(Agent.class, List.of()))
-              .cast(Agent.class)
-              .flatMap(a -> getAttributesAsJsonString(a)
-                  .map(attrs -> Map.entry(a.getId().getLocalPart(), new AgentNode(a.getId().getLocalPart(), attrs))))
-              .collectMap(Map.Entry::getKey, Map.Entry::getValue);
+          Map<String, AgentNode> agents = statements.getOrDefault(Agent.class, List.of())
+              .stream()
+              .map(Agent.class::cast)
+              .map(a -> Map.entry(
+                  a.getId().getLocalPart(),
+                  NodeFactory.toEntity(a)))
+              .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
-          Mono<Map<String, ActivityNode>> activitiesMono = Flux
-              .fromIterable(statements.getOrDefault(Activity.class, List.of()))
-              .cast(Activity.class)
-              .flatMap(a -> NodeFactory.getAttributesAsJsonString(a)
-                  .map(attrs -> Map.entry(a.getId().getLocalPart(),
-                      new ActivityNode(a.getId().getLocalPart(), String.valueOf(a.getStartTime()),
-                          String.valueOf(a.getEndTime()), attrs))))
-              .collectMap(Map.Entry::getKey, Map.Entry::getValue);
+          Map<String, ActivityNode> activities = statements.getOrDefault(Activity.class, List.of())
+              .stream()
+              .map(Activity.class::cast)
+              .map(a -> Map.entry(
+                  a.getId().getLocalPart(),
+                  NodeFactory.toEntity(a)))
+              .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
-          return Mono.zip(entitiesMono, agentsMono, activitiesMono)
-              .map(nodes -> {
-                Map<String, EntityNode> entities = nodes.getT1();
-                Map<String, AgentNode> agents = nodes.getT2();
-                Map<String, ActivityNode> activities = nodes.getT3();
-
-                statements.getOrDefault(WasDerivedFrom.class, List.of()).stream()
-                    .map(WasDerivedFrom.class::cast)
-                    .forEach(wdf -> {
-                      entities.replace(
-                          wdf.getGeneratedEntity().getLocalPart(),
-                          entities.get(wdf.getGeneratedEntity().getLocalPart())
-                              .wihtRevisionOfEntity(entities.get(wdf.getUsedEntity().getLocalPart())));
-                    });
-
-                statements.getOrDefault(SpecializationOf.class, List.of()).stream()
-                    .map(SpecializationOf.class::cast)
-                    .forEach(sOf -> {
-                      entities.replace(
-                          sOf.getSpecificEntity().getLocalPart(),
-                          entities.get(sOf.getSpecificEntity().getLocalPart())
-                              .withSpecializationOfEntity(entities.get(sOf.getGeneralEntity().getLocalPart())));
-                    });
-
-                statements.getOrDefault(WasAttributedTo.class, List.of()).stream()
-                    .map(WasAttributedTo.class::cast)
-                    .forEach(wat -> {
-                      entities.replace(
-                          wat.getEntity().getLocalPart(),
-                          entities.get(wat.getEntity().getLocalPart())
-                              .withWasAttributedToAgent(agents.get(wat.getAgent().getLocalPart())));
-                    });
-
-                statements.getOrDefault(WasAssociatedWith.class, List.of()).stream()
-                    .map(WasAssociatedWith.class::cast)
-                    .forEach(waw -> {
-                      activities.replace(
-                          waw.getActivity().getLocalPart(),
-                          activities.get(waw.getActivity().getLocalPart())
-                              .withWasAssociatedWithAgent(agents.get(waw.getAgent().getLocalPart())));
-                    });
-
-                statements.getOrDefault(Used.class, List.of()).stream()
-                    .map(Used.class::cast)
-                    .forEach(used -> {
-                      activities.replace(
-                          used.getActivity().getLocalPart(),
-                          activities.get(used.getActivity().getLocalPart())
-                              .withUsedEntity(entities.get(used.getEntity().getLocalPart())));
-                    });
-
-                statements.getOrDefault(WasGeneratedBy.class, List.of()).stream()
-                    .map(WasGeneratedBy.class::cast)
-                    .forEach(wgb -> {
-                      entities.replace(
-                          wgb.getEntity().getLocalPart(),
-                          entities.get(wgb.getEntity().getLocalPart())
-                              .withWasGeneratedByActivity(activities.get(wgb.getActivity().getLocalPart())));
-                    });
-                return new BundleNode(
-                    bundle.getId().getLocalPart(),
-                    entities.values(),
-                    agents.values(),
-                    activities.values());
+          statements.getOrDefault(WasDerivedFrom.class, List.of()).stream()
+              .map(WasDerivedFrom.class::cast)
+              .forEach(wdf -> {
+                entities.replace(
+                    wdf.getGeneratedEntity().getLocalPart(),
+                    entities.get(wdf.getGeneratedEntity().getLocalPart())
+                        .withRevisionOfEntity(entities.get(wdf.getUsedEntity().getLocalPart())));
               });
+
+          statements.getOrDefault(SpecializationOf.class, List.of()).stream()
+              .map(SpecializationOf.class::cast)
+              .forEach(sOf -> {
+                entities.replace(
+                    sOf.getSpecificEntity().getLocalPart(),
+                    entities.get(sOf.getSpecificEntity().getLocalPart())
+                        .withSpecializationOfEntity(entities.get(sOf.getGeneralEntity().getLocalPart())));
+              });
+
+          statements.getOrDefault(WasAttributedTo.class, List.of()).stream()
+              .map(WasAttributedTo.class::cast)
+              .forEach(wat -> {
+                entities.replace(
+                    wat.getEntity().getLocalPart(),
+                    entities.get(wat.getEntity().getLocalPart())
+                        .withWasAttributedToAgent(agents.get(wat.getAgent().getLocalPart())));
+              });
+
+          statements.getOrDefault(WasAssociatedWith.class, List.of()).stream()
+              .map(WasAssociatedWith.class::cast)
+              .forEach(waw -> {
+                activities.replace(
+                    waw.getActivity().getLocalPart(),
+                    activities.get(waw.getActivity().getLocalPart())
+                        .withWasAssociatedWithAgent(agents.get(waw.getAgent().getLocalPart())));
+              });
+
+          statements.getOrDefault(Used.class, List.of()).stream()
+              .map(Used.class::cast)
+              .forEach(used -> {
+                activities.replace(
+                    used.getActivity().getLocalPart(),
+                    activities.get(used.getActivity().getLocalPart())
+                        .withUsedEntity(entities.get(used.getEntity().getLocalPart())));
+              });
+
+          statements.getOrDefault(WasGeneratedBy.class, List.of()).stream()
+              .map(WasGeneratedBy.class::cast)
+              .forEach(wgb -> {
+                entities.replace(
+                    wgb.getEntity().getLocalPart(),
+                    entities.get(wgb.getEntity().getLocalPart())
+                        .withWasGeneratedByActivity(activities.get(wgb.getActivity().getLocalPart())));
+              });
+
+          return new BundleNode(bundle.getId().getLocalPart())
+              .withEntities(entities.values())
+              .withActivities(activities.values())
+              .withAgents(agents.values());
         });
   }
 
-  private static Mono<String> getAttributesAsJsonString(Element element) {
-    return Mono.justOrEmpty(element)
-        .map((Element e) -> {
-          Map<String, List<String>> attributesMap = new LinkedHashMap<>();
-
-          Map<String, List<String>> location = e.getLocation().stream()
-              .map(NodeFactory::attributeToMapEntry)
-              .flatMap(Optional::stream)
-              .collect(Collectors.groupingBy(
-                  Map.Entry::getKey,
-                  LinkedHashMap::new,
-                  Collectors.mapping(Map.Entry::getValue, Collectors.toList())));
-
-          Map<String, List<String>> type = e.getType().stream()
-              .map(NodeFactory::attributeToMapEntry)
-              .flatMap(Optional::stream)
-              .collect(Collectors.groupingBy(
-                  Map.Entry::getKey,
-                  LinkedHashMap::new,
-                  Collectors.mapping(Map.Entry::getValue, Collectors.toList())));
-
-          Map<String, List<String>> other = e.getOther().stream()
-              .map(NodeFactory::attributeToMapEntry)
-              .flatMap(Optional::stream)
-              .collect(Collectors.groupingBy(
-                  Map.Entry::getKey,
-                  LinkedHashMap::new,
-                  Collectors.mapping(Map.Entry::getValue, Collectors.toList())));
-
-          Map<String, List<String>> label = e.getLabel().stream()
-              .map(l -> Map.entry("label", getLangStringAsString(l)))
-              .collect(Collectors.groupingBy(
-                  Map.Entry::getKey,
-                  LinkedHashMap::new,
-                  Collectors.mapping(Map.Entry::getValue, Collectors.toList())));
-
-          attributesMap.putAll(location);
-          attributesMap.putAll(type);
-          attributesMap.putAll(other);
-          attributesMap.putAll(label);
-
-          if (e instanceof Entity entity && entity.getValue() != null) {
-            attributeToMapEntry(entity.getValue())
-                .stream()
-                .forEach(x -> attributesMap.put(x.getKey(), List.of(x.getValue())));
-          }
-
-          return attributesMap;
-        })
-        .flatMap(attrs -> Mono.fromCallable(() -> OBJECT_MAPPER.writeValueAsString(attrs)))
-        .switchIfEmpty(Mono.just("{}"))
-        .onErrorMap(
-            e -> new InternalApplicationException("Can not serialize Entity attributes to JSON: " + e.getMessage(), e));
+  private static Map<String, Object> getCpmAttributes(Element element) {
+    return element.getOther().stream()
+        .filter(attr -> attr.getElementName().getPrefix().equals("cpm"))
+        .map(NodeFactory::attributeToMapEntry)
+        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
   }
 
-  private static Optional<Map.Entry<String, String>> attributeToMapEntry(Attribute attr) {
-    String name = attr.getElementName().getPrefix() + ":" + attr.getElementName().getLocalPart();
-    Object value = attr.getValue();
-    if (value instanceof LangString ls)
-      return Optional.of(Map.entry(name, getLangStringAsString(ls)));
-    else if (value instanceof QualifiedName qn)
-      return Optional.of(Map.entry(name, qn.getPrefix() + ":" + qn.getLocalPart()));
-    else if (value instanceof String str)
-      return Optional.of(Map.entry(name, str));
+  private static Map<String, Object> getPavAttributes(Element element) {
+    return element.getOther().stream()
+        .filter(attr -> attr.getElementName().getPrefix().equals("pav"))
+        .map(NodeFactory::attributeToMapEntry)
+        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+  }
 
-    return Optional.empty();
+  private static String getType(Element element) {
+    Map<String, List<Object>> types = element.getType().stream()
+        .map(NodeFactory::attributeToMapEntry)
+        .collect(Collectors.groupingBy(
+            Map.Entry::getKey,
+            LinkedHashMap::new,
+            Collectors.mapping(Map.Entry::getValue, Collectors.toList())));
+
+    return types.isEmpty()
+        ? ""
+        : types.get("type").stream()
+            .map(String.class::cast)
+            .reduce("", (_, item) -> item);
+
+  }
+
+  private static Map.Entry<String, Object> attributeToMapEntry(Attribute attr) {
+    String name = attr.getElementName().getLocalPart();
+    Object value = attr.getValue();
+
+    if (value instanceof LangString ls)
+      return Map.entry(name, NodeFactory.getLangStringValue(ls));
+    else if (value instanceof QualifiedName qn)
+      return Map.entry(name, NodeFactory.getQualifiedNameValue(qn));
+    else
+      return Map.entry(name, NodeFactory.getAttributeValue(attr));
   };
 
-  private static String getLangStringAsString(LangString ls) {
-    return ls.getValue() + "@" + (ls.getLang() == null ? "" : ls.getLang());
+  private static Object getLangStringValue(LangString ls) {
+    return ls.getValue() + (ls.getLang() == null ? "" : "@" + ls.getLang());
+  }
+
+  private static Object getQualifiedNameValue(QualifiedName qn) {
+    return qn.getPrefix() + ":" + qn.getLocalPart();
+  }
+
+  private static Object getAttributeValue(Attribute attr) {
+    if (attr.getType().equals(provFactory.getName().XSD_INT)
+        || attr.getType().equals(provFactory.getName().XSD_INTEGER))
+      return Integer.parseInt(attr.getValue().toString());
+    else if (attr.getType().equals(provFactory.getName().XSD_LONG))
+      return Long.parseLong(attr.getValue().toString());
+    else if (attr.getType().equals(provFactory.getName().XSD_BOOLEAN))
+      return Boolean.parseBoolean(attr.getValue().toString());
+    else if (attr.getType().equals(provFactory.getName().XSD_DOUBLE))
+      return Double.parseDouble(attr.getValue().toString());
+    else
+      return attr.getValue().toString();
   }
 }

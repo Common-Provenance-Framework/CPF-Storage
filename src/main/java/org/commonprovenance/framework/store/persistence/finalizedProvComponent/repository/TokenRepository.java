@@ -6,11 +6,8 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 public interface TokenRepository {
-  Mono<TokenNode> save(TokenNode entity);
+  Mono<TokenNode> save(TokenNode token);
 
   Flux<TokenNode> findAll();
 
-  Mono<TokenNode> findById(String id);
-
-  Mono<Void> deleteById(String id);
 }

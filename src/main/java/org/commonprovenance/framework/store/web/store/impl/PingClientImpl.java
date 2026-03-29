@@ -4,7 +4,6 @@ import org.commonprovenance.framework.store.web.store.PingClient;
 import org.commonprovenance.framework.store.web.store.client.ClientStore;
 import org.springframework.stereotype.Component;
 
-import jakarta.validation.constraints.NotNull;
 import reactor.core.publisher.Mono;
 
 @Component
@@ -16,7 +15,7 @@ public class PingClientImpl implements PingClient {
   }
 
   @Override
-  public @NotNull Mono<Void> pingByUrl(@NotNull String url) {
+  public Mono<Void> pingByUrl(String url) {
     return this.client.sendHeadRequest(url);
   }
 

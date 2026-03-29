@@ -55,11 +55,10 @@ public class TrustedPartyWebServiceImpl implements TrustedPartyWebService {
   @Override
   public Mono<Boolean> exists(Organization organization) {
     return MONO.<Organization>makeSureNotNullWithMessage("Organization can not be null!").apply(organization)
-        .map(Organization::getName)
+        .map(Organization::getIdentifier)
         .flatMap(Mono::justOrEmpty)
         .flatMap(this.organizationClient.getById(Optional.empty()))
-        .thenReturn(true)
-        .switchIfEmpty(Mono.just(false))
+        .hasElement()
         .onErrorResume(NotFoundException.class, _ -> Mono.just(false));
   }
 

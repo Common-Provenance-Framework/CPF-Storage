@@ -6,29 +6,20 @@ import org.commonprovenance.framework.store.model.Token;
 import org.openprovenance.prov.model.Document;
 import org.openprovenance.prov.model.QualifiedName;
 
-import jakarta.validation.constraints.NotNull;
 import reactor.core.publisher.Mono;
 
 public interface MetaComponentService {
-  @NotNull
-  Mono<Document> storeMetaComponent(@NotNull Document document);
 
-  @NotNull
-  Mono<Document> createMetaComponent(@NotNull QualifiedName metaBundleId);
+  Mono<Document> createMetaComponent(QualifiedName metaBundleIdentifier);
 
-  @NotNull
   Function<Document, Mono<Document>> addNewVersion(QualifiedName identifier);
 
-  @NotNull
-  Function<Document, Mono<Document>> addTokenToLastVersion(Token tokenModel);
+  Function<Document, Mono<Document>> addTokenToLastVersion(Token token);
 
-  @NotNull
-  Mono<Document> getMetaComponent(@NotNull QualifiedName metaBundleId);
+  Mono<Document> getMetaComponent(QualifiedName metaBundleIdentifier);
 
-  @NotNull
-  Mono<Document> getById(@NotNull QualifiedName metaBundleId);
+  Mono<Document> getByIdentifier(QualifiedName metaBundleIdentifier);
 
-  @NotNull
-  Mono<Boolean> exists(@NotNull String id);
+  Mono<Boolean> exists(String identifier);
 
 }

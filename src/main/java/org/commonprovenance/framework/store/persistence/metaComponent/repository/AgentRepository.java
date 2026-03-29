@@ -7,5 +7,5 @@ import reactor.core.publisher.Mono;
 public interface AgentRepository {
   Mono<AgentNode> save(AgentNode agent);
 
-  Mono<AgentNode> findById(String id);
+  Mono<AgentNode> findByIdentifier(String identifier);
 }

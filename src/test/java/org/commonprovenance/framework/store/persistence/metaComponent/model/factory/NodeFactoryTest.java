@@ -2,8 +2,13 @@ package org.commonprovenance.framework.store.persistence.metaComponent.model.fac
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
+
+import java.time.Instant;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+
+import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.commonprovenance.framework.store.exceptions.InternalApplicationException;
 import org.commonprovenance.framework.store.persistence.metaComponent.model.node.ActivityNode;
@@ -21,20 +26,69 @@ import org.openprovenance.prov.model.Agent;
 import org.openprovenance.prov.model.Bundle;
 import org.openprovenance.prov.model.Document;
 import org.openprovenance.prov.model.Entity;
+import org.openprovenance.prov.model.Other;
 import org.openprovenance.prov.model.QualifiedName;
 import org.openprovenance.prov.model.SpecializationOf;
 import org.openprovenance.prov.model.Statement;
+import org.openprovenance.prov.model.Type;
 import org.openprovenance.prov.model.Used;
 import org.openprovenance.prov.model.WasAssociatedWith;
 import org.openprovenance.prov.model.WasAttributedTo;
 import org.openprovenance.prov.model.WasDerivedFrom;
 import org.openprovenance.prov.model.WasGeneratedBy;
 import org.openprovenance.prov.vanilla.ProvFactory;
+import org.openprovenance.prov.vanilla.ProvUtilities;
 
+import cz.muni.fi.cpm.vanilla.CpmProvFactory;
 import reactor.test.StepVerifier;
 
 class NodeFactoryTest {
   private final ProvFactory provFactory = new org.openprovenance.prov.vanilla.ProvFactory();
+  private final CpmProvFactory cpmProvFactory = new CpmProvFactory(provFactory);
+
+  @Test
+  void toEntity_generalEntity() {
+    QualifiedName generatedEntityId = qn("entity-generated");
+    Type type = provFactory.newType(
+        provFactory.getName().PROV_BUNDLE,
+        provFactory.getName().PROV_QUALIFIED_NAME);
+
+    Entity generatedEntity = mock(Entity.class);
+    when(generatedEntity.getId()).thenReturn(generatedEntityId);
+    when(generatedEntity.getType()).thenReturn(List.of(type));
+
+    EntityNode node = NodeFactory.toEntity(generatedEntity);
+
+    assertEquals("entity-generated", node.getIdentifier());
+    assertEquals("prov:Bundle", node.getProvType());
+    assertEquals(0, node.getCpm().entrySet().size());
+  }
+
+  @Test
+  void toEntity_versionEntity() {
+    QualifiedName generatedEntityId = qn("entity-generated");
+    Type type = provFactory.newType(
+        provFactory.getName().PROV_BUNDLE,
+        provFactory.getName().PROV_QUALIFIED_NAME);
+    Other other = provFactory.newOther(
+        provFactory.newQualifiedName("http://purl.org/pav/", "version", "pav"),
+        1,
+        provFactory.getName().XSD_INTEGER);
+    ;
+
+    Entity generatedEntity = mock(Entity.class);
+    when(generatedEntity.getId()).thenReturn(generatedEntityId);
+    when(generatedEntity.getType()).thenReturn(List.of(type));
+    when(generatedEntity.getOther()).thenReturn(List.of(other));
+
+    EntityNode node = NodeFactory.toEntity(generatedEntity);
+
+    assertEquals("entity-generated", node.getIdentifier());
+    assertEquals("prov:Bundle", node.getProvType());
+    assertEquals(0, node.getCpm().entrySet().size());
+    assertEquals(1, node.getPav().entrySet().size());
+    assertEquals(1, node.getPav().get("version"));
+  }
 
   @Test
   void toEntity_nullDocument_returnsEmptyMono() {
@@ -101,11 +155,27 @@ class NodeFactoryTest {
     Entity entity = mock(Entity.class);
     when(entity.getId()).thenReturn(entityId);
     when(entity.getLocation()).thenReturn(List.of());
-    when(entity.getOther()).thenReturn(List.of());
-    when(entity.getType()).thenReturn(List.of(provFactory.newType(
-        provFactory.newQualifiedName(
-            "https://www.commonprovenancemodel.org/cpm-namespace-v1-0/", "token", "cpm"),
-        provFactory.getName().PROV_TYPE)));
+    when(entity.getType()).thenReturn(List.of(
+        provFactory.newType(
+            cpmProvFactory.newCpmQualifiedName("token"),
+            provFactory.getName().PROV_QUALIFIED_NAME)));
+    when(entity.getOther()).thenReturn(List.of(
+        provFactory.newOther(
+            cpmProvFactory.newCpmQualifiedName("originatorId"),
+            "org1",
+            provFactory.getName().XSD_STRING),
+        provFactory.newOther(
+            cpmProvFactory.newCpmQualifiedName("authorityId"),
+            "Trusted_Party",
+            provFactory.getName().XSD_STRING),
+        provFactory.newOther(
+            cpmProvFactory.newCpmQualifiedName("tokenTimestamp"),
+            1774016549,
+            provFactory.getName().XSD_LONG),
+        provFactory.newOther(
+            cpmProvFactory.newCpmQualifiedName("signature"),
+            "MEYCIQDfGrAbyowhyFgQr1y8WUHfgtc96vwT0/kQcl84ePlRMQIhAJMwXzDo52ThMm/1L4vfT0kDW/IMWFvP3kg3mvjD/bYm",
+            provFactory.getName().XSD_STRING)));
 
     when(entity.getLabel()).thenReturn(List.of());
     when(entity.getValue()).thenReturn(provFactory.newValue(42));
@@ -113,16 +183,32 @@ class NodeFactoryTest {
     Agent agent = mock(Agent.class);
     when(agent.getId()).thenReturn(agentId);
     when(agent.getLocation()).thenReturn(List.of());
-    when(agent.getOther()).thenReturn(List.of());
-    when(agent.getType()).thenReturn(List.of());
+    when(agent.getOther()).thenReturn(List.of(
+        provFactory.newOther(
+            cpmProvFactory.newCpmQualifiedName("trustedPartyUri"),
+            "trusted-party:8020",
+            provFactory.getName().XSD_ANY_URI)
+
+    ));
+    when(agent.getType()).thenReturn(List.of(
+        provFactory.newType(
+            cpmProvFactory.newCpmQualifiedName("trustedParty"),
+            provFactory.getName().PROV_QUALIFIED_NAME)));
     when(agent.getLabel()).thenReturn(List.of());
 
     Activity activity = mock(Activity.class);
+    XMLGregorianCalendar timestampVal = ProvUtilities
+        .toXMLGregorianCalendar(Date.from(Instant.ofEpochSecond(1774016549)));
     when(activity.getId()).thenReturn(activityId);
     when(activity.getLocation()).thenReturn(List.of());
     when(activity.getOther()).thenReturn(List.of());
-    when(activity.getType()).thenReturn(List.of());
+    when(activity.getType()).thenReturn(List.of(
+        provFactory.newType(
+            cpmProvFactory.newCpmQualifiedName("tokenGeneration"),
+            provFactory.getName().PROV_QUALIFIED_NAME)));
     when(activity.getLabel()).thenReturn(List.of());
+    when(activity.getStartTime()).thenReturn(timestampVal);
+    when(activity.getEndTime()).thenReturn(timestampVal);
 
     when(bundle.getId()).thenReturn(bundleId);
     when(bundle.getStatement()).thenReturn(List.of(entity, agent, activity));
@@ -130,8 +216,8 @@ class NodeFactoryTest {
 
     StepVerifier.create(NodeFactory.toEntity(document))
         .assertNext((BundleNode b) -> {
-          assertEquals("bundle-1", b.getId());
-          assertEquals("{}", b.getAttributes());
+          assertEquals("bundle-1", b.getIdentifier());
+          assertNull(b.getId());
 
           List<EntityNode> entities = b.getBundleEntities().stream()
               .map(BundleEntities::getEntity)
@@ -139,24 +225,48 @@ class NodeFactoryTest {
 
           // assertEquals(3, nodes.size());
           assertEquals(1, entities.size());
-          assertEquals("entity-1", entities.getFirst().getId());
-          assertEquals("{\"prov:type\":[\"cpm:token\"],\"prov:value\":[\"42\"]}", entities.getFirst().getAttributes());
+          EntityNode entityNode = entities.getFirst();
+          assertEquals("entity-1", entityNode.getIdentifier());
+          assertNull(entityNode.getId());
+          assertEquals("cpm:token", entityNode.getProvType());
+
+          assertEquals(4, entityNode.getCpm().entrySet().size());
+          assertEquals("org1", entityNode.getCpm().get("originatorId"));
+          assertEquals("Trusted_Party", entityNode.getCpm().get("authorityId"));
+          assertEquals(1774016549L, entityNode.getCpm().get("tokenTimestamp"));
+          assertEquals(
+              "MEYCIQDfGrAbyowhyFgQr1y8WUHfgtc96vwT0/kQcl84ePlRMQIhAJMwXzDo52ThMm/1L4vfT0kDW/IMWFvP3kg3mvjD/bYm",
+              entityNode.getCpm().get("signature"));
 
           List<AgentNode> agents = b.getBundleAgents().stream()
               .map(BundleAgents::getAgent)
               .toList();
 
           assertEquals(1, agents.size());
-          assertEquals("agent-1", agents.getFirst().getId());
-          assertEquals("{}", agents.getFirst().getAttributes());
+          AgentNode agentNode = agents.getFirst();
+
+          assertEquals("agent-1", agentNode.getIdentifier());
+          assertNull(agentNode.getId());
+          assertEquals("cpm:trustedParty", agentNode.getProvType());
+
+          assertEquals(1, agentNode.getCpm().entrySet().size());
+          assertEquals("trusted-party:8020", agentNode.getCpm().get("trustedPartyUri"));
 
           List<ActivityNode> activities = b.getBundleActivities().stream()
               .map(BundleActivities::getActivity)
               .toList();
 
           assertEquals(1, activities.size());
-          assertEquals("activity-1", activities.getFirst().getId());
-          assertEquals("{}", activities.getFirst().getAttributes());
+          ActivityNode activityNode = activities.getFirst();
+
+          assertEquals("activity-1", activityNode.getIdentifier());
+          assertNull(activityNode.getId());
+          assertEquals("cpm:tokenGeneration", activityNode.getProvType());
+          assertEquals(0, activityNode.getCpm().entrySet().size());
+          assertEquals("2026-03-20T15:22:29.000+01:00", activityNode.getStartTime());
+          assertEquals("2026-03-20T15:22:29.000+01:00", activityNode.getEndTime());
+
+          // assertEquals("{}", activities.getFirst().getCpm());
 
         })
         .verifyComplete();
@@ -193,9 +303,11 @@ class NodeFactoryTest {
 
           assertEquals(2, entities.size());
 
-          EntityNode generated = (EntityNode) entities.stream().filter(e -> e.getId() == "entity-generated").toList()
+          EntityNode generated = entities.stream()
+              .filter(e -> e.getIdentifier() == "entity-generated")
+              .toList()
               .getFirst();
-          assertEquals("entity-used", generated.getRevisionOf().getFirst().getEntity().getId());
+          assertEquals("entity-used", generated.getRevisionOf().getFirst().getEntity().getIdentifier());
 
         })
         .verifyComplete();
@@ -262,22 +374,22 @@ class NodeFactoryTest {
               .map(eNode1 -> {
                 List<RevisionOf> revisionOfs = eNode1.getRevisionOf();
                 assertEquals(1, revisionOfs.size());
-                assertEquals(e2.getLocalPart(), revisionOfs.getFirst().getEntity().getId());
+                assertEquals(e2.getLocalPart(), revisionOfs.getFirst().getEntity().getIdentifier());
 
                 List<org.commonprovenance.framework.store.persistence.metaComponent.model.relation.SpecializationOf> specializationOfs = eNode1
                     .getSpecializationOf();
                 assertEquals(1, specializationOfs.size());
-                assertEquals(e2.getLocalPart(), specializationOfs.getFirst().getEntity().getId());
+                assertEquals(e2.getLocalPart(), specializationOfs.getFirst().getEntity().getIdentifier());
 
                 List<org.commonprovenance.framework.store.persistence.metaComponent.model.relation.WasAttributedTo> wasAttributedTos = eNode1
                     .getWasAttributedTo();
                 assertEquals(1, wasAttributedTos.size());
-                assertEquals(a1.getLocalPart(), wasAttributedTos.getFirst().getAgent().getId());
+                assertEquals(a1.getLocalPart(), wasAttributedTos.getFirst().getAgent().getIdentifier());
 
                 List<org.commonprovenance.framework.store.persistence.metaComponent.model.relation.WasGeneratedBy> wasGeneratedBies = eNode1
                     .getWasGeneratedBy();
                 assertEquals(1, wasGeneratedBies.size());
-                assertEquals(act1.getLocalPart(), wasGeneratedBies.getFirst().getActivity().getId());
+                assertEquals(act1.getLocalPart(), wasGeneratedBies.getFirst().getActivity().getIdentifier());
                 return null;
               });
 
@@ -286,13 +398,13 @@ class NodeFactoryTest {
                 List<org.commonprovenance.framework.store.persistence.metaComponent.model.relation.Used> useds = actNode1
                     .getUsed();
                 assertEquals(1, useds.size());
-                assertEquals(e1.getLocalPart(), useds.getFirst().getEntity().getId());
+                assertEquals(e1.getLocalPart(), useds.getFirst().getEntity().getIdentifier());
 
                 List<org.commonprovenance.framework.store.persistence.metaComponent.model.relation.WasAssociatedWith> wasAssociatedWiths = actNode1
                     .getWasAssociatedWith();
                 assertEquals(1, wasAssociatedWiths.size());
                 assertEquals(a1.getLocalPart(),
-                    wasAssociatedWiths.getFirst().getAgent().getId());
+                    wasAssociatedWiths.getFirst().getAgent().getIdentifier());
 
                 return null;
               });
@@ -316,7 +428,7 @@ class NodeFactoryTest {
 
   private static <T extends BaseProvClassNode> Optional<T> getNodeById(List<T> nodes, String id) {
     return nodes.stream()
-        .filter(node -> node.getId().equals(id))
+        .filter(node -> node.getIdentifier().equals(id))
         .findFirst();
   }
 }

@@ -7,21 +7,19 @@ import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.RelationshipProperties;
 import org.springframework.data.neo4j.core.schema.TargetNode;
 
-import jakarta.validation.constraints.NotNull;
-
 @RelationshipProperties
 public final class WasDerivedFrom {
 
   @Id
   @GeneratedValue
-  private final Long id;
+  private final String id;
 
   @TargetNode
   private final EntityNode entity;
 
   // Constructor for full initialization (used by Neo4j when reading)
   @PersistenceCreator
-  public WasDerivedFrom(Long id, EntityNode entity) {
+  public WasDerivedFrom(String id, EntityNode entity) {
     this.id = id;
     this.entity = entity;
   }
@@ -33,16 +31,16 @@ public final class WasDerivedFrom {
   }
 
   // Wither methods for immutability
-  public @NotNull WasDerivedFrom withId(Long id) {
+  public WasDerivedFrom withId(String id) {
     return new WasDerivedFrom(id, this.getEntity());
   }
 
-  public @NotNull WasDerivedFrom withEntity(@NotNull EntityNode entity) {
+  public WasDerivedFrom withEntity(EntityNode entity) {
     return new WasDerivedFrom(this.getId(), entity);
   }
 
   // Getters
-  public Long getId() {
+  public String getId() {
     return this.id;
   }
 

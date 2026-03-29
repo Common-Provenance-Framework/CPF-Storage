@@ -5,7 +5,6 @@ import org.commonprovenance.framework.store.persistence.finalizedProvComponent.T
 import org.commonprovenance.framework.store.service.persistence.finalizedProvComponent.TokenService;
 import org.springframework.stereotype.Service;
 
-import jakarta.validation.constraints.NotNull;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -17,23 +16,13 @@ public class TokenServiceImpl implements TokenService {
     this.persistence = persistence;
   }
 
-  @NotNull
-  public Mono<Token> storeToken(@NotNull Token token) {
+  @Override
+  public Mono<Token> storeToken(Token token) {
     return this.persistence.create(token);
   }
 
-  @NotNull
+  @Override
   public Flux<Token> getAllTokens() {
     return this.persistence.getAll();
-  }
-
-  @NotNull
-  public Mono<Token> getTokenById(@NotNull java.util.UUID id) {
-    return this.persistence.getById(id);
-  }
-
-  @NotNull
-  public Mono<Void> deleteTokenById(@NotNull java.util.UUID id) {
-    return this.persistence.deleteById(id);
   }
 }

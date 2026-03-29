@@ -9,9 +9,7 @@ import java.util.function.Function;
 
 import org.commonprovenance.framework.store.common.dto.HasDocumentFormat;
 import org.commonprovenance.framework.store.common.dto.HasFormat;
-import org.commonprovenance.framework.store.common.dto.HasHashFunction;
 import org.commonprovenance.framework.store.common.dto.HasId;
-import org.commonprovenance.framework.store.common.dto.HasOrganizationId;
 import org.commonprovenance.framework.store.common.utils.Validators;
 import org.commonprovenance.framework.store.controller.dto.form.DocumentFormDTO;
 import org.commonprovenance.framework.store.controller.dto.form.OrganizationFormDTO;
@@ -19,7 +17,6 @@ import org.commonprovenance.framework.store.exceptions.ArgumentValidatorExceptio
 import org.commonprovenance.framework.store.model.AdditionalData;
 import org.commonprovenance.framework.store.model.Document;
 import org.commonprovenance.framework.store.model.Format;
-import org.commonprovenance.framework.store.model.HashFunction;
 import org.commonprovenance.framework.store.model.Organization;
 import org.commonprovenance.framework.store.model.Token;
 import org.commonprovenance.framework.store.model.TrustedParty;
@@ -27,19 +24,19 @@ import org.commonprovenance.framework.store.persistence.finalizedProvComponent.m
 import org.commonprovenance.framework.store.persistence.finalizedProvComponent.model.node.OrganizationNode;
 import org.commonprovenance.framework.store.persistence.finalizedProvComponent.model.node.TokenNode;
 import org.commonprovenance.framework.store.persistence.finalizedProvComponent.model.node.TrustedPartyNode;
+import org.commonprovenance.framework.store.persistence.finalizedProvComponent.model.relation.Trusts;
 import org.commonprovenance.framework.store.web.trustedParty.dto.response.CertificateTPResponseDTO;
 import org.commonprovenance.framework.store.web.trustedParty.dto.response.DocumentTPResponseDTO;
 import org.commonprovenance.framework.store.web.trustedParty.dto.response.OrganizationTPResponseDTO;
 import org.commonprovenance.framework.store.web.trustedParty.dto.response.TokenTPResponseDTO;
 import org.commonprovenance.framework.store.web.trustedParty.dto.response.TrustedPartyTPResponseDTO;
-import tools.jackson.databind.ObjectMapper;
+
 import reactor.core.publisher.Mono;
 
 public class ModelFactory {
-  private static <T extends HasId> Mono<UUID> getId(T dto) {
+  private static <T extends HasId> Mono<String> getId(T dto) {
     return MONO.makeSureNotNull(dto)
-        .map(HasId::getId)
-        .flatMap(ModelFactory::toUUID);
+        .map(HasId::getId);
   }
 
   private static <T extends HasDocumentFormat> Mono<Format> getDocumentFormat(T dto) {
@@ -53,12 +50,6 @@ public class ModelFactory {
         .map(Optional::get);
   }
 
-  private static <T extends HasOrganizationId<T>> Mono<UUID> getOrganizationId(T dto) {
-    return MONO.makeSureNotNull(dto)
-        .map(HasOrganizationId<T>::getOrganizationId)
-        .flatMap(ModelFactory::toUUID);
-  }
-
   private static <T extends HasFormat> Mono<Format> getFormat(T dto) {
     return MONO.makeSureNotNull(dto)
         .map(HasFormat::getFormat)
@@ -70,47 +61,27 @@ public class ModelFactory {
         .map(Optional::get);
   }
 
-  private static <T extends HasHashFunction> Mono<HashFunction> getHashFunction(T dto) {
-    return MONO.makeSureNotNull(dto)
-        .map(HasHashFunction::getHashFunction)
-        .flatMap(MONO.<String>makeSureNotNullWithMessage("DTO 'hashFunction' can not be null."))
-        .map(HashFunction::from)
-        .flatMap(MONO.<Optional<HashFunction>>makeSure(
-            Optional::isPresent,
-            "HashFunction '" + dto.getHashFunction() + "' is not valid hash function."))
-        .map(Optional::get);
-  }
-
-  // private static <T extends HasCreatedOn> Mono<Long> getCreated(T dto) {
-  // return MONO.makeSureNotNull(dto)
-  // .map(HasCreatedOn::getCreatedOn)
-  // .flatMap(MONO.<Long>makeSureNotNullWithMessage("DTO 'createdOn' can not be
-  // null."))
-  // // .flatMap(MONO.<String>makeSure(
-  // // Validators::isISO8601DateTime,
-  // // (String created) -> "String '" + created + "' is not valid ISO8601
-  // DateTime
-  // // string"))
-  // // .map(ZonedDateTime::parse)
-  // .onErrorResume(IllegalArgumentException.class,
-  // MONO.<IllegalArgumentException, Long>exceptionWrapper(
-  // e -> "Can not parse date: " + e.getMessage()))
-  // .onErrorResume(MONO.<Throwable, Long>exceptionWrapper());
-  // }
-
-  // ---
   private static Document fromDto(DocumentFormDTO dto) {
-    return new Document(null, null, null, dto.getDocument(), null, dto.getSignature());
+    return new Document(
+        null,
+        dto.getOrganizationIdentifier(),
+        dto.getDocument(),
+        null,
+        dto.getSignature());
   }
 
   private static Document fromDto(DocumentTPResponseDTO dto) {
-    return new Document(null, null, null, dto.getDocument(), null, dto.getSignature());
+    return new Document(
+        null,
+        null,
+        dto.getDocument(),
+        null,
+        dto.getSignature());
   }
 
   private static Document fromPersistance(DocumentNode document) {
     return new Document(
-        null,
-        null,
+        document.getIdentifier(),
         null,
         document.getGraph(),
         null,
@@ -119,31 +90,44 @@ public class ModelFactory {
 
   private static TrustedParty fromPersistance(TrustedPartyNode trustedParty) {
     return new TrustedParty(
-        null,
         trustedParty.getName(),
         trustedParty.getClientCertificate(),
         trustedParty.getUrl(),
-        trustedParty.getChecked(),
-        trustedParty.getValid(),
-        trustedParty.getIsDefault());
+        trustedParty.getIsChecked(),
+        trustedParty.getIsValid(),
+        trustedParty.getIsDefault())
+        .withId(trustedParty.getId());
   }
 
   private static Organization fromPersistance(OrganizationNode organization) {
-    return new Organization(
-        null,
-        organization.getName(),
+    Organization org = new Organization(
+        organization.getIdentifier(),
         organization.getClientCertificate(),
-        organization.getIntermediateCertificates(),
-        ModelFactory.toDomain(organization.getTrusts().getFirst().getTrustedParty()).block());
+        organization.getIntermediateCertificates());
+
+    return organization.getTrusts().stream()
+        .map(Trusts::getTrustedParty)
+        .map(ModelFactory::fromPersistance)
+        .findFirst()
+        .map(org::withTrustedParty)
+        .orElse(org);
   }
 
   private static Token fromPersistance(TokenNode token) {
+
+    Function<TokenNode, AdditionalData> additionalDataFactory = (TokenNode node) -> new AdditionalData(
+        node.getBundle(),
+        node.getOrganizationIdentifier(),
+        node.getHashFunction(),
+        node.getTrustedPartyUri(),
+        node.getTrustedPartyCertificate(),
+        node.getMessageTimestamp());
 
     return new Token(
         null,
         token.getHash(),
         token.getSignature(),
-        new ObjectMapper().readValue(token.getAdditionalData(), AdditionalData.class),
+        additionalDataFactory.apply(token),
         ModelFactory.toDomain(token.getWasIssuedBy().getFirst().getTrustedParty()).block(),
         ModelFactory.toDomain(token.getBelongsTo().getFirst().getDocument()).block(),
         token.getTokenTimestamp());
@@ -151,29 +135,23 @@ public class ModelFactory {
 
   private static Organization fromDto(OrganizationTPResponseDTO dto) {
     return new Organization(
-        null,
         dto.getId(),
         dto.getCertificate(),
-        Collections.emptyList(),
-        null);
+        Collections.emptyList());
   }
 
   private static Organization fromDto(CertificateTPResponseDTO dto) {
     return new Organization(
-        null,
         dto.getId(),
         dto.getCertificate(),
-        Collections.emptyList(),
-        null);
+        Collections.emptyList());
   }
 
   private static Organization fromDto(OrganizationFormDTO dto) {
     return new Organization(
-        null,
-        dto.getName(),
+        dto.getIdentifier(),
         dto.getClientCertificate(),
-        dto.getIntermediateCertificates(),
-        null);
+        dto.getIntermediateCertificates());
   }
 
   private static Token fromDto(TokenTPResponseDTO dto) {
@@ -239,15 +217,12 @@ public class ModelFactory {
   public static Mono<Document> toDomain(DocumentNode entity) {
     return MONO.makeSureNotNull(entity)
         .map(ModelFactory::fromPersistance)
-        .map((Document document) -> document.withId(entity.getId()))
         .flatMap((Document document) -> ModelFactory.getFormat(entity).map(document::withFormat));
-
   }
 
   public static Mono<Organization> toDomain(OrganizationNode entity) {
     return MONO.makeSureNotNull(entity)
-        .map(ModelFactory::fromPersistance)
-        .flatMap((Organization organization) -> ModelFactory.getId(entity).map(organization::withId));
+        .map(ModelFactory::fromPersistance);
   }
 
   public static Mono<TrustedParty> toDomain(TrustedPartyNode entity) {
@@ -266,7 +241,6 @@ public class ModelFactory {
   public static Mono<Document> toDomain(DocumentFormDTO formDTO) {
     return MONO.makeSureNotNull(formDTO)
         .map(ModelFactory::fromDto)
-        .flatMap((Document document) -> ModelFactory.getOrganizationId(formDTO).map(document::withOrganizationId))
         .flatMap((Document document) -> ModelFactory.getDocumentFormat(formDTO).map(document::withFormat));
   }
 

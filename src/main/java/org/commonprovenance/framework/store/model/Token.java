@@ -1,10 +1,9 @@
 package org.commonprovenance.framework.store.model;
 
 import java.util.Optional;
-import java.util.UUID;
 
 public class Token {
-  private final Optional<UUID> id;
+  private final Optional<String> id;
   private final String hash;
   private final String signature;
 
@@ -15,7 +14,7 @@ public class Token {
   private final Long createdOn;
 
   public Token(
-      UUID id,
+      String id,
       String hash,
       String signature,
       AdditionalData additionalData,
@@ -31,7 +30,7 @@ public class Token {
     this.createdOn = createdOn;
   }
 
-  public Token withId(UUID id) {
+  public Token withId(String id) {
     return new Token(
         id,
         this.getHash(),
@@ -40,10 +39,6 @@ public class Token {
         this.getTrustedParty(),
         this.getDocument(),
         this.getCreatedOn());
-  }
-
-  public Token withGeneratedId() {
-    return this.withId(this.getId().orElse(UUID.randomUUID()));
   }
 
   public Token withTrustedParty(TrustedParty trustedParty) {
@@ -68,7 +63,7 @@ public class Token {
         this.getCreatedOn());
   }
 
-  public Optional<UUID> getId() {
+  public Optional<String> getId() {
     return id;
   }
 

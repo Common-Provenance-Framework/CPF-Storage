@@ -21,7 +21,7 @@ services:
       - 5432:5432
 
   cpf-neo4j:
-    image: neo4j:5.26-trixie
+    image: neo4j:2026.02.2-trixie
     container_name: cpf-store-neo4j
     networks:
       - cpf-net

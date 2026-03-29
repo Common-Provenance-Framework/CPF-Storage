@@ -58,30 +58,29 @@ public class OrganizationControllerImpl implements OrganizationController {
         .flatMap(MONO.makeSureAsync(
             this.organizationService::notExists,
             // this.trustedPartyWebService::notExists,
-            "Organization with name '" + body.getName() + "' already exists!"))
+            "Organization with identifier '" + body.getIdentifier() + "' already exists!"))
         .flatMap(this.trustedPartyWebService.createOrganization(Optional.ofNullable(body.getTrustedPartyUri())))
         .flatMap(
-            (Organization organization) -> this.trustedPartyService.findTrustedParty(organization.getTrustedParty())
-                .onErrorResume(NotFoundException.class,
-                    (NotFoundException notFound) -> organization.getTrustedParty().getIsDefault()
-                        ? Mono.just(organization.getTrustedParty())
-                            .flatMap(this.trustedPartyService::storeTrustedParty)
-                        : Mono.error(notFound))
+            (Organization organization) -> Mono.justOrEmpty(organization.getTrustedParty())
+                .flatMap(trustedParty -> this.trustedPartyService.findTrustedParty(trustedParty)
+                    .onErrorResume(NotFoundException.class,
+                        (NotFoundException notFound) -> trustedParty.getIsDefault()
+                            ? this.trustedPartyService.storeTrustedParty(trustedParty)
+                            : Mono.error(notFound)))
                 .map(organization::withTrustedParty))
         .flatMap(this.organizationService::storeOrganization)
         .flatMap(DTOFactory::toDTO);
   }
 
-  @PutMapping("/{uuid}")
+  @PutMapping("/{identifier}")
   @NotNull
   public Mono<OrganizationResponseDTO> updateOrganization(
-      @PathVariable String uuid,
+      @PathVariable String identifier,
       @RequestBody OrganizationFormDTO body) {
     return ModelFactory.toDomain(body)
-        .flatMap((Organization organization) -> ModelFactory.toUUID(uuid).map(organization::withId))
         .flatMap((MONO.makeSureAsync(
             this.organizationService::exists,
-            "Organization with name '" + body.getName() + "' does not exists!")))
+            "Organization with identifier '" + body.getIdentifier() + "' does not exists!")))
         .flatMap(this.trustedPartyWebService::updateOrganization)
         .flatMap(this.organizationService::updateOrganization)
         .flatMap(DTOFactory::toDTO);
@@ -95,10 +94,10 @@ public class OrganizationControllerImpl implements OrganizationController {
   }
 
   @NotNull
-  @GetMapping("/{uuid}")
-  public Mono<OrganizationResponseDTO> getOrganizationById(@PathVariable String uuid) {
-    return ModelFactory.toUUID(uuid)
-        .flatMap(this.organizationService::getOrganizationById)
+  @GetMapping("/{identifier}")
+  public Mono<OrganizationResponseDTO> getOrganizationByIdentifier(@PathVariable String identifier) {
+    return MONO.<String>makeSureNotNullWithMessage("Identifier can not be null!").apply(identifier)
+        .flatMap(this.organizationService::getOrganizationByIdentifier)
         .flatMap(DTOFactory::toDTO);
   }
 

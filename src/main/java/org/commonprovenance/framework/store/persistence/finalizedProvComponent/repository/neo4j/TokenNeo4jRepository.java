@@ -20,8 +20,8 @@ public class TokenNeo4jRepository implements TokenRepository {
   }
 
   @Override
-  public Mono<TokenNode> save(TokenNode entity) {
-    return client.save(entity);
+  public Mono<TokenNode> save(TokenNode token) {
+    return client.save(token);
   }
 
   @Override
@@ -29,13 +29,4 @@ public class TokenNeo4jRepository implements TokenRepository {
     return client.findAll();
   }
 
-  @Override
-  public Mono<TokenNode> findById(String id) {
-    return client.findById(id);
-  }
-
-  @Override
-  public Mono<Void> deleteById(String id) {
-    return client.deleteById(id);
-  }
 }

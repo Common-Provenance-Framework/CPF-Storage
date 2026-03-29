@@ -20,8 +20,8 @@ public class DocumentNeo4jRepository implements DocumentRepository {
   }
 
   @Override
-  public Mono<DocumentNode> save(DocumentNode entity) {
-    return client.save(entity);
+  public Mono<DocumentNode> save(DocumentNode document) {
+    return client.save(document);
   }
 
   @Override
@@ -30,12 +30,8 @@ public class DocumentNeo4jRepository implements DocumentRepository {
   }
 
   @Override
-  public Mono<DocumentNode> findById(String id) {
-    return client.findById(id);
+  public Mono<DocumentNode> findByIdentifier(String identifier) {
+    return client.findByIdentifier(identifier);
   }
 
-  @Override
-  public Mono<Void> deleteById(String id) {
-    return client.deleteById(id);
-  }
 }

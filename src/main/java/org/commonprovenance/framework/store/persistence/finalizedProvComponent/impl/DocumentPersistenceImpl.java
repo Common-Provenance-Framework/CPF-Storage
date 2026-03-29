@@ -10,7 +10,6 @@ import org.commonprovenance.framework.store.persistence.finalizedProvComponent.m
 import org.commonprovenance.framework.store.persistence.finalizedProvComponent.repository.DocumentRepository;
 import org.springframework.stereotype.Component;
 
-import jakarta.validation.constraints.NotNull;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -25,39 +24,29 @@ public class DocumentPersistenceImpl implements DocumentPersistence {
   }
 
   @Override
-  @NotNull
-  public Mono<Document> create(@NotNull Document document) {
+  public Mono<Document> create(Document document) {
     return MONO.<Document>makeSureNotNullWithMessage("Document can not be 'null'!").apply(document)
         .flatMap(NodeFactory::toEntity)
         .flatMap(repository::save)
-        .onErrorResume(MONO.exceptionWrapper("DocumentNeo4jRepository - Error while creating new Document"))
+        .onErrorResume(MONO.exceptionWrapper("DocumentPersistence - Error while creating new Document"))
         .flatMap(ModelFactory::toDomain);
   }
 
   @Override
-  @NotNull
   public Flux<Document> getAll() {
     return repository.findAll()
-        .onErrorResume(MONO.exceptionWrapper("DocumentNeo4jRepository - Error while reading documents"))
+        .onErrorResume(MONO.exceptionWrapper("DocumentPersistence - Error while reading Documents"))
         .flatMap(ModelFactory::toDomain);
   }
 
   @Override
-  @NotNull
-  public Mono<Document> getById(@NotNull String uuid) {
-    return MONO.<String>makeSureNotNullWithMessage("Document Id can not be 'null'!").apply(uuid)
-        .flatMap(repository::findById)
-        .onErrorResume(MONO.exceptionWrapper("DocumentNeo4jRepository - Error while reading document"))
+  public Mono<Document> getByIdentifier(String identifier) {
+    return MONO.<String>makeSureNotNullWithMessage("Document identifier can not be 'null'!").apply(identifier)
+        .flatMap(repository::findByIdentifier)
+        .onErrorResume(MONO.exceptionWrapper("DocumentPersistence - Error while reading Document"))
         .flatMap(ModelFactory::toDomain)
         .switchIfEmpty(Mono.defer(() -> Mono
-            .error(new NotFoundException("Document with id '" + uuid.toString() + "' has not been found!"))));
+            .error(new NotFoundException("Document with identifier '" + identifier + "' has not been found!"))));
   }
 
-  @Override
-  @NotNull
-  public Mono<Void> deleteById(@NotNull String uuid) {
-    return MONO.<String>makeSureNotNullWithMessage("Document Id can not be 'null'!").apply(uuid)
-        .flatMap(repository::deleteById)
-        .onErrorResume(MONO.exceptionWrapper("DocumentNeo4jRepository - Error while reading document"));
-  }
 }

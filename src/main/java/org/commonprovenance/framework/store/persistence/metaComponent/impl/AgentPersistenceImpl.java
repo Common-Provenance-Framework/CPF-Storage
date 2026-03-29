@@ -8,7 +8,6 @@ import org.commonprovenance.framework.store.persistence.metaComponent.model.node
 import org.commonprovenance.framework.store.persistence.metaComponent.repository.AgentRepository;
 import org.springframework.stereotype.Component;
 
-import jakarta.validation.constraints.NotNull;
 import reactor.core.publisher.Mono;
 
 @Component
@@ -22,21 +21,19 @@ public class AgentPersistenceImpl implements AgentPersistence {
   }
 
   @Override
-  @NotNull
-  public Mono<AgentNode> create(@NotNull AgentNode bundle) {
-    return MONO.<AgentNode>makeSureNotNullWithMessage("Agent can not be 'null'!").apply(bundle)
+  public Mono<AgentNode> create(AgentNode agent) {
+    return MONO.<AgentNode>makeSureNotNullWithMessage("Agent can not be 'null'!").apply(agent)
         .flatMap(repository::save)
-        .onErrorResume(MONO.exceptionWrapper("AgentNeo4jRepository - Error while creating new Agent"));
+        .onErrorResume(MONO.exceptionWrapper("AgentPersistence - Error while creating new Agent"));
   }
 
   @Override
-  @NotNull
-  public Mono<AgentNode> getById(@NotNull String id) {
-    return MONO.<String>makeSureNotNullWithMessage("Agent Id can not be 'null'!").apply(id)
-        .flatMap(repository::findById)
-        .onErrorResume(MONO.exceptionWrapper("AgentNeo4jRepository - Error while reading agent"))
+  public Mono<AgentNode> getByIdentifier(String identifier) {
+    return MONO.<String>makeSureNotNullWithMessage("Agent identifier can not be 'null'!").apply(identifier)
+        .flatMap(repository::findByIdentifier)
+        .onErrorResume(MONO.exceptionWrapper("AgentPersistence - Error while reading agent"))
         .switchIfEmpty(Mono.defer(() -> Mono
-            .error(new NotFoundException("Agent with id '" + id + "' has not been found!"))));
+            .error(new NotFoundException("Agent with identifier '" + identifier + "' has not been found!"))));
   }
 
 }

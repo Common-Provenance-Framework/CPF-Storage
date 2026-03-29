@@ -11,4 +11,9 @@ public class TokenClientImpl implements TokenClient {
   public TokenClientImpl(ClientStore client) {
     this.client = client;
   }
+
+  public ClientStore getClient() {
+    return client;
+  }
+
 }

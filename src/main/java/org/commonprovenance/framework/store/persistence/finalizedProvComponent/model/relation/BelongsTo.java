@@ -7,21 +7,19 @@ import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.RelationshipProperties;
 import org.springframework.data.neo4j.core.schema.TargetNode;
 
-import jakarta.validation.constraints.NotNull;
-
 @RelationshipProperties
 public final class BelongsTo {
 
   @Id
   @GeneratedValue
-  private final Long id;
+  private final String id;
 
   @TargetNode
   private final DocumentNode document;
 
   // Constructor for full initialization (used by Neo4j when reading)
   @PersistenceCreator
-  public BelongsTo(Long id, DocumentNode documentEntity) {
+  public BelongsTo(String id, DocumentNode documentEntity) {
     this.id = id;
     this.document = documentEntity;
   }
@@ -33,17 +31,17 @@ public final class BelongsTo {
   }
 
   // Wither methods for immutability
-  public @NotNull BelongsTo withId(Long id) {
+  public BelongsTo withId(String id) {
     return new BelongsTo(id, this.getDocument());
   }
 
-  public @NotNull BelongsTo withDocument(@NotNull DocumentNode documentEntity) {
+  public BelongsTo withDocument(DocumentNode documentEntity) {
     return new BelongsTo(this.getId(), documentEntity);
   }
 
   // Getters
 
-  public Long getId() {
+  public String getId() {
     return this.id;
   }
 

@@ -16,5 +16,5 @@ public interface OrganizationController {
 
   Flux<OrganizationResponseDTO> getAllOrganizations();
 
-  Mono<OrganizationResponseDTO> getOrganizationById(@IsUUID String uuid);
+  Mono<OrganizationResponseDTO> getOrganizationByIdentifier(@IsUUID String uuid);
 }

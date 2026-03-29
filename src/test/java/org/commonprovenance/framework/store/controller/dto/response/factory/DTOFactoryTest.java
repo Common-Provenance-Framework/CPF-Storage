@@ -4,8 +4,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
-import java.util.UUID;
-
 import org.commonprovenance.framework.store.exceptions.InternalApplicationException;
 import org.commonprovenance.framework.store.model.Document;
 import org.commonprovenance.framework.store.model.Format;
@@ -21,24 +19,22 @@ public class DTOFactoryTest {
   void should_map_Document_to_DocumentResponseDTO() {
     String testId = "6ee9d79b-0615-4cb1-b0f3-2303d10c8cff";
     String organizationId = "6ee9d79b-0615-4cb1-b0f3-2303d10c8cff";
-    String orgName = "ORG1";
     String base64StringGraph = "AAAAQQAAAGIAAAByAAAAYQAAAGsAAABhAAAAIAAAAEQAAABhAAAAYgAAAHIAAABhAAAALgAAAC4=";
     String format = "JSON";
     String signature = "..";
 
     Document document = new Document(
         testId,
-        UUID.fromString(organizationId),
-        orgName,
+        organizationId,
         base64StringGraph,
         Format.from(format).get(),
         signature);
 
     StepVerifier.create(DTOFactory.toDTO(document))
         .assertNext(response -> {
-          assertEquals(testId, response.getId(),
+          assertEquals(testId, response.getIdentifier(),
               "response should have Id field with exact value");
-          assertEquals(organizationId, response.getOrganizationId(),
+          assertEquals(organizationId, response.getOrganizationIdentifier(),
               "response should have organizationId field with exact value");
           assertEquals(base64StringGraph, response.getGraph(),
               "response should have graph field with exact value");

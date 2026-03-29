@@ -24,21 +24,14 @@ public class TrustedPartyDummyRepository implements TrustedPartyRepository {
   }
 
   @Override
-  public Mono<TrustedPartyNode> save(TrustedPartyNode entity) {
-    return MONO.makeSureNotNull(entity)
+  public Mono<TrustedPartyNode> save(TrustedPartyNode trustedParty) {
+    return MONO.makeSureNotNull(trustedParty)
         .doOnNext(this::add);
   }
 
   @Override
   public Flux<TrustedPartyNode> findAll() {
     return Flux.fromIterable(trustedParties.values());
-  }
-
-  @Override
-  public Mono<TrustedPartyNode> findById(String id) {
-    return MONO.makeSureNotNull(id)
-        .map(trustedParties::get)
-        .flatMap(MONO::makeSureNotNull);
   }
 
   @Override
@@ -49,13 +42,6 @@ public class TrustedPartyDummyRepository implements TrustedPartyRepository {
         .singleOrEmpty()
         .onErrorResume(MONO.exceptionWrapper("TrustedPartyPersistence - Error while reading TrustedParty by name"))
         .switchIfEmpty(Mono.error(new NotFoundException("TrustedParty with name '" + name + "' not found!")));
-  }
-
-  @Override
-  public Mono<Void> deleteById(String id) {
-    return MONO.makeSureNotNull(id)
-        .map(trustedParties::remove)
-        .then();
   }
 
   @Override

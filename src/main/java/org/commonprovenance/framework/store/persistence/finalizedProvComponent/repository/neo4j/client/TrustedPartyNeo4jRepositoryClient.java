@@ -2,14 +2,26 @@ package org.commonprovenance.framework.store.persistence.finalizedProvComponent.
 
 import org.commonprovenance.framework.store.persistence.finalizedProvComponent.model.node.TrustedPartyNode;
 import org.springframework.data.neo4j.repository.ReactiveNeo4jRepository;
+import org.springframework.data.neo4j.repository.query.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import reactor.core.publisher.Mono;
 
 @Repository
 public interface TrustedPartyNeo4jRepositoryClient extends ReactiveNeo4jRepository<TrustedPartyNode, String> {
-  Mono<TrustedPartyNode> findByName(String name);
 
-  // Find the default trusted party (where isDefault = true)
-  Mono<TrustedPartyNode> findByIsDefaultTrue();
+  @Query("""
+        MATCH (trustedParty:TrustedParty)
+        WHERE trustedParty.name = $name
+        RETURN trustedParty
+      """)
+  Mono<TrustedPartyNode> findByName(@Param("name") String name);
+
+  @Query("""
+        MATCH (trustedParty:TrustedParty)
+        WHERE trustedParty.is_default = TRUE
+        RETURN trustedParty
+      """)
+  Mono<TrustedPartyNode> findDefault();
 }

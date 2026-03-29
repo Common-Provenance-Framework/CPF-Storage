@@ -2,10 +2,14 @@ package org.commonprovenance.framework.store.web.trustedParty.dto.form;
 
 import org.commonprovenance.framework.store.common.dto.HasDocument;
 import org.commonprovenance.framework.store.common.dto.HasOrganizationId;
+import org.commonprovenance.framework.store.common.dto.HasSignature;
 import org.commonprovenance.framework.store.common.validation.ValidatableDTO;
 
 public class VerifySignatureTPFormDTO extends ValidatableDTO
-    implements HasOrganizationId<VerifySignatureTPFormDTO>, HasDocument<VerifySignatureTPFormDTO> {
+    implements
+    HasOrganizationId<VerifySignatureTPFormDTO>,
+    HasDocument<VerifySignatureTPFormDTO>,
+    HasSignature<VerifySignatureTPFormDTO> {
   private final String organizationId;
   private final String document;
   private final String signature;
@@ -26,18 +30,18 @@ public class VerifySignatureTPFormDTO extends ValidatableDTO
   }
 
   @Override
-  public VerifySignatureTPFormDTO withOrganizationId(String id) {
+  public VerifySignatureTPFormDTO withOrganizationId(String organizationId) {
     return new VerifySignatureTPFormDTO(
-        id,
+        organizationId,
         this.getDocument(),
         this.getSignature());
   }
 
   @Override
-  public VerifySignatureTPFormDTO withDocument(String graph) {
+  public VerifySignatureTPFormDTO withDocument(String document) {
     return new VerifySignatureTPFormDTO(
         this.getOrganizationId(),
-        graph,
+        document,
         this.getSignature());
   }
 
@@ -53,6 +57,7 @@ public class VerifySignatureTPFormDTO extends ValidatableDTO
     return organizationId;
   }
 
+  @Override
   public String getDocument() {
     return document;
   }

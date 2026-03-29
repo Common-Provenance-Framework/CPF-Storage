@@ -20,8 +20,8 @@ public class OrganizationNeo4jRepository implements OrganizationRepository {
   }
 
   @Override
-  public Mono<OrganizationNode> save(OrganizationNode entity) {
-    return client.save(entity);
+  public Mono<OrganizationNode> save(OrganizationNode organization) {
+    return client.save(organization);
   }
 
   @Override
@@ -30,17 +30,8 @@ public class OrganizationNeo4jRepository implements OrganizationRepository {
   }
 
   @Override
-  public Mono<OrganizationNode> findById(String id) {
-    return client.findById(id);
+  public Mono<OrganizationNode> findByIdentifier(String identifier) {
+    return client.findByIdentifier(identifier);
   }
 
-  @Override
-  public Mono<OrganizationNode> findByName(String name) {
-    return client.findByName(name);
-  }
-
-  @Override
-  public Mono<Void> deleteById(String id) {
-    return client.deleteById(id);
-  }
 }

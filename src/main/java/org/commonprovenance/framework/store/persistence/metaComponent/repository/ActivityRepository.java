@@ -7,5 +7,5 @@ import reactor.core.publisher.Mono;
 public interface ActivityRepository {
   Mono<ActivityNode> save(ActivityNode activity);
 
-  Mono<ActivityNode> findById(String id);
+  Mono<ActivityNode> findByIdentifier(String identifier);
 }

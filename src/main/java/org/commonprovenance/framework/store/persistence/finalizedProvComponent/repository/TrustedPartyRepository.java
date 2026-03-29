@@ -11,11 +11,8 @@ public interface TrustedPartyRepository {
 
   Flux<TrustedPartyNode> findAll();
 
-  Mono<TrustedPartyNode> findById(String id);
-
   Mono<TrustedPartyNode> findByName(String name);
 
   Mono<TrustedPartyNode> findDefault();
 
-  Mono<Void> deleteById(String id);
 }

@@ -25,18 +25,29 @@ public class BundleNeo4jRepository implements BundleRepository {
   }
 
   @Override
-  public Mono<BundleNode> findById(String id) {
-    return client.findById(id);
-  }
-
-  @Override
-  public Mono<Boolean> exists(String id) {
-    return client.existsById(id);
+  public Mono<BundleNode> findByIdentifier(String identifier) {
+    return client.getIdByIdentifier(identifier)
+        .flatMap(client::findById);
   }
 
   @Override
   public Mono<BundleNode> findByGeneralEntity(EntityNode entity) {
-    return client.getBundleByGeneralEntity(entity.getId());
+    return client.getBundleByGeneralEntity(entity.getIdentifier());
   }
 
+  @Override
+  public Mono<Boolean> exists(String identifier) {
+    return this.findByIdentifier(identifier)
+        .hasElement();
+  }
+
+  @Override
+  public Mono<Boolean> hasVersionEntity(String identifier) {
+    return client.hasVersionEntity(identifier);
+  }
+
+  @Override
+  public Mono<Boolean> hasNotVersionEntity(String identifier) {
+    return client.hasVersionEntity(identifier).map(v -> !v);
+  }
 }

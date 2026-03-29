@@ -7,21 +7,19 @@ import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.RelationshipProperties;
 import org.springframework.data.neo4j.core.schema.TargetNode;
 
-import jakarta.validation.constraints.NotNull;
-
 @RelationshipProperties
 public final class SpecializationOf {
 
   @Id
   @GeneratedValue
-  private final Long id;
+  private final String id;
 
   @TargetNode
   private final EntityNode entity;
 
   // Constructor for full initialization (used by Neo4j when reading)
   @PersistenceCreator
-  public SpecializationOf(Long id, EntityNode entity) {
+  public SpecializationOf(String id, EntityNode entity) {
     this.id = id;
     this.entity = entity;
   }
@@ -33,16 +31,16 @@ public final class SpecializationOf {
   }
 
   // Wither methods for immutability
-  public @NotNull SpecializationOf withId(Long id) {
+  public SpecializationOf withId(String id) {
     return new SpecializationOf(id, this.getEntity());
   }
 
-  public @NotNull SpecializationOf withEntity(@NotNull EntityNode entity) {
+  public SpecializationOf withEntity(EntityNode entity) {
     return new SpecializationOf(this.getId(), entity);
   }
 
   // Getters
-  public Long getId() {
+  public String getId() {
     return this.id;
   }
 

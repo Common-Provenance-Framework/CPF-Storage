@@ -7,21 +7,19 @@ import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.RelationshipProperties;
 import org.springframework.data.neo4j.core.schema.TargetNode;
 
-import jakarta.validation.constraints.NotNull;
-
 @RelationshipProperties
 public final class RevisionOf {
 
   @Id
   @GeneratedValue
-  private final Long id;
+  private final String id;
 
   @TargetNode
   private final EntityNode entity;
 
   // Constructor for full initialization (used by Neo4j when reading)
   @PersistenceCreator
-  public RevisionOf(Long id, EntityNode entity) {
+  public RevisionOf(String id, EntityNode entity) {
     this.id = id;
     this.entity = entity;
   }
@@ -33,16 +31,16 @@ public final class RevisionOf {
   }
 
   // Wither methods for immutability
-  public @NotNull RevisionOf withId(Long id) {
+  public RevisionOf withId(String id) {
     return new RevisionOf(id, this.getEntity());
   }
 
-  public @NotNull RevisionOf withEntity(@NotNull EntityNode entity) {
+  public RevisionOf withEntity(EntityNode entity) {
     return new RevisionOf(this.getId(), entity);
   }
 
   // Getters
-  public Long getId() {
+  public String getId() {
     return this.id;
   }
 

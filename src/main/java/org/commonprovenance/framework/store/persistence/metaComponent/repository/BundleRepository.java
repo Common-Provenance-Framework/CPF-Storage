@@ -8,9 +8,14 @@ import reactor.core.publisher.Mono;
 public interface BundleRepository {
   Mono<BundleNode> save(BundleNode bundle);
 
-  Mono<BundleNode> findById(String id);
+  Mono<BundleNode> findByIdentifier(String identifier);
 
   Mono<BundleNode> findByGeneralEntity(EntityNode entity);
 
-  Mono<Boolean> exists(String id);
+  Mono<Boolean> exists(String identifier);
+
+  Mono<Boolean> hasVersionEntity(String identifier);
+
+  Mono<Boolean> hasNotVersionEntity(String identifier);
+
 }

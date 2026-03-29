@@ -5,7 +5,6 @@ import org.commonprovenance.framework.store.persistence.finalizedProvComponent.D
 import org.commonprovenance.framework.store.service.persistence.finalizedProvComponent.DocumentService;
 import org.springframework.stereotype.Service;
 
-import jakarta.validation.constraints.NotNull;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -17,23 +16,19 @@ public class DocumentServiceImpl implements DocumentService {
     this.persistence = persistence;
   }
 
-  @NotNull
-  public Mono<Document> storeDocument(@NotNull Document document) {
+  @Override
+  public Mono<Document> storeDocument(Document document) {
     return this.persistence.create(document);
   }
 
-  @NotNull
+  @Override
   public Flux<Document> getAllDocuments() {
     return this.persistence.getAll();
   }
 
-  @NotNull
-  public Mono<Document> getDocumentById(@NotNull String id) {
-    return this.persistence.getById(id);
+  @Override
+  public Mono<Document> getDocumentByIdentifier(String identifier) {
+    return this.persistence.getByIdentifier(identifier);
   }
 
-  @NotNull
-  public Mono<Void> deleteDocumentById(@NotNull String id) {
-    return this.persistence.deleteById(id);
-  }
 }

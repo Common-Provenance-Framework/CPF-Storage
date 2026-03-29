@@ -2,20 +2,15 @@ package org.commonprovenance.framework.store.service.persistence.finalizedProvCo
 
 import org.commonprovenance.framework.store.model.Document;
 
-import jakarta.validation.constraints.NotNull;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 public interface DocumentService {
-  @NotNull
-  Mono<Document> storeDocument(@NotNull Document document);
 
-  @NotNull
+  Mono<Document> storeDocument(Document document);
+
   Flux<Document> getAllDocuments();
 
-  @NotNull
-  Mono<Document> getDocumentById(@NotNull String id);
+  Mono<Document> getDocumentByIdentifier(String identifier);
 
-  @NotNull
-  Mono<Void> deleteDocumentById(@NotNull String id);
 }

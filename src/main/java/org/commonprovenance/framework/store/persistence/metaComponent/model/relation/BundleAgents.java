@@ -7,21 +7,19 @@ import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.RelationshipProperties;
 import org.springframework.data.neo4j.core.schema.TargetNode;
 
-import jakarta.validation.constraints.NotNull;
-
 @RelationshipProperties
 public final class BundleAgents {
 
   @Id
   @GeneratedValue
-  private final Long id;
+  private final String id;
 
   @TargetNode
   private final AgentNode agent;
 
   // Constructor for full initialization (used by Neo4j when reading)
   @PersistenceCreator
-  public BundleAgents(Long id, AgentNode agent) {
+  public BundleAgents(String id, AgentNode agent) {
     this.id = id;
     this.agent = agent;
   }
@@ -33,16 +31,16 @@ public final class BundleAgents {
   }
 
   // Wither methods for immutability
-  public @NotNull BundleAgents withId(Long id) {
+  public BundleAgents withId(String id) {
     return new BundleAgents(id, this.getAgent());
   }
 
-  public @NotNull BundleAgents withAgetn(@NotNull AgentNode agent) {
+  public BundleAgents withAgetn(AgentNode agent) {
     return new BundleAgents(this.getId(), agent);
   }
 
   // Getters
-  public Long getId() {
+  public String getId() {
     return this.id;
   }
 

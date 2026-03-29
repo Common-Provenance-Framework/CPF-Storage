@@ -14,7 +14,6 @@ import org.commonprovenance.framework.store.web.trustedParty.dto.response.TokenT
 import org.openprovenance.prov.model.QualifiedName;
 import org.springframework.stereotype.Component;
 
-import jakarta.validation.constraints.NotNull;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -32,8 +31,8 @@ public class TokenClientImpl implements TokenClient {
   }
 
   @Override
-  public @NotNull Function<String, Flux<Token>> getAllByOrganization(Optional<String> trustedPartyUrl) {
-    return (@NotNull String organizationId) -> Mono.just(organizationId)
+  public Function<String, Flux<Token>> getAllByOrganization(Optional<String> trustedPartyUrl) {
+    return (String organizationId) -> Mono.just(organizationId)
         .flatMap(MONO.makeSureNotNullWithMessage("Organization id can not be null!"))
         .flatMapMany((String orgId) -> trustedPartyUrl
             .map(this.client::buildWebClient)
@@ -43,10 +42,10 @@ public class TokenClientImpl implements TokenClient {
   }
 
   @Override
-  public @NotNull Mono<Token> getByDocumentId(
-      @NotNull String organizationId,
-      @NotNull QualifiedName bundle_identifier,
-      @NotNull Format documentFormat,
+  public Mono<Token> getByDocumentId(
+      String organizationId,
+      QualifiedName bundle_identifier,
+      Format documentFormat,
       Optional<String> trustedPartyUrl) {
     String uri = getTokensUri(organizationId) + "/" + bundle_identifier.getUri() + "/" + documentFormat.toString();
 

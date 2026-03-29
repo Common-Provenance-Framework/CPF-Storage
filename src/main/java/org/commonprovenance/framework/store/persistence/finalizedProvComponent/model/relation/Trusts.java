@@ -7,21 +7,19 @@ import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.RelationshipProperties;
 import org.springframework.data.neo4j.core.schema.TargetNode;
 
-import jakarta.validation.constraints.NotNull;
-
 @RelationshipProperties
 public final class Trusts {
 
   @Id
   @GeneratedValue
-  private final Long id;
+  private final String id;
 
   @TargetNode
   private final TrustedPartyNode trustedParty;
 
   // Constructor for full initialization (used by Neo4j when reading)
   @PersistenceCreator
-  public Trusts(Long id, TrustedPartyNode trustedParty) {
+  public Trusts(String id, TrustedPartyNode trustedParty) {
     this.id = id;
     this.trustedParty = trustedParty;
   }
@@ -33,17 +31,16 @@ public final class Trusts {
   }
 
   // Wither methods for immutability
-  public @NotNull Trusts withId(Long id) {
+  public Trusts withId(String id) {
     return new Trusts(id, this.getTrustedParty());
   }
 
-  public @NotNull Trusts withTrustedParty(@NotNull TrustedPartyNode trustedParty) {
+  public Trusts withTrustedParty(TrustedPartyNode trustedParty) {
     return new Trusts(this.getId(), trustedParty);
   }
 
   // Getters
-
-  public Long getId() {
+  public String getId() {
     return this.id;
   }
 

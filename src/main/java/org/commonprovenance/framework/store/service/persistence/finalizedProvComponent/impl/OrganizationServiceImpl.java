@@ -2,14 +2,12 @@ package org.commonprovenance.framework.store.service.persistence.finalizedProvCo
 
 import static org.commonprovenance.framework.store.common.publisher.PublisherHelper.MONO;
 
-import java.util.UUID;
 import org.commonprovenance.framework.store.exceptions.NotFoundException;
 import org.commonprovenance.framework.store.model.Organization;
 import org.commonprovenance.framework.store.persistence.finalizedProvComponent.OrganizationPersistence;
 import org.commonprovenance.framework.store.service.persistence.finalizedProvComponent.OrganizationService;
 import org.springframework.stereotype.Service;
 
-import jakarta.validation.constraints.NotNull;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -22,52 +20,40 @@ public class OrganizationServiceImpl implements OrganizationService {
     this.persistence = persistence;
   }
 
-  @NotNull
-  public Mono<Organization> storeOrganization(@NotNull Organization organization) {
+  @Override
+  public Mono<Organization> storeOrganization(Organization organization) {
     return MONO.<Organization>makeSureNotNullWithMessage("Organization can not be null").apply(organization)
         .flatMap(this.persistence::create);
   }
 
   @Override
-  public @NotNull Mono<Organization> updateOrganization(@NotNull Organization organization) {
+  public Mono<Organization> updateOrganization(Organization organization) {
     return MONO.<Organization>makeSureNotNullWithMessage("Organization can not be null").apply(organization)
         .flatMap(this.persistence::update);
   }
 
-  @NotNull
-  public Mono<Boolean> exists(@NotNull Organization organization) {
+  @Override
+  public Mono<Boolean> exists(Organization organization) {
     return MONO.<Organization>makeSureNotNullWithMessage("Organization can not be null").apply(organization)
-        .map(Organization::getId)
-        .flatMap(Mono::justOrEmpty)
-        .flatMap(this::getOrganizationById)
-        .switchIfEmpty(this.getOrganizationByName(organization.getName()))
+        .map(Organization::getIdentifier)
+        .flatMap(this::getOrganizationByIdentifier)
         .thenReturn(true)
         .onErrorResume(NotFoundException.class, _ -> Mono.just(false));
   }
 
   @Override
-  public @NotNull Mono<Boolean> notExists(@NotNull Organization organization) {
+  public Mono<Boolean> notExists(Organization organization) {
     return exists(organization).map(result -> !result);
   }
 
-  @NotNull
+  @Override
   public Flux<Organization> getAllOrganizations() {
     return this.persistence.getAll();
   }
 
-  @NotNull
-  public Mono<Organization> getOrganizationById(@NotNull UUID id) {
-    return this.persistence.getById(id);
-  }
-
-  @NotNull
-  public Mono<Organization> getOrganizationByName(@NotNull String name) {
-    return this.persistence.getByName(name);
-  }
-
-  @NotNull
-  public Mono<Void> deleteOrganizationById(@NotNull UUID id) {
-    return this.persistence.deleteById(id);
+  @Override
+  public Mono<Organization> getOrganizationByIdentifier(String identifier) {
+    return this.persistence.getByIdentifier(identifier);
   }
 
 }

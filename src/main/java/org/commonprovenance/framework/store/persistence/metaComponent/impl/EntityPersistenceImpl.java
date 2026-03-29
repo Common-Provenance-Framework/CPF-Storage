@@ -20,10 +20,8 @@ import org.openprovenance.prov.model.Agent;
 import org.openprovenance.prov.model.Entity;
 import org.springframework.stereotype.Component;
 
-import jakarta.validation.constraints.NotNull;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import reactor.util.function.Tuple5;
 
 @Component
 public class EntityPersistenceImpl implements EntityPersistence {
@@ -41,87 +39,72 @@ public class EntityPersistenceImpl implements EntityPersistence {
   }
 
   @Override
-  @NotNull
-  public Mono<Entity> create(@NotNull Entity entity) {
+  public Mono<Entity> create(Entity entity) {
     return Mono.justOrEmpty(entity)
-        .flatMap(NodeFactory::toEntity)
+        .map(NodeFactory::toEntity)
         .flatMap(MONO.<EntityNode>makeSureNotNullWithMessage("Entity can not be 'null'!"))
         .flatMap(entityRepository::save)
         .flatMap(ProvenanceFactory.entityToProv(configuration))
-        .onErrorResume(MONO.exceptionWrapper("EntityNeo4jRepository - Error while creating new Entity"));
+        .onErrorResume(MONO.exceptionWrapper("EntityPersistence - Error while creating new Entity"));
   }
 
   @Override
-  public @NotNull Function<Entity, Mono<Entity>> addFirstVersion(@NotNull Entity general) {
+  public Function<Entity, Mono<Entity>> addFirstVersion(Entity general) {
+
     return (Entity version) -> Mono.zip(
-        Mono.justOrEmpty(version)
-            .flatMap(NodeFactory::toEntity),
-        Mono.justOrEmpty(general)
-            .flatMap(NodeFactory::toEntity))
+        Mono.justOrEmpty(version).map(NodeFactory::toEntity),
+        Mono.justOrEmpty(general).map(NodeFactory::toEntity))
         .flatMap(tuple -> Mono.zip(
             Mono.just(tuple.getT1()),
             Mono.just(tuple.getT2()),
             bundleRepository.findByGeneralEntity(tuple.getT2())))
         .flatMap(tuple -> {
-          EntityNode firstVersion = tuple.getT1();
           EntityNode getneralVersion = tuple.getT2();
-          BundleNode metaComponent = tuple.getT3();
+          EntityNode firstVersion = tuple.getT1().withSpecializationOfEntity(getneralVersion);
+          BundleNode metaComponent = tuple.getT3().withEntity(firstVersion);
 
-          return bundleRepository.save(metaComponent.withEntity(firstVersion)) // TODO: ??Maybe save together??
-              .then(entityRepository.save(firstVersion.withSpecializationOfEntity(getneralVersion)));
+          return bundleRepository.save(metaComponent).thenReturn(firstVersion);
         })
         .flatMap(ProvenanceFactory.entityToProv(configuration));
   }
 
   @Override
-  public @NotNull Function<Entity, Mono<Entity>> addNewVersion(
-      @NotNull Entity general,
-      @NotNull Entity lastVersion) {
+  public Function<Entity, Mono<Entity>> addNewVersion(Entity general, Entity lastVersion) {
     return (Entity version) -> Mono.zip(
-        Mono.justOrEmpty(version)
-            .flatMap(NodeFactory::toEntity),
-
-        Mono.justOrEmpty(lastVersion)
-            .flatMap(NodeFactory::toEntity),
-
-        Mono.justOrEmpty(general)
-            .flatMap(NodeFactory::toEntity))
+        Mono.justOrEmpty(version).map(NodeFactory::toEntity),
+        Mono.justOrEmpty(lastVersion).map(NodeFactory::toEntity),
+        Mono.justOrEmpty(general).map(NodeFactory::toEntity))
         .flatMap(tuple -> Mono.zip(
             Mono.just(tuple.getT1()),
             Mono.just(tuple.getT2()),
             Mono.just(tuple.getT3()),
-            bundleRepository.findByGeneralEntity(tuple.getT2())))
+            bundleRepository.findByGeneralEntity(tuple.getT3())))
         .flatMap(tuple -> {
-          EntityNode newVersion = tuple.getT1();
           EntityNode prevVersion = tuple.getT2();
-          EntityNode getneralVersion = tuple.getT3();
-          BundleNode metaComponent = tuple.getT4();
-          return bundleRepository.save(metaComponent
-              .withEntity(newVersion
-                  .wihtRevisionOfEntity(prevVersion)
-                  .withSpecializationOfEntity(getneralVersion)))
-              .thenReturn(newVersion);
+          EntityNode generalVersion = tuple.getT3();
+          EntityNode newVersion = tuple.getT1()
+              .withRevisionOfEntity(prevVersion)
+              .withSpecializationOfEntity(generalVersion);
+          BundleNode metaComponent = tuple.getT4()
+              .withEntity(newVersion);
 
+          return bundleRepository.save(metaComponent).thenReturn(newVersion);
         })
         .flatMap(ProvenanceFactory.entityToProv(configuration));
   }
 
   @Override
-  public @NotNull Function<Entity, Mono<Entity>> addToken(
-      @NotNull Entity token,
-      @NotNull Activity generation,
-      @NotNull Agent generator) {
-
+  public Function<Entity, Mono<Entity>> addToken(Entity token, Activity generation, Agent generator) {
     return (Entity version) -> {
-      return NodeFactory.toEntity(version)
+      return Mono.justOrEmpty(version)
+          .map(NodeFactory::toEntity)
           .flatMap((EntityNode versionEntity) -> Mono.zip(
               Mono.just(versionEntity),
               bundleRepository.findByGeneralEntity(versionEntity),
-              Mono.justOrEmpty(token).flatMap(NodeFactory::toEntity),
-              Mono.justOrEmpty(generation).flatMap(NodeFactory::toEntity),
-              Mono.justOrEmpty(generator).flatMap(NodeFactory::toEntity)))
-
-          .delayUntil(tuple -> {
+              Mono.justOrEmpty(token).map(NodeFactory::toEntity),
+              Mono.justOrEmpty(generation).map(NodeFactory::toEntity),
+              Mono.justOrEmpty(generator).map(NodeFactory::toEntity)))
+          .flatMap(tuple -> {
             AgentNode generatorNode = tuple.getT5();
             EntityNode versionEntityNode = tuple.getT1();
 
@@ -135,35 +118,66 @@ public class EntityPersistenceImpl implements EntityPersistence {
                 .withWasAttributedToAgent(generatorNode);
 
             BundleNode metaComponent = tuple.getT2()
-                .withAgent(generatorNode) // TODO: I guess we should add agent to bundle only if it is not already
-                                          // there!!
+                .withAgent(generatorNode)
                 .withEntity(tokenNode)
                 .withActivity(generationNode);
 
-            return bundleRepository.save(metaComponent);
+            return bundleRepository.save(metaComponent).thenReturn(tokenNode);
           })
-          .map(Tuple5<EntityNode, BundleNode, EntityNode, ActivityNode, AgentNode>::getT3)
           .flatMap(ProvenanceFactory.entityToProv(configuration));
     };
 
   }
 
   @Override
-  @NotNull
-  public Mono<Entity> getById(@NotNull String id) {
-    return MONO.<String>makeSureNotNullWithMessage("Entity Id can not be 'null'!").apply(id)
-        .flatMap(entityRepository::findById)
-        .onErrorResume(MONO.exceptionWrapper("EntityNeo4jRepository - Error while reading entity"))
+
+  public Mono<Entity> getByIdentifier(String identifier) {
+    return MONO.<String>makeSureNotNullWithMessage("Entity identifier can not be 'null'!").apply(identifier)
+        .flatMap(entityRepository::findByIdentifier)
+        .onErrorResume(MONO.exceptionWrapper("EntityPersistence - Error while reading entity"))
         .flatMap(ProvenanceFactory.entityToProv(configuration))
         .switchIfEmpty(Mono.defer(() -> Mono
-            .error(new NotFoundException("Entity with id '" + id + "' has not been found!"))));
+            .error(new NotFoundException("Entity with identifier '" + identifier + "' has not been found!"))));
   }
 
   @Override
-  public @NotNull Flux<Entity> getAllEntities(@NotNull String bundleId) {
-    return MONO.<String>makeSureNotNullWithMessage("Bundle Id can not be 'null'!").apply(bundleId)
-        .flatMapMany(entityRepository::getAllEntitiesByBundleId)
-        .onErrorResume(MONO.exceptionWrapper("EntityNeo4jRepository - Error while reading entity"))
+  public Flux<Entity> getAllEntities(String bundleIdentifier) {
+    return MONO.<String>makeSureNotNullWithMessage("Bundle identifier can not be 'null'!").apply(bundleIdentifier)
+        .flatMapMany(entityRepository::getAllEntitiesByBundleIdentifier)
+        .onErrorResume(MONO.exceptionWrapper("EntityPersistence - Error while reading entities"))
         .flatMap(ProvenanceFactory.entityToProv(configuration));
   }
+
+  @Override
+  public Mono<Entity> getGeneralVersionEntity(String bundleIdentifier) {
+    return MONO.<String>makeSureNotNullWithMessage("Bundle identifier can not be 'null'!").apply(bundleIdentifier)
+        .flatMap(entityRepository::getGeneralEntityByBundleIdentifier)
+        .onErrorResume(MONO.exceptionWrapper("EntityPersistence - Error while reading general entity"))
+        .flatMap(ProvenanceFactory.entityToProv(configuration))
+        .switchIfEmpty(Mono.defer(() -> Mono
+            .error(new NotFoundException(
+                "General version Entity for bundle with identifier '" + bundleIdentifier + "' has not been found!"))));
+  }
+
+  @Override
+  public Mono<Entity> getLastVersionEntity(String bundleIdentifier) {
+    return MONO.<String>makeSureNotNullWithMessage("Bundle identifier can not be 'null'!").apply(bundleIdentifier)
+        .flatMap(entityRepository::getLastVersionEntityByBundleIdentifier)
+        .onErrorResume(MONO.exceptionWrapper("EntityPersistence - Error while reading last version entity"))
+        .flatMap(ProvenanceFactory.entityToProv(configuration))
+        .switchIfEmpty(Mono.defer(() -> Mono
+            .error(new NotFoundException(
+                "Last version Entity for bundle with identifier '" + bundleIdentifier + "' has not been found!"))));
+  }
+
+  @Override
+  public Mono<Integer> getLastVersion(String bundleIdentifier) {
+    return MONO.<String>makeSureNotNullWithMessage("Bundle identifier can not be 'null'!").apply(bundleIdentifier)
+        .flatMap(entityRepository::getLastVersionByBundleIdentifier)
+        .onErrorResume(MONO.exceptionWrapper("EntityPersistence - Error while reading last version entity"))
+        .switchIfEmpty(Mono.defer(() -> Mono
+            .error(new NotFoundException(
+                "Last version Entity for bundle with identifier '" + bundleIdentifier + "' has not been found!"))));
+  }
+
 }

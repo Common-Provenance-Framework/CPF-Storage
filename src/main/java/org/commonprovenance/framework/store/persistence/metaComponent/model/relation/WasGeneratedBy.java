@@ -7,21 +7,19 @@ import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.RelationshipProperties;
 import org.springframework.data.neo4j.core.schema.TargetNode;
 
-import jakarta.validation.constraints.NotNull;
-
 @RelationshipProperties
 public final class WasGeneratedBy {
 
   @Id
   @GeneratedValue
-  private final Long id;
+  private final String id;
 
   @TargetNode
   private final ActivityNode activity;
 
   // Constructor for full initialization (used by Neo4j when reading)
   @PersistenceCreator
-  public WasGeneratedBy(Long id, ActivityNode activity) {
+  public WasGeneratedBy(String id, ActivityNode activity) {
     this.id = id;
     this.activity = activity;
   }
@@ -33,16 +31,16 @@ public final class WasGeneratedBy {
   }
 
   // Wither methods for immutability
-  public @NotNull WasGeneratedBy withId(Long id) {
+  public WasGeneratedBy withId(String id) {
     return new WasGeneratedBy(id, this.getActivity());
   }
 
-  public @NotNull WasGeneratedBy withActivity(@NotNull ActivityNode activity) {
+  public WasGeneratedBy withActivity(ActivityNode activity) {
     return new WasGeneratedBy(this.getId(), activity);
   }
 
   // Getters
-  public Long getId() {
+  public String getId() {
     return this.id;
   }
 

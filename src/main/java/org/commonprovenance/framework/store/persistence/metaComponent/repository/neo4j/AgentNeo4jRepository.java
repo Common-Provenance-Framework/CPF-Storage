@@ -24,8 +24,8 @@ public class AgentNeo4jRepository implements AgentRepository {
   }
 
   @Override
-  public Mono<AgentNode> findById(String id) {
-    return client.findById(id);
+  public Mono<AgentNode> findByIdentifier(String identifier) {
+    return client.findByIdentifier(identifier);
   }
 
 }
