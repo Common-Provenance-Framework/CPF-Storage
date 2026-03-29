@@ -7,7 +7,6 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Function;
 
-import org.commonprovenance.framework.store.common.dto.HasDocumentFormat;
 import org.commonprovenance.framework.store.common.dto.HasFormat;
 import org.commonprovenance.framework.store.common.dto.HasId;
 import org.commonprovenance.framework.store.common.utils.Validators;
@@ -37,17 +36,6 @@ public class ModelFactory {
   private static <T extends HasId> Mono<String> getId(T dto) {
     return MONO.makeSureNotNull(dto)
         .map(HasId::getId);
-  }
-
-  private static <T extends HasDocumentFormat> Mono<Format> getDocumentFormat(T dto) {
-    return MONO.makeSureNotNull(dto)
-        .map(HasDocumentFormat::getDocumentFormat)
-        .flatMap(MONO.<String>makeSureNotNullWithMessage("DTO 'format' can not be null."))
-        .map(Format::from)
-        .flatMap(MONO.<Optional<Format>>makeSure(
-            Optional::isPresent,
-            "Format '" + dto.getDocumentFormat() + "' is not valid Document format."))
-        .map(Optional::get);
   }
 
   private static <T extends HasFormat> Mono<Format> getFormat(T dto) {
@@ -241,7 +229,7 @@ public class ModelFactory {
   public static Mono<Document> toDomain(DocumentFormDTO formDTO) {
     return MONO.makeSureNotNull(formDTO)
         .map(ModelFactory::fromDto)
-        .flatMap((Document document) -> ModelFactory.getDocumentFormat(formDTO).map(document::withFormat));
+        .map((Document document) -> document.withFormat(formDTO.getDocumentFormat()));
   }
 
   public static Mono<Organization> toDomain(OrganizationFormDTO formDTO) {

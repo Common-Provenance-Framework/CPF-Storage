@@ -5,7 +5,6 @@ import org.commonprovenance.framework.store.common.dto.HasOrganizationIdentifier
 import org.commonprovenance.framework.store.controller.validator.IsBase64String;
 import org.commonprovenance.framework.store.controller.validator.IsJsonBase64;
 import org.commonprovenance.framework.store.controller.validator.IsProvBase64Json;
-import org.commonprovenance.framework.store.controller.validator.IsValueOfEnum;
 import org.commonprovenance.framework.store.model.Format;
 
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -26,11 +25,10 @@ public class DocumentFormDTO implements HasDocumentFormat, HasOrganizationIdenti
   @IsProvBase64Json(message = "Document should be a Base64 provenance json string")
   private final String document;
 
-  @Schema(description = "Input document format (case-insensitive, mapped to domain enum Format)", implementation = Format.class, allowableValues = {
+  @Schema(description = "Input document format", implementation = Format.class, allowableValues = {
       "JSON" }, example = "JSON", requiredMode = Schema.RequiredMode.REQUIRED)
-  @NotBlank(message = "Format should not be null or empty.")
-  @IsValueOfEnum(enumClass = Format.class, message = "Invalid format.")
-  private final String documentFormat;
+  @NotNull(message = "Format should not be null.")
+  private final Format documentFormat;
 
   @Schema(description = "Digital signature for the encoded document", example = "MEQCIDv...", requiredMode = Schema.RequiredMode.REQUIRED)
   @NotBlank(message = "Signature should not be null or empty.")
@@ -43,7 +41,7 @@ public class DocumentFormDTO implements HasDocumentFormat, HasOrganizationIdenti
   public DocumentFormDTO(
       String organizationIdentifier,
       String document,
-      String documentFormat,
+      Format documentFormat,
       String signature,
       Long createdOn) {
     this.organizationIdentifier = organizationIdentifier;
@@ -70,7 +68,7 @@ public class DocumentFormDTO implements HasDocumentFormat, HasOrganizationIdenti
     return document;
   }
 
-  public String getDocumentFormat() {
+  public Format getDocumentFormat() {
     return documentFormat;
   }
 
