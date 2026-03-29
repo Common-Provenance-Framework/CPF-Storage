@@ -30,7 +30,7 @@ import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 @ExtendWith(MockitoExtension.class)
-@DisplayName("Neo4j Repository - DocumentNeo4jRepository UnitTest")
+@DisplayName("Neo4j Repository - DocumentPersistence UnitTest")
 class DocumentRepositoryTest {
 
   @Mock
@@ -96,7 +96,7 @@ class DocumentRepositoryTest {
         .verifyErrorSatisfies(err -> {
           assertInstanceOf(InternalApplicationException.class, err,
               "should be InternalApplicationException - Exception");
-          assertEquals("DocumentNeo4jRepository - Error while creating new Document", err.getMessage(),
+          assertEquals("DocumentPersistence - Error while creating new Document", err.getMessage(),
               "should have exact error message");
 
           assertInstanceOf(IllegalArgumentException.class, err.getCause(),
@@ -125,7 +125,7 @@ class DocumentRepositoryTest {
         .verifyErrorSatisfies(err -> {
           assertInstanceOf(InternalApplicationException.class, err,
               "should be InternalApplicationException - Exception");
-          assertEquals("DocumentNeo4jRepository - Error while creating new Document", err.getMessage(),
+          assertEquals("DocumentPersistence - Error while creating new Document", err.getMessage(),
               "should have exact error message");
 
           assertInstanceOf(
@@ -155,7 +155,7 @@ class DocumentRepositoryTest {
         .verifyErrorSatisfies(err -> {
           assertInstanceOf(InternalApplicationException.class, err,
               "should be InternalApplicationException - Exception");
-          assertEquals("DocumentNeo4jRepository - Error while creating new Document", err.getMessage(),
+          assertEquals("DocumentPersistence - Error while creating new Document", err.getMessage(),
               "should have exact error message");
 
           assertInstanceOf(IllegalArgumentException.class, err.getCause(),
