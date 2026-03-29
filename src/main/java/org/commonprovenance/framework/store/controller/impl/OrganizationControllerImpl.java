@@ -18,6 +18,7 @@ import org.commonprovenance.framework.store.service.persistence.finalizedProvCom
 import org.commonprovenance.framework.store.service.persistence.finalizedProvComponent.TrustedPartyService;
 import org.commonprovenance.framework.store.service.web.trustedParty.TrustedPartyWebService;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -41,7 +42,7 @@ import reactor.core.publisher.Mono;
 
 @Validated
 @RestController()
-@RequestMapping("/api/v1/organizations")
+@RequestMapping(path = "/api/v1/organizations", produces = MediaType.APPLICATION_JSON_VALUE)
 @Tag(name = "Organizations", description = "Organization and trusted-party management")
 public class OrganizationControllerImpl implements OrganizationController {
   private final OrganizationService organizationService;
@@ -60,14 +61,14 @@ public class OrganizationControllerImpl implements OrganizationController {
   }
 
   @ResponseStatus(HttpStatus.CREATED)
-  @PostMapping()
+  @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
   @NotNull
   @Operation(summary = "Create organization")
   @ApiResponses({
       @ApiResponse(responseCode = "201", description = "Organization created"),
-      @ApiResponse(responseCode = "400", description = "Invalid request payload", content = @Content(schema = @Schema(implementation = BadRequestDTO.class))),
-      @ApiResponse(responseCode = "409", description = "Organization already exists", content = @Content(schema = @Schema(implementation = BadRequestDTO.class))),
-      @ApiResponse(responseCode = "500", description = "Internal server error", content = @Content(schema = @Schema(implementation = InternalServerErrorDTO.class)))
+      @ApiResponse(responseCode = "400", description = "Invalid request payload", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = BadRequestDTO.class))),
+      @ApiResponse(responseCode = "409", description = "Organization already exists", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = BadRequestDTO.class))),
+      @ApiResponse(responseCode = "500", description = "Internal server error", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = InternalServerErrorDTO.class)))
   })
   public Mono<OrganizationResponseDTO> createOrganization(
       @RequestBody OrganizationFormDTO body) {
@@ -90,14 +91,14 @@ public class OrganizationControllerImpl implements OrganizationController {
         .flatMap(DTOFactory::toDTO);
   }
 
-  @PutMapping("/{identifier}")
+  @PutMapping(path = "/{identifier}", consumes = MediaType.APPLICATION_JSON_VALUE)
   @NotNull
   @Operation(summary = "Update organization")
   @ApiResponses({
       @ApiResponse(responseCode = "200", description = "Organization updated"),
-      @ApiResponse(responseCode = "400", description = "Invalid request payload", content = @Content(schema = @Schema(implementation = BadRequestDTO.class))),
-      @ApiResponse(responseCode = "404", description = "Organization not found", content = @Content(schema = @Schema(implementation = NotFoundDTO.class))),
-      @ApiResponse(responseCode = "500", description = "Internal server error", content = @Content(schema = @Schema(implementation = InternalServerErrorDTO.class)))
+      @ApiResponse(responseCode = "400", description = "Invalid request payload", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = BadRequestDTO.class))),
+      @ApiResponse(responseCode = "404", description = "Organization not found", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = NotFoundDTO.class))),
+      @ApiResponse(responseCode = "500", description = "Internal server error", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = InternalServerErrorDTO.class)))
   })
   public Mono<OrganizationResponseDTO> updateOrganization(
       @PathVariable String identifier,
@@ -116,7 +117,7 @@ public class OrganizationControllerImpl implements OrganizationController {
   @Operation(summary = "List organizations")
   @ApiResponses({
       @ApiResponse(responseCode = "200", description = "Organizations fetched"),
-      @ApiResponse(responseCode = "500", description = "Internal server error", content = @Content(schema = @Schema(implementation = InternalServerErrorDTO.class)))
+      @ApiResponse(responseCode = "500", description = "Internal server error", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = InternalServerErrorDTO.class)))
   })
   public Flux<OrganizationResponseDTO> getAllOrganizations() {
     return this.organizationService.getAllOrganizations()
@@ -128,8 +129,8 @@ public class OrganizationControllerImpl implements OrganizationController {
   @Operation(summary = "Get organization by identifier")
   @ApiResponses({
       @ApiResponse(responseCode = "200", description = "Organization fetched"),
-      @ApiResponse(responseCode = "404", description = "Organization not found", content = @Content(schema = @Schema(implementation = NotFoundDTO.class))),
-      @ApiResponse(responseCode = "500", description = "Internal server error", content = @Content(schema = @Schema(implementation = InternalServerErrorDTO.class)))
+      @ApiResponse(responseCode = "404", description = "Organization not found", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = NotFoundDTO.class))),
+      @ApiResponse(responseCode = "500", description = "Internal server error", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = InternalServerErrorDTO.class)))
   })
   public Mono<OrganizationResponseDTO> getOrganizationByIdentifier(@PathVariable String identifier) {
     return MONO.<String>makeSureNotNullWithMessage("Identifier can not be null!").apply(identifier)

@@ -7,6 +7,7 @@ import org.commonprovenance.framework.store.controller.dto.error.InternalServerE
 import org.commonprovenance.framework.store.controller.dto.error.NotFoundDTO;
 import org.commonprovenance.framework.store.exceptions.NotFoundException;
 import org.commonprovenance.framework.store.service.persistence.metaComponent.MetaComponentService;
+import org.springframework.http.MediaType;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -41,8 +42,8 @@ public class MetaDocumentControllerImpl implements MetaDocumentController {
   @Operation(summary = "Check if a meta document exists")
   @ApiResponses({
       @ApiResponse(responseCode = "200", description = "Meta document exists"),
-      @ApiResponse(responseCode = "404", description = "Meta document not found", content = @Content(schema = @Schema(implementation = NotFoundDTO.class))),
-      @ApiResponse(responseCode = "500", description = "Internal server error", content = @Content(schema = @Schema(implementation = InternalServerErrorDTO.class)))
+      @ApiResponse(responseCode = "404", description = "Meta document not found", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = NotFoundDTO.class))),
+      @ApiResponse(responseCode = "500", description = "Internal server error", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = InternalServerErrorDTO.class)))
   })
   public Mono<Void> exists(@PathVariable String uuid) {
     return Mono.justOrEmpty(uuid)

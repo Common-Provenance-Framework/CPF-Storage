@@ -36,6 +36,7 @@ import org.openprovenance.prov.model.Other;
 import org.openprovenance.prov.model.ProvFactory;
 import org.openprovenance.prov.model.QualifiedName;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -65,7 +66,7 @@ import reactor.core.publisher.Mono;
 
 @Validated
 @RestController()
-@RequestMapping("/api/v1/documents")
+@RequestMapping(path = "/api/v1/documents", produces = MediaType.APPLICATION_JSON_VALUE)
 @Tag(name = "Documents", description = "Operations for storing and reading provenance documents")
 public class DocumentControllerImpl implements DocumentController {
   private final DocumentService documentService;
@@ -108,14 +109,14 @@ public class DocumentControllerImpl implements DocumentController {
   }
 
   @ResponseStatus(HttpStatus.CREATED)
-  @PostMapping()
+  @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
   @NotNull
   @Operation(summary = "Create a provenance document")
   @ApiResponses({
       @ApiResponse(responseCode = "201", description = "Document created"),
-      @ApiResponse(responseCode = "400", description = "Invalid request payload", content = @Content(schema = @Schema(implementation = BadRequestDTO.class))),
-      @ApiResponse(responseCode = "409", description = "Conflict with existing data", content = @Content(schema = @Schema(implementation = BadRequestDTO.class))),
-      @ApiResponse(responseCode = "500", description = "Internal server error", content = @Content(schema = @Schema(implementation = InternalServerErrorDTO.class)))
+      @ApiResponse(responseCode = "400", description = "Invalid request payload", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = BadRequestDTO.class))),
+      @ApiResponse(responseCode = "409", description = "Conflict with existing data", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = BadRequestDTO.class))),
+      @ApiResponse(responseCode = "500", description = "Internal server error", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = InternalServerErrorDTO.class)))
   })
   public Mono<DocumentResponseDTO> createProvDocument(
       @RequestBody DocumentFormDTO body) {
@@ -389,7 +390,7 @@ public class DocumentControllerImpl implements DocumentController {
   @Operation(summary = "List all provenance documents")
   @ApiResponses({
       @ApiResponse(responseCode = "200", description = "Documents fetched"),
-      @ApiResponse(responseCode = "500", description = "Internal server error", content = @Content(schema = @Schema(implementation = InternalServerErrorDTO.class)))
+      @ApiResponse(responseCode = "500", description = "Internal server error", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = InternalServerErrorDTO.class)))
   })
   public Flux<DocumentResponseDTO> getAllProvDocuments() {
     return this.documentService.getAllDocuments()
@@ -401,8 +402,8 @@ public class DocumentControllerImpl implements DocumentController {
   @Operation(summary = "Get provenance document by identifier")
   @ApiResponses({
       @ApiResponse(responseCode = "200", description = "Document fetched"),
-      @ApiResponse(responseCode = "404", description = "Document not found", content = @Content(schema = @Schema(implementation = NotFoundDTO.class))),
-      @ApiResponse(responseCode = "500", description = "Internal server error", content = @Content(schema = @Schema(implementation = InternalServerErrorDTO.class)))
+      @ApiResponse(responseCode = "404", description = "Document not found", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = NotFoundDTO.class))),
+      @ApiResponse(responseCode = "500", description = "Internal server error", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = InternalServerErrorDTO.class)))
   })
   public Mono<DocumentResponseDTO> getProvDocumentById(@PathVariable String uuid) {
     return Mono.justOrEmpty(uuid)
@@ -416,8 +417,8 @@ public class DocumentControllerImpl implements DocumentController {
   @Operation(summary = "Check if a document exists")
   @ApiResponses({
       @ApiResponse(responseCode = "200", description = "Document exists"),
-      @ApiResponse(responseCode = "404", description = "Document does not exist", content = @Content(schema = @Schema(implementation = NotFoundDTO.class))),
-      @ApiResponse(responseCode = "500", description = "Internal server error", content = @Content(schema = @Schema(implementation = InternalServerErrorDTO.class)))
+      @ApiResponse(responseCode = "404", description = "Document does not exist", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = NotFoundDTO.class))),
+      @ApiResponse(responseCode = "500", description = "Internal server error", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = InternalServerErrorDTO.class)))
   })
   public Mono<Void> exists(@PathVariable String uuid) {
     return Mono.justOrEmpty(uuid)
