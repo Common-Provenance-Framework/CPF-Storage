@@ -207,7 +207,8 @@ public class BundlePersistenceImpl implements BundlePersistence {
 
       // TODO: Create factory method for this
       AgentNode tokenGeneratorNode = new AgentNode(
-          token.getTrustedParty().getId().get(), // TODO: This is not safe
+          token.getTrustedParty().getName(),
+          // TODO: Create Enum for konown types
           "cpm:TrustedParty",
           Map.of(
               "trustedPartyUri", token.getAdditionalData().getTrustedPartyUri(),
@@ -216,6 +217,7 @@ public class BundlePersistenceImpl implements BundlePersistence {
       // TODO: Create factory method for this
       ActivityNode tokenGenerationNode = new ActivityNode(
           UUID.randomUUID().toString(),
+          // TODO: Create Enum for konown types
           "cpm:TokenGeneration",
           timestampVal.toString(),
           timestampVal.toString())
@@ -225,6 +227,7 @@ public class BundlePersistenceImpl implements BundlePersistence {
       // TODO: Create factory method for this
       EntityNode tokenNode = new EntityNode(
           UUID.randomUUID().toString(),
+          // TODO: Create Enum for konown types
           "cpm:Token",
           Map.of(
               "originatorId", token.getAdditionalData().getOrganizationIdentifier(),
