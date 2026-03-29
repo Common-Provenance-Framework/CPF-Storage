@@ -25,6 +25,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 import jakarta.validation.constraints.NotNull;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -32,6 +37,7 @@ import reactor.core.publisher.Mono;
 @Validated
 @RestController()
 @RequestMapping("/api/v1/organizations")
+@Tag(name = "Organizations", description = "Organization and trusted-party management")
 public class OrganizationControllerImpl implements OrganizationController {
   private final OrganizationService organizationService;
   private final TrustedPartyService trustedPartyService;
@@ -51,6 +57,11 @@ public class OrganizationControllerImpl implements OrganizationController {
   @ResponseStatus(HttpStatus.CREATED)
   @PostMapping()
   @NotNull
+  @Operation(summary = "Create organization")
+  @ApiResponses({
+      @ApiResponse(responseCode = "201", description = "Organization created"),
+      @ApiResponse(responseCode = "409", description = "Organization already exists")
+  })
   public Mono<OrganizationResponseDTO> createOrganization(
       @RequestBody OrganizationFormDTO body) {
 
@@ -74,6 +85,11 @@ public class OrganizationControllerImpl implements OrganizationController {
 
   @PutMapping("/{identifier}")
   @NotNull
+  @Operation(summary = "Update organization")
+  @ApiResponses({
+      @ApiResponse(responseCode = "200", description = "Organization updated"),
+      @ApiResponse(responseCode = "404", description = "Organization not found")
+  })
   public Mono<OrganizationResponseDTO> updateOrganization(
       @PathVariable String identifier,
       @RequestBody OrganizationFormDTO body) {
@@ -88,6 +104,10 @@ public class OrganizationControllerImpl implements OrganizationController {
 
   @GetMapping()
   @NotNull
+  @Operation(summary = "List organizations")
+  @ApiResponses({
+      @ApiResponse(responseCode = "200", description = "Organizations fetched")
+  })
   public Flux<OrganizationResponseDTO> getAllOrganizations() {
     return this.organizationService.getAllOrganizations()
         .flatMap(DTOFactory::toDTO);
@@ -95,6 +115,11 @@ public class OrganizationControllerImpl implements OrganizationController {
 
   @NotNull
   @GetMapping("/{identifier}")
+  @Operation(summary = "Get organization by identifier")
+  @ApiResponses({
+      @ApiResponse(responseCode = "200", description = "Organization fetched"),
+      @ApiResponse(responseCode = "404", description = "Organization not found")
+  })
   public Mono<OrganizationResponseDTO> getOrganizationByIdentifier(@PathVariable String identifier) {
     return MONO.<String>makeSureNotNullWithMessage("Identifier can not be null!").apply(identifier)
         .flatMap(this.organizationService::getOrganizationByIdentifier)
