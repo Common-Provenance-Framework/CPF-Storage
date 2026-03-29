@@ -26,7 +26,8 @@ public class DocumentFormDTO implements HasDocumentFormat, HasOrganizationIdenti
   @IsProvBase64Json(message = "Document should be a Base64 provenance json string")
   private final String document;
 
-  @Schema(description = "Input document format", example = "JSON", requiredMode = Schema.RequiredMode.REQUIRED)
+  @Schema(description = "Input document format (case-insensitive, mapped to domain enum Format)", implementation = Format.class, allowableValues = {
+      "JSON" }, example = "JSON", requiredMode = Schema.RequiredMode.REQUIRED)
   @NotBlank(message = "Format should not be null or empty.")
   @IsValueOfEnum(enumClass = Format.class, message = "Invalid format.")
   private final String documentFormat;

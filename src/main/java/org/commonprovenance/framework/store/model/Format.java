@@ -8,7 +8,11 @@ import java.util.stream.Collectors;
 
 import org.openprovenance.prov.model.interop.Formats;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
+@Schema(name = "Format", description = "Supported document format")
 public enum Format {
+  @Schema(description = "PROV JSON format")
   JSON("json");
 
   private final Set<String> aliases;
