@@ -101,7 +101,7 @@ public class ModelFactoryTest {
     String organizationId = "550e8400-e29b-41d4-a716-446655440000";
     String signature = "..";
     String base64StringGraph = "AAAAQQAAAGIAAAByAAAAYQAAAGsAAABhAAAAIAAAAEQAAABhAAAAYgAAAHIAAABhAAAALgAAAC4=";
-    String format = "JSON";
+    Format format = Format.JSON;
     Long createdOn = 1771242837128L;
 
     DocumentFormDTO formular = new DocumentFormDTO(organizationId, base64StringGraph, format, signature, createdOn);
@@ -127,28 +127,6 @@ public class ModelFactoryTest {
           assertInstanceOf(InternalApplicationException.class, error);
           assertEquals("Input parameter can not be null.", error.getMessage());
           assertNull(error.getCause());
-          // assertNull(error.getCause().getMessage());
-        })
-        .verify();
-  }
-
-  @Test
-  @DisplayName("ErrorPath - should return Mono with exact Error, if unsupported format")
-  void should_terminate_with_error_if_unsupported_format() {
-    String organizationId = "550e8400-e29b-41d4-a716-446655440000";
-    String signature = "..";
-    String base64StringGraph = "AAAAQQAAAGIAAAByAAAAYQAAAGsAAABhAAAAIAAAAEQAAABhAAAAYgAAAHIAAABhAAAALgAAAC4=";
-    String format = "unknownFormat";
-    Long createdOn = 1771242837128L;
-
-    StepVerifier
-        .create(
-            ModelFactory.toDomain(new DocumentFormDTO(organizationId, base64StringGraph, format, signature, createdOn)))
-        .expectErrorSatisfies(error -> {
-          assertInstanceOf(InternalApplicationException.class, error);
-          assertEquals("Format '" + format + "' is not valid Document format.", error.getMessage());
-          assertNull(error.getCause());
-          // assertInstanceOf(IllegalArgumentException.class, error.getCause());
           // assertNull(error.getCause().getMessage());
         })
         .verify();
