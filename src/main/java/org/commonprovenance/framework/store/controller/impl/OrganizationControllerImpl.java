@@ -5,6 +5,9 @@ import static org.commonprovenance.framework.store.common.publisher.PublisherHel
 import java.util.Optional;
 
 import org.commonprovenance.framework.store.controller.OrganizationController;
+import org.commonprovenance.framework.store.controller.dto.error.BadRequestDTO;
+import org.commonprovenance.framework.store.controller.dto.error.InternalServerErrorDTO;
+import org.commonprovenance.framework.store.controller.dto.error.NotFoundDTO;
 import org.commonprovenance.framework.store.controller.dto.form.OrganizationFormDTO;
 import org.commonprovenance.framework.store.controller.dto.response.OrganizationResponseDTO;
 import org.commonprovenance.framework.store.controller.dto.response.factory.DTOFactory;
@@ -26,6 +29,8 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -60,7 +65,9 @@ public class OrganizationControllerImpl implements OrganizationController {
   @Operation(summary = "Create organization")
   @ApiResponses({
       @ApiResponse(responseCode = "201", description = "Organization created"),
-      @ApiResponse(responseCode = "409", description = "Organization already exists")
+      @ApiResponse(responseCode = "400", description = "Invalid request payload", content = @Content(schema = @Schema(implementation = BadRequestDTO.class))),
+      @ApiResponse(responseCode = "409", description = "Organization already exists", content = @Content(schema = @Schema(implementation = BadRequestDTO.class))),
+      @ApiResponse(responseCode = "500", description = "Internal server error", content = @Content(schema = @Schema(implementation = InternalServerErrorDTO.class)))
   })
   public Mono<OrganizationResponseDTO> createOrganization(
       @RequestBody OrganizationFormDTO body) {
@@ -88,7 +95,9 @@ public class OrganizationControllerImpl implements OrganizationController {
   @Operation(summary = "Update organization")
   @ApiResponses({
       @ApiResponse(responseCode = "200", description = "Organization updated"),
-      @ApiResponse(responseCode = "404", description = "Organization not found")
+      @ApiResponse(responseCode = "400", description = "Invalid request payload", content = @Content(schema = @Schema(implementation = BadRequestDTO.class))),
+      @ApiResponse(responseCode = "404", description = "Organization not found", content = @Content(schema = @Schema(implementation = NotFoundDTO.class))),
+      @ApiResponse(responseCode = "500", description = "Internal server error", content = @Content(schema = @Schema(implementation = InternalServerErrorDTO.class)))
   })
   public Mono<OrganizationResponseDTO> updateOrganization(
       @PathVariable String identifier,
@@ -106,7 +115,8 @@ public class OrganizationControllerImpl implements OrganizationController {
   @NotNull
   @Operation(summary = "List organizations")
   @ApiResponses({
-      @ApiResponse(responseCode = "200", description = "Organizations fetched")
+      @ApiResponse(responseCode = "200", description = "Organizations fetched"),
+      @ApiResponse(responseCode = "500", description = "Internal server error", content = @Content(schema = @Schema(implementation = InternalServerErrorDTO.class)))
   })
   public Flux<OrganizationResponseDTO> getAllOrganizations() {
     return this.organizationService.getAllOrganizations()
@@ -118,7 +128,8 @@ public class OrganizationControllerImpl implements OrganizationController {
   @Operation(summary = "Get organization by identifier")
   @ApiResponses({
       @ApiResponse(responseCode = "200", description = "Organization fetched"),
-      @ApiResponse(responseCode = "404", description = "Organization not found")
+      @ApiResponse(responseCode = "404", description = "Organization not found", content = @Content(schema = @Schema(implementation = NotFoundDTO.class))),
+      @ApiResponse(responseCode = "500", description = "Internal server error", content = @Content(schema = @Schema(implementation = InternalServerErrorDTO.class)))
   })
   public Mono<OrganizationResponseDTO> getOrganizationByIdentifier(@PathVariable String identifier) {
     return MONO.<String>makeSureNotNullWithMessage("Identifier can not be null!").apply(identifier)
