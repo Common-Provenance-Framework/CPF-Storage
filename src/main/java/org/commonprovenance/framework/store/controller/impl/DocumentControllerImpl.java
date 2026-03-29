@@ -8,6 +8,9 @@ import java.util.function.Function;
 
 import org.commonprovenance.framework.store.config.AppConfiguration;
 import org.commonprovenance.framework.store.controller.DocumentController;
+import org.commonprovenance.framework.store.controller.dto.error.BadRequestDTO;
+import org.commonprovenance.framework.store.controller.dto.error.InternalServerErrorDTO;
+import org.commonprovenance.framework.store.controller.dto.error.NotFoundDTO;
 import org.commonprovenance.framework.store.controller.dto.form.DocumentFormDTO;
 import org.commonprovenance.framework.store.controller.dto.response.DocumentResponseDTO;
 import org.commonprovenance.framework.store.controller.dto.response.factory.DTOFactory;
@@ -33,6 +36,7 @@ import org.openprovenance.prov.model.Other;
 import org.openprovenance.prov.model.ProvFactory;
 import org.openprovenance.prov.model.QualifiedName;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -42,6 +46,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 import cz.muni.fi.cpm.constants.CpmAttribute;
 import cz.muni.fi.cpm.model.CpmDocument;
@@ -55,7 +66,8 @@ import reactor.core.publisher.Mono;
 
 @Validated
 @RestController()
-@RequestMapping("/api/v1/documents")
+@RequestMapping(path = "/api/v1/documents", produces = MediaType.APPLICATION_JSON_VALUE)
+@Tag(name = "Documents", description = "Operations for storing and reading provenance documents")
 public class DocumentControllerImpl implements DocumentController {
   private final DocumentService documentService;
   private final OrganizationService organizationService;
@@ -97,8 +109,15 @@ public class DocumentControllerImpl implements DocumentController {
   }
 
   @ResponseStatus(HttpStatus.CREATED)
-  @PostMapping()
+  @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
   @NotNull
+  @Operation(summary = "Create a provenance document")
+  @ApiResponses({
+      @ApiResponse(responseCode = "201", description = "Document created"),
+      @ApiResponse(responseCode = "400", description = "Invalid request payload", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = BadRequestDTO.class))),
+      @ApiResponse(responseCode = "409", description = "Conflict with existing data", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = BadRequestDTO.class))),
+      @ApiResponse(responseCode = "500", description = "Internal server error", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = InternalServerErrorDTO.class)))
+  })
   public Mono<DocumentResponseDTO> createProvDocument(
       @RequestBody DocumentFormDTO body) {
     return ModelFactory.toDomain(body)
@@ -368,6 +387,11 @@ public class DocumentControllerImpl implements DocumentController {
 
   @GetMapping()
   @NotNull
+  @Operation(summary = "List all provenance documents")
+  @ApiResponses({
+      @ApiResponse(responseCode = "200", description = "Documents fetched"),
+      @ApiResponse(responseCode = "500", description = "Internal server error", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = InternalServerErrorDTO.class)))
+  })
   public Flux<DocumentResponseDTO> getAllProvDocuments() {
     return this.documentService.getAllDocuments()
         .flatMap(DTOFactory::toDTO);
@@ -375,6 +399,12 @@ public class DocumentControllerImpl implements DocumentController {
 
   @NotNull
   @GetMapping("/{uuid}")
+  @Operation(summary = "Get provenance document by identifier")
+  @ApiResponses({
+      @ApiResponse(responseCode = "200", description = "Document fetched"),
+      @ApiResponse(responseCode = "404", description = "Document not found", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = NotFoundDTO.class))),
+      @ApiResponse(responseCode = "500", description = "Internal server error", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = InternalServerErrorDTO.class)))
+  })
   public Mono<DocumentResponseDTO> getProvDocumentById(@PathVariable String uuid) {
     return Mono.justOrEmpty(uuid)
         .flatMap(this.documentService::getDocumentByIdentifier)
@@ -384,6 +414,12 @@ public class DocumentControllerImpl implements DocumentController {
   @Override
   @NotNull
   @RequestMapping(path = "/{uuid}", method = RequestMethod.HEAD)
+  @Operation(summary = "Check if a document exists")
+  @ApiResponses({
+      @ApiResponse(responseCode = "200", description = "Document exists"),
+      @ApiResponse(responseCode = "404", description = "Document does not exist", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = NotFoundDTO.class))),
+      @ApiResponse(responseCode = "500", description = "Internal server error", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = InternalServerErrorDTO.class)))
+  })
   public Mono<Void> exists(@PathVariable String uuid) {
     return Mono.justOrEmpty(uuid)
         .flatMap(this.documentService::getDocumentByIdentifier)

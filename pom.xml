@@ -35,6 +35,7 @@
     <bouncycastle.ver>1.83</bouncycastle.ver>
     <jackson.ver>3.0.4</jackson.ver>
     <networknt.ver>3.0.0</networknt.ver>
+    <springdoc.ver>3.0.2</springdoc.ver>
   </properties>
   <dependencies>
     <dependency>
@@ -103,6 +104,11 @@
       <groupId>com.networknt</groupId>
       <artifactId>json-schema-validator</artifactId>
       <version>${networknt.ver}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.springdoc</groupId>
+      <artifactId>springdoc-openapi-starter-webflux-ui</artifactId>
+      <version>${springdoc.ver}</version>
     </dependency>
     <dependency>
       <groupId>org.springframework.boot</groupId>

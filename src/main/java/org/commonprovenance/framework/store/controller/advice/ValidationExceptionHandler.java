@@ -9,6 +9,7 @@ import org.springframework.core.annotation.Order;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.server.ServerWebInputException;
 import org.springframework.web.bind.support.WebExchangeBindException;
 
 import jakarta.validation.ConstraintViolationException;
@@ -30,6 +31,15 @@ public class ValidationExceptionHandler {
         .map(violation -> violation.getPropertyPath() + ": " + violation.getMessage())
         .collect(Collectors.toList());
     return ResponseEntity.badRequest().body(buildValedationErrorResponse(errors));
+  }
+
+  @ExceptionHandler(ServerWebInputException.class)
+  public ResponseEntity<ErrorDTO> handleServerWebInputException(ServerWebInputException ex) {
+    String message = ex.getReason();
+    if (ex.getCause() != null && ex.getCause().getMessage() != null && !ex.getCause().getMessage().isBlank()) {
+      message = ex.getCause().getMessage();
+    }
+    return ResponseEntity.badRequest().body(buildValedationErrorResponse(List.of(message)));
   }
 
   private ErrorDTO buildValedationErrorResponse(List<String> details) {

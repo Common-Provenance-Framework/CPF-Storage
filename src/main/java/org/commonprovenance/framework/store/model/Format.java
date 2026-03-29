@@ -8,7 +8,12 @@ import java.util.stream.Collectors;
 
 import org.openprovenance.prov.model.interop.Formats;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import io.swagger.v3.oas.annotations.media.Schema;
+
+@Schema(name = "Format", description = "Supported document format")
 public enum Format {
+  @Schema(description = "PROV JSON format")
   JSON("json");
 
   private final Set<String> aliases;
@@ -28,6 +33,12 @@ public enum Format {
     if (s == null)
       return Optional.empty();
     return Optional.ofNullable(LOOKUP.get(s.trim().toLowerCase()));
+  }
+
+  @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
+  public static Format fromJson(String value) {
+    return from(value)
+        .orElseThrow(() -> new IllegalArgumentException("Unsupported format: " + value));
   }
 
   public Formats.ProvFormat toProvFormat() {
