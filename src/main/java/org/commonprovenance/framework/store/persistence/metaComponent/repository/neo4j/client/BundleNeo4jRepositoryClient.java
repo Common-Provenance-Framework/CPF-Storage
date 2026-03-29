@@ -12,6 +12,13 @@ import reactor.core.publisher.Mono;
 public interface BundleNeo4jRepositoryClient extends ReactiveNeo4jRepository<BundleNode, String> {
 
   @Query("""
+      MATCH (bundle:Bundle)
+      WHERE bundle.identifier = $identifier
+      RETURN elementId(bundle) AS id
+      """)
+  Mono<String> getIdByIdentifier(@Param("identifier") String identifier);
+
+  @Query("""
         MATCH (bundle:Bundle)
         WHERE bundle.identifier = $identifier
 

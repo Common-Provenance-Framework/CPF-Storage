@@ -26,7 +26,8 @@ public class BundleNeo4jRepository implements BundleRepository {
 
   @Override
   public Mono<BundleNode> findByIdentifier(String identifier) {
-    return client.findByIdentifier(identifier);
+    return client.getIdByIdentifier(identifier)
+        .flatMap(client::findById);
   }
 
   @Override
