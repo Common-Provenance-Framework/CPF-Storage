@@ -74,6 +74,193 @@ docker compose down
 docker compose down -v
 ```
 
+## API Usage Manual
+
+This section provides a standalone end-to-end example for calling the CPF-Store API directly:
+
+1. Register organization with id `ORG_ID` (default: `myorg_01`).
+2. Sign a JSON document with the organization private key (SHA-256).
+3. Base64-encode the document and signature.
+4. Upload the new document.
+
+For steps 1-4 below, run commands from the `sandbox` directory unless a step says otherwise.
+
+### 1) Generate certificates (sandbox/demo)
+
+Run from the repository root. This creates the files expected by the API examples and scripts:
+- `sandbox/certificates/$ORG_ID.pem`
+- `sandbox/certificates/$ORG_ID.key`
+- `sandbox/certificates/int1.pem`
+- `sandbox/certificates/int2.pem`
+
+#### Prepare sandbox directory
+```bash
+mkdir -p sandbox && cd sandbox
+ORG_ID="myorg_01"
+mkdir -p certificates
+```
+
+#### Generate or copy root CA
+Generate root CA only if necessary.
+
+```bash
+# Root CA (local demo only, EC key)
+openssl ecparam -name prime256v1 -genkey -noout -out certificates/root_ca.key
+openssl req -x509 -new -key certificates/root_ca.key -sha256 -days 3650 \
+   -subj "/C=CZ/O=CPF/CN=cpf-root-ca" \
+   -out certificates/root_ca.pem
+```
+
+If you run Trusted Party from Docker, prefer its CA:
+
+```bash
+# Copy Root CA (TrustedParty)
+cp ../../CPF-Search-API/prov-storage/trusted_party/config/certificates/trusted_certs/ca.pem certificates/root_ca.pem
+cp ../../CPF-Search-API/prov-storage/trusted_party/config/certificates/trusted_keys/ca.key certificates/root_ca.key
+```
+
+#### Generate intermediate certificates (EC)
+
+```bash
+# Intermediate 1
+cat > certificates/v3_int1.ext <<'EOF'
+basicConstraints=critical,CA:TRUE,pathlen:1
+keyUsage=critical,keyCertSign,cRLSign
+subjectKeyIdentifier=hash
+authorityKeyIdentifier=keyid,issuer
+EOF
+
+openssl ecparam -name prime256v1 -genkey -noout -out certificates/int1.key
+openssl req -new -key certificates/int1.key \
+   -subj "/C=CZ/O=CPF/CN=cpf-int1" \
+   -out certificates/int1.csr
+openssl x509 -req -in certificates/int1.csr \
+   -CA certificates/root_ca.pem -CAkey certificates/root_ca.key -CAcreateserial \
+   -out certificates/int1.pem -days 1825 -sha256 \
+   -extfile certificates/v3_int1.ext
+```
+
+```bash
+# Intermediate 2
+cat > certificates/v3_int2.ext <<'EOF'
+basicConstraints=critical,CA:TRUE,pathlen:0
+keyUsage=critical,keyCertSign,cRLSign
+subjectKeyIdentifier=hash
+authorityKeyIdentifier=keyid,issuer
+EOF
+
+openssl ecparam -name prime256v1 -genkey -noout -out certificates/int2.key
+openssl req -new -key certificates/int2.key \
+   -subj "/C=CZ/O=CPF/CN=cpf-int2" \
+   -out certificates/int2.csr
+openssl x509 -req -in certificates/int2.csr \
+   -CA certificates/int1.pem -CAkey certificates/int1.key -CAcreateserial \
+   -out certificates/int2.pem -days 1825 -sha256 \
+   -extfile certificates/v3_int2.ext
+```
+
+#### Generate organization certificate (EC)
+```bash
+cat > certificates/v3_client.ext <<'EOF'
+basicConstraints=critical,CA:FALSE
+keyUsage=critical,digitalSignature
+extendedKeyUsage=clientAuth
+subjectKeyIdentifier=hash
+authorityKeyIdentifier=keyid,issuer
+EOF
+
+openssl ecparam -name prime256v1 -genkey -noout -out "certificates/$ORG_ID.key"
+openssl req -new -key "certificates/$ORG_ID.key" \
+   -subj "/C=CZ/O=CPF/CN=$ORG_ID" \
+   -out "certificates/$ORG_ID.csr"
+openssl x509 -req -in "certificates/$ORG_ID.csr" \
+   -CA certificates/int2.pem -CAkey certificates/int2.key -CAcreateserial \
+   -out "certificates/$ORG_ID.pem" -days 825 -sha256 \
+   -extfile certificates/v3_client.ext
+```
+
+#### Check your certificates
+Optional sanity checks:
+
+```bash
+openssl x509 -in "certificates/$ORG_ID.pem" -noout -subject -issuer
+openssl x509 -in "certificates/$ORG_ID.pem" -noout -text | grep "Public Key Algorithm"
+openssl verify -CAfile certificates/root_ca.pem \
+   -untrusted <(cat certificates/int1.pem certificates/int2.pem) \
+   "certificates/$ORG_ID.pem"
+```
+
+#### Clean certificates directory
+Cleanup temporary files (CSRs, extension configs, serial files):
+
+```bash
+rm -f certificates/*.csr \
+      certificates/*.ext \
+      certificates/*.srl
+```
+
+### 2) Register Organization
+
+If you run with Docker Compose, use port `8081` instead of `8080`.
+This step registers `$ORG_ID` and uploads its client certificate + intermediate chain.
+
+
+
+```bash
+curl --location "http://localhost:8080/api/v1/organizations" \
+  --header "Content-Type: application/json" \
+  --data "$(jq -n \
+    --arg identifier "$ORG_ID" \
+      --arg clientCertificate "$(tr -d '\r' < "./certificates/$ORG_ID.pem")" \
+    --arg int1 "$(tr -d '\r' < ./certificates/int1.pem)" \
+    --arg int2 "$(tr -d '\r' < ./certificates/int2.pem)" \
+    --argjson clearancePeriod 30 \
+    '{
+      identifier: $identifier,
+      clientCertificate: $clientCertificate,
+      intermediateCertificates: [$int1, $int2],
+      clearancePeriod: $clearancePeriod
+    }' \
+  )" | jq
+```
+
+### 3) Prepare Document Payload (sign + base64)
+
+Set `DOC_PATH` to your own valid PROV JSON file before running these commands.
+Working examples of finalized provenance documents are available in the [CPF-Toolbox](https://github.com/Common-Provenance-Framework/CPF-Toolbox/tree/main/cpm-template/src/test/resources) project.
+
+```bash
+DOC_PATH="./documents/prov.json"
+[ -f "$DOC_PATH" ] || { echo "File not found: $DOC_PATH"; exit 1; }
+
+# Sign raw file bytes using organization private key (SHA-256), then base64 encode signature
+SIGNATURE=$(openssl dgst -sha256 -sign "./certificates/$ORG_ID.key" "$DOC_PATH" \
+   | openssl base64 -A)
+
+# Base64 values without line wraps (raw file bytes)
+DOCUMENT=$(openssl base64 -A -in "$DOC_PATH")
+
+CURRENT_TIMESTAMP=$(date +%s)
+```
+
+### 4) Upload New Document
+
+Use the variables prepared in steps 2-3 (`ORG_ID`, `DOCUMENT`, `SIGNATURE`, `CURRENT_TIMESTAMP`).
+
+```bash
+curl --location "http://localhost:8080/api/v1/documents" \
+   --header 'Accept: application/json' \
+   --header 'Content-Type: application/json' \
+   --data "{
+   \"organizationIdentifier\": \"$ORG_ID\",
+      \"document\": \"$DOCUMENT\",
+      \"documentFormat\": \"json\",
+      \"signature\": \"$SIGNATURE\",
+      \"clearancePeriod\": 30,
+      \"createdOn\": $CURRENT_TIMESTAMP
+   }" | jq
+```
+
 ## API Documentation (OpenAPI / Swagger)
 
 CPF-Store exposes interactive API documentation powered by [SpringDoc OpenAPI](https://springdoc.org/).
