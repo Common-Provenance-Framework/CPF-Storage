@@ -211,7 +211,7 @@ curl --location "http://localhost:8080/api/v1/organizations" \
   --header "Content-Type: application/json" \
   --data "$(jq -n \
     --arg identifier "$ORG_ID" \
-      --arg clientCertificate "$(tr -d '\r' < "./certificates/$ORG_ID.pem")" \
+    --arg clientCertificate "$(tr -d '\r' < "./certificates/$ORG_ID.pem")" \
     --arg int1 "$(tr -d '\r' < ./certificates/int1.pem)" \
     --arg int2 "$(tr -d '\r' < ./certificates/int2.pem)" \
     --argjson clearancePeriod 30 \
@@ -224,41 +224,41 @@ curl --location "http://localhost:8080/api/v1/organizations" \
   )" | jq
 ```
 
-### 3) Prepare Document Payload (sign + base64)
+### 3) Set Document Path
 
-Set `DOC_PATH` to your own valid PROV JSON file before running these commands.
+Set `DOC_PATH` to your own valid PROV JSON file before uploading the document.
 Working examples of finalized provenance documents are available in the [CPF-Toolbox](https://github.com/Common-Provenance-Framework/CPF-Toolbox/tree/main/cpm-template/src/test/resources) project.
 
 ```bash
 DOC_PATH="./documents/prov.json"
 [ -f "$DOC_PATH" ] || { echo "File not found: $DOC_PATH"; exit 1; }
 
-# Sign raw file bytes using organization private key (SHA-256), then base64 encode signature
-SIGNATURE=$(openssl dgst -sha256 -sign "./certificates/$ORG_ID.key" "$DOC_PATH" \
-   | openssl base64 -A)
-
-# Base64 values without line wraps (raw file bytes)
-DOCUMENT=$(openssl base64 -A -in "$DOC_PATH")
-
-CURRENT_TIMESTAMP=$(date +%s)
 ```
 
 ### 4) Upload New Document
 
-Use the variables prepared in steps 2-3 (`ORG_ID`, `DOCUMENT`, `SIGNATURE`, `CURRENT_TIMESTAMP`).
+This command uses `ORG_ID` and `DOC_PATH`, then generates base64 document content, signature, and timestamp inline.
 
 ```bash
 curl --location "http://localhost:8080/api/v1/documents" \
-   --header 'Accept: application/json' \
-   --header 'Content-Type: application/json' \
-   --data "{
-   \"organizationIdentifier\": \"$ORG_ID\",
-      \"document\": \"$DOCUMENT\",
-      \"documentFormat\": \"json\",
-      \"signature\": \"$SIGNATURE\",
-      \"clearancePeriod\": 30,
-      \"createdOn\": $CURRENT_TIMESTAMP
-   }" | jq
+  --header 'Accept: application/json' \
+  --header 'Content-Type: application/json' \
+  --data "$(jq -n \
+    --arg organizationIdentifier "$ORG_ID" \
+    --arg document "$(openssl base64 -A -in "$DOC_PATH")" \
+    --arg documentFormat "json" \
+    --arg signature "$(openssl dgst -sha256 -sign "./certificates/$ORG_ID.key" "$DOC_PATH" | openssl base64 -A)" \
+    --arg createdOn $(date +%s) \
+    --argjson clearancePeriod 30 \
+    '{
+      organizationIdentifier: $organizationIdentifier,
+      document: $document,
+      documentFormat: $documentFormat,
+      signature: $signature,
+      createdOn: $createdOn,
+      clearancePeriod: $clearancePeriod
+    }' \
+  )" | jq
 ```
 
 ## API Documentation (OpenAPI / Swagger)
