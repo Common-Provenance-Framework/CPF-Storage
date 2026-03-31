@@ -125,11 +125,11 @@
         <artifactId>maven-install-plugin</artifactId>
         <version>3.1.4</version>
         <executions>
-          <!-- <execution>
+          <execution>
             <id>install-core</id>
             <phase>clean</phase>
             <configuration>
-              <file>${project.basedir}/src/main/resources/cpm-core-1.0.0.jar</file>
+              <file>${project.basedir}/src/main/resources/CPF-Toolbox/cpm-core-2.2.0.jar</file>
               <groupId>cz.muni.fi.cpm</groupId>
               <artifactId>cpm-core</artifactId>
               <version>${cpm.ver}</version>
@@ -144,7 +144,7 @@
             <id>install-template</id>
             <phase>clean</phase>
             <configuration>
-              <file>${project.basedir}/src/main/resources/cpm-template-1.0.0.jar</file>
+              <file>${project.basedir}/src/main/resources/CPF-Toolbox/cpm-template-2.2.0.jar</file>
               <groupId>cz.muni.fi.cpm</groupId>
               <artifactId>cpm-template</artifactId>
               <version>${cpm.ver}</version>
@@ -154,7 +154,7 @@
             <goals>
               <goal>install-file</goal>
             </goals>
-          </execution> -->
+          </execution>
         </executions>
       </plugin>
 
