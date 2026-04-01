@@ -97,6 +97,7 @@ Run from the repository root. This creates the files expected by the API example
 ```bash
 mkdir -p sandbox && cd sandbox
 ORG_ID="myorg_01"
+CPF_SEARCH_API_PATH="../../CPF-Search-API"
 mkdir -p certificates
 ```
 
@@ -115,8 +116,8 @@ If you run Trusted Party from Docker, prefer its CA:
 
 ```bash
 # Copy Root CA (TrustedParty)
-cp ../../CPF-Search-API/prov-storage/trusted_party/config/certificates/trusted_certs/ca.pem certificates/root_ca.pem
-cp ../../CPF-Search-API/prov-storage/trusted_party/config/certificates/trusted_keys/ca.key certificates/root_ca.key
+cp "$CPF_SEARCH_API_PATH/prov-storage/trusted_party/config/certificates/trusted_certs/ca.pem" certificates/root_ca.pem
+cp "$CPF_SEARCH_API_PATH/prov-storage/trusted_party/config/certificates/trusted_keys/ca.key" certificates/root_ca.key
 ```
 
 #### Generate intermediate certificates (EC)
