@@ -31,4 +31,9 @@ public class DocumentServiceImpl implements DocumentService {
     return this.persistence.getByIdentifier(identifier);
   }
 
+  @Override
+  public Mono<Boolean> existsByIdentifier(String identifier) {
+    return this.persistence.existsByIdentifier(identifier);
+  }
+
 }
