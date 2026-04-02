@@ -1,5 +1,9 @@
 package org.commonprovenance.framework.store.persistence.finalizedProvComponent.repository.neo4j;
 
+import java.util.NoSuchElementException;
+
+import org.commonprovenance.framework.store.exceptions.ConflictException;
+import org.commonprovenance.framework.store.exceptions.NotFoundException;
 import org.commonprovenance.framework.store.persistence.finalizedProvComponent.model.node.TokenNode;
 import org.commonprovenance.framework.store.persistence.finalizedProvComponent.repository.TokenRepository;
 import org.commonprovenance.framework.store.persistence.finalizedProvComponent.repository.neo4j.client.TokenNeo4jRepositoryClient;
@@ -27,6 +31,21 @@ public class TokenNeo4jRepository implements TokenRepository {
   @Override
   public Flux<TokenNode> findAll() {
     return client.findAll();
+  }
+
+  @Override
+  public Mono<TokenNode> getTokenByDocumentIdentifier(String documentIdentifier) {
+    return client.findTokenIdsByDocumentIdentifier(documentIdentifier)
+        .single()
+        .flatMap(client::findById)
+        .onErrorMap(
+            NoSuchElementException.class,
+            _ -> new NotFoundException(
+                "Token with document identifier '" + documentIdentifier + "' has not been found!"))
+        .onErrorMap(
+            IndexOutOfBoundsException.class,
+            _ -> new ConflictException(
+                "There is more then one Token with document identifier '" + documentIdentifier + "'!"));
   }
 
 }
