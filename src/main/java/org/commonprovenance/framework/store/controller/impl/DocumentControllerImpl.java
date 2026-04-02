@@ -413,16 +413,18 @@ public class DocumentControllerImpl implements DocumentController {
 
   @Override
   @NotNull
-  @RequestMapping(path = "/{uuid}", method = RequestMethod.HEAD)
+  @RequestMapping(path = "/{identifier}", method = RequestMethod.HEAD)
   @Operation(summary = "Check if a document exists")
   @ApiResponses({
       @ApiResponse(responseCode = "200", description = "Document exists"),
-      @ApiResponse(responseCode = "404", description = "Document does not exist", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = NotFoundDTO.class))),
-      @ApiResponse(responseCode = "500", description = "Internal server error", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = InternalServerErrorDTO.class)))
+      @ApiResponse(responseCode = "404", description = "Document does not exist"),
+      @ApiResponse(responseCode = "500", description = "Internal server error")
   })
-  public Mono<Void> exists(@PathVariable String uuid) {
-    return Mono.justOrEmpty(uuid)
-        .flatMap(this.documentService::getDocumentByIdentifier)
+  public Mono<Void> exists(@PathVariable String identifier) {
+    return Mono.justOrEmpty(identifier)
+        .flatMap(MONO.makeSureAsync(
+            this.documentService::existsByIdentifier,
+            id -> new NotFoundException("Document with identifier '" + id + "' does not exist!")))
         .then();
   }
 }

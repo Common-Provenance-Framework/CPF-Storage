@@ -49,4 +49,11 @@ public class DocumentPersistenceImpl implements DocumentPersistence {
             .error(new NotFoundException("Document with identifier '" + identifier + "' has not been found!"))));
   }
 
+  @Override
+  public Mono<Boolean> existsByIdentifier(String identifier) {
+    return MONO.<String>makeSureNotNullWithMessage("Document identifier can not be 'null'!").apply(identifier)
+        .flatMap(repository::existsByIdentifier)
+        .onErrorResume(MONO.exceptionWrapper("DocumentPersistence - Error while reading Document"));
+  }
+
 }

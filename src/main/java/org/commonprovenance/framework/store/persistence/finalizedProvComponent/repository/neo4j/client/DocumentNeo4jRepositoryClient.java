@@ -6,15 +6,30 @@ import org.springframework.data.neo4j.repository.query.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @Repository
 public interface DocumentNeo4jRepositoryClient extends ReactiveNeo4jRepository<DocumentNode, String> {
   @Query("""
-        MATCH (document:Document)
-        WHERE document.identifier = $identifier
-        RETURN document
+      MATCH (document:Document)
+      WHERE document.identifier = $identifier
+      RETURN elementId(document) AS id
       """)
-  Mono<DocumentNode> findByIdentifier(@Param("identifier") String identifier);
+  Flux<String> getIdByIdentifier(@Param("identifier") String identifier);
+
+  @Query("""
+      RETURN EXISTS {
+        MATCH (:Document {identifier: $identifier})
+      } AS exists
+      """)
+  Mono<Boolean> existsByIdentifier(@Param("identifier") String identifier);
+
+  @Query("""
+      MATCH (document:Document)
+      WHERE document.identifier = $identifier
+      RETURN count(document) as occurence
+      """)
+  Mono<Integer> countByIdentifier(@Param("identifier") String identifier);
 
 }

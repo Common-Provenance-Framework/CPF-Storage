@@ -13,4 +13,6 @@ public interface DocumentService {
 
   Mono<Document> getDocumentByIdentifier(String identifier);
 
+  Mono<Boolean> existsByIdentifier(String identifier);
+
 }

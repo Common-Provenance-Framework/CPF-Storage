@@ -40,4 +40,10 @@ public class DocumentDummyRepository implements DocumentRepository {
         .flatMap(MONO::makeSureNotNull);
   }
 
+  @Override
+  public Mono<Boolean> existsByIdentifier(String identifier) {
+    return MONO.makeSureNotNull(identifier)
+        .map(documents::containsKey);
+  }
+
 }
