@@ -1,5 +1,7 @@
 package org.commonprovenance.framework.store.persistence.finalizedProvComponent.repository.neo4j;
 
+import static org.commonprovenance.framework.store.common.publisher.PublisherHelper.MONO;
+
 import java.util.NoSuchElementException;
 
 import org.commonprovenance.framework.store.exceptions.ConflictException;
@@ -45,6 +47,15 @@ public class DocumentNeo4jRepository implements DocumentRepository {
             IndexOutOfBoundsException.class,
             _ -> new ConflictException("There is more then one document with identifier '" + identifier + "'!"));
   }
+
+  @Override
+  public Mono<Boolean> existsByIdentifier(String identifier) {
+    return client.countByIdentifier(identifier)
+        .flatMap(MONO.<Integer>makeSure(
+            occurrence -> occurrence == 0 || occurrence == 1,
+            occurrence -> new ConflictException(
+                "There is more then one document with identifier '" + identifier + "'!")))
+        .map(occurrence -> occurrence == 1);
   }
 
 }

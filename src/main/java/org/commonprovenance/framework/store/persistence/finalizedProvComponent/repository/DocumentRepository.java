@@ -12,4 +12,6 @@ public interface DocumentRepository {
 
   Mono<DocumentNode> findByIdentifier(String identifier);
 
+  Mono<Boolean> existsByIdentifier(String identifier);
+
 }

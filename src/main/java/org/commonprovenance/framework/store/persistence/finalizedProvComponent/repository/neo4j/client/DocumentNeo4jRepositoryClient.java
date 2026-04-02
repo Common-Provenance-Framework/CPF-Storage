@@ -17,7 +17,19 @@ public interface DocumentNeo4jRepositoryClient extends ReactiveNeo4jRepository<D
       RETURN elementId(document) AS id
       """)
   Flux<String> getIdByIdentifier(@Param("identifier") String identifier);
+
+  @Query("""
+      RETURN EXISTS {
+        MATCH (:Document {identifier: $identifier})
+      } AS exists
       """)
-  Mono<DocumentNode> findByIdentifier(@Param("identifier") String identifier);
+  Mono<Boolean> existsByIdentifier(@Param("identifier") String identifier);
+
+  @Query("""
+      MATCH (document:Document)
+      WHERE document.identifier = $identifier
+      RETURN count(document) as occurence
+      """)
+  Mono<Integer> countByIdentifier(@Param("identifier") String identifier);
 
 }
