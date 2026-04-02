@@ -29,14 +29,14 @@ public class DocumentPersistenceImpl implements DocumentPersistence {
         .flatMap(NodeFactory::toEntity)
         .flatMap(repository::save)
         .onErrorResume(MONO.exceptionWrapper("DocumentPersistence - Error while creating new Document"))
-        .flatMap(ModelFactory::toDomain);
+        .map(ModelFactory::toDomain);
   }
 
   @Override
   public Flux<Document> getAll() {
     return repository.findAll()
         .onErrorResume(MONO.exceptionWrapper("DocumentPersistence - Error while reading Documents"))
-        .flatMap(ModelFactory::toDomain);
+        .map(ModelFactory::toDomain);
   }
 
   @Override
@@ -44,7 +44,7 @@ public class DocumentPersistenceImpl implements DocumentPersistence {
     return MONO.<String>makeSureNotNullWithMessage("Document identifier can not be 'null'!").apply(identifier)
         .flatMap(repository::findByIdentifier)
         .onErrorResume(MONO.exceptionWrapper("DocumentPersistence - Error while reading Document"))
-        .flatMap(ModelFactory::toDomain)
+        .map(ModelFactory::toDomain)
         .switchIfEmpty(Mono.defer(() -> Mono
             .error(new NotFoundException("Document with identifier '" + identifier + "' has not been found!"))));
   }

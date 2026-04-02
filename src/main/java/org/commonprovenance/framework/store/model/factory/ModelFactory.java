@@ -33,20 +33,14 @@ import org.commonprovenance.framework.store.web.trustedParty.dto.response.Truste
 import reactor.core.publisher.Mono;
 
 public class ModelFactory {
-  private static <T extends HasId> Mono<String> getId(T dto) {
-    return MONO.makeSureNotNull(dto)
-        .map(HasId::getId);
+  private static <T extends HasId> String getId(T dto) {
+    return dto.getId();
   }
 
-  private static <T extends HasFormat> Mono<Format> getFormat(T dto) {
-    return MONO.makeSureNotNull(dto)
+  private static <T extends HasFormat> Format getFormatNullable(T dto) {
+    return Optional.ofNullable(dto)
         .map(HasFormat::getFormat)
-        .flatMap(MONO.<String>makeSureNotNullWithMessage("DTO 'format' can not be null."))
-        .map(Format::from)
-        .flatMap(MONO.<Optional<Format>>makeSure(
-            Optional::isPresent,
-            "Format '" + dto.getFormat() + "' is not valid Document format."))
-        .map(Optional::get);
+        .flatMap(Format::from).orElse(null);
   }
 
   private static Document fromDto(DocumentFormDTO dto) {
@@ -116,8 +110,8 @@ public class ModelFactory {
         token.getHash(),
         token.getSignature(),
         additionalDataFactory.apply(token),
-        ModelFactory.toDomain(token.getWasIssuedBy().getFirst().getTrustedParty()).block(),
-        ModelFactory.toDomain(token.getBelongsTo().getFirst().getDocument()).block(),
+        ModelFactory.toDomain(token.getWasIssuedBy().getFirst().getTrustedParty()),
+        ModelFactory.toDomain(token.getBelongsTo().getFirst().getDocument()),
         token.getTokenTimestamp());
   }
 
@@ -198,14 +192,13 @@ public class ModelFactory {
   public static Mono<TrustedParty> toDomain(TrustedPartyTPResponseDTO dto) {
     return MONO.makeSureNotNull(dto)
         .map(ModelFactory::fromDto)
-        .flatMap((TrustedParty trustedParty) -> ModelFactory.getId(dto).map(trustedParty::withId));
+        .map((TrustedParty trustedParty) -> trustedParty.withId(ModelFactory.getId(dto)));
   }
 
   // Persistence
-  public static Mono<Document> toDomain(DocumentNode entity) {
-    return MONO.makeSureNotNull(entity)
-        .map(ModelFactory::fromPersistance)
-        .flatMap((Document document) -> ModelFactory.getFormat(entity).map(document::withFormat));
+  public static Document toDomain(DocumentNode entity) {
+    return ModelFactory.fromPersistance(entity)
+        .withFormat(ModelFactory.getFormatNullable(entity));
   }
 
   public static Mono<Organization> toDomain(OrganizationNode entity) {
@@ -213,16 +206,15 @@ public class ModelFactory {
         .map(ModelFactory::fromPersistance);
   }
 
-  public static Mono<TrustedParty> toDomain(TrustedPartyNode entity) {
-    return MONO.makeSureNotNull(entity)
-        .map(ModelFactory::fromPersistance)
-        .flatMap((TrustedParty trustedParty) -> ModelFactory.getId(entity).map(trustedParty::withId));
+  public static TrustedParty toDomain(TrustedPartyNode entity) {
+    return ModelFactory.fromPersistance(entity)
+        .withId(ModelFactory.getId(entity));
   }
 
   public static Mono<Token> toDomain(TokenNode entity) {
     return MONO.makeSureNotNull(entity)
         .map(ModelFactory::fromPersistance)
-        .flatMap((Token token) -> ModelFactory.getId(entity).map(token::withId));
+        .map((Token token) -> token.withId(ModelFactory.getId(entity)));
   }
 
   // Controller

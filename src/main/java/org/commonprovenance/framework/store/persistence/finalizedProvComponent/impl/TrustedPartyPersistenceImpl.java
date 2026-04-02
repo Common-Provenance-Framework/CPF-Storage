@@ -28,7 +28,7 @@ public class TrustedPartyPersistenceImpl implements TrustedPartyPersistence {
         .flatMap(NodeFactory::toEntity)
         .flatMap(repository::save)
         .onErrorResume(MONO.exceptionWrapper("TrustedPartyPersistence - Error while creating new TrustedParty"))
-        .flatMap(ModelFactory::toDomain);
+        .map(ModelFactory::toDomain);
   }
 
   @Override
@@ -37,14 +37,14 @@ public class TrustedPartyPersistenceImpl implements TrustedPartyPersistence {
         .flatMap(NodeFactory::toEntity)
         .flatMap(repository::save)
         .onErrorResume(MONO.exceptionWrapper("TrustedPartyPersistence - Error while updating existing TrustedParty"))
-        .flatMap(ModelFactory::toDomain);
+        .map(ModelFactory::toDomain);
   }
 
   @Override
   public Flux<TrustedParty> getAll() {
     return repository.findAll()
         .onErrorResume(MONO.exceptionWrapper("TrustedPartyPersistence - Error while reading trusted parties"))
-        .flatMap(ModelFactory::toDomain);
+        .map(ModelFactory::toDomain);
   }
 
   @Override
@@ -53,14 +53,14 @@ public class TrustedPartyPersistenceImpl implements TrustedPartyPersistence {
         .flatMap(repository::findByName)
         .onErrorResume(MONO.exceptionWrapper("TrustedPartyPersistence - Error while reading TrustedParty by name"))
         .switchIfEmpty(Mono.error(new NotFoundException("TrustedParty with name '" + name + "' not found!")))
-        .flatMap(ModelFactory::toDomain);
+        .map(ModelFactory::toDomain);
   }
 
   @Override
   public Mono<TrustedParty> getDefault() {
     return repository.findDefault()
         .onErrorResume(MONO.exceptionWrapper("TrustedPartyPersistence - Error while reading default TrustedParty"))
-        .flatMap(ModelFactory::toDomain);
+        .map(ModelFactory::toDomain);
   }
 
 }
