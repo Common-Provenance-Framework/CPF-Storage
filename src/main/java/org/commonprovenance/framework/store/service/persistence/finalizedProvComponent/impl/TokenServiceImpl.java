@@ -25,4 +25,9 @@ public class TokenServiceImpl implements TokenService {
   public Flux<Token> getAllTokens() {
     return this.persistence.getAll();
   }
+
+  @Override
+  public Mono<Token> getByDocumentIdentifier(String documentIdentifier) {
+    return this.persistence.getByDocumentIdentifier(documentIdentifier);
+  }
 }

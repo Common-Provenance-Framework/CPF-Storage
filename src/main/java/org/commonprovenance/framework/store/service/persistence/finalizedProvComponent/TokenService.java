@@ -11,4 +11,6 @@ public interface TokenService {
 
   Flux<Token> getAllTokens();
 
+  Mono<Token> getByDocumentIdentifier(String documentIdentifier);
+
 }
