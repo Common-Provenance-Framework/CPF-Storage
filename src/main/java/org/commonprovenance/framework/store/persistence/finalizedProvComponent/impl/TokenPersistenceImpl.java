@@ -2,6 +2,7 @@ package org.commonprovenance.framework.store.persistence.finalizedProvComponent.
 
 import static org.commonprovenance.framework.store.common.publisher.PublisherHelper.MONO;
 
+import org.commonprovenance.framework.store.exceptions.NotFoundException;
 import org.commonprovenance.framework.store.model.Token;
 import org.commonprovenance.framework.store.model.factory.ModelFactory;
 import org.commonprovenance.framework.store.persistence.finalizedProvComponent.TokenPersistence;
@@ -36,5 +37,16 @@ public class TokenPersistenceImpl implements TokenPersistence {
     return repository.findAll()
         .onErrorResume(MONO.exceptionWrapper("TokenPersistence - Error while reading tokens"))
         .flatMap(ModelFactory::toDomain);
+  }
+
+  @Override
+  public Mono<Token> getByDocumentIdentifier(String documentIdentifier) {
+    return MONO.<String>makeSureNotNullWithMessage("Document identifier can not be 'null'!").apply(documentIdentifier)
+        .flatMap(repository::getTokenByDocumentIdentifier)
+        .onErrorResume(MONO.exceptionWrapper("DocumentPersistence - Error while reading Document"))
+        .flatMap(ModelFactory::toDomain)
+        .switchIfEmpty(Mono.defer(() -> Mono
+            .error(new NotFoundException(
+                "Token with document identifier '" + documentIdentifier + "' has not been found!"))));
   }
 }
