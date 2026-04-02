@@ -59,15 +59,33 @@ class DocumentServiceTest {
         return Mono.error(new InternalApplicationException(
             "DocumentNeo4jRepository - Error while reading document",
             new IllegalArgumentException(
-                "Id can not be 'null'!")));
+                "Identifier can not be 'null'!")));
 
-      switch (identifier.toString()) {
+      switch (identifier) {
         case UUID_STR_1:
           return Mono.just(DOCUMENT_1);
         case UUID_STR_2:
           return Mono.just(DOCUMENT_2);
         default:
           return Mono.empty();
+      }
+    }
+
+    @Override
+    public Mono<Boolean> existsByIdentifier(String identifier) {
+      if (identifier == null)
+        return Mono.error(new InternalApplicationException(
+            "DocumentNeo4jRepository - Error while reading document",
+            new IllegalArgumentException(
+                "Identifier can not be 'null'!")));
+
+      switch (identifier) {
+        case UUID_STR_1:
+          return Mono.just(true);
+        case UUID_STR_2:
+          return Mono.just(true);
+        default:
+          return Mono.just(false);
       }
     }
 
@@ -183,7 +201,7 @@ class DocumentServiceTest {
               err.getCause(),
               "should be NullPointerException - Exception cause");
           assertEquals(
-              "Id can not be 'null'!",
+              "Identifier can not be 'null'!",
               err.getCause().getMessage(),
               "should have exact error message");
         });
