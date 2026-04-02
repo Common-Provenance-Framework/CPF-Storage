@@ -13,4 +13,6 @@ public interface DocumentPersistence {
 
   Mono<Document> getByIdentifier(String identifier);
 
+  Mono<Boolean> existsByIdentifier(String identifier);
+
 }
