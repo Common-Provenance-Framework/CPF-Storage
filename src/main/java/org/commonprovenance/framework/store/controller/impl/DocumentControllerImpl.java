@@ -13,6 +13,7 @@ import org.commonprovenance.framework.store.controller.dto.error.InternalServerE
 import org.commonprovenance.framework.store.controller.dto.error.NotFoundDTO;
 import org.commonprovenance.framework.store.controller.dto.form.DocumentFormDTO;
 import org.commonprovenance.framework.store.controller.dto.response.DocumentResponseDTO;
+import org.commonprovenance.framework.store.controller.dto.response.TokenResponseDTO;
 import org.commonprovenance.framework.store.controller.dto.response.factory.DTOFactory;
 import org.commonprovenance.framework.store.exceptions.BadRequestException;
 import org.commonprovenance.framework.store.exceptions.ConflictException;
@@ -118,7 +119,7 @@ public class DocumentControllerImpl implements DocumentController {
       @ApiResponse(responseCode = "409", description = "Conflict with existing data", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = BadRequestDTO.class))),
       @ApiResponse(responseCode = "500", description = "Internal server error", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = InternalServerErrorDTO.class)))
   })
-  public Mono<DocumentResponseDTO> createProvDocument(
+  public Mono<TokenResponseDTO> createProvDocument(
       @RequestBody DocumentFormDTO body) {
     return ModelFactory.toDomain(body)
         // validate Organization and TrustedParty first
@@ -199,8 +200,11 @@ public class DocumentControllerImpl implements DocumentController {
                 .flatMap(this.metaComponentService::getMetaComponent)
                 .flatMap(this.metaComponentService.addNewVersion(cpm.getBundleId()))
                 .flatMap(meta -> Mono.justOrEmpty(document.getToken())
-                    .flatMap(token -> this.metaComponentService.addTokenToLastVersion(token).apply(meta)))))
-        .flatMap(DTOFactory::toDTO);
+                    .flatMap(token -> this.metaComponentService.addTokenToLastVersion(token).apply(
+                        meta)))))
+        .map(Document::getToken)
+        .flatMap(Mono::justOrEmpty)
+        .flatMap(DTOFactory::toTokenDTO);
   }
 
   private Optional<String> getTrustedPartyUrl(Organization organization) {
@@ -385,30 +389,18 @@ public class DocumentControllerImpl implements DocumentController {
     return false;
   }
 
-  @GetMapping()
   @NotNull
-  @Operation(summary = "List all provenance documents")
-  @ApiResponses({
-      @ApiResponse(responseCode = "200", description = "Documents fetched"),
-      @ApiResponse(responseCode = "500", description = "Internal server error", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = InternalServerErrorDTO.class)))
-  })
-  public Flux<DocumentResponseDTO> getAllProvDocuments() {
-    return this.documentService.getAllDocuments()
-        .flatMap(DTOFactory::toDTO);
-  }
-
-  @NotNull
-  @GetMapping("/{uuid}")
+  @GetMapping("/{identifier}")
   @Operation(summary = "Get provenance document by identifier")
   @ApiResponses({
       @ApiResponse(responseCode = "200", description = "Document fetched"),
       @ApiResponse(responseCode = "404", description = "Document not found", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = NotFoundDTO.class))),
       @ApiResponse(responseCode = "500", description = "Internal server error", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = InternalServerErrorDTO.class)))
   })
-  public Mono<DocumentResponseDTO> getProvDocumentById(@PathVariable String uuid) {
-    return Mono.justOrEmpty(uuid)
-        .flatMap(this.documentService::getDocumentByIdentifier)
-        .flatMap(DTOFactory::toDTO);
+  public Mono<DocumentResponseDTO> getProvDocumentById(@PathVariable String identifier) {
+    return Mono.justOrEmpty(identifier)
+        .flatMap(this.tokenService::getByDocumentIdentifier)
+        .flatMap(DTOFactory::toDocumentDTO);
   }
 
   @Override
