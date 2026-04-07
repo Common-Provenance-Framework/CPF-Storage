@@ -10,4 +10,6 @@ public interface TokenRepository {
 
   Flux<TokenNode> findAll();
 
+  Mono<TokenNode> getTokenByDocumentIdentifier(String documentIdentifier);
+
 }

@@ -1,10 +1,6 @@
 package org.commonprovenance.framework.store.model;
 
-import java.util.Collections;
-import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class TrustedParty {
   private final Optional<String> id;
@@ -15,9 +11,6 @@ public class TrustedParty {
   private final Boolean isValid;
   private final Boolean isDefault;
 
-  private final List<Organization> hasTrust;
-  private final List<Token> hasIssued;
-
   public TrustedParty(
       String id,
       String name,
@@ -25,9 +18,7 @@ public class TrustedParty {
       String url,
       Boolean isChecked,
       Boolean isValid,
-      Boolean isDefault,
-      List<Organization> hasTrust,
-      List<Token> hasIssued) {
+      Boolean isDefault) {
     this.id = Optional.ofNullable(id);
     this.name = name;
     this.certificate = certificate;
@@ -35,8 +26,6 @@ public class TrustedParty {
     this.isChecked = isChecked;
     this.isValid = isValid;
     this.isDefault = isDefault;
-    this.hasTrust = hasTrust;
-    this.hasIssued = hasIssued;
   }
 
   public TrustedParty(
@@ -53,8 +42,6 @@ public class TrustedParty {
     this.isChecked = isChecked;
     this.isValid = isValid;
     this.isDefault = isDefault;
-    this.hasTrust = Collections.emptyList();
-    this.hasIssued = Collections.emptyList();
   }
 
   public TrustedParty(
@@ -70,8 +57,6 @@ public class TrustedParty {
     this.isChecked = false;
     this.isValid = false;
     this.isDefault = isDefault;
-    this.hasTrust = Collections.emptyList();
-    this.hasIssued = Collections.emptyList();
   }
 
   public TrustedParty(String name, String certificate) {
@@ -82,8 +67,6 @@ public class TrustedParty {
     this.isChecked = false;
     this.isValid = false;
     this.isDefault = false;
-    this.hasTrust = Collections.emptyList();
-    this.hasIssued = Collections.emptyList();
   }
 
   public TrustedParty withId(String id) {
@@ -94,9 +77,7 @@ public class TrustedParty {
         this.getUrl().orElse(null),
         this.getIsChecked(),
         this.getIsValid(),
-        this.getIsDefault(),
-        this.getHasTrust(),
-        this.getHasIssued());
+        this.getIsDefault());
   }
 
   public TrustedParty withUrl(String url) {
@@ -107,9 +88,7 @@ public class TrustedParty {
         url,
         this.getIsChecked(),
         this.getIsValid(),
-        this.getIsDefault(),
-        this.getHasTrust(),
-        this.getHasIssued());
+        this.getIsDefault());
   }
 
   public TrustedParty withIsChecked(Boolean isChecked) {
@@ -120,9 +99,7 @@ public class TrustedParty {
         this.getUrl().orElse(null),
         isChecked,
         this.getIsValid(),
-        this.getIsDefault(),
-        this.getHasTrust(),
-        this.getHasIssued());
+        this.getIsDefault());
   }
 
   public TrustedParty withIsValid(Boolean isValid) {
@@ -133,9 +110,7 @@ public class TrustedParty {
         this.getUrl().orElse(null),
         this.getIsChecked(),
         isValid,
-        this.getIsDefault(),
-        this.getHasTrust(),
-        this.getHasIssued());
+        this.getIsDefault());
   }
 
   public TrustedParty withIsDefault(Boolean isDefault) {
@@ -146,41 +121,7 @@ public class TrustedParty {
         this.getUrl().orElse(null),
         this.getIsChecked(),
         this.getIsValid(),
-        isDefault,
-        this.getHasTrust(),
-        this.getHasIssued());
-  }
-
-  public TrustedParty withHasTrust(Organization organization) {
-    return new TrustedParty(
-        this.getId().orElse(null),
-        this.getName(),
-        this.getCertificate(),
-        this.getUrl().orElse(null),
-        this.getIsChecked(),
-        this.getIsValid(),
-        this.getIsDefault(),
-        Stream.concat(
-            this.getHasTrust().stream(),
-            Stream.of(organization))
-            .collect(Collectors.toList()),
-        this.getHasIssued());
-  }
-
-  public TrustedParty withHasIssued(Token token) {
-    return new TrustedParty(
-        this.getId().orElse(null),
-        this.getName(),
-        this.getCertificate(),
-        this.getUrl().orElse(null),
-        this.getIsChecked(),
-        this.getIsValid(),
-        this.getIsDefault(),
-        this.getHasTrust(),
-        Stream.concat(
-            this.getHasIssued().stream(),
-            Stream.of(token))
-            .collect(Collectors.toList()));
+        isDefault);
   }
 
   public Optional<String> getId() {
@@ -209,14 +150,6 @@ public class TrustedParty {
 
   public Boolean getIsDefault() {
     return isDefault;
-  }
-
-  public List<Organization> getHasTrust() {
-    return hasTrust;
-  }
-
-  public List<Token> getHasIssued() {
-    return hasIssued;
   }
 
 }

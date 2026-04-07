@@ -10,4 +10,6 @@ public interface TokenPersistence {
 
   Flux<Token> getAll();
 
+  Mono<Token> getByDocumentIdentifier(String documentIdentifier);
+
 }

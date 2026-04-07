@@ -58,8 +58,8 @@ public class TrustedPartyNode implements HasId {
     this.name = name;
     this.clientCertificate = clientCertificate;
     this.url = url;
-    this.isValid = isChecked;
-    this.isChecked = isValid;
+    this.isChecked = isChecked;
+    this.isValid = isValid;
     this.isDefault = isDefault;
   }
 
