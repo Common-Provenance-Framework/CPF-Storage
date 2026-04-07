@@ -5,35 +5,23 @@ import io.swagger.v3.oas.annotations.media.Schema;
 @Schema(name = "DocumentResponse", description = "Stored provenance document response")
 public class DocumentResponseDTO {
 
-  @Schema(description = "Document identifier", example = "SamplingBundle_V1")
-  private final String identifier;
-  @Schema(description = "Owner organization identifier", example = "ORG1")
-  private final String organizationIdentifier;
-  @Schema(description = "Document graph payload (usually Base64 encoded)", example = "eyJwcm92On...")
-  private final String graph;
-  @Schema(description = "Document format", example = "JSON")
-  private final String format;
+  @Schema(description = "Stored provenance document payload", example = "ewogICJidW5kbGUiOiB7IC4uLiB9Cn0=")
+  private final String document;
 
-  public DocumentResponseDTO(String identifier, String organizationIdentifier, String graph, String format) {
-    this.identifier = identifier;
-    this.organizationIdentifier = organizationIdentifier;
-    this.graph = graph;
-    this.format = format;
+  @Schema(description = "Token issued for the returned document", implementation = TokenResponseDTO.class)
+  private final TokenResponseDTO token;
+
+  public DocumentResponseDTO(String document, TokenResponseDTO token) {
+    this.document = document;
+    this.token = token;
   }
 
-  public String getIdentifier() {
-    return identifier;
+  public String getDocument() {
+    return document;
   }
 
-  public String getOrganizationIdentifier() {
-    return organizationIdentifier;
+  public TokenResponseDTO getToken() {
+    return token;
   }
 
-  public String getGraph() {
-    return graph;
-  }
-
-  public String getFormat() {
-    return format;
-  }
 }
