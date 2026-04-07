@@ -11,7 +11,7 @@ import reactor.core.publisher.Mono;
 public interface DocumentController {
   Mono<TokenResponseDTO> createProvDocument(@Valid @NotNull DocumentFormDTO body);
 
-  Mono<DocumentResponseDTO> getProvDocumentById(String uuid);
+  Mono<DocumentResponseDTO> getFinalizedProvDocumentByIdentifier(String identifier);
 
-  Mono<Void> exists(String uuid);
+  Mono<Void> exists(String identifier);
 }

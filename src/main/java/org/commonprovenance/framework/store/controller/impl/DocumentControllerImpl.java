@@ -397,7 +397,7 @@ public class DocumentControllerImpl implements DocumentController {
       @ApiResponse(responseCode = "404", description = "Document not found", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = NotFoundDTO.class))),
       @ApiResponse(responseCode = "500", description = "Internal server error", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = InternalServerErrorDTO.class)))
   })
-  public Mono<DocumentResponseDTO> getProvDocumentById(@PathVariable String identifier) {
+  public Mono<DocumentResponseDTO> getFinalizedProvDocumentByIdentifier(@PathVariable String identifier) {
     return Mono.justOrEmpty(identifier)
         .flatMap(this.tokenService::getByDocumentIdentifier)
         .flatMap(DTOFactory::toDocumentDTO);
