@@ -106,7 +106,6 @@ public class ModelFactory {
         node.getMessageTimestamp());
 
     return new Token(
-        null,
         token.getHash(),
         token.getSignature(),
         additionalDataFactory.apply(token),
@@ -145,7 +144,6 @@ public class ModelFactory {
         dto.getData().getAdditionalData().getTrustedPartyCertificate(),
         dto.getData().getDocumentCreationTimestamp());
     return new Token(
-        null,
         dto.getData().getDocumentDigest(),
         dto.getSignature(),
         additionalData,
@@ -213,8 +211,7 @@ public class ModelFactory {
 
   public static Mono<Token> toDomain(TokenNode entity) {
     return MONO.makeSureNotNull(entity)
-        .map(ModelFactory::fromPersistance)
-        .map((Token token) -> token.withId(ModelFactory.getId(entity)));
+        .map(ModelFactory::fromPersistance);
   }
 
   // Controller

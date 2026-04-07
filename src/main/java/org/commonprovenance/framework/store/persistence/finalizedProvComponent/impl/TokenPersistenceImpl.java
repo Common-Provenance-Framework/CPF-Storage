@@ -43,7 +43,7 @@ public class TokenPersistenceImpl implements TokenPersistence {
   public Mono<Token> getByDocumentIdentifier(String documentIdentifier) {
     return MONO.<String>makeSureNotNullWithMessage("Document identifier can not be 'null'!").apply(documentIdentifier)
         .flatMap(repository::getTokenByDocumentIdentifier)
-        .onErrorResume(MONO.exceptionWrapper("DocumentPersistence - Error while reading Document"))
+        .onErrorResume(MONO.exceptionWrapper("TokenPersistence - Error while reading Token"))
         .flatMap(ModelFactory::toDomain)
         .switchIfEmpty(Mono.defer(() -> Mono
             .error(new NotFoundException(

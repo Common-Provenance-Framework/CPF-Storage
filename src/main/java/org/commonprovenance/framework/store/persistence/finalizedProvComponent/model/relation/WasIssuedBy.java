@@ -31,12 +31,12 @@ public final class WasIssuedBy {
   }
 
   // Wither methods for immutability
-  public Trusts withId(String id) {
-    return new Trusts(id, this.getTrustedParty());
+  public WasIssuedBy withId(String id) {
+    return new WasIssuedBy(id, this.getTrustedParty());
   }
 
-  public Trusts withTrustedParty(TrustedPartyNode trustedParty) {
-    return new Trusts(this.getId(), trustedParty);
+  public WasIssuedBy withTrustedParty(TrustedPartyNode trustedParty) {
+    return new WasIssuedBy(this.getId(), trustedParty);
   }
 
   // Getters
