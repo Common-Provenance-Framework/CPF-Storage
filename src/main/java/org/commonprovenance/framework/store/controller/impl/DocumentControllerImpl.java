@@ -5,8 +5,7 @@ import static org.commonprovenance.framework.store.common.publisher.PublisherHel
 import java.util.Collections;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.function.Function;
-import org.openprovenance.prov.model.interop.Formats;
+
 import org.commonprovenance.framework.store.common.utils.Base64Utils;
 import org.commonprovenance.framework.store.common.utils.ProvDocumentUtils;
 import org.commonprovenance.framework.store.config.AppConfiguration;
@@ -40,6 +39,7 @@ import org.openprovenance.prov.model.Entity;
 import org.openprovenance.prov.model.Other;
 import org.openprovenance.prov.model.ProvFactory;
 import org.openprovenance.prov.model.QualifiedName;
+import org.openprovenance.prov.model.interop.Formats;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.validation.annotation.Validated;
@@ -52,19 +52,18 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import io.swagger.v3.oas.annotations.tags.Tag;
-
 import cz.muni.fi.cpm.constants.CpmAttribute;
 import cz.muni.fi.cpm.model.CpmDocument;
 import cz.muni.fi.cpm.model.CpmUtilities;
 import cz.muni.fi.cpm.model.ICpmFactory;
 import cz.muni.fi.cpm.model.ICpmProvFactory;
 import cz.muni.fi.cpm.model.INode;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.constraints.NotNull;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -190,14 +189,15 @@ public class DocumentControllerImpl implements DocumentController {
         // issue token
         .flatMap((Document document) -> Mono.justOrEmpty(document)
             .map(Document::getOrganizationIdentifier)
-            .flatMap(this.organizationService::getOrganizationByIdentifier)
-            .flatMap((Organization org) -> Mono.just(getTrustedPartyUrl(org))
-                .map(this.trustedPartyWebService::issueGraphToken)
-                // Store Document with token
-                .flatMap((Function<Document, Mono<Token>> issueToken) -> issueToken.apply(document))
+            .flatMap(organizationIdentifier -> Mono.justOrEmpty(organizationIdentifier)
+                .flatMap(this.trustedPartyService::getTrustedPartyUrlByOrganizationIdentifier)
+                .map(Optional::ofNullable)
+                .flatMap(optUrl -> this.trustedPartyWebService.issueGraphToken(optUrl).apply(document))
                 .map((Token token) -> token.withDocument(document))
-                .map((Token token) -> token.withTrustedParty(org.getTrustedParty().get())))
-            .flatMap(tokenService::storeToken)
+                .flatMap((Token token) -> this.trustedPartyService
+                    .getTrustedPartyByOrganizationIdentifier(organizationIdentifier)
+                    .map(token::withTrustedParty))
+                .flatMap(tokenService::storeToken))
             .map(token -> document.withToken(token)))
         .delayUntil((Document document) -> Mono.just(document)
             .map(Document::getCpmDocument)
@@ -441,9 +441,12 @@ public class DocumentControllerImpl implements DocumentController {
             .flatMap(provDoc -> Mono.justOrEmpty(provDoc.getIdentifier())
                 .flatMap(this.tokenService::getOrganizationIdentifierByDocumentIdentifier)
                 .map(provDoc::withOrganizationIdentifier))
-            .flatMap(d -> Mono.justOrEmpty(d)
-                .flatMap(this.trustedPartyWebService.issueDomainSpecificGraphToken(Optional.empty()))
-                .map(token -> token.withDocument(d)))
+            .flatMap(provDoc -> Mono.justOrEmpty(provDoc)
+                .map(Document::getOrganizationIdentifier)
+                .flatMap(this.trustedPartyService::getTrustedPartyUrlByOrganizationIdentifier)
+                .map(Optional::ofNullable)
+                .flatMap(optUrl -> this.trustedPartyWebService.issueDomainSpecificGraphToken(optUrl).apply(provDoc))
+                .map(token -> token.withDocument(provDoc)))
             .flatMap(token -> Mono.justOrEmpty(token.getAdditionalData().getOrganizationIdentifier())
                 .flatMap(this.trustedPartyService::getTrustedPartyByOrganizationIdentifier)
                 .map(token::withTrustedParty)))
@@ -482,7 +485,10 @@ public class DocumentControllerImpl implements DocumentController {
                 .flatMap(this.tokenService::getOrganizationIdentifierByDocumentIdentifier)
                 .map(provDoc::withOrganizationIdentifier))
             .flatMap(provDoc -> Mono.justOrEmpty(provDoc)
-                .flatMap(this.trustedPartyWebService.issueBackboneGraphToken(Optional.empty()))
+                .map(Document::getOrganizationIdentifier)
+                .flatMap(this.trustedPartyService::getTrustedPartyUrlByOrganizationIdentifier)
+                .map(Optional::ofNullable)
+                .flatMap(optUrl -> this.trustedPartyWebService.issueDomainSpecificGraphToken(optUrl).apply(provDoc))
                 .map(token -> token.withDocument(provDoc)))
             .flatMap(token -> Mono.justOrEmpty(token.getAdditionalData().getOrganizationIdentifier())
                 .flatMap(this.trustedPartyService::getTrustedPartyByOrganizationIdentifier)
