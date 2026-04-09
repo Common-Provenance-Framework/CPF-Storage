@@ -26,4 +26,6 @@ public interface TrustedPartyWebService {
   Function<Document, Mono<Token>> issueGraphToken(Optional<String> trustedPartyUrl);
 
   Function<Document, Mono<Token>> issueDomainSpecificGraphToken(Optional<String> trustedPartyUrl);
+
+  Function<Document, Mono<Token>> issueBackboneGraphToken(Optional<String> trustedPartyUrl);
 }

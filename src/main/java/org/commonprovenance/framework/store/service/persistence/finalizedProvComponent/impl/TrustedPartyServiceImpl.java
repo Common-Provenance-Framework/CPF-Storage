@@ -48,4 +48,11 @@ public class TrustedPartyServiceImpl implements TrustedPartyService {
         .flatMap(this.persistence::getByOrganizationIdentifier);
   }
 
+  @Override
+  public Mono<String> getTrustedPartyUrlByOrganizationIdentifier(String organizationIdentifier) {
+    return MONO.<String>makeSureNotNullWithMessage("Organization identifier can not be null")
+        .apply(organizationIdentifier)
+        .flatMap(this.persistence::getUrlByOrganizationIdentifier);
+  }
+
 }

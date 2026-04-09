@@ -91,4 +91,9 @@ public class TrustedPartyWebServiceImpl implements TrustedPartyWebService {
     return this.trustedPartyClient.issueGraphToken(trustedPartyUrl, GraphType.DOMAIN_SPECIFIC);
   }
 
+  @Override
+  public Function<Document, Mono<Token>> issueBackboneGraphToken(Optional<String> trustedPartyUrl) {
+    return this.trustedPartyClient.issueGraphToken(trustedPartyUrl, GraphType.BACKBONE);
+  }
+
 }

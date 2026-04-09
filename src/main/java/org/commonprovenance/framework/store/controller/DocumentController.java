@@ -15,6 +15,7 @@ public interface DocumentController {
 
   Mono<DocumentResponseDTO> getDomainProvDocumentByIdentifier(String identifier);
 
+  Mono<DocumentResponseDTO> getBackboneProvDocumentByIdentifier(String identifier);
 
   Mono<Void> exists(String identifier);
 }

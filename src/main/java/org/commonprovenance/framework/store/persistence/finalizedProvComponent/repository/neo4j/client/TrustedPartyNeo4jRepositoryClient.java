@@ -7,6 +7,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 @Repository
 public interface TrustedPartyNeo4jRepositoryClient extends ReactiveNeo4jRepository<TrustedPartyNode, String> {
@@ -31,4 +32,11 @@ public interface TrustedPartyNeo4jRepositoryClient extends ReactiveNeo4jReposito
         RETURN elementId(trustedParty) as id
       """)
   Flux<String> findIdByOrganizationIdentifier(@Param("organizationIdentifier") String organizationIdentifier);
+
+  @Query("""
+      MATCH (trustedParty:TrustedParty)
+      WHERE elementId(trustedParty) = $id
+      RETURN trustedParty.url as url
+      """)
+  Mono<String> findUrlById(@Param("id") String id);
 }

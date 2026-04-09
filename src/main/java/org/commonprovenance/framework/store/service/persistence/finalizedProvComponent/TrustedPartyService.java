@@ -15,4 +15,6 @@ public interface TrustedPartyService {
   Mono<TrustedParty> getTrustedPartyByName(String name);
 
   Mono<TrustedParty> getTrustedPartyByOrganizationIdentifier(String organizationIdentifier);
+
+  Mono<String> getTrustedPartyUrlByOrganizationIdentifier(String organizationIdentifier);
 }
