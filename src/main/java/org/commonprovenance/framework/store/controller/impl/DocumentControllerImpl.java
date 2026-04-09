@@ -450,6 +450,46 @@ public class DocumentControllerImpl implements DocumentController {
         .flatMap(DTOFactory::toDocumentDTO);
   }
 
+  @NotNull
+  @GetMapping("/{identifier}/backbone")
+  @Operation(summary = "Get backbone provenance document by identifier")
+  @ApiResponses({
+      @ApiResponse(responseCode = "200", description = "Document fetched"),
+      @ApiResponse(responseCode = "404", description = "Document not found", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = NotFoundDTO.class))),
+      @ApiResponse(responseCode = "500", description = "Internal server error", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = InternalServerErrorDTO.class)))
+  })
+  public Mono<DocumentResponseDTO> getBackboneProvDocumentByIdentifier(@PathVariable String identifier) {
+    return Mono.justOrEmpty(identifier)
+        .flatMap(this.documentService::getDocumentByIdentifier)
+        .map(document -> document.withCpmDocument(this.provFactory, this.cpmProvFactory, this.cpmFactory))
+        .flatMap(document -> Mono.justOrEmpty(document.getCpmDocument())
+            .switchIfEmpty(Mono.error(new NotFoundException(
+                "Finalized provenance document for identifier '" + identifier + "' can not be deserialized.")))
+            .map(cpm -> new CpmDocument(
+                cpm.getBundleId(),
+                cpm.getTraversalInformationPart(),
+                Collections.emptyList(),
+                Collections.emptyList(),
+                this.provFactory,
+                this.cpmProvFactory,
+                this.cpmFactory))
+            .map(cpm -> ProvDocumentUtils.serialize(cpm.toDocument(), Formats.ProvFormat.JSON))
+            .map(Base64Utils::encodeFromString)
+            .map(cpmStr -> document
+                .withGraph(cpmStr)
+                .withCpmDocument(provFactory, cpmProvFactory, cpmFactory, true))
+            .flatMap(provDoc -> Mono.justOrEmpty(provDoc.getIdentifier())
+                .flatMap(this.tokenService::getOrganizationIdentifierByDocumentIdentifier)
+                .map(provDoc::withOrganizationIdentifier))
+            .flatMap(provDoc -> Mono.justOrEmpty(provDoc)
+                .flatMap(this.trustedPartyWebService.issueBackboneGraphToken(Optional.empty()))
+                .map(token -> token.withDocument(provDoc)))
+            .flatMap(token -> Mono.justOrEmpty(token.getAdditionalData().getOrganizationIdentifier())
+                .flatMap(this.trustedPartyService::getTrustedPartyByOrganizationIdentifier)
+                .map(token::withTrustedParty)))
+        .flatMap(DTOFactory::toDocumentDTO);
+  }
+
   @Override
   @NotNull
   @RequestMapping(path = "/{identifier}", method = RequestMethod.HEAD)
