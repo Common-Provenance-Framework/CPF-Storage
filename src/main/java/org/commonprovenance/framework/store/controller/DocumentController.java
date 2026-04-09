@@ -13,5 +13,8 @@ public interface DocumentController {
 
   Mono<DocumentResponseDTO> getFinalizedProvDocumentByIdentifier(String identifier);
 
+  Mono<DocumentResponseDTO> getDomainProvDocumentByIdentifier(String identifier);
+
+
   Mono<Void> exists(String identifier);
 }
