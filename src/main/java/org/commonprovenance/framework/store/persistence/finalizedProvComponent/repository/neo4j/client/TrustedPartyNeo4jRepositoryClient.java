@@ -6,7 +6,7 @@ import org.springframework.data.neo4j.repository.query.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import reactor.core.publisher.Mono;
+import reactor.core.publisher.Flux;
 
 @Repository
 public interface TrustedPartyNeo4jRepositoryClient extends ReactiveNeo4jRepository<TrustedPartyNode, String> {
@@ -14,14 +14,21 @@ public interface TrustedPartyNeo4jRepositoryClient extends ReactiveNeo4jReposito
   @Query("""
         MATCH (trustedParty:TrustedParty)
         WHERE trustedParty.name = $name
-        RETURN trustedParty
+        RETURN elementId(trustedParty) as id
       """)
-  Mono<TrustedPartyNode> findByName(@Param("name") String name);
+  Flux<String> findIdByName(@Param("name") String name);
 
   @Query("""
         MATCH (trustedParty:TrustedParty)
         WHERE trustedParty.is_default = TRUE
-        RETURN trustedParty
+        RETURN elementId(trustedParty) as id
       """)
-  Mono<TrustedPartyNode> findDefault();
+  Flux<String> findDefaultId();
+
+  @Query("""
+        MATCH (organization:Organization)-[:trusts]->(trustedParty:TrustedParty)
+        WHERE organization.identifier = $organizationIdentifier
+        RETURN elementId(trustedParty) as id
+      """)
+  Flux<String> findIdByOrganizationIdentifier(@Param("organizationIdentifier") String organizationIdentifier);
 }

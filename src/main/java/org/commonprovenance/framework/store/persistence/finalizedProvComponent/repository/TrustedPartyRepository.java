@@ -15,4 +15,6 @@ public interface TrustedPartyRepository {
 
   Mono<TrustedPartyNode> findDefault();
 
+  Mono<TrustedPartyNode> findByOrganizationIdentifier(String organizationIdentifier);
+
 }

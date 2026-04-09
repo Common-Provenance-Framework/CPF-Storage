@@ -1,5 +1,9 @@
 package org.commonprovenance.framework.store.persistence.finalizedProvComponent.repository.neo4j;
 
+import java.util.NoSuchElementException;
+
+import org.commonprovenance.framework.store.exceptions.ConflictException;
+import org.commonprovenance.framework.store.exceptions.NotFoundException;
 import org.commonprovenance.framework.store.persistence.finalizedProvComponent.model.node.TrustedPartyNode;
 import org.commonprovenance.framework.store.persistence.finalizedProvComponent.repository.TrustedPartyRepository;
 import org.commonprovenance.framework.store.persistence.finalizedProvComponent.repository.neo4j.client.TrustedPartyNeo4jRepositoryClient;
@@ -31,11 +35,46 @@ public class TrustedPartyNeo4jRepository implements TrustedPartyRepository {
 
   @Override
   public Mono<TrustedPartyNode> findByName(String name) {
-    return client.findByName(name);
+    return client.findIdByName(name)
+        .single()
+        .flatMap(client::findById)
+        .onErrorMap(
+            NoSuchElementException.class,
+            _ -> new NotFoundException(
+                "TrustedParty with name '" + name + "' has not been found!"))
+        .onErrorMap(
+            IndexOutOfBoundsException.class,
+            _ -> new ConflictException(
+                "There is more then one TrustedParty with name '" + name + "'!"));
   }
 
   @Override
   public Mono<TrustedPartyNode> findDefault() {
-    return client.findDefault();
+    return client.findDefaultId()
+        .single()
+        .flatMap(client::findById)
+        .onErrorMap(
+            NoSuchElementException.class,
+            _ -> new NotFoundException(
+                "Default TrustedParty has not been found!"))
+        .onErrorMap(
+            IndexOutOfBoundsException.class,
+            _ -> new ConflictException(
+                "There is more then one default TrustedParty!"));
+  }
+
+  @Override
+  public Mono<TrustedPartyNode> findByOrganizationIdentifier(String organizationIdentifier) {
+    return client.findIdByOrganizationIdentifier(organizationIdentifier)
+        .single()
+        .flatMap(client::findById)
+        .onErrorMap(
+            NoSuchElementException.class,
+            _ -> new NotFoundException(
+                "Organization with identifier '" + organizationIdentifier + "' has no TrustedParty!"))
+        .onErrorMap(
+            IndexOutOfBoundsException.class,
+            _ -> new ConflictException(
+                "Organization with identifier '" + organizationIdentifier + "' has more then one TrustedParty!"));
   }
 }
