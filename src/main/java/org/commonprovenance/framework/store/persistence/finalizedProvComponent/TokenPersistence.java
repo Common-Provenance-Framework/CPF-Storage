@@ -12,4 +12,6 @@ public interface TokenPersistence {
 
   Mono<Token> getByDocumentIdentifier(String documentIdentifier);
 
+  Mono<String> getOrganizationIdentifierByDocumentIdentifier(String documentIdentifier);
+
 }

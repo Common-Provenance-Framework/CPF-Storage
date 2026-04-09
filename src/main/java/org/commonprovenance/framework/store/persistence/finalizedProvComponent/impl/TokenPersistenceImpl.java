@@ -49,4 +49,14 @@ public class TokenPersistenceImpl implements TokenPersistence {
             .error(new NotFoundException(
                 "Token with document identifier '" + documentIdentifier + "' has not been found!"))));
   }
+
+  @Override
+  public Mono<String> getOrganizationIdentifierByDocumentIdentifier(String documentIdentifier) {
+    return MONO.<String>makeSureNotNullWithMessage("Document identifier can not be 'null'!").apply(documentIdentifier)
+        .flatMap(repository::getOrganizationIdentifierByDocumentIdentifier)
+        .onErrorResume(MONO.exceptionWrapper("TokenPersistence - Error while reading Token"))
+        .switchIfEmpty(Mono.defer(() -> Mono
+            .error(new NotFoundException(
+                "Token with document identifier '" + documentIdentifier + "' has not been found!"))));
+  }
 }
