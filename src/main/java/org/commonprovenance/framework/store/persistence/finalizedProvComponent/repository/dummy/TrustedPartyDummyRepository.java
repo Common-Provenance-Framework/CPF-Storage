@@ -59,4 +59,10 @@ public class TrustedPartyDummyRepository implements TrustedPartyRepository {
     // TODO Auto-generated method stub
     throw new UnsupportedOperationException("Unimplemented method 'findByOrganizationIdentifier'");
   }
+
+  @Override
+  public Mono<String> findUrlByOrganizationIdentifier(String organizationIdentifier) {
+    // TODO Auto-generated method stub
+    throw new UnsupportedOperationException("Unimplemented method 'findUrlByOrganizationIdentifier'");
+  }
 }

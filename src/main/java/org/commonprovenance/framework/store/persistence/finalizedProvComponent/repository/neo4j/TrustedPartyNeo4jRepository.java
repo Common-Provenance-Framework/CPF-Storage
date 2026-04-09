@@ -77,4 +77,19 @@ public class TrustedPartyNeo4jRepository implements TrustedPartyRepository {
             _ -> new ConflictException(
                 "Organization with identifier '" + organizationIdentifier + "' has more then one TrustedParty!"));
   }
+
+  @Override
+  public Mono<String> findUrlByOrganizationIdentifier(String organizationIdentifier) {
+    return client.findIdByOrganizationIdentifier(organizationIdentifier)
+        .single()
+        .flatMap(client::findUrlById)
+        .onErrorMap(
+            NoSuchElementException.class,
+            _ -> new NotFoundException(
+                "Organization with identifier '" + organizationIdentifier + "' has no TrustedParty!"))
+        .onErrorMap(
+            IndexOutOfBoundsException.class,
+            _ -> new ConflictException(
+                "Organization with identifier '" + organizationIdentifier + "' has more then one TrustedParty!"));
+  }
 }

@@ -18,4 +18,6 @@ public interface TrustedPartyPersistence {
   Mono<TrustedParty> getDefault();
 
   Mono<TrustedParty> getByOrganizationIdentifier(String organizationIdentifier);
+
+  Mono<String> getUrlByOrganizationIdentifier(String organizationIdentifier);
 }
