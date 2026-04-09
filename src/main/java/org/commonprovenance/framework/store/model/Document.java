@@ -107,7 +107,12 @@ public class Document implements HasOptionalIdentifier,
   }
 
   public Document withCpmDocument(ProvFactory provFactory, ICpmProvFactory cpmProvFactory, ICpmFactory cpmFactory) {
-    return this.cpmDocument.isPresent()
+    return this.withCpmDocument(provFactory, cpmProvFactory, cpmFactory, false);
+  }
+
+  public Document withCpmDocument(ProvFactory provFactory, ICpmProvFactory cpmProvFactory, ICpmFactory cpmFactory,
+      Boolean force) {
+    return this.cpmDocument.isPresent() && !force
         ? this
         : Optional.ofNullable(this.graph)
             .map(Base64Utils::decodeToString)
