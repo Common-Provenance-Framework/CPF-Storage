@@ -63,4 +63,16 @@ public class TrustedPartyPersistenceImpl implements TrustedPartyPersistence {
         .map(ModelFactory::toDomain);
   }
 
+  @Override
+  public Mono<TrustedParty> getByOrganizationIdentifier(String organizationIdentifier) {
+    return MONO.<String>makeSureNotNullWithMessage("Organization identifier can not be 'null'!")
+        .apply(organizationIdentifier)
+        .flatMap(repository::findByOrganizationIdentifier)
+        .onErrorResume(MONO
+            .exceptionWrapper("TrustedPartyPersistence - Error while reading TrustedParty by organizationIdentifier"))
+        .switchIfEmpty(Mono.error(new NotFoundException(
+            "TrustedParty with organizationIdentifier '" + organizationIdentifier + "' not found!")))
+        .map(ModelFactory::toDomain);
+  }
+
 }

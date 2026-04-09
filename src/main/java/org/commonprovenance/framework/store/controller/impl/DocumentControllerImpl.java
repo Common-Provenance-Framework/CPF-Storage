@@ -2,10 +2,13 @@ package org.commonprovenance.framework.store.controller.impl;
 
 import static org.commonprovenance.framework.store.common.publisher.PublisherHelper.MONO;
 
+import java.util.Collections;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
-
+import org.openprovenance.prov.model.interop.Formats;
+import org.commonprovenance.framework.store.common.utils.Base64Utils;
+import org.commonprovenance.framework.store.common.utils.ProvDocumentUtils;
 import org.commonprovenance.framework.store.config.AppConfiguration;
 import org.commonprovenance.framework.store.controller.DocumentController;
 import org.commonprovenance.framework.store.controller.dto.error.BadRequestDTO;
@@ -28,6 +31,7 @@ import org.commonprovenance.framework.store.model.factory.ModelFactory;
 import org.commonprovenance.framework.store.service.persistence.finalizedProvComponent.DocumentService;
 import org.commonprovenance.framework.store.service.persistence.finalizedProvComponent.OrganizationService;
 import org.commonprovenance.framework.store.service.persistence.finalizedProvComponent.TokenService;
+import org.commonprovenance.framework.store.service.persistence.finalizedProvComponent.TrustedPartyService;
 import org.commonprovenance.framework.store.service.persistence.metaComponent.MetaComponentService;
 import org.commonprovenance.framework.store.service.web.store.StoreWebService;
 import org.commonprovenance.framework.store.service.web.trustedParty.TrustedPartyWebService;
@@ -73,6 +77,7 @@ public class DocumentControllerImpl implements DocumentController {
   private final DocumentService documentService;
   private final OrganizationService organizationService;
   private final TokenService tokenService;
+  private final TrustedPartyService trustedPartyService;
   private final MetaComponentService metaComponentService;
 
   private final TrustedPartyWebService trustedPartyWebService;
@@ -88,6 +93,7 @@ public class DocumentControllerImpl implements DocumentController {
       DocumentService documentService,
       OrganizationService organizationService,
       TokenService tokenService,
+      TrustedPartyService trustedPartyService,
       MetaComponentService metaComponentService,
       TrustedPartyWebService trustedPartyWebService,
       StoreWebService storeWebService,
@@ -99,6 +105,7 @@ public class DocumentControllerImpl implements DocumentController {
     this.organizationService = organizationService;
     this.metaComponentService = metaComponentService;
     this.tokenService = tokenService;
+    this.trustedPartyService = trustedPartyService;
     this.trustedPartyWebService = trustedPartyWebService;
     this.storeWebService = storeWebService;
 
@@ -397,9 +404,49 @@ public class DocumentControllerImpl implements DocumentController {
       @ApiResponse(responseCode = "404", description = "Document not found", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = NotFoundDTO.class))),
       @ApiResponse(responseCode = "500", description = "Internal server error", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = InternalServerErrorDTO.class)))
   })
-  public Mono<DocumentResponseDTO> getProvDocumentById(@PathVariable String identifier) {
+  public Mono<DocumentResponseDTO> getFinalizedProvDocumentByIdentifier(@PathVariable String identifier) {
     return Mono.justOrEmpty(identifier)
         .flatMap(this.tokenService::getByDocumentIdentifier)
+        .flatMap(DTOFactory::toDocumentDTO);
+  }
+
+  @NotNull
+  @GetMapping("/{identifier}/domain-specific")
+  @Operation(summary = "Get domain specific provenance document by identifier")
+  @ApiResponses({
+      @ApiResponse(responseCode = "200", description = "Document fetched"),
+      @ApiResponse(responseCode = "404", description = "Document not found", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = NotFoundDTO.class))),
+      @ApiResponse(responseCode = "500", description = "Internal server error", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = InternalServerErrorDTO.class)))
+  })
+  public Mono<DocumentResponseDTO> getDomainProvDocumentByIdentifier(@PathVariable String identifier) {
+    return Mono.justOrEmpty(identifier)
+        .flatMap(this.documentService::getDocumentByIdentifier)
+        .map(document -> document.withCpmDocument(this.provFactory, this.cpmProvFactory, this.cpmFactory))
+        .flatMap(document -> Mono.justOrEmpty(document.getCpmDocument())
+            .switchIfEmpty(Mono.error(new NotFoundException(
+                "Finalized provenance document for identifier '" + identifier + "' can not be deserialized.")))
+            .map(cpm -> new CpmDocument(
+                cpm.getBundleId(),
+                Collections.emptyList(),
+                cpm.getDomainSpecificPart(),
+                Collections.emptyList(),
+                this.provFactory,
+                this.cpmProvFactory,
+                this.cpmFactory))
+            .map(cpm -> ProvDocumentUtils.serialize(cpm.toDocument(), Formats.ProvFormat.JSON))
+            .map(Base64Utils::encodeFromString)
+            .map(cpmStr -> document
+                .withGraph(cpmStr)
+                .withCpmDocument(provFactory, cpmProvFactory, cpmFactory, true))
+            .flatMap(provDoc -> Mono.justOrEmpty(provDoc.getIdentifier())
+                .flatMap(this.tokenService::getOrganizationIdentifierByDocumentIdentifier)
+                .map(provDoc::withOrganizationIdentifier))
+            .flatMap(d -> Mono.justOrEmpty(d)
+                .flatMap(this.trustedPartyWebService.issueDomainSpecificGraphToken(Optional.empty()))
+                .map(token -> token.withDocument(d)))
+            .flatMap(token -> Mono.justOrEmpty(token.getAdditionalData().getOrganizationIdentifier())
+                .flatMap(this.trustedPartyService::getTrustedPartyByOrganizationIdentifier)
+                .map(token::withTrustedParty)))
         .flatMap(DTOFactory::toDocumentDTO);
   }
 

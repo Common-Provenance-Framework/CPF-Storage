@@ -53,4 +53,10 @@ public class TrustedPartyDummyRepository implements TrustedPartyRepository {
         .switchIfEmpty(Mono.error(new NotFoundException("TrustedParty default not found!")));
 
   }
+
+  @Override
+  public Mono<TrustedPartyNode> findByOrganizationIdentifier(String organizationIdentifier) {
+    // TODO Auto-generated method stub
+    throw new UnsupportedOperationException("Unimplemented method 'findByOrganizationIdentifier'");
+  }
 }

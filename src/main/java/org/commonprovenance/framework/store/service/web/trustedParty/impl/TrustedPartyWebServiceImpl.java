@@ -7,6 +7,7 @@ import java.util.function.Function;
 
 import org.commonprovenance.framework.store.exceptions.NotFoundException;
 import org.commonprovenance.framework.store.model.Document;
+import org.commonprovenance.framework.store.model.GraphType;
 import org.commonprovenance.framework.store.model.Organization;
 import org.commonprovenance.framework.store.model.Token;
 import org.commonprovenance.framework.store.model.TrustedParty;
@@ -82,7 +83,12 @@ public class TrustedPartyWebServiceImpl implements TrustedPartyWebService {
 
   @Override
   public Function<Document, Mono<Token>> issueGraphToken(Optional<String> trustedPartyUrl) {
-    return this.trustedPartyClient.issueGraphToken(trustedPartyUrl);
+    return this.trustedPartyClient.issueGraphToken(trustedPartyUrl, GraphType.GRAPH);
+  }
+
+  @Override
+  public Function<Document, Mono<Token>> issueDomainSpecificGraphToken(Optional<String> trustedPartyUrl) {
+    return this.trustedPartyClient.issueGraphToken(trustedPartyUrl, GraphType.DOMAIN_SPECIFIC);
   }
 
 }
