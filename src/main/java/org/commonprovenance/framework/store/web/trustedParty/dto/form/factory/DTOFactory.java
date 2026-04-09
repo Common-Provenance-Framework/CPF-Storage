@@ -57,6 +57,14 @@ public class DTOFactory {
         .orElse(form);
   }
 
+  private static UnaryOperator<IssueTokenTPFormDTO> addSignatureFromDocumentModelIfGraphType(
+      Document model,
+      GraphType graphType) {
+    return GraphType.GRAPH.equals(graphType)
+        ? addSignatureFromDocumentModel(model)
+        : UnaryOperator.identity();
+  }
+
   private static UnaryOperator<IssueTokenTPFormDTO> addTypeFromGraphType(GraphType graphType) {
     return form -> Optional
         .ofNullable(graphType)
@@ -76,7 +84,7 @@ public class DTOFactory {
             HasOrganizationId.addIdentifier(document),
             HasDocument.addGraph(document),
             addFormatfromDocumentModel(document),
-            addSignatureFromDocumentModel(document),
+            addSignatureFromDocumentModelIfGraphType(document, graphType),
             addTypeFromGraphType(graphType),
             addCreatedOn())))
         .flatMap(MONO::validateDTO);
