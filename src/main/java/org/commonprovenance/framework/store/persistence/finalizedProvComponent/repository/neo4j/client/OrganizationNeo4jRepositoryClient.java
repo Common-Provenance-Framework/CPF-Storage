@@ -19,4 +19,14 @@ public interface OrganizationNeo4jRepositoryClient extends ReactiveNeo4jReposito
       """)
   Mono<OrganizationNode> findByIdentifier(@Param("identifier") String identifier);
 
+  @Query("""
+        MATCH (o:Organization {identifier: $organizationIdentifier})
+        MATCH (d:Document {identifier: $documentIdentifier})
+        MERGE (o)-[:owns]->(d)
+        RETURN true
+      """)
+  Mono<Boolean> createOwnsRelationship(
+      @Param("organizationIdentifier") String organizationIdentifier,
+      @Param("documentIdentifier") String documentIdentifier);
+
 }

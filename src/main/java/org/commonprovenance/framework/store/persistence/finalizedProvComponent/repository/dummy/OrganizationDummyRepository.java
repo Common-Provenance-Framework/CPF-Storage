@@ -40,4 +40,9 @@ public class OrganizationDummyRepository implements OrganizationRepository {
         .flatMap(MONO::makeSureNotNull);
   }
 
+  @Override
+  public Mono<Boolean> connectOwns(String organizationIdentifier, String documentIdentifier) {
+    return Mono.just(true);
+  }
+
 }

@@ -34,4 +34,9 @@ public class OrganizationNeo4jRepository implements OrganizationRepository {
     return client.findByIdentifier(identifier);
   }
 
+  @Override
+  public Mono<Boolean> connectOwns(String organizationIdentifier, String documentIdentifier) {
+    return client.createOwnsRelationship(organizationIdentifier, documentIdentifier);
+  }
+
 }

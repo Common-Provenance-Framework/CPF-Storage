@@ -12,4 +12,6 @@ public interface OrganizationRepository {
 
   Mono<OrganizationNode> findByIdentifier(String identifier);
 
+  Mono<Boolean> connectOwns(String organizationIdentifier, String documentIdentifier);
+
 }
