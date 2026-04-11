@@ -6,6 +6,7 @@ import org.springframework.data.neo4j.repository.query.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @Repository
@@ -13,11 +14,9 @@ public interface OrganizationNeo4jRepositoryClient extends ReactiveNeo4jReposito
   @Query("""
         MATCH (organization:Organization)
         WHERE organization.identifier = $identifier
-        OPTIONAL MATCH (organization)-[r:trusts]->(trustedParty:TrustedParty)
-        RETURN organization,
-          collect(r), collect(trustedParty)
+        RETURN elementId(organization) AS id
       """)
-  Mono<OrganizationNode> findByIdentifier(@Param("identifier") String identifier);
+  Flux<String> getIdByIdentifier(@Param("identifier") String identifier);
 
   @Query("""
         MATCH (o:Organization {identifier: $organizationIdentifier})

@@ -1,5 +1,9 @@
 package org.commonprovenance.framework.store.persistence.finalizedProvComponent.repository.neo4j;
 
+import java.util.NoSuchElementException;
+
+import org.commonprovenance.framework.store.exceptions.ConflictException;
+import org.commonprovenance.framework.store.exceptions.NotFoundException;
 import org.commonprovenance.framework.store.persistence.finalizedProvComponent.model.node.OrganizationNode;
 import org.commonprovenance.framework.store.persistence.finalizedProvComponent.repository.OrganizationRepository;
 import org.commonprovenance.framework.store.persistence.finalizedProvComponent.repository.neo4j.client.OrganizationNeo4jRepositoryClient;
@@ -31,7 +35,15 @@ public class OrganizationNeo4jRepository implements OrganizationRepository {
 
   @Override
   public Mono<OrganizationNode> findByIdentifier(String identifier) {
-    return client.findByIdentifier(identifier);
+    return client.getIdByIdentifier(identifier)
+        .single()
+        .flatMap(client::findById)
+        .onErrorMap(
+            NoSuchElementException.class,
+            _ -> new NotFoundException("Organization with identifier '" + identifier + "' has not been found!"))
+        .onErrorMap(
+            IndexOutOfBoundsException.class,
+            _ -> new ConflictException("There is more then one organization with identifier '" + identifier + "'!"));
   }
 
   @Override
