@@ -209,6 +209,7 @@ public class DocumentControllerImpl implements DocumentController {
                 .flatMap(meta -> Mono.justOrEmpty(document.getToken())
                     .flatMap(token -> this.metaComponentService.addTokenToLastVersion(token).apply(
                         meta)))))
+        .delayUntil(this.organizationService::linkOwnedDocument)
         .map(Document::getToken)
         .flatMap(Mono::justOrEmpty)
         .flatMap(DTOFactory::toTokenDTO);
