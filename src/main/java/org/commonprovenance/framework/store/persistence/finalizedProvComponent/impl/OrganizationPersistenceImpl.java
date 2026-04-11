@@ -3,6 +3,7 @@ package org.commonprovenance.framework.store.persistence.finalizedProvComponent.
 import static org.commonprovenance.framework.store.common.publisher.PublisherHelper.MONO;
 
 import org.commonprovenance.framework.store.exceptions.NotFoundException;
+import org.commonprovenance.framework.store.model.Document;
 import org.commonprovenance.framework.store.model.Organization;
 import org.commonprovenance.framework.store.model.factory.ModelFactory;
 import org.commonprovenance.framework.store.persistence.finalizedProvComponent.OrganizationPersistence;
@@ -49,7 +50,6 @@ public class OrganizationPersistenceImpl implements OrganizationPersistence {
   }
 
   @Override
-
   public Mono<Organization> getByIdentifier(String identifier) {
     return MONO.<String>makeSureNotNullWithMessage("Organization identifier can not be 'null'!").apply(identifier)
         .flatMap(repository::findByIdentifier)
@@ -57,6 +57,19 @@ public class OrganizationPersistenceImpl implements OrganizationPersistence {
         .switchIfEmpty(
             Mono.error(new NotFoundException("Organization with identifier '" + identifier + "' not found!")))
         .flatMap(ModelFactory::toDomain);
+  }
+
+  @Override
+  public Mono<Boolean> connectDocument(Document document) {
+    return MONO.<Document>makeSureNotNullWithMessage("Document can not be 'null'!")
+        .apply(document)
+        .flatMap(doc -> Mono.zip(
+            MONO.<String>makeSureNotNullWithMessage("Organization identifier can not be 'null'!")
+                .apply(doc.getOrganizationIdentifier()),
+            Mono.justOrEmpty(doc.getIdentifier())
+                .flatMap(MONO.<String>makeSureNotNullWithMessage("Document identifier can not be 'null'!"))))
+        .flatMap(ids -> repository.connectOwns(ids.getT1(), ids.getT2()))
+        .onErrorResume(MONO.exceptionWrapper("OrganizationPersistence - Error while connecting document ownership"));
   }
 
 }
