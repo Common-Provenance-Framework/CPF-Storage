@@ -215,12 +215,6 @@ public class DocumentControllerImpl implements DocumentController {
         .flatMap(DTOFactory::toTokenDTO);
   }
 
-  private Optional<String> getTrustedPartyUrl(Organization organization) {
-    return Optional.ofNullable(organization)
-        .flatMap(Organization::getTrustedParty)
-        .flatMap(TrustedParty::getUrl);
-  }
-
   private Mono<QualifiedName> getReferenceMetaBundleId(CpmDocument cpm) {
     return Mono.justOrEmpty(cpm)
         .map(CpmDocument::getMainActivity)
