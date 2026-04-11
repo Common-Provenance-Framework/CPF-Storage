@@ -3,6 +3,7 @@ package org.commonprovenance.framework.store.service.persistence.finalizedProvCo
 import static org.commonprovenance.framework.store.common.publisher.PublisherHelper.MONO;
 
 import org.commonprovenance.framework.store.exceptions.NotFoundException;
+import org.commonprovenance.framework.store.model.Document;
 import org.commonprovenance.framework.store.model.Organization;
 import org.commonprovenance.framework.store.persistence.finalizedProvComponent.OrganizationPersistence;
 import org.commonprovenance.framework.store.service.persistence.finalizedProvComponent.OrganizationService;
@@ -54,6 +55,11 @@ public class OrganizationServiceImpl implements OrganizationService {
   @Override
   public Mono<Organization> getOrganizationByIdentifier(String identifier) {
     return this.persistence.getByIdentifier(identifier);
+  }
+
+  @Override
+  public Mono<Boolean> linkOwnedDocument(Document document) {
+    return this.persistence.connectDocument(document);
   }
 
 }

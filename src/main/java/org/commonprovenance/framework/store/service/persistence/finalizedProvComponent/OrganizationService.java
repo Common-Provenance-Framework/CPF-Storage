@@ -1,5 +1,6 @@
 package org.commonprovenance.framework.store.service.persistence.finalizedProvComponent;
 
+import org.commonprovenance.framework.store.model.Document;
 import org.commonprovenance.framework.store.model.Organization;
 
 import reactor.core.publisher.Flux;
@@ -18,5 +19,7 @@ public interface OrganizationService {
   Flux<Organization> getAllOrganizations();
 
   Mono<Organization> getOrganizationByIdentifier(String identifier);
+
+  Mono<Boolean> linkOwnedDocument(Document document);
 
 }
