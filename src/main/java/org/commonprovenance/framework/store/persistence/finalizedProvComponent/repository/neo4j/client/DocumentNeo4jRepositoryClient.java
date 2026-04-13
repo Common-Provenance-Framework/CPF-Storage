@@ -32,4 +32,11 @@ public interface DocumentNeo4jRepositoryClient extends ReactiveNeo4jRepository<D
       """)
   Mono<Integer> countByIdentifier(@Param("identifier") String identifier);
 
+  @Query("""
+      MATCH (organization:Organization)-[:owns]->(document:Document)
+      WHERE document.identifier = $identifier
+      RETURN organization.identifier as organizationIdentifier
+      """)
+  Flux<String> findOrganizationIdentifierByIdentifier(@Param("identifier") String identifier);
+
 }

@@ -209,15 +209,10 @@ public class DocumentControllerImpl implements DocumentController {
                 .flatMap(meta -> Mono.justOrEmpty(document.getToken())
                     .flatMap(token -> this.metaComponentService.addTokenToLastVersion(token).apply(
                         meta)))))
+        .delayUntil(this.organizationService::linkOwnedDocument)
         .map(Document::getToken)
         .flatMap(Mono::justOrEmpty)
         .flatMap(DTOFactory::toTokenDTO);
-  }
-
-  private Optional<String> getTrustedPartyUrl(Organization organization) {
-    return Optional.ofNullable(organization)
-        .flatMap(Organization::getTrustedParty)
-        .flatMap(TrustedParty::getUrl);
   }
 
   private Mono<QualifiedName> getReferenceMetaBundleId(CpmDocument cpm) {
@@ -439,7 +434,7 @@ public class DocumentControllerImpl implements DocumentController {
                 .withGraph(cpmStr)
                 .withCpmDocument(provFactory, cpmProvFactory, cpmFactory, true))
             .flatMap(provDoc -> Mono.justOrEmpty(provDoc.getIdentifier())
-                .flatMap(this.tokenService::getOrganizationIdentifierByDocumentIdentifier)
+                .flatMap(this.documentService::getOrganizationIdentifierByIdentifier)
                 .map(provDoc::withOrganizationIdentifier))
             .flatMap(provDoc -> Mono.justOrEmpty(provDoc)
                 .map(Document::getOrganizationIdentifier)
@@ -482,7 +477,7 @@ public class DocumentControllerImpl implements DocumentController {
                 .withGraph(cpmStr)
                 .withCpmDocument(provFactory, cpmProvFactory, cpmFactory, true))
             .flatMap(provDoc -> Mono.justOrEmpty(provDoc.getIdentifier())
-                .flatMap(this.tokenService::getOrganizationIdentifierByDocumentIdentifier)
+                .flatMap(this.documentService::getOrganizationIdentifierByIdentifier)
                 .map(provDoc::withOrganizationIdentifier))
             .flatMap(provDoc -> Mono.justOrEmpty(provDoc)
                 .map(Document::getOrganizationIdentifier)

@@ -89,6 +89,11 @@ class DocumentServiceTest {
       }
     }
 
+    @Override
+    public Mono<String> getOrganizationIdentifierByIdentifier(String identifier) {
+      // Stub implementation for testing
+      return Mono.just(TEST_ORG_ID_1);
+    }
   }
 
   private final DocumentPersistence documentRepository;

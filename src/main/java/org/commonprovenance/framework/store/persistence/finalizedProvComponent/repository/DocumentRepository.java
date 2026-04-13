@@ -14,4 +14,6 @@ public interface DocumentRepository {
 
   Mono<Boolean> existsByIdentifier(String identifier);
 
+  Mono<String> getOrganizationIdentifierByIdentifier(String identifier);
+
 }

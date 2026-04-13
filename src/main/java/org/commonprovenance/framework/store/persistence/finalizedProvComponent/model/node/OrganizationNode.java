@@ -6,6 +6,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.commonprovenance.framework.store.common.dto.HasIdentifier;
+import org.commonprovenance.framework.store.persistence.finalizedProvComponent.model.relation.Owns;
 import org.commonprovenance.framework.store.persistence.finalizedProvComponent.model.relation.Trusts;
 import org.springframework.data.annotation.PersistenceCreator;
 import org.springframework.data.neo4j.core.schema.GeneratedValue;
@@ -31,6 +32,9 @@ public class OrganizationNode implements HasIdentifier<OrganizationNode> {
   @Relationship(type = "trusts", direction = Relationship.Direction.OUTGOING)
   private final List<Trusts> trusts;
 
+  @Relationship(type = "owns", direction = Relationship.Direction.OUTGOING)
+  private final List<Owns> owns;
+
   // Constructor for full initialization (used by Neo4j when reading)
   @PersistenceCreator
   public OrganizationNode(
@@ -38,13 +42,15 @@ public class OrganizationNode implements HasIdentifier<OrganizationNode> {
       String identifier,
       String clientCertificate,
       List<String> intermediateCertificates,
-      List<Trusts> trusts) {
+      List<Trusts> trusts,
+      List<Owns> owns) {
     this.id = id;
     this.identifier = identifier;
     this.clientCertificate = clientCertificate;
     this.intermediateCertificates = intermediateCertificates;
 
     this.trusts = trusts;
+    this.owns = owns;
   }
 
   // Constructor for creating new node (id will be generated)
@@ -58,6 +64,7 @@ public class OrganizationNode implements HasIdentifier<OrganizationNode> {
     this.intermediateCertificates = intermediateCertificates;
 
     this.trusts = Collections.emptyList();
+    this.owns = Collections.emptyList();
   }
 
   // Factory methods
@@ -67,7 +74,8 @@ public class OrganizationNode implements HasIdentifier<OrganizationNode> {
         this.getIdentifier(),
         this.getClientCertificate(),
         this.getIntermediateCertificates(),
-        this.getTrusts());
+        this.getTrusts(),
+        this.getOwns());
 
   }
 
@@ -77,7 +85,8 @@ public class OrganizationNode implements HasIdentifier<OrganizationNode> {
         identifier,
         this.getClientCertificate(),
         this.getIntermediateCertificates(),
-        this.getTrusts());
+        this.getTrusts(),
+        this.getOwns());
 
   }
 
@@ -88,7 +97,18 @@ public class OrganizationNode implements HasIdentifier<OrganizationNode> {
         this.getIdentifier(),
         this.getClientCertificate(),
         this.getIntermediateCertificates(),
-        trusts);
+        trusts,
+        this.getOwns());
+  }
+
+  public OrganizationNode withOwns(List<Owns> owns) {
+    return new OrganizationNode(
+        this.getId(),
+        this.getIdentifier(),
+        this.getClientCertificate(),
+        this.getIntermediateCertificates(),
+        this.getTrusts(),
+        owns);
   }
 
   public OrganizationNode withTrustedParty(TrustedPartyNode trustedPartyEntity) {
@@ -106,7 +126,27 @@ public class OrganizationNode implements HasIdentifier<OrganizationNode> {
         this.getIdentifier(),
         this.getClientCertificate(),
         this.getIntermediateCertificates(),
-        updatedTrusts);
+        updatedTrusts,
+        this.getOwns());
+  }
+
+  public OrganizationNode withDocument(DocumentNode documentNode) {
+    if (documentNode == null) {
+      return this;
+    }
+
+    List<Owns> updatedOwns = Stream.concat(
+        this.getOwns().stream(),
+        Stream.of(new Owns(documentNode)))
+        .collect(Collectors.toList());
+
+    return new OrganizationNode(
+        this.getId(),
+        this.getIdentifier(),
+        this.getClientCertificate(),
+        this.getIntermediateCertificates(),
+        this.getTrusts(),
+        updatedOwns);
   }
 
   public String getId() {
@@ -127,6 +167,10 @@ public class OrganizationNode implements HasIdentifier<OrganizationNode> {
 
   public List<Trusts> getTrusts() {
     return trusts;
+  }
+
+  public List<Owns> getOwns() {
+    return owns;
   }
 
 }

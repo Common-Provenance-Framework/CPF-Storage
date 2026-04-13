@@ -13,6 +13,4 @@ public interface TokenService {
 
   Mono<Token> getByDocumentIdentifier(String documentIdentifier);
 
-  Mono<String> getOrganizationIdentifierByDocumentIdentifier(String documentIdentifier);
-
 }

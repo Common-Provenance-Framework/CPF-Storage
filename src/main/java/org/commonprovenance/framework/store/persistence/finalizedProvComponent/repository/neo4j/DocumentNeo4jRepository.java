@@ -58,4 +58,18 @@ public class DocumentNeo4jRepository implements DocumentRepository {
         .map(occurrence -> occurrence == 1);
   }
 
+  @Override
+  public Mono<String> getOrganizationIdentifierByIdentifier(String identifier) {
+    return client.findOrganizationIdentifierByIdentifier(identifier)
+        .single()
+        .onErrorMap(
+            NoSuchElementException.class,
+            _ -> new NotFoundException(
+                "Document with identifier '" + identifier + "' has not been found!"))
+        .onErrorMap(
+            IndexOutOfBoundsException.class,
+            _ -> new ConflictException(
+                "There is more then one document with identifier '" + identifier + "'!"));
+  }
+
 }
