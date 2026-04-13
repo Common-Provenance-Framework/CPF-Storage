@@ -12,6 +12,4 @@ public interface TokenRepository {
 
   Mono<TokenNode> getTokenByDocumentIdentifier(String documentIdentifier);
 
-  Mono<String> getOrganizationIdentifierByDocumentIdentifier(String documentIdentifier);
-
 }

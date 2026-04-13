@@ -48,18 +48,4 @@ public class TokenNeo4jRepository implements TokenRepository {
                 "There is more then one Token with document identifier '" + documentIdentifier + "'!"));
   }
 
-  @Override
-  public Mono<String> getOrganizationIdentifierByDocumentIdentifier(String documentIdentifier) {
-    return client.findOrganizationIdentifierByDocumentIdentifier(documentIdentifier)
-        .single()
-        .onErrorMap(
-            NoSuchElementException.class,
-            _ -> new NotFoundException(
-                "Token with document identifier '" + documentIdentifier + "' has not been found!"))
-        .onErrorMap(
-            IndexOutOfBoundsException.class,
-            _ -> new ConflictException(
-                "There is more then one Token with document identifier '" + documentIdentifier + "'!"));
-  }
-
 }

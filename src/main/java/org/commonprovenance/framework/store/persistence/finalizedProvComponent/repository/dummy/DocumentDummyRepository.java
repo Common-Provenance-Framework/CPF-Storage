@@ -46,4 +46,10 @@ public class DocumentDummyRepository implements DocumentRepository {
         .map(documents::containsKey);
   }
 
+  @Override
+  public Mono<String> getOrganizationIdentifierByIdentifier(String identifier) {
+    // Dummy implementation - not supported in test mode
+    return Mono.error(new UnsupportedOperationException("Not implemented in dummy repository"));
+  }
+
 }

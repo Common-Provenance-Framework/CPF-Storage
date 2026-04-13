@@ -16,11 +16,4 @@ public interface TokenNeo4jRepositoryClient extends ReactiveNeo4jRepository<Toke
       RETURN elementId(token) as id
       """)
   Flux<String> findTokenIdsByDocumentIdentifier(@Param("documentIdentifier") String documentIdentifier);
-
-  @Query("""
-      MATCH (token:Token)-[:belongs_to]->(document:Document)
-      WHERE document.identifier = $documentIdentifier
-      RETURN token.organization_identifier as organizationIdentifier
-      """)
-  Flux<String> findOrganizationIdentifierByDocumentIdentifier(@Param("documentIdentifier") String documentIdentifier);
 }
