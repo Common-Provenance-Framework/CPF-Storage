@@ -15,4 +15,6 @@ public interface DocumentService {
 
   Mono<Boolean> existsByIdentifier(String identifier);
 
+  Mono<String> getOrganizationIdentifierByIdentifier(String identifier);
+
 }

@@ -30,9 +30,4 @@ public class TokenServiceImpl implements TokenService {
   public Mono<Token> getByDocumentIdentifier(String documentIdentifier) {
     return this.persistence.getByDocumentIdentifier(documentIdentifier);
   }
-
-  @Override
-  public Mono<String> getOrganizationIdentifierByDocumentIdentifier(String documentIdentifier) {
-    return this.persistence.getOrganizationIdentifierByDocumentIdentifier(documentIdentifier);
-  }
 }
