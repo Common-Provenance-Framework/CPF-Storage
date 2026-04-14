@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
 // import java.util.Base64;
+import java.util.Map;
 
 /**
  * Utility class for parsing JWT tokens.
@@ -49,6 +50,38 @@ public class JwtUtils {
       // IOException: JSON parsing error
       // IllegalArgumentException: Base64 decoding error
       return null;
+    }
+  }
+
+  public static Map<String, Object> extractTokenGeneratorAttributes(String jwt) {
+    if (jwt == null || jwt.isBlank()) {
+      return Map.of();
+    }
+
+    try {
+      // Split JWT into parts: header.payload.signature
+      String[] parts = jwt.split("\\.");
+      if (parts.length < 2) {
+        return Map.of();
+      }
+
+      String header = Base64Utils.decodeBase64UrlToString(parts[0]);
+
+      JsonNode jsonHeader = mapper.readTree(header);
+      JsonNode trustedPartyUri = jsonHeader.get("trustedPartyUri");
+      JsonNode trustedPartyCertificate = jsonHeader.get("trustedPartyCertificate");
+
+      if (trustedPartyUri != null && trustedPartyCertificate != null) {
+        return Map.of(
+            "trustedPartyUri", trustedPartyUri.asText(),
+            "trustedPartyCertificate", trustedPartyCertificate.asText());
+      }
+
+      return Map.of();
+    } catch (IOException | IllegalArgumentException e) {
+      // IOException: JSON parsing error
+      // IllegalArgumentException: Base64 decoding error
+      return Map.of();
     }
   }
 
