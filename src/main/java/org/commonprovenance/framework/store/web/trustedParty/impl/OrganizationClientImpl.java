@@ -2,6 +2,7 @@ package org.commonprovenance.framework.store.web.trustedParty.impl;
 
 import static org.commonprovenance.framework.store.common.publisher.PublisherHelper.MONO;
 
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 
@@ -42,8 +43,8 @@ public class OrganizationClientImpl implements OrganizationClient {
   public Flux<Organization> getAll(Optional<String> trustedPartyUrl) {
     return trustedPartyUrl
         .map(this.client::buildWebClient)
-        .map(this.client.sendCustomGetManyRequest("/organizations", OrganizationTPResponseDTO.class))
-        .orElse(this.client.sendGetManyRequest("/organizations", OrganizationTPResponseDTO.class))
+        .map(this.client.sendCustomGetManyRequest("/organizations", OrganizationTPResponseDTO.class, Map.of()))
+        .orElse(this.client.sendGetManyRequest("/organizations", OrganizationTPResponseDTO.class, Map.of()))
         .flatMap(ModelFactory::toDomain);
   }
 
@@ -53,8 +54,8 @@ public class OrganizationClientImpl implements OrganizationClient {
         .apply(organizationId)
         .flatMap((String id) -> trustedPartyUrl
             .map(this.client::buildWebClient)
-            .map(this.client.sendCustomGetOneRequest("/organizations/" + id, OrganizationTPResponseDTO.class))
-            .orElse(this.client.sendGetOneRequest("/organizations/" + id, OrganizationTPResponseDTO.class)))
+            .map(this.client.sendCustomGetOneRequest("/organizations/" + id, OrganizationTPResponseDTO.class, Map.of()))
+            .orElse(this.client.sendGetOneRequest("/organizations/" + id, OrganizationTPResponseDTO.class, Map.of())))
         .flatMap(ModelFactory::toDomain);
   }
 
