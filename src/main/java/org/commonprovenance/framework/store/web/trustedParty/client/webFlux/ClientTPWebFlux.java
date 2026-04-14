@@ -1,5 +1,6 @@
 package org.commonprovenance.framework.store.web.trustedParty.client.webFlux;
 
+import java.util.Map;
 import java.util.function.Function;
 
 import org.commonprovenance.framework.store.exceptions.NotFoundException;
@@ -8,6 +9,7 @@ import org.commonprovenance.framework.store.web.trustedParty.client.webFlux.conf
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.util.UriBuilder;
 
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -36,35 +38,41 @@ public class ClientTPWebFlux implements ClientTP {
         .build();
   }
 
-  public <T> Function<WebClient, Mono<T>> sendCustomGetOneRequest(String uri, Class<T> responseType) {
+  public <T> Function<WebClient, Mono<T>> sendCustomGetOneRequest(
+      String uri,
+      Class<T> responseType,
+      Map<String, String> queryParams) {
     return (WebClient customClient) -> customClient
         .get()
-        .uri(uri)
+        .uri(uriBuilder -> buildUriWithParams(uriBuilder, uri, queryParams))
         .retrieve()
         .onStatus(status -> status.value() == 404,
             response -> Mono.error(new NotFoundException("Resource not found at: " + uri)))
         .bodyToMono(responseType);
   }
 
-  public <T> Mono<T> sendGetOneRequest(String uri, Class<T> responseType) {
+  public <T> Mono<T> sendGetOneRequest(String uri, Class<T> responseType, Map<String, String> queryParams) {
     return this.client.get()
-        .uri(uri)
+        .uri(uriBuilder -> buildUriWithParams(uriBuilder, uri, queryParams))
         .retrieve()
         .onStatus(status -> status.value() == 404,
             response -> Mono.error(new NotFoundException("Resource not found at: " + uri)))
         .bodyToMono(responseType);
   }
 
-  public <T> Flux<T> sendGetManyRequest(String uri, Class<T> responseType) {
+  public <T> Flux<T> sendGetManyRequest(String uri, Class<T> responseType, Map<String, String> queryParams) {
     return this.client.get()
-        .uri(uri)
+        .uri(uriBuilder -> buildUriWithParams(uriBuilder, uri, queryParams))
         .retrieve()
         .bodyToFlux(responseType);
   }
 
-  public <T> Function<WebClient, Flux<T>> sendCustomGetManyRequest(String uri, Class<T> responseType) {
+  public <T> Function<WebClient, Flux<T>> sendCustomGetManyRequest(
+      String uri,
+      Class<T> responseType,
+      Map<String, String> queryParams) {
     return (WebClient customClient) -> customClient.get()
-        .uri(uri)
+        .uri(uriBuilder -> buildUriWithParams(uriBuilder, uri, queryParams))
         .retrieve()
         .bodyToFlux(responseType);
   }
@@ -115,6 +123,14 @@ public class ClientTPWebFlux implements ClientTP {
         .uri(uri)
         .retrieve()
         .bodyToMono(responseType);
+  }
+
+  private java.net.URI buildUriWithParams(UriBuilder uriBuilder, String uri, Map<String, String> queryParams) {
+    UriBuilder builder = uriBuilder.path(uri);
+    if (queryParams != null) {
+      queryParams.forEach(builder::queryParam);
+    }
+    return builder.build();
   }
 
 }

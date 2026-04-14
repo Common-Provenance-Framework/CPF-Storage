@@ -46,14 +46,17 @@ public class ClientTPDummy implements ClientTP {
   }
 
   @Override
-  public <T> Function<WebClient, Mono<T>> sendCustomGetOneRequest(String uri, Class<T> responseType) {
+  public <T> Function<WebClient, Mono<T>> sendCustomGetOneRequest(
+      String uri,
+      Class<T> responseType,
+      Map<String, String> queryParams) {
     // ignore custom TP for now
     // TODO: index etities by TP id
-    return (WebClient _) -> sendGetOneRequest(uri, responseType);
+    return (WebClient _) -> sendGetOneRequest(uri, responseType, queryParams);
   }
 
   @Override
-  public <T> Mono<T> sendGetOneRequest(String uri, Class<T> responseType) {
+  public <T> Mono<T> sendGetOneRequest(String uri, Class<T> responseType, Map<String, String> queryParams) {
     return Mono.justOrEmpty(extractIdFromUri(uri))
         .flatMap((String id) -> {
           if (responseType.equals(OrganizationTPResponseDTO.class)) {
@@ -70,14 +73,17 @@ public class ClientTPDummy implements ClientTP {
   }
 
   @Override
-  public <T> Function<WebClient, Flux<T>> sendCustomGetManyRequest(String uri, Class<T> responseType) {
+  public <T> Function<WebClient, Flux<T>> sendCustomGetManyRequest(
+      String uri,
+      Class<T> responseType,
+      Map<String, String> queryParams) {
     // ignore custom TP for now
     // TODO: index etities by TP id
-    return (WebClient _) -> sendGetManyRequest(uri, responseType);
+    return (WebClient _) -> sendGetManyRequest(uri, responseType, queryParams);
   }
 
   @Override
-  public <T> Flux<T> sendGetManyRequest(String uri, Class<T> responseType) {
+  public <T> Flux<T> sendGetManyRequest(String uri, Class<T> responseType, Map<String, String> queryParams) {
     if (responseType.equals(OrganizationTPResponseDTO.class)) {
       return Flux.fromIterable(organizations.values())
           .map(responseType::cast);
