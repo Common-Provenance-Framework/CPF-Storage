@@ -9,11 +9,11 @@ import java.util.function.Function;
 
 import org.commonprovenance.framework.store.common.dto.HasFormat;
 import org.commonprovenance.framework.store.common.dto.HasId;
+import org.commonprovenance.framework.store.common.utils.JwtUtils;
 import org.commonprovenance.framework.store.common.utils.Validators;
 import org.commonprovenance.framework.store.controller.dto.form.DocumentFormDTO;
 import org.commonprovenance.framework.store.controller.dto.form.OrganizationFormDTO;
 import org.commonprovenance.framework.store.exceptions.ArgumentValidatorException;
-import org.commonprovenance.framework.store.model.AdditionalData;
 import org.commonprovenance.framework.store.model.Document;
 import org.commonprovenance.framework.store.model.Format;
 import org.commonprovenance.framework.store.model.Organization;
@@ -96,22 +96,11 @@ public class ModelFactory {
   }
 
   private static Token fromPersistance(TokenNode token) {
-
-    Function<TokenNode, AdditionalData> additionalDataFactory = (TokenNode node) -> new AdditionalData(
-        node.getBundle(),
-        node.getOrganizationIdentifier(),
-        node.getHashFunction(),
-        node.getTrustedPartyUri(),
-        node.getTrustedPartyCertificate(),
-        node.getMessageTimestamp());
-
     return new Token(
-        token.getHash(),
-        token.getSignature(),
-        additionalDataFactory.apply(token),
+        token.getJwt(),
         ModelFactory.toDomain(token.getWasIssuedBy().getFirst().getTrustedParty()),
         ModelFactory.toDomain(token.getBelongsTo().getFirst().getDocument()),
-        token.getTokenTimestamp());
+        JwtUtils.extractTokenTimestamp(token.getJwt())); // TODO: Get token creation from generation Activity
   }
 
   private static Organization fromDto(OrganizationTPResponseDTO dto) {
@@ -136,20 +125,11 @@ public class ModelFactory {
   }
 
   private static Token fromDto(TokenTPResponseDTO dto) {
-    AdditionalData additionalData = new AdditionalData(
-        dto.getData().getAdditionalData().getBundle(),
-        dto.getData().getOriginatorId(),
-        dto.getData().getAdditionalData().getHashFunction(),
-        dto.getData().getAdditionalData().getTrustedPartyUri(),
-        dto.getData().getAdditionalData().getTrustedPartyCertificate(),
-        dto.getData().getDocumentCreationTimestamp());
     return new Token(
-        dto.getData().getDocumentDigest(),
-        dto.getSignature(),
-        additionalData,
+        dto.getJwt(),
         null,
         null,
-        dto.getData().getDocumentCreationTimestamp());
+        JwtUtils.extractTokenTimestamp(dto.getJwt()));
   }
 
   private static TrustedParty fromDto(TrustedPartyTPResponseDTO dto) {
