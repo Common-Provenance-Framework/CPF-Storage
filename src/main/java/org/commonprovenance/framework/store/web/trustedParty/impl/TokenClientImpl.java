@@ -2,6 +2,7 @@ package org.commonprovenance.framework.store.web.trustedParty.impl;
 
 import static org.commonprovenance.framework.store.common.publisher.PublisherHelper.MONO;
 
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 
@@ -34,10 +35,15 @@ public class TokenClientImpl implements TokenClient {
   public Function<String, Flux<Token>> getAllByOrganization(Optional<String> trustedPartyUrl) {
     return (String organizationId) -> Mono.just(organizationId)
         .flatMap(MONO.makeSureNotNullWithMessage("Organization id can not be null!"))
-        .flatMapMany((String orgId) -> trustedPartyUrl
-            .map(this.client::buildWebClient)
-            .map(this.client.sendCustomGetManyRequest(getTokensUri(orgId), TokenTPResponseDTO.class))
-            .orElse(this.client.sendGetManyRequest(getTokensUri(orgId), TokenTPResponseDTO.class)))
+        .flatMapMany((String orgId) -> {
+          String uri = getTokensUri(orgId);
+          Map<String, String> queryParams = Map.of("tokenFormat", "jwt");
+
+          return trustedPartyUrl
+              .map(this.client::buildWebClient)
+              .map(this.client.sendCustomGetManyRequest(uri, TokenTPResponseDTO.class, queryParams))
+              .orElse(this.client.sendGetManyRequest(uri, TokenTPResponseDTO.class, queryParams));
+        })
         .flatMap(ModelFactory::toDomain);
   }
 
@@ -48,11 +54,12 @@ public class TokenClientImpl implements TokenClient {
       Format documentFormat,
       Optional<String> trustedPartyUrl) {
     String uri = getTokensUri(organizationId) + "/" + bundle_identifier.getUri() + "/" + documentFormat.toString();
+    Map<String, String> queryParams = Map.of("tokenFormat", "jwt");
 
     return trustedPartyUrl
         .map(this.client::buildWebClient)
-        .map(this.client.sendCustomGetOneRequest(uri, TokenTPResponseDTO.class))
-        .orElse(client.sendGetOneRequest(uri, TokenTPResponseDTO.class))
+        .map(this.client.sendCustomGetOneRequest(uri, TokenTPResponseDTO.class, queryParams))
+        .orElse(client.sendGetOneRequest(uri, TokenTPResponseDTO.class, queryParams))
         .flatMap(ModelFactory::toDomain);
   }
 }
