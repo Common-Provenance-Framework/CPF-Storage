@@ -17,6 +17,7 @@ public class IssueTokenTPFormDTO extends ValidatableDTO
   private final String signature;
   private final String type;
   private final Long createdOn;
+  private final String tokenFormat;
 
   public IssueTokenTPFormDTO() {
     this.organizationId = null;
@@ -25,6 +26,7 @@ public class IssueTokenTPFormDTO extends ValidatableDTO
     this.signature = null;
     this.type = null;
     this.createdOn = Instant.now().getEpochSecond();
+    this.tokenFormat = "jwt";
   }
 
   public IssueTokenTPFormDTO(
@@ -33,13 +35,15 @@ public class IssueTokenTPFormDTO extends ValidatableDTO
       String documentFormat,
       String signature,
       String type,
-      Long createdOn) {
+      Long createdOn,
+      String tokenFormat) {
     this.organizationId = organizationId;
     this.document = document;
     this.documentFormat = documentFormat;
     this.signature = signature;
     this.type = type;
     this.createdOn = createdOn;
+    this.tokenFormat = tokenFormat != null ? tokenFormat : "jwt";
   }
 
   @Override
@@ -50,7 +54,8 @@ public class IssueTokenTPFormDTO extends ValidatableDTO
         this.getDocumentFormat(),
         this.getSignature(),
         this.getType(),
-        this.getCreatedOn());
+        this.getCreatedOn(),
+        this.getTokenFormat());
   }
 
   @Override
@@ -61,7 +66,8 @@ public class IssueTokenTPFormDTO extends ValidatableDTO
         this.getDocumentFormat(),
         this.getSignature(),
         this.getType(),
-        this.getCreatedOn());
+        this.getCreatedOn(),
+        this.getTokenFormat());
   }
 
   public IssueTokenTPFormDTO withDocumentFormat(String format) {
@@ -71,7 +77,8 @@ public class IssueTokenTPFormDTO extends ValidatableDTO
         format,
         this.getSignature(),
         this.getType(),
-        this.getCreatedOn());
+        this.getCreatedOn(),
+        this.getTokenFormat());
   }
 
   public IssueTokenTPFormDTO withSignature(String signature) {
@@ -81,7 +88,8 @@ public class IssueTokenTPFormDTO extends ValidatableDTO
         this.getDocumentFormat(),
         signature,
         this.getType(),
-        this.getCreatedOn());
+        this.getCreatedOn(),
+        this.getTokenFormat());
   }
 
   public IssueTokenTPFormDTO withGraphType(String type) {
@@ -91,7 +99,8 @@ public class IssueTokenTPFormDTO extends ValidatableDTO
         this.getDocumentFormat(),
         this.getSignature(),
         type,
-        this.getCreatedOn());
+        this.getCreatedOn(),
+        this.getTokenFormat());
   }
 
   public IssueTokenTPFormDTO withCreatedOn(Long createdOn) {
@@ -101,7 +110,19 @@ public class IssueTokenTPFormDTO extends ValidatableDTO
         this.getDocumentFormat(),
         this.getSignature(),
         this.getType(),
-        createdOn);
+        createdOn,
+        this.getTokenFormat());
+  }
+
+  public IssueTokenTPFormDTO withTokenFormat(String tokenFormat) {
+    return new IssueTokenTPFormDTO(
+        this.getOrganizationId(),
+        this.getDocument(),
+        this.getDocumentFormat(),
+        this.getSignature(),
+        this.getType(),
+        this.getCreatedOn(),
+        tokenFormat);
   }
 
   @Override
@@ -127,5 +148,9 @@ public class IssueTokenTPFormDTO extends ValidatableDTO
 
   public Long getCreatedOn() {
     return createdOn;
+  }
+
+  public String getTokenFormat() {
+    return tokenFormat;
   }
 }
