@@ -64,16 +64,7 @@ public class NodeFactory {
   }
 
   private static TokenNode fromModel(Token model) {
-    return new TokenNode(
-        model.getHash(),
-        model.getSignature(),
-        model.getAdditionalData().getOrganizationIdentifier(),
-        model.getAdditionalData().getBundle(),
-        model.getAdditionalData().getHashFunction(),
-        model.getAdditionalData().getTrustedPartyUri(),
-        model.getAdditionalData().getTrustedPartyCertificate(),
-        model.getAdditionalData().getDocumentTimestamp(),
-        model.getCreatedOn());
+    return new TokenNode(model.getJwt());
   }
 
   // ---

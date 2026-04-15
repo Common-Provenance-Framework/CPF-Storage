@@ -30,4 +30,31 @@ public class Base64Utils {
   public static String encode(byte[] bytesData) {
     return Base64.getEncoder().encodeToString(bytesData);
   }
+
+  // Base64Url methods (for JWT and URL-safe encoding)
+
+  public static String decodeBase64UrlToString(String base64UrlData) {
+    return Base64Utils.decodeBase64UrlToString(base64UrlData, StandardCharsets.UTF_8);
+  }
+
+  public static String decodeBase64UrlToString(String base64UrlData, Charset charset) {
+    byte[] decodedBytes = Base64Utils.decodeBase64Url(base64UrlData);
+    return BytesUtils.bytesToString(decodedBytes, charset);
+  }
+
+  public static byte[] decodeBase64Url(String base64UrlData) {
+    return Base64.getUrlDecoder().decode(base64UrlData);
+  }
+
+  public static String encodeBase64UrlFromString(String stringData) {
+    return Base64Utils.encodeBase64UrlFromString(stringData, StandardCharsets.UTF_8);
+  }
+
+  public static String encodeBase64UrlFromString(String stringData, Charset charset) {
+    return Base64Utils.encodeBase64Url(BytesUtils.stringToBytes(stringData, charset));
+  }
+
+  public static String encodeBase64Url(byte[] bytesData) {
+    return Base64.getUrlEncoder().withoutPadding().encodeToString(bytesData);
+  }
 }

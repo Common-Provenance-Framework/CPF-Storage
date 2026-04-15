@@ -10,6 +10,7 @@ import java.util.function.Function;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import org.commonprovenance.framework.store.common.utils.JwtUtils;
 import org.commonprovenance.framework.store.config.AppConfiguration;
 import org.commonprovenance.framework.store.exceptions.ConflictException;
 import org.commonprovenance.framework.store.exceptions.NotFoundException;
@@ -210,9 +211,7 @@ public class BundlePersistenceImpl implements BundlePersistence {
           token.getTrustedParty().getName(),
           // TODO: Create Enum for konown types
           "cpm:TrustedParty",
-          Map.of(
-              "trustedPartyUri", token.getAdditionalData().getTrustedPartyUri(),
-              "trustedPartyCertificate", token.getAdditionalData().getTrustedPartyCertificate()));
+          JwtUtils.extractTokenGeneratorAttributes(token.getJwt()));
 
       // TODO: Create factory method for this
       ActivityNode tokenGenerationNode = new ActivityNode(
@@ -229,17 +228,7 @@ public class BundlePersistenceImpl implements BundlePersistence {
           UUID.randomUUID().toString(),
           // TODO: Create Enum for konown types
           "cpm:Token",
-          Map.of(
-              "originatorId", token.getAdditionalData().getOrganizationIdentifier(),
-              "authorityId", token.getTrustedParty().getName(),
-              "tokenTimestamp", token.getCreatedOn(),
-              "documentCreationTimestamp", token.getAdditionalData().getDocumentTimestamp(),
-              "documentDigest", token.getHash(),
-              "bundle", token.getAdditionalData().getBundle(),
-              "hashFunction", token.getAdditionalData().getHashFunction(),
-              "trustedPartyUri", token.getAdditionalData().getTrustedPartyUri(),
-              "trustedPartyCertificate", token.getAdditionalData().getTrustedPartyCertificate(),
-              "signature", token.getSignature()))
+          Map.of("jwt", token.getJwt()))
           .withWasDerivedFromEntity(versionEntity)
           .withWasGeneratedByActivity(tokenGenerationNode)
           .withWasAttributedToAgent(tokenGeneratorNode);

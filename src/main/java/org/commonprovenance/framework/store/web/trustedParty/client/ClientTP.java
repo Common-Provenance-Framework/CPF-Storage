@@ -12,13 +12,19 @@ public interface ClientTP {
 
   WebClient buildWebClient(String trustedPartyUrl);
 
-  <T> Mono<T> sendGetOneRequest(String uri, Class<T> responseType);
+  <T> Mono<T> sendGetOneRequest(String uri, Class<T> responseType, java.util.Map<String, String> queryParams);
 
-  <T> Function<WebClient, Mono<T>> sendCustomGetOneRequest(String uri, Class<T> responseType);
+  <T> Function<WebClient, Mono<T>> sendCustomGetOneRequest(
+      String uri,
+      Class<T> responseType,
+      java.util.Map<String, String> queryParams);
 
-  <T> Flux<T> sendGetManyRequest(String uri, Class<T> responseType);
+  <T> Flux<T> sendGetManyRequest(String uri, Class<T> responseType, java.util.Map<String, String> queryParams);
 
-  <T> Function<WebClient, Flux<T>> sendCustomGetManyRequest(String uri, Class<T> responseType);
+  <T> Function<WebClient, Flux<T>> sendCustomGetManyRequest(
+      String uri,
+      Class<T> responseType,
+      java.util.Map<String, String> queryParams);
 
   <T, B> Function<B, Mono<T>> sendPostRequest(String uri, Class<T> responseType);
 

@@ -1,25 +1,19 @@
 package org.commonprovenance.framework.store.model;
 
 public class Token {
-  private final String hash;
-  private final String signature;
+  private final String jwt;
 
-  private final AdditionalData additionalData;
   private final TrustedParty trustedParty;
   private final Document document;
 
   private final Long createdOn;
 
   public Token(
-      String hash,
-      String signature,
-      AdditionalData additionalData,
+      String jwt,
       TrustedParty trustedParty,
       Document document,
       Long createdOn) {
-    this.hash = hash;
-    this.signature = signature;
-    this.additionalData = additionalData;
+    this.jwt = jwt;
     this.trustedParty = trustedParty;
     this.document = document;
     this.createdOn = createdOn;
@@ -27,9 +21,7 @@ public class Token {
 
   public Token withTrustedParty(TrustedParty trustedParty) {
     return new Token(
-        this.getHash(),
-        this.getSignature(),
-        this.getAdditionalData(),
+        this.getJwt(),
         trustedParty,
         this.getDocument(),
         this.getCreatedOn());
@@ -37,24 +29,14 @@ public class Token {
 
   public Token withDocument(Document document) {
     return new Token(
-        this.getHash(),
-        this.getSignature(),
-        this.getAdditionalData(),
+        this.getJwt(),
         this.getTrustedParty(),
         document,
         this.getCreatedOn());
   }
 
-  public String getHash() {
-    return hash;
-  }
-
-  public String getSignature() {
-    return signature;
-  }
-
-  public AdditionalData getAdditionalData() {
-    return additionalData;
+  public String getJwt() {
+    return jwt;
   }
 
   public TrustedParty getTrustedParty() {

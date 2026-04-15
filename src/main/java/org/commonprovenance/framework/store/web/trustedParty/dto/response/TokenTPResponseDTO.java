@@ -1,21 +1,13 @@
 package org.commonprovenance.framework.store.web.trustedParty.dto.response;
 
 public class TokenTPResponseDTO {
-  private final TokenDataTPResponseDTO data;
-  private final String signature;
+  private final String jwt;
 
-  public TokenTPResponseDTO(
-      TokenDataTPResponseDTO data,
-      String signature) {
-    this.data = data;
-    this.signature = signature;
+  public TokenTPResponseDTO(String jwt) {
+    this.jwt = jwt;
   }
 
-  public TokenDataTPResponseDTO getData() {
-    return data;
-  }
-
-  public String getSignature() {
-    return signature;
+  public String getJwt() {
+    return jwt;
   }
 }

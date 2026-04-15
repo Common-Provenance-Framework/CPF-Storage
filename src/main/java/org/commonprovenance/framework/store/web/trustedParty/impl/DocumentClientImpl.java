@@ -1,5 +1,6 @@
 package org.commonprovenance.framework.store.web.trustedParty.impl;
 
+import java.util.Map;
 import java.util.Optional;
 
 import org.commonprovenance.framework.store.model.Document;
@@ -32,8 +33,8 @@ public class DocumentClientImpl implements DocumentClient {
         + documentFormat.toString();
     return trustedPartyUrl
         .map(this.client::buildWebClient)
-        .map(this.client.sendCustomGetOneRequest(uri, DocumentTPResponseDTO.class))
-        .orElse(this.client.sendGetOneRequest(uri, DocumentTPResponseDTO.class))
+        .map(this.client.sendCustomGetOneRequest(uri, DocumentTPResponseDTO.class, Map.of()))
+        .orElse(this.client.sendGetOneRequest(uri, DocumentTPResponseDTO.class, Map.of()))
         .flatMap(ModelFactory::toDomain);
   }
 

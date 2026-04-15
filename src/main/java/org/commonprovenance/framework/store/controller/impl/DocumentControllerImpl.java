@@ -442,7 +442,7 @@ public class DocumentControllerImpl implements DocumentController {
                 .map(Optional::ofNullable)
                 .flatMap(optUrl -> this.trustedPartyWebService.issueDomainSpecificGraphToken(optUrl).apply(provDoc))
                 .map(token -> token.withDocument(provDoc)))
-            .flatMap(token -> Mono.justOrEmpty(token.getAdditionalData().getOrganizationIdentifier())
+            .flatMap(token -> Mono.justOrEmpty(token.getDocument().getOrganizationIdentifier())
                 .flatMap(this.trustedPartyService::getTrustedPartyByOrganizationIdentifier)
                 .map(token::withTrustedParty)))
         .flatMap(DTOFactory::toDocumentDTO);
@@ -485,7 +485,7 @@ public class DocumentControllerImpl implements DocumentController {
                 .map(Optional::ofNullable)
                 .flatMap(optUrl -> this.trustedPartyWebService.issueDomainSpecificGraphToken(optUrl).apply(provDoc))
                 .map(token -> token.withDocument(provDoc)))
-            .flatMap(token -> Mono.justOrEmpty(token.getAdditionalData().getOrganizationIdentifier())
+            .flatMap(token -> Mono.justOrEmpty(token.getDocument().getOrganizationIdentifier())
                 .flatMap(this.trustedPartyService::getTrustedPartyByOrganizationIdentifier)
                 .map(token::withTrustedParty)))
         .flatMap(DTOFactory::toDocumentDTO);

@@ -6,7 +6,6 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 
 import org.commonprovenance.framework.store.controller.dto.response.DocumentResponseDTO;
 import org.commonprovenance.framework.store.exceptions.InternalApplicationException;
-import org.commonprovenance.framework.store.model.AdditionalData;
 import org.commonprovenance.framework.store.model.Document;
 import org.commonprovenance.framework.store.model.Format;
 import org.commonprovenance.framework.store.model.Token;
@@ -44,13 +43,7 @@ public class DTOFactoryTest {
         -----END CERTIFICATE-----
         """;
 
-    AdditionalData additionalData = new AdditionalData(
-        "http://localhost:8080/api/v1/documents/DnaSequencingBundle_V0",
-        "6fb292aa-ee38-48ae-998f-079ad9d01e7c",
-        "SHA256",
-        "https://trusted-party.org/",
-        cert,
-        1774953179L);
+    String jwt = "eyJhbGciOiJFUzI1NiIsImJ1bmRsZSI6Imh0dHA6Ly9sb2NhbGhvc3Q6ODA4MC9hcGkvdjEvZG9jdW1lbnRzL2RjOGVmZWQwLTAwMzUtNDAyOS05MDY1LThjNDY2NjcxNTFkYiIsImhhc2hGdW5jdGlvbiI6IlNIQTI1NiIsInRydXN0ZWRQYXJ0eUNlcnRpZmljYXRlIjoiLS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tXG5NSUlDTWpDQ0FkaWdBd0lCQWdJVVNMajVZN1BYSVMxM3FQRVBEZGxJTkJuUXpvZ3dDZ1lJS29aSXpqMEVBd0l3XG5iVEVMTUFrR0ExVUVCaE1DUlZVeE9qQTRCZ05WQkFvTU1VUnBjM1J5YVdKMWRHVmtJRkJ5YjNabGJtRnVZMlVnXG5SR1Z0YnlCRFpYSjBhV1pwWTJGMFpTQkJkWFJvYjNKcGRIa3hJakFnQmdOVkJBTU1HVVJRUkNCRFpYSjBhV1pwXG5ZMkYwWlNCQmRYUm9iM0pwZEhrd0hoY05NalF4TVRFMk1ESTFPVFV5V2hjTk16UXhNVEUwTURJMU9UVXlXakJkXG5NUXN3Q1FZRFZRUUdFd0pEV2pFeU1EQUdBMVVFQ2d3cFJHbHpkSEpwWW5WMFpXUWdVSEp2ZG1WdVlXNWpaU0JFXG5aVzF2SUZSeWRYTjBaV1FnVUdGeWRIa3hHakFZQmdOVkJBTU1FVVJRUkNCVWNuVnpkR1ZrSUZCaGNuUjVNRmt3XG5Fd1lIS29aSXpqMENBUVlJS29aSXpqMERBUWNEUWdBRStWOGtUNGprdkVXbVgzMDFLQVM5ZWtsbW5STmk2Z1U5XG4rS0h4dVFwa1NPaE1UcTk2Q0JYRnBmb2tSZDd0NVZkclJ5MHVxWnN5U05wNWtXMGhuUU1KV2FObU1HUXdFZ1lEXG5WUjBUQVFIL0JBZ3dCZ0VCL3dJQkFEQU9CZ05WSFE4QkFmOEVCQU1DQVlZd0hRWURWUjBPQkJZRUZNQ25QUmppXG5Yb2tUN3F1d1pSQjE2QUFnejdibk1COEdBMVVkSXdRWU1CYUFGQ3lFS3dpMWp2ZFBxZmlVK05kSC9udmg3UFlaXG5NQW9HQ0NxR1NNNDlCQU1DQTBnQU1FVUNJUUN5WnJVU2hWcXJvaERxZHpkT0ZtQXlGRHB3TUFPOEk2amFodmcxXG5GUkFaWWdJZ1ZoNFMydFFuMTJYWWRkNUlTc0NwQUJzaDZacmpTaVZZcnQyVDFPMW5Rc3c9XG4tLS0tLUVORCBDRVJUSUZJQ0FURS0tLS0tXG4iLCJ0cnVzdGVkUGFydHlVcmkiOiJ0cnVzdGVkLXBhcnR5OjgwMjAiLCJ0eXAiOiJKV1QifQ.eyJhdXRob3JpdHlJZCI6IlRydXN0ZWRfUGFydHkiLCJkb2N1bWVudENyZWF0aW9uVGltZXN0YW1wIjoxNzc2MDc5OTM5LCJkb2N1bWVudERpZ2VzdCI6ImNiMjRlMTYxYzAxM2QxZTE5MjNhZmI0MWU2ODEyYWQ0OGU4MTM1MGQwNDM1MTE4MmFlZWNhYjRiZDY1YzJjY2EiLCJvcmlnaW5hdG9ySWQiOiI2ZmIyOTJhYS1lZTM4LTQ4YWUtOTk4Zi0wNzlhZDlkMDFlN2MiLCJ0b2tlblRpbWVzdGFtcCI6MTc3NjA3OTkzOX0.jsJt6Ny17qpN3ynMg3HBVXHWLc6b7yFfUEkGnsqjyscw3rsUYKKRv-BpAlarBdVLUYWK9IelRehha88KwOr89w";
 
     TrustedParty trustedParty = new TrustedParty(
         "Trusted_Party",
@@ -69,21 +62,18 @@ public class DTOFactoryTest {
         signature);
 
     Token token = new Token(
-        "411ad4a53083e377b1eceb38bdeea7ea15289fe68b19d95ea49607ae172e694f",
-        "MEQCICcnuE4gQhuE5fmqzDLfKDe/ok0XClMRsjLYuRVdscgwAiBBso51AFdySZOPhJo62hIDWvCf5G67JJY6YQMveDLeVA==",
-        additionalData,
+        jwt,
         trustedParty,
         document,
         1774953179L);
+
     StepVerifier.create(DTOFactory.toDocumentDTO(token))
         .assertNext((DocumentResponseDTO response) -> {
           assertEquals(base64StringGraph, response.getDocument(),
               "response should have document field with exact value");
 
-          assertEquals(token.getSignature(), response.getToken().getSignature(),
-              "response should have token field with exact signature");
-
-          // TODO: ...
+          assertEquals(jwt, response.getToken().getJwt(),
+              "response should have token field with exact jwt");
         })
         .verifyComplete();
   }
@@ -97,8 +87,6 @@ public class DTOFactoryTest {
           assertInstanceOf(InternalApplicationException.class, error);
           assertEquals("Input parameter can not be null.", error.getMessage());
           assertNull(error.getCause());
-          // assertInstanceOf(InternalApplicationException.class, error.getCause());
-          // assertNull(error.getCause().getMessage());
         })
         .verify();
   }

@@ -2,6 +2,7 @@ package org.commonprovenance.framework.store.web.trustedParty.impl;
 
 import static org.commonprovenance.framework.store.common.publisher.PublisherHelper.MONO;
 
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 
@@ -35,8 +36,8 @@ public class CertificateClientImpl implements CertificateClient {
         .flatMap((String id) -> {
           return trustedPartyUrl
               .map(this.client::buildWebClient)
-              .map(this.client.sendCustomGetOneRequest(getUri(id), CertificateTPResponseDTO.class))
-              .orElse(this.client.sendGetOneRequest(getUri(id), CertificateTPResponseDTO.class));
+              .map(this.client.sendCustomGetOneRequest(getUri(id), CertificateTPResponseDTO.class, Map.of()))
+              .orElse(this.client.sendGetOneRequest(getUri(id), CertificateTPResponseDTO.class, Map.of()));
         })
         .flatMap(ModelFactory::toDomain);
   }

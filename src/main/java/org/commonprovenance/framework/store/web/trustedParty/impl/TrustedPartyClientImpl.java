@@ -1,5 +1,6 @@
 package org.commonprovenance.framework.store.web.trustedParty.impl;
 
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 
@@ -31,8 +32,8 @@ public class TrustedPartyClientImpl implements TrustedPartyClient {
   public Mono<TrustedParty> getInfo(Optional<String> trustedPartyUrl) {
     return Mono.justOrEmpty(trustedPartyUrl)
         .map(this.client::buildWebClient)
-        .flatMap(this.client.sendCustomGetOneRequest("/info", TrustedPartyTPResponseDTO.class))
-        .switchIfEmpty(this.client.sendGetOneRequest("/info", TrustedPartyTPResponseDTO.class))
+        .flatMap(this.client.sendCustomGetOneRequest("/info", TrustedPartyTPResponseDTO.class, Map.of()))
+        .switchIfEmpty(this.client.sendGetOneRequest("/info", TrustedPartyTPResponseDTO.class, Map.of()))
         .flatMap(ModelFactory.toDomain(
             trustedPartyUrl.orElse(this.client.getUrl()),
             trustedPartyUrl.isPresent() ? false : true));

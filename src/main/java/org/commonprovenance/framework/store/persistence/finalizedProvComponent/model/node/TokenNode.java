@@ -12,7 +12,6 @@ import org.springframework.data.annotation.PersistenceCreator;
 import org.springframework.data.neo4j.core.schema.GeneratedValue;
 import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Node;
-import org.springframework.data.neo4j.core.schema.Property;
 import org.springframework.data.neo4j.core.schema.Relationship;
 
 @Node("Token")
@@ -22,28 +21,7 @@ public class TokenNode implements HasId {
   @GeneratedValue
   private final String id;
 
-  private final String hash;
-  private final String signature;
-
-  @Property("organization_identifier")
-  private final String organizationIdentifier;
-
-  private final String bundle;
-
-  @Property("hash_function")
-  private final String hashFunction;
-
-  @Property("trusted_party_uri")
-  private final String trustedPartyUri;
-
-  @Property("trusted_party_certificate")
-  private final String trustedPartyCertificate;
-
-  @Property("message_timestamp")
-  private final Long messageTimestamp;
-
-  @Property("token_timestamp")
-  private final Long tokenTimestamp;
+  private final String jwt;
 
   @Relationship(type = "was_issued_by", direction = Relationship.Direction.OUTGOING)
   private final List<WasIssuedBy> wasIssuedBy;
@@ -55,54 +33,19 @@ public class TokenNode implements HasId {
   @PersistenceCreator
   public TokenNode(
       String id,
-      String hash,
-      String signature,
-      String organizationIdentifier,
-      String bundle,
-      String hashFunction,
-      String trustedPartyUri,
-      String trustedPartyCertificate,
-      Long messageTimestamp,
-      Long tokenTimestamp,
+      String jwt,
       List<WasIssuedBy> wasIssuedBy,
       List<BelongsTo> belongsTo) {
     this.id = id;
-    this.hash = hash;
-    this.signature = signature;
-    this.organizationIdentifier = organizationIdentifier;
-    this.bundle = bundle;
-    this.hashFunction = hashFunction;
-    this.trustedPartyUri = trustedPartyUri;
-    this.trustedPartyCertificate = trustedPartyCertificate;
-    this.messageTimestamp = messageTimestamp;
-    this.tokenTimestamp = tokenTimestamp;
-
+    this.jwt = jwt;
     this.wasIssuedBy = wasIssuedBy;
     this.belongsTo = belongsTo;
   }
 
   // Constructor for creating new node (id will be generated)
-  public TokenNode(
-      String hash,
-      String signature,
-      String organizationIdentifier,
-      String bundle,
-      String hashFunction,
-      String trustedPartyUri,
-      String trustedPartyCertificate,
-      Long messageTimestamp,
-      Long tokenTimestamp) {
+  public TokenNode(String jwt) {
     this.id = null;
-    this.hash = hash;
-    this.signature = signature;
-    this.organizationIdentifier = organizationIdentifier;
-    this.bundle = bundle;
-    this.hashFunction = hashFunction;
-    this.trustedPartyUri = trustedPartyUri;
-    this.trustedPartyCertificate = trustedPartyCertificate;
-    this.messageTimestamp = messageTimestamp;
-    this.tokenTimestamp = tokenTimestamp;
-
+    this.jwt = jwt;
     this.wasIssuedBy = Collections.emptyList();
     this.belongsTo = Collections.emptyList();
   }
@@ -120,15 +63,7 @@ public class TokenNode implements HasId {
 
     return new TokenNode(
         this.getId(),
-        this.getHash(),
-        this.getSignature(),
-        this.getOrganizationIdentifier(),
-        this.getBundle(),
-        this.getHashFunction(),
-        this.getTrustedPartyUri(),
-        this.getTrustedPartyCertificate(),
-        this.getMessageTimestamp(),
-        this.getTokenTimestamp(),
+        this.getJwt(),
         updatedWasIssuedBy,
         this.getBelongsTo());
   }
@@ -137,15 +72,7 @@ public class TokenNode implements HasId {
   public TokenNode withWasIssuedBy(List<WasIssuedBy> wasIssuedBy) {
     return new TokenNode(
         this.getId(),
-        this.getHash(),
-        this.getSignature(),
-        this.getOrganizationIdentifier(),
-        this.getBundle(),
-        this.getHashFunction(),
-        this.getTrustedPartyUri(),
-        this.getTrustedPartyCertificate(),
-        this.getMessageTimestamp(),
-        this.getTokenTimestamp(),
+        this.getJwt(),
         wasIssuedBy,
         this.getBelongsTo());
   }
@@ -162,15 +89,7 @@ public class TokenNode implements HasId {
 
     return new TokenNode(
         this.getId(),
-        this.getHash(),
-        this.getSignature(),
-        this.getOrganizationIdentifier(),
-        this.getBundle(),
-        this.getHashFunction(),
-        this.getTrustedPartyUri(),
-        this.getTrustedPartyCertificate(),
-        this.getMessageTimestamp(),
-        this.getTokenTimestamp(),
+        this.getJwt(),
         this.getWasIssuedBy(),
         updatedBelongsTo);
   }
@@ -179,15 +98,7 @@ public class TokenNode implements HasId {
   public TokenNode withBelongsTo(List<BelongsTo> belongsTo) {
     return new TokenNode(
         this.getId(),
-        this.getHash(),
-        this.getSignature(),
-        this.getOrganizationIdentifier(),
-        this.getBundle(),
-        this.getHashFunction(),
-        this.getTrustedPartyUri(),
-        this.getTrustedPartyCertificate(),
-        this.getMessageTimestamp(),
-        this.getTokenTimestamp(),
+        this.getJwt(),
         this.getWasIssuedBy(),
         belongsTo);
   }
@@ -196,40 +107,8 @@ public class TokenNode implements HasId {
     return this.id;
   }
 
-  public String getHash() {
-    return hash;
-  }
-
-  public String getSignature() {
-    return signature;
-  }
-
-  public String getOrganizationIdentifier() {
-    return organizationIdentifier;
-  }
-
-  public String getBundle() {
-    return bundle;
-  }
-
-  public String getHashFunction() {
-    return hashFunction;
-  }
-
-  public String getTrustedPartyUri() {
-    return trustedPartyUri;
-  }
-
-  public String getTrustedPartyCertificate() {
-    return trustedPartyCertificate;
-  }
-
-  public Long getMessageTimestamp() {
-    return messageTimestamp;
-  }
-
-  public Long getTokenTimestamp() {
-    return tokenTimestamp;
+  public String getJwt() {
+    return jwt;
   }
 
   public List<WasIssuedBy> getWasIssuedBy() {
