@@ -7,6 +7,7 @@ import java.util.Objects;
 import java.util.Optional;
 
 import org.commonprovenance.framework.store.common.utils.Base64Utils;
+import org.commonprovenance.framework.store.common.utils.CpmDocumentUtils;
 import org.commonprovenance.framework.store.common.utils.ProvDocumentUtils;
 import org.commonprovenance.framework.store.config.AppConfiguration;
 import org.commonprovenance.framework.store.controller.DocumentController;
@@ -20,12 +21,10 @@ import org.commonprovenance.framework.store.controller.dto.response.factory.DTOF
 import org.commonprovenance.framework.store.exceptions.BadRequestException;
 import org.commonprovenance.framework.store.exceptions.ConflictException;
 import org.commonprovenance.framework.store.exceptions.InternalApplicationException;
-import org.commonprovenance.framework.store.exceptions.InvalidValueException;
 import org.commonprovenance.framework.store.exceptions.NotFoundException;
 import org.commonprovenance.framework.store.model.Document;
 import org.commonprovenance.framework.store.model.Organization;
 import org.commonprovenance.framework.store.model.Token;
-import org.commonprovenance.framework.store.model.TrustedParty;
 import org.commonprovenance.framework.store.model.factory.ModelFactory;
 import org.commonprovenance.framework.store.service.persistence.finalizedProvComponent.DocumentService;
 import org.commonprovenance.framework.store.service.persistence.finalizedProvComponent.OrganizationService;
@@ -36,7 +35,6 @@ import org.commonprovenance.framework.store.service.web.store.StoreWebService;
 import org.commonprovenance.framework.store.service.web.trustedParty.TrustedPartyWebService;
 import org.openprovenance.prov.model.Element;
 import org.openprovenance.prov.model.Entity;
-import org.openprovenance.prov.model.Other;
 import org.openprovenance.prov.model.ProvFactory;
 import org.openprovenance.prov.model.QualifiedName;
 import org.openprovenance.prov.model.interop.Formats;
@@ -203,7 +201,7 @@ public class DocumentControllerImpl implements DocumentController {
             .map(Document::getCpmDocument)
             .flatMap(Mono::justOrEmpty)
             .flatMap((CpmDocument cpm) -> Mono.just(cpm)
-                .flatMap(this::getReferenceMetaBundleId)
+                .flatMap(CpmDocumentUtils.REACTIVE::getMainActivityReferenceMetaBundleId)
                 .flatMap(this.metaComponentService::getMetaComponent)
                 .flatMap(this.metaComponentService.addNewVersion(cpm.getBundleId()))
                 .flatMap(meta -> Mono.justOrEmpty(document.getToken())
@@ -213,23 +211,6 @@ public class DocumentControllerImpl implements DocumentController {
         .map(Document::getToken)
         .flatMap(Mono::justOrEmpty)
         .flatMap(DTOFactory::toTokenDTO);
-  }
-
-  private Mono<QualifiedName> getReferenceMetaBundleId(CpmDocument cpm) {
-    return Mono.justOrEmpty(cpm)
-        .map(CpmDocument::getMainActivity)
-        .map(INode::getAnyElement)
-        .map(Element::getOther)
-        .flatMapMany(Flux::fromIterable)
-        .filter((Other other) -> other.getElementName().getLocalPart()
-            .equals(CpmAttribute.REFERENCED_META_BUNDLE_ID.toString()))
-        .single()
-        .map(Other::getValue)
-        .flatMap(value -> (value instanceof QualifiedName qn)
-            ? Mono.just(qn)
-            : Mono.error(new InvalidValueException("Attribute '" + CpmAttribute.REFERENCED_META_BUNDLE_ID
-                .toString() + "' should has type QualifiedName!")));
-
   }
 
   private String getReferenceValue(Element element, CpmAttribute attr) {
