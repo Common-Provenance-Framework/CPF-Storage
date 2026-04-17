@@ -44,11 +44,24 @@ class CpmDocumentUtilsTest {
   private Element elementWithReferencedMetaBundleId(Object value, QualifiedName type) {
     Element element = mock(Element.class, org.mockito.Mockito.withSettings().extraInterfaces(HasOther.class));
     HasOther hasOther = (HasOther) element;
+
     Other referencedMetaBundleId = provFactory.newOther(
         cpmAttributeName("referencedMetaBundleId"),
         value,
         type);
     when(hasOther.getOther()).thenReturn(List.of(referencedMetaBundleId));
+    return element;
+  }
+
+  private Element elementWithReferencedBundleId(Object value, QualifiedName type) {
+    Element element = mock(Element.class, org.mockito.Mockito.withSettings().extraInterfaces(HasOther.class));
+    HasOther hasOther = (HasOther) element;
+
+    Other referencedBundleId = provFactory.newOther(
+        cpmAttributeName("referencedBundleId"),
+        value,
+        type);
+    when(hasOther.getOther()).thenReturn(List.of(referencedBundleId));
     return element;
   }
 
@@ -103,6 +116,8 @@ class CpmDocumentUtilsTest {
         CpmDocumentUtils.FUNCTIONAL.getCpmReferencedMetaBundleId(hasOther));
   }
 
+  // --
+
   @Test
   @DisplayName("Functional getCpmReferencedMetaBundleId should return Either with qualified name in Right side when attribute is valid")
   void requireCpmReferencedMetaBundleId_shouldReturnQualifiedNameWhenAttributeIsValid() {
@@ -117,6 +132,25 @@ class CpmDocumentUtilsTest {
 
     assertRight(expectedReference, CpmDocumentUtils.FUNCTIONAL.getCpmReferencedMetaBundleId(hasOther));
   }
+
+  // --
+
+  @Test
+  @DisplayName("Functional getCpmReferencedBundleId should return Either with qualified name in Right side when attribute is valid")
+  void requireCpmReferencedBundleId_shouldReturnQualifiedNameWhenAttributeIsValid() {
+    QualifiedName expectedReference = provFactory.newQualifiedName(
+        "https://example.org/bundles/",
+        "bundle-1",
+        "ex");
+
+    HasOther hasOther = (HasOther) elementWithReferencedBundleId(
+        expectedReference,
+        provFactory.getName().PROV_QUALIFIED_NAME);
+
+    assertRight(expectedReference, CpmDocumentUtils.FUNCTIONAL.getCpmReferencedBundleId(hasOther));
+  }
+
+  // --
 
   @Test
   @DisplayName("Functional getMainActivityReferenceMetaBundleId should return Either with exact Left side for null document")

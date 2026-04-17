@@ -21,22 +21,32 @@ public interface CpmDocumentUtils {
   CpmDocumentReactiveUtils REACTIVE = new CpmDocumentReactiveUtils();
 
   class CpmDocumentFunctionalUtils {
-    public Either<ApplicationException, QualifiedName> getCpmReferencedMetaBundleId(HasOther hasOther) {
-      return EITHER.<HasOther>makeSureNotNullWithMessage("Statement can not be null!")
-          .apply(hasOther)
-          .map(statement -> CpmUtilities.getCpmAttributeValue(statement, CpmAttribute.REFERENCED_META_BUNDLE_ID))
+    private Function<HasOther, Either<ApplicationException, QualifiedName>> getCpmAttributeValue(
+        CpmAttribute attribute) {
+      return (HasOther hasOther) -> Either.<ApplicationException, HasOther>right(hasOther)
+          .flatMap(EITHER.<HasOther>makeSureNotNullWithMessage("Statement can not be null!"))
+          .map(statement -> CpmUtilities.getCpmAttributeValue(statement, attribute))
           .flatMap(EITHER.makeSureNotNullWithMessage(
-              "Statement does not have 'referencedMetaBundleId' attribute, or its value is null!"))
+              "Statement does not have '" + attribute.toString() + "' attribute, or its value is null!"))
           .flatMap(EITHER.makeSure(
               QualifiedName.class::isInstance,
-              "referencedMetaBundleId value is not instance of QualifiedName!"))
+              attribute.toString() + " value is not instance of QualifiedName!"))
           .map(QualifiedName.class::cast);
     }
 
-    public Either<ApplicationException, QualifiedName> getMainActivityReferenceMetaBundleId(
-        CpmDocument cpmDocument) {
-      return EITHER.<CpmDocument>makeSureNotNullWithMessage("CpmDocument can not be null!")
-          .apply(cpmDocument)
+    public Either<ApplicationException, QualifiedName> getCpmReferencedMetaBundleId(HasOther hasOther) {
+      return Either.<ApplicationException, HasOther>right(hasOther)
+          .flatMap(this.getCpmAttributeValue(CpmAttribute.REFERENCED_META_BUNDLE_ID));
+    }
+
+    public Either<ApplicationException, QualifiedName> getCpmReferencedBundleId(HasOther hasOther) {
+      return Either.<ApplicationException, HasOther>right(hasOther)
+          .flatMap(this.getCpmAttributeValue(CpmAttribute.REFERENCED_BUNDLE_ID));
+    }
+
+    public Either<ApplicationException, QualifiedName> getMainActivityReferenceMetaBundleId(CpmDocument cpmDocument) {
+      return Either.<ApplicationException, CpmDocument>right(cpmDocument)
+          .flatMap(EITHER.<CpmDocument>makeSureNotNullWithMessage("CpmDocument can not be null!"))
           .map(CpmDocument::getMainActivity)
           .flatMap(EITHER.makeSureNotNullWithMessage("MainActivity in CpmDocument can not be null!"))
           .map(INode::getAnyElement)
@@ -53,6 +63,11 @@ public interface CpmDocumentUtils {
           .fold(Mono::error, Mono::justOrEmpty);
     }
 
+    public Mono<QualifiedName> getCpmReferencedBundleId(HasOther hasOther) {
+      return FUNCTIONAL.getCpmReferencedBundleId(hasOther)
+          .fold(Mono::error, Mono::justOrEmpty);
+    }
+
     public Mono<QualifiedName> getMainActivityReferenceMetaBundleId(CpmDocument cpmDocument) {
       return FUNCTIONAL.getMainActivityReferenceMetaBundleId(cpmDocument)
           .fold(Mono::error, Mono::justOrEmpty);
@@ -65,6 +80,11 @@ public interface CpmDocumentUtils {
   class CpmDocumentImperativeUtils {
     public QualifiedName getCpmReferencedMetaBundleId(HasOther hasOther) throws ApplicationException {
       return FUNCTIONAL.getCpmReferencedMetaBundleId(hasOther)
+          .getOrElseThrow(Function.identity());
+    }
+
+    public QualifiedName getCpmReferencedBundleId(HasOther hasOther) throws ApplicationException {
+      return FUNCTIONAL.getCpmReferencedBundleId(hasOther)
           .getOrElseThrow(Function.identity());
     }
 
