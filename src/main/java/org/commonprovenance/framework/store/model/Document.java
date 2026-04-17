@@ -1,6 +1,5 @@
 package org.commonprovenance.framework.store.model;
 
-import java.io.IOException;
 import java.util.Optional;
 import java.util.function.Function;
 
@@ -11,12 +10,14 @@ import org.commonprovenance.framework.store.common.dto.HasOrganizationIdentifier
 import org.commonprovenance.framework.store.common.dto.HasSignature;
 import org.commonprovenance.framework.store.common.utils.Base64Utils;
 import org.commonprovenance.framework.store.common.utils.ProvDocumentUtils;
+import org.commonprovenance.framework.store.exceptions.ApplicationException;
 import org.openprovenance.prov.model.ProvFactory;
 import org.openprovenance.prov.model.interop.Formats;
 
 import cz.muni.fi.cpm.model.CpmDocument;
 import cz.muni.fi.cpm.model.ICpmFactory;
 import cz.muni.fi.cpm.model.ICpmProvFactory;
+import io.vavr.control.Either;
 
 public class Document implements HasOptionalIdentifier,
     HasOrganizationIdentifier<Document>, HasOptionalFormat, HasSignature<Document>, HasGraph<Document> {
@@ -110,23 +111,26 @@ public class Document implements HasOptionalIdentifier,
     return this.withCpmDocument(provFactory, cpmProvFactory, cpmFactory, false);
   }
 
-  public Document withCpmDocument(ProvFactory provFactory, ICpmProvFactory cpmProvFactory, ICpmFactory cpmFactory,
+  public Document withCpmDocument(
+      ProvFactory provFactory,
+      ICpmProvFactory cpmProvFactory,
+      ICpmFactory cpmFactory,
       Boolean force) {
+
+    Function<Optional<Format>, Formats.ProvFormat> getFormatOrDefault = format -> format
+        .map(Format::toProvFormat)
+        .orElse(Formats.ProvFormat.JSON);
+
+    Function<String, Optional<org.openprovenance.prov.model.Document>> getDocument = json -> Either
+        .<ApplicationException, String>right(json)
+        .flatMap(ProvDocumentUtils.FUNCTIONAL.deserialize(getFormatOrDefault.apply(this.format)))
+        .fold(_ -> Optional.empty(), x -> Optional.of(x));
+
     return this.cpmDocument.isPresent() && !force
         ? this
         : Optional.ofNullable(this.graph)
             .map(Base64Utils::decodeToString)
-            .flatMap(
-                (String json) -> {
-                  try {
-                    return Optional.of(ProvDocumentUtils.deserialize(
-                        json,
-                        this.format.map(Format::toProvFormat).orElse(Formats.ProvFormat.JSON)));
-                  } catch (IOException e) {
-                    System.err.println("Can not deserialize document!");
-                    return Optional.empty();
-                  }
-                })
+            .flatMap(getDocument)
             .map(this.cpmFactory(provFactory, cpmProvFactory, cpmFactory))
             .map((CpmDocument cpmDocument) -> new Document(
                 this.getIdentifier().orElse(null),

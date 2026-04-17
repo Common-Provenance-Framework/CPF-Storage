@@ -1,13 +1,17 @@
 package org.commonprovenance.framework.store.common.utils;
 
+import static org.commonprovenance.framework.store.common.utils.EitherUtils.EITHER;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
 
+import java.util.List;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
+import java.util.function.Function;
+
+import org.commonprovenance.framework.store.exceptions.ApplicationException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-
-import java.util.List;
-
 import org.openprovenance.prov.model.Activity;
 import org.openprovenance.prov.model.Agent;
 import org.openprovenance.prov.model.Bundle;
@@ -18,12 +22,11 @@ import org.openprovenance.prov.model.ProvFactory;
 import org.openprovenance.prov.model.QualifiedName;
 import org.openprovenance.prov.model.WasAssociatedWith;
 import org.openprovenance.prov.model.WasAttributedTo;
-import org.openprovenance.prov.model.interop.Formats;
 import org.openprovenance.prov.model.WasGeneratedBy;
+import org.openprovenance.prov.model.interop.Formats;
 
-import tools.jackson.core.JacksonException;
+import io.vavr.control.Either;
 import tools.jackson.databind.JsonNode;
-
 import tools.jackson.databind.ObjectMapper;
 
 @DisplayName("Provenance JSON Utils Test")
@@ -253,20 +256,28 @@ public class ProvDocumentUtilsSerializerTest {
     return provFactory.newDocument(nsDocument, List.of(bundle));
   }
 
+  private Either<String, JsonNode> getProvAsJson(String document) {
+    ObjectMapper mapper = new ObjectMapper();
+
+    return Either.<Throwable, String>right(document)
+        .flatMap(EITHER.fromFunction(mapper::readTree, Function.identity()))
+        .mapLeft(Throwable::getMessage);
+  }
+
   @Test
   @DisplayName("should serialize provenance Document into exact json - Serializer")
   public void shouldSerializeDocumentIntoExactJson() {
-    String prov = ProvDocumentUtils.serialize(
-        getTestDocument(),
-        Formats.ProvFormat.JSON);
-
-    try {
-      ObjectMapper mapper = new ObjectMapper();
-      JsonNode expected = mapper.readTree(this.DOCUMENT_JSON);
-
-      assertEquals(expected, mapper.readTree(prov));
-    } catch (JacksonException e) {
-      fail(e.getMessage());
-    }
+    BiConsumer<JsonNode, JsonNode> assertion = (expected, result) -> assertEquals(expected, result);
+    Consumer<String> leftSideHandler = (message) -> fail("Left side has not been expected: " + message);
+    EITHER.combine(
+        Either.<ApplicationException, Document>right(this.getTestDocument())
+            .flatMap(ProvDocumentUtils.FUNCTIONAL.serialize(Formats.ProvFormat.JSON))
+            .mapLeft(Throwable::getMessage)
+            .flatMap(this::getProvAsJson)
+            .peekLeft(leftSideHandler),
+        Either.<String, String>right(this.DOCUMENT_JSON)
+            .flatMap(this::getProvAsJson)
+            .peekLeft(leftSideHandler),
+        assertion);
   }
 }
