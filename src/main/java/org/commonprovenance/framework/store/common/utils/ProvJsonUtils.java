@@ -99,11 +99,11 @@ public interface ProvJsonUtils {
   }
 
   class ProvJsonImperativeUtils {
-    public String preprocessJsonForDeserialization(String json) {
+    public String preprocessJsonForDeserialization(String json) throws ApplicationException {
       return this.preprocessJsonForDeserialization(json, true);
     }
 
-    public String preprocessJsonForDeserialization(String json, boolean prettyPrint) {
+    public String preprocessJsonForDeserialization(String json, boolean prettyPrint) throws ApplicationException {
       try {
         ObjectMapper mapper = new ObjectMapper();
         JsonNode root = mapper.readTree(json);
@@ -118,11 +118,12 @@ public interface ProvJsonUtils {
       }
     }
 
-    public String preprocessIncompatibleJsonForDeserialization(String json) {
+    public String preprocessIncompatibleJsonForDeserialization(String json) throws ApplicationException {
       return this.preprocessIncompatibleJsonForDeserialization(json, true);
     }
 
-    public String preprocessIncompatibleJsonForDeserialization(String json, boolean prettyPrint) {
+    public String preprocessIncompatibleJsonForDeserialization(String json, boolean prettyPrint)
+        throws ApplicationException {
       try {
         ObjectMapper mapper = new ObjectMapper();
         JsonNode root = mapper.readTree(json);
@@ -141,11 +142,11 @@ public interface ProvJsonUtils {
       }
     }
 
-    public String postprocessJsonAfterSerialization(String json) {
+    public String postprocessJsonAfterSerialization(String json) throws ApplicationException {
       return this.postprocessJsonAfterSerialization(json, true);
     }
 
-    public String postprocessJsonAfterSerialization(String json, boolean prettyPrint) {
+    public String postprocessJsonAfterSerialization(String json, boolean prettyPrint) throws ApplicationException {
       try {
         ObjectMapper mapper = new ObjectMapper();
         JsonNode root = mapper.readTree(json);
