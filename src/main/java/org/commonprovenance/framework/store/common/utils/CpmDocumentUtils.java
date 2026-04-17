@@ -7,6 +7,7 @@ import java.util.function.Function;
 import org.commonprovenance.framework.store.exceptions.ApplicationException;
 import org.openprovenance.prov.model.HasOther;
 import org.openprovenance.prov.model.QualifiedName;
+import org.openprovenance.prov.model.interop.Formats;
 
 import cz.muni.fi.cpm.constants.CpmAttribute;
 import cz.muni.fi.cpm.model.CpmDocument;
@@ -34,6 +35,12 @@ public interface CpmDocumentUtils {
           .map(QualifiedName.class::cast);
     }
 
+    public Function<CpmDocument, Either<ApplicationException, String>> serialize(Formats.ProvFormat format) {
+      return cpmDocument -> Either.<ApplicationException, CpmDocument>right(cpmDocument)
+          .map(CpmDocument::toDocument)
+          .flatMap(ProvDocumentUtils.FUNCTIONAL.serialize(format));
+    }
+
     public Either<ApplicationException, QualifiedName> getCpmReferencedMetaBundleId(HasOther hasOther) {
       return Either.<ApplicationException, HasOther>right(hasOther)
           .flatMap(this.getCpmAttributeValue(CpmAttribute.REFERENCED_META_BUNDLE_ID));
@@ -58,6 +65,13 @@ public interface CpmDocumentUtils {
   // ---
 
   class CpmDocumentReactiveUtils {
+
+    public Function<CpmDocument, Mono<String>> serialize(Formats.ProvFormat format) {
+      return (CpmDocument cpmDocument) -> Either.<ApplicationException, CpmDocument>right(cpmDocument)
+          .flatMap(FUNCTIONAL.serialize(format))
+          .fold(Mono::error, Mono::justOrEmpty);
+    }
+
     public Mono<QualifiedName> getCpmReferencedMetaBundleId(HasOther hasOther) {
       return FUNCTIONAL.getCpmReferencedMetaBundleId(hasOther)
           .fold(Mono::error, Mono::justOrEmpty);
@@ -78,6 +92,12 @@ public interface CpmDocumentUtils {
   // ---
 
   class CpmDocumentImperativeUtils {
+    public Function<CpmDocument, String> serialize(Formats.ProvFormat format) throws ApplicationException {
+      return (CpmDocument cpmDocument) -> Either.<ApplicationException, CpmDocument>right(cpmDocument)
+          .flatMap(FUNCTIONAL.serialize(format))
+          .getOrElseThrow(Function.identity());
+    }
+
     public QualifiedName getCpmReferencedMetaBundleId(HasOther hasOther) throws ApplicationException {
       return FUNCTIONAL.getCpmReferencedMetaBundleId(hasOther)
           .getOrElseThrow(Function.identity());
