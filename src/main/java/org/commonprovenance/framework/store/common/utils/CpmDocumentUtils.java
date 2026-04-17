@@ -17,8 +17,8 @@ import reactor.core.publisher.Mono;
 
 public interface CpmDocumentUtils {
   CpmDocumentFunctionalUtils FUNCTIONAL = new CpmDocumentFunctionalUtils();
-  CpmDocumentImperativeUtils IMPERATIVE = new CpmDocumentImperativeUtils();
   CpmDocumentReactiveUtils REACTIVE = new CpmDocumentReactiveUtils();
+  CpmDocumentImperativeUtils IMPERATIVE = new CpmDocumentImperativeUtils();
 
   class CpmDocumentFunctionalUtils {
     private Function<HasOther, Either<ApplicationException, QualifiedName>> getCpmAttributeValue(
