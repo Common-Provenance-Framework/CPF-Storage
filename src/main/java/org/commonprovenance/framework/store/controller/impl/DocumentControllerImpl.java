@@ -8,7 +8,6 @@ import java.util.Optional;
 
 import org.commonprovenance.framework.store.common.utils.Base64Utils;
 import org.commonprovenance.framework.store.common.utils.CpmDocumentUtils;
-import org.commonprovenance.framework.store.common.utils.ProvDocumentUtils;
 import org.commonprovenance.framework.store.config.AppConfiguration;
 import org.commonprovenance.framework.store.controller.DocumentController;
 import org.commonprovenance.framework.store.controller.dto.error.BadRequestDTO;
@@ -409,7 +408,7 @@ public class DocumentControllerImpl implements DocumentController {
                 this.provFactory,
                 this.cpmProvFactory,
                 this.cpmFactory))
-            .map(cpm -> ProvDocumentUtils.serialize(cpm.toDocument(), Formats.ProvFormat.JSON))
+            .flatMap(CpmDocumentUtils.REACTIVE.serialize(Formats.ProvFormat.JSON))
             .map(Base64Utils::encodeFromString)
             .map(cpmStr -> document
                 .withGraph(cpmStr)
@@ -452,7 +451,7 @@ public class DocumentControllerImpl implements DocumentController {
                 this.provFactory,
                 this.cpmProvFactory,
                 this.cpmFactory))
-            .map(cpm -> ProvDocumentUtils.serialize(cpm.toDocument(), Formats.ProvFormat.JSON))
+            .flatMap(CpmDocumentUtils.REACTIVE.serialize(Formats.ProvFormat.JSON))
             .map(Base64Utils::encodeFromString)
             .map(cpmStr -> document
                 .withGraph(cpmStr)
