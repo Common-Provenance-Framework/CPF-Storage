@@ -2,6 +2,8 @@ package org.commonprovenance.framework.store.common.utils;
 
 import java.util.Objects;
 import java.util.Vector;
+import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
@@ -83,6 +85,51 @@ public interface EitherUtils {
         Predicate<R> predicate,
         Function<R, Either<L, R>> mapper) {
       return value -> predicate.test(value) ? mapper.apply(value) : Either.right(value);
+    }
+
+    // --
+
+    /**
+     * Applicative pattern: Combines two Either values using a combining function.
+     * If both are Right, applies the combiner to their values.
+     * If any is Left, returns the first Left encountered.
+     *
+     * Example use case: Combining multiple independent validations
+     */
+    public <L, A, B, R> Either<L, R> combine(
+        Either<L, A> eitherA,
+        Either<L, B> eitherB,
+        BiFunction<A, B, R> combiner) {
+      return eitherA.flatMap(a -> eitherB.map(b -> combiner.apply(a, b)));
+    }
+
+    public <L, R1, R2> Either<L, R1> combine(
+        Either<L, R1> eitherA,
+        Either<L, R2> eitherB,
+        BiConsumer<R1, R2> consumer) {
+      return eitherA.peek(a -> eitherB.peek(b -> consumer.accept(a, b)));
+    }
+
+    /**
+     * Applicative pattern: Combines three Either values.
+     */
+    public <L, A, B, C, R> Either<L, R> combine3(
+        Either<L, A> eitherA,
+        Either<L, B> eitherB,
+        Either<L, C> eitherC,
+        Function3<A, B, C, R> combiner) {
+      return eitherA.flatMap(a -> eitherB.flatMap(b -> eitherC.map(c -> combiner.apply(a, b, c))));
+    }
+
+    @FunctionalInterface
+    public interface Function3<A, B, C, R> {
+      R apply(A a, B b, C c);
+    }
+
+    // TODO: !!test this!!
+    public <L, R1, R2, R3> Function<R1, Either<L, Function<R2, R3>>> applicative(
+        Function<R1, Function<R2, R3>> combiner) {
+      return (R1 value) -> Either.<L, R1>right(value).map(combiner);
     }
   }
 }
