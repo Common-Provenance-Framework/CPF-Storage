@@ -6,11 +6,13 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
+import org.commonprovenance.framework.store.exceptions.ApplicationException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -37,6 +39,9 @@ import org.openprovenance.prov.model.WasAttributedTo;
 import org.openprovenance.prov.model.Attribute.AttributeKind;
 import org.openprovenance.prov.model.StatementOrBundle.Kind;
 import org.openprovenance.prov.model.interop.Formats;
+
+import io.vavr.control.Either;
+
 import org.openprovenance.prov.model.WasGeneratedBy;
 
 @DisplayName("Provenance JSON Utils Test")
@@ -168,12 +173,15 @@ public class ProvDocumentUtilsDeserializerTest {
   private Document provDoc;
 
   private void testInit() {
-    try {
-      if (this.provDoc == null)
-        this.provDoc = ProvDocumentUtils.deserialize(this.DOCUMENT_JSON, Formats.ProvFormat.JSON);
-    } catch (Exception e) {
-      fail(e.getMessage(), e.getCause());
-    }
+    Consumer<ApplicationException> onError = (e) -> fail(e.getMessage(), e.getCause());
+    Consumer<Document> onSuccess = (docuemnt) -> {
+      this.provDoc = docuemnt;
+    };
+
+    Either.<ApplicationException, String>right(this.DOCUMENT_JSON)
+        .flatMap(ProvDocumentUtils.FUNCTIONAL.deserialize(Formats.ProvFormat.JSON))
+        .peek(onSuccess::accept)
+        .peekLeft(onError::accept);
   }
 
   @Test

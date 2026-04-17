@@ -11,7 +11,6 @@ import org.commonprovenance.framework.store.exceptions.InternalApplicationExcept
 
 import io.vavr.control.Either;
 import reactor.core.publisher.Mono;
-import tools.jackson.core.JacksonException;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.node.ArrayNode;
