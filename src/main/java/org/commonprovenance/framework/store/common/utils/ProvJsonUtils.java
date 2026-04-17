@@ -113,8 +113,8 @@ public interface ProvJsonUtils {
         return prettyPrint
             ? mapper.writerWithDefaultPrettyPrinter().writeValueAsString(root)
             : mapper.writeValueAsString(root);
-      } catch (JacksonException e) {
-        throw new InternalApplicationException("Failed to preprocess JSON for deserialization", e);
+      } catch (Throwable throwable) {
+        throw new InternalApplicationException("Failed to preprocess JSON for deserialization", throwable);
       }
     }
 
@@ -136,8 +136,8 @@ public interface ProvJsonUtils {
         return prettyPrint
             ? mapper.writerWithDefaultPrettyPrinter().writeValueAsString(root)
             : mapper.writeValueAsString(root);
-      } catch (JacksonException e) {
-        throw new InternalApplicationException("Failed to preprocess JSON for deserialization", e);
+      } catch (Throwable throwable) {
+        throw new InternalApplicationException("Failed to preprocess JSON for deserialization", throwable);
       }
     }
 
@@ -155,8 +155,8 @@ public interface ProvJsonUtils {
         return prettyPrint
             ? mapper.writerWithDefaultPrettyPrinter().writeValueAsString(root)
             : mapper.writeValueAsString(root);
-      } catch (JacksonException e) {
-        throw new InternalApplicationException("Failed to preprocess JSON after serialization", e);
+      } catch (Throwable throwable) {
+        throw new InternalApplicationException("Failed to preprocess JSON after serialization", throwable);
       }
 
     }
