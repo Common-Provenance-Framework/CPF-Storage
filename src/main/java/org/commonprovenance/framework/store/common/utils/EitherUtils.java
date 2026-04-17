@@ -71,5 +71,18 @@ public interface EitherUtils {
           .andThen((Try<R> resOrThrowable) -> resOrThrowable.toEither().mapLeft(errorMapper));
     }
 
+    // --
+
+    public <L, R> Function<R, Either<L, R>> makeSureBefore(
+        Boolean onlyIf,
+        Function<R, Either<L, R>> mapper) {
+      return makeSureBefore(_ -> onlyIf, mapper);
+    }
+
+    public <L, R> Function<R, Either<L, R>> makeSureBefore(
+        Predicate<R> predicate,
+        Function<R, Either<L, R>> mapper) {
+      return value -> predicate.test(value) ? mapper.apply(value) : Either.right(value);
+    }
   }
 }
