@@ -2,7 +2,6 @@ package org.commonprovenance.framework.store.common.utils;
 
 import java.util.Objects;
 import java.util.Vector;
-import java.util.concurrent.Callable;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
@@ -11,6 +10,7 @@ import org.commonprovenance.framework.store.exceptions.ApplicationException;
 import org.commonprovenance.framework.store.exceptions.ConstraintException;
 import org.commonprovenance.framework.store.exceptions.InternalApplicationException;
 
+import io.vavr.Function1;
 import io.vavr.control.Either;
 import io.vavr.control.Try;
 
@@ -50,16 +50,25 @@ public interface EitherUtils {
 
     // --
 
-    public <R> Either<ApplicationException, R> fromCallable(Callable<R> callable, String leftMessage) {
-      return this.<ApplicationException, R>fromCallable(callable, _ -> new InternalApplicationException(leftMessage));
+    public <I, R> Function<I, Either<ApplicationException, R>> fromFunction(
+        Function<I, R> function,
+        String leftMessage) {
+      return this.<I, ApplicationException, R>fromFunction(
+          function,
+          _ -> new InternalApplicationException(leftMessage));
     }
 
-    public <R> Either<ApplicationException, R> fromCallable(Callable<R> callable, ApplicationException left) {
-      return this.<ApplicationException, R>fromCallable(callable, _ -> left);
+    public <I, R> Function<I, Either<ApplicationException, R>> fromFunction(
+        Function<I, R> function,
+        ApplicationException left) {
+      return this.<I, ApplicationException, R>fromFunction(function, _ -> left);
     }
 
-    public <L, R> Either<L, R> fromCallable(Callable<R> callable, Function<Throwable, L> errorMapper) {
-      return Try.of(callable::call).toEither().mapLeft(errorMapper);
+    public <I, L, R> Function<I, Either<L, R>> fromFunction(
+        Function<I, R> function,
+        Function<Throwable, L> errorMapper) {
+      return Function1.<I, R>liftTry(function)
+          .andThen((Try<R> resOrThrowable) -> resOrThrowable.toEither().mapLeft(errorMapper));
     }
 
   }
