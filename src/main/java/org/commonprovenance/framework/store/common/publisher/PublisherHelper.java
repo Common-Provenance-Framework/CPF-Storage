@@ -11,7 +11,9 @@ import org.commonprovenance.framework.store.exceptions.ConflictException;
 import org.commonprovenance.framework.store.exceptions.ConstraintException;
 import org.commonprovenance.framework.store.exceptions.InternalApplicationException;
 
+import io.vavr.Function1;
 import io.vavr.control.Either;
+import io.vavr.control.Try;
 import reactor.core.publisher.Mono;
 
 public interface PublisherHelper {
@@ -62,10 +64,15 @@ public interface PublisherHelper {
           .switchIfEmpty(Mono.error(appExceptionBuilderFunction.apply(value)));
     }
 
-    public <I, O> Function<I, Mono<O>> liftEither(Function<I, Either<ApplicationException, O>> kleisliArrow) {
+    public <I, O> Function<I, Mono<O>> liftEffectToMono(Function<I, Either<ApplicationException, O>> kleisliArrow) {
       return (I value) -> kleisliArrow
           .apply(value)
           .fold(Mono::error, Mono::justOrEmpty);
+    }
+
+    public <I, O> Function<I, Mono<O>> liftPureToMono(Function<I, O> liftFunction) {
+      return Function1.<I, O>liftTry(liftFunction)
+          .andThen((Try<O> resOrThrowable) -> resOrThrowable.fold(Mono::error, Mono::justOrEmpty));
     }
 
     public <T> Mono<T> fromEither(Either<ApplicationException, T> valueOrException) {
