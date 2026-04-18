@@ -1,5 +1,7 @@
 package org.commonprovenance.framework.store.common.utils;
 
+import static org.commonprovenance.framework.store.common.publisher.PublisherHelper.MONO;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -192,7 +194,7 @@ class CpmDocumentUtilsTest {
   @DisplayName("Reactive getCpmReferencedMetaBundleId should propagate synchronous Either Left side value to reactive error channel")
 
   void getCpmReferencedMetaBundleId_shouldPropagateErrorToReactiveChannel() {
-    StepVerifier.create(CpmDocumentUtils.REACTIVE.getCpmReferencedMetaBundleId(null))
+    StepVerifier.create(MONO.fromEither(CpmDocumentUtils.FUNCTIONAL.getCpmReferencedMetaBundleId(null)))
         .expectErrorSatisfies((Throwable error) -> {
           assertInstanceOf(InternalApplicationException.class, error);
           assertEquals(ERR_STATEMENT_NULL, error.getMessage());
@@ -214,7 +216,7 @@ class CpmDocumentUtilsTest {
     CpmDocument cpmDocument = mock(CpmDocument.class);
     when(cpmDocument.getMainActivity()).thenReturn(mainActivity);
 
-    StepVerifier.create(CpmDocumentUtils.REACTIVE.getMainActivityReferenceMetaBundleId(cpmDocument))
+    StepVerifier.create(MONO.fromEither(CpmDocumentUtils.FUNCTIONAL.getMainActivityReferenceMetaBundleId(cpmDocument)))
         .expectNext(expectedReference)
         .verifyComplete();
   }

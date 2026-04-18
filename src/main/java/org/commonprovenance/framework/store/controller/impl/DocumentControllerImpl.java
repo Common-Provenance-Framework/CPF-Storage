@@ -200,7 +200,7 @@ public class DocumentControllerImpl implements DocumentController {
             .map(Document::getCpmDocument)
             .flatMap(Mono::justOrEmpty)
             .flatMap((CpmDocument cpm) -> Mono.just(cpm)
-                .flatMap(CpmDocumentUtils.REACTIVE::getMainActivityReferenceMetaBundleId)
+                .flatMap(MONO.liftEither(CpmDocumentUtils.FUNCTIONAL::getMainActivityReferenceMetaBundleId))
                 .flatMap(this.metaComponentService::getMetaComponent)
                 .flatMap(this.metaComponentService.addNewVersion(cpm.getBundleId()))
                 .flatMap(meta -> Mono.justOrEmpty(document.getToken())
@@ -408,7 +408,7 @@ public class DocumentControllerImpl implements DocumentController {
                 this.provFactory,
                 this.cpmProvFactory,
                 this.cpmFactory))
-            .flatMap(CpmDocumentUtils.REACTIVE.serialize(Formats.ProvFormat.JSON))
+            .flatMap(MONO.liftEither(CpmDocumentUtils.FUNCTIONAL.serialize(Formats.ProvFormat.JSON)))
             .map(Base64Utils::encodeFromString)
             .map(cpmStr -> document
                 .withGraph(cpmStr)
@@ -451,7 +451,7 @@ public class DocumentControllerImpl implements DocumentController {
                 this.provFactory,
                 this.cpmProvFactory,
                 this.cpmFactory))
-            .flatMap(CpmDocumentUtils.REACTIVE.serialize(Formats.ProvFormat.JSON))
+            .flatMap(MONO.liftEither(CpmDocumentUtils.FUNCTIONAL.serialize(Formats.ProvFormat.JSON)))
             .map(Base64Utils::encodeFromString)
             .map(cpmStr -> document
                 .withGraph(cpmStr)

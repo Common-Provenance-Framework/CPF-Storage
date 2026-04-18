@@ -17,14 +17,12 @@ import org.openprovenance.prov.model.interop.Formats;
 import org.openprovenance.prov.model.interop.InteropMediaType;
 
 import io.vavr.control.Either;
-import reactor.core.publisher.Mono;
 
 public interface ProvDocumentUtils {
 
   public final Charset charset = java.nio.charset.StandardCharsets.UTF_8;
 
   ProvDocumentFunctionalUtils FUNCTIONAL = new ProvDocumentFunctionalUtils();
-  ProvDocumentReactiveUtils REACTIVE = new ProvDocumentReactiveUtils();
   ProvDocumentImperativeUtils IMPERATIVE = new ProvDocumentImperativeUtils();
 
   class ProvDocumentFunctionalUtils {
@@ -90,20 +88,6 @@ public interface ProvDocumentUtils {
       };
     }
 
-  }
-
-  class ProvDocumentReactiveUtils {
-    public Function<Document, Mono<String>> serialize(Formats.ProvFormat format) {
-      return (Document document) -> FUNCTIONAL.serialize(format)
-          .apply(document)
-          .fold(Mono::error, Mono::justOrEmpty);
-    }
-
-    public Function<String, Mono<Document>> deserialize(Formats.ProvFormat format) {
-      return (String document) -> FUNCTIONAL.deserialize(format)
-          .apply(document)
-          .fold(Mono::error, Mono::justOrEmpty);
-    }
   }
 
   class ProvDocumentImperativeUtils {
