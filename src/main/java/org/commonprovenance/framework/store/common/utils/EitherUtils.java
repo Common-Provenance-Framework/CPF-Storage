@@ -8,6 +8,7 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 
 import org.commonprovenance.framework.store.common.validation.ValidatableDTO;
+import org.commonprovenance.framework.store.config.AppConfig;
 import org.commonprovenance.framework.store.exceptions.ApplicationException;
 import org.commonprovenance.framework.store.exceptions.ConstraintException;
 import org.commonprovenance.framework.store.exceptions.InternalApplicationException;
@@ -17,10 +18,61 @@ import io.vavr.control.Either;
 import io.vavr.control.Try;
 
 public interface EitherUtils {
-  EitherHelper EITHER = new EitherHelper();
+  EitherHelper EITHER = EitherHelper.get();
 
   // Mono implementation
   class EitherHelper {
+    private static class Holder {
+      static EitherHelper instance = new EitherHelper(false);
+    }
+
+    private final boolean verboseMode;
+
+    private EitherHelper(boolean verboseMode) {
+      this.verboseMode = verboseMode;
+    }
+
+    /**
+     * Initializes the singleton with the configured value. Should be called exactly
+     * once during
+     * application startup from {@link AppConfig}.
+     */
+    public static void initialize(boolean verboseMode) {
+      Holder.instance = new EitherHelper(verboseMode);
+    }
+
+    static EitherHelper get() {
+      return Holder.instance;
+    }
+
+    private <R> String defaultNullMessage(R value) {
+      if (!this.verboseMode) {
+        return "Input parameter can not be null.";
+      }
+
+      return "Input parameter can not be null. Caller="
+          + callerLocation()
+          + ", runtimeType="
+          + ((value == null) ? "unknown" : value.getClass().getName());
+    }
+
+    private <R> String defaultMessage(String message) {
+      if (!this.verboseMode) {
+        return message;
+      }
+
+      return message + " Caller=" + callerLocation();
+    }
+
+    private String callerLocation() {
+      return StackWalker.getInstance(StackWalker.Option.RETAIN_CLASS_REFERENCE)
+          .walk(frames -> frames
+              .dropWhile(frame -> frame.getClassName().equals(EitherHelper.class.getName()))
+              .findFirst()
+              .map(frame -> frame.getClassName() + "#" + frame.getMethodName() + ":" + frame.getLineNumber())
+              .orElse("unknown"));
+    }
+
     public <R extends ValidatableDTO> Either<ApplicationException, R> validateDTO(R value) {
       Vector<String> result = value.validate();
       return result.isEmpty()
@@ -31,7 +83,7 @@ public interface EitherUtils {
     }
 
     public <R> Either<ApplicationException, R> makeSureNotNull(R value) {
-      return this.<R>makeSureNotNullWithMessage("Input parameter can not be null.").apply(value);
+      return this.<R>makeSureNotNullWithMessage(this.defaultNullMessage(value)).apply(value);
     }
 
     public <R> Function<R, Either<ApplicationException, R>> makeSureNotNullWithMessage(String message) {
@@ -51,6 +103,13 @@ public interface EitherUtils {
     }
 
     // --
+
+    public <I, R> Function<I, Either<ApplicationException, R>> liftEither(Function<I, R> liftFunction) {
+      return this.<I, ApplicationException, R>liftEither(
+          liftFunction,
+          (Throwable throwable) -> new InternalApplicationException(this.defaultMessage(
+              throwable.getClass().getSimpleName() + ": " + throwable.getMessage())));
+    }
 
     public <I, R> Function<I, Either<ApplicationException, R>> liftEither(
         Function<I, R> liftFunction,
