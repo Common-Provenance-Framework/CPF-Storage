@@ -10,7 +10,6 @@ import org.commonprovenance.framework.store.exceptions.ApplicationException;
 import org.commonprovenance.framework.store.exceptions.InternalApplicationException;
 
 import io.vavr.control.Either;
-import reactor.core.publisher.Mono;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.node.ArrayNode;
@@ -18,7 +17,6 @@ import tools.jackson.databind.node.ObjectNode;
 
 public interface ProvJsonUtils {
   ProvJsonFunctionalUtils FUNCTIONAL = new ProvJsonFunctionalUtils();
-  ProvJsonReactiveUtils REACTIVE = new ProvJsonReactiveUtils();
   ProvJsonImperativeUtils IMPERATIVE = new ProvJsonImperativeUtils();
 
   class ProvJsonFunctionalUtils {
@@ -59,43 +57,7 @@ public interface ProvJsonUtils {
     }
   }
 
-  class ProvJsonReactiveUtils {
-    public Mono<String> preprocessJsonForDeserialization(String json) {
-      return FUNCTIONAL.preprocessJsonForDeserialization
-          .apply(json)
-          .fold(Mono::error, Mono::justOrEmpty);
-    }
-
-    public Function<String, Mono<String>> preprocessJsonForDeserialization(Boolean prettyPrint) {
-      return (String json) -> FUNCTIONAL.preprocessJsonForDeserialization(prettyPrint)
-          .apply(json)
-          .fold(Mono::error, Mono::justOrEmpty);
-    }
-
-    public Mono<String> preprocessIncompatibleJsonForDeserialization(String json) {
-      return FUNCTIONAL.preprocessIncompatibleJsonForDeserialization
-          .apply(json)
-          .fold(Mono::error, Mono::justOrEmpty);
-    }
-
-    public Function<String, Mono<String>> preprocessIncompatibleJsonForDeserialization(Boolean prettyPrint) {
-      return (String json) -> FUNCTIONAL.preprocessIncompatibleJsonForDeserialization(prettyPrint)
-          .apply(json)
-          .fold(Mono::error, Mono::justOrEmpty);
-    }
-
-    public Mono<String> postprocessJsonAfterSerialization(String json) {
-      return FUNCTIONAL.postprocessJsonAfterSerialization
-          .apply(json)
-          .fold(Mono::error, Mono::justOrEmpty);
-    }
-
-    public Function<String, Mono<String>> postprocessJsonAfterSerialization(Boolean prettyPrint) {
-      return (String json) -> FUNCTIONAL.postprocessJsonAfterSerialization(prettyPrint)
-          .apply(json)
-          .fold(Mono::error, Mono::justOrEmpty);
-    }
-  }
+  // --
 
   class ProvJsonImperativeUtils {
     public String preprocessJsonForDeserialization(String json) throws ApplicationException {

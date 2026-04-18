@@ -260,7 +260,7 @@ public class ProvDocumentUtilsSerializerTest {
     ObjectMapper mapper = new ObjectMapper();
 
     return Either.<Throwable, String>right(document)
-        .flatMap(EITHER.fromFunction(mapper::readTree, Function.identity()))
+        .flatMap(EITHER.liftToEither(mapper::readTree, Function.identity()))
         .mapLeft(Throwable::getMessage);
   }
 

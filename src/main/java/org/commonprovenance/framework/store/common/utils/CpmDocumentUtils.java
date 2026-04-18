@@ -14,11 +14,8 @@ import cz.muni.fi.cpm.model.CpmDocument;
 import cz.muni.fi.cpm.model.CpmUtilities;
 import cz.muni.fi.cpm.model.INode;
 import io.vavr.control.Either;
-import reactor.core.publisher.Mono;
-
 public interface CpmDocumentUtils {
   CpmDocumentFunctionalUtils FUNCTIONAL = new CpmDocumentFunctionalUtils();
-  CpmDocumentReactiveUtils REACTIVE = new CpmDocumentReactiveUtils();
   CpmDocumentImperativeUtils IMPERATIVE = new CpmDocumentImperativeUtils();
 
   class CpmDocumentFunctionalUtils {
@@ -58,33 +55,6 @@ public interface CpmDocumentUtils {
           .flatMap(EITHER.makeSureNotNullWithMessage("MainActivity in CpmDocument can not be null!"))
           .map(INode::getAnyElement)
           .flatMap(this::getCpmReferencedMetaBundleId);
-    }
-
-  }
-
-  // ---
-
-  class CpmDocumentReactiveUtils {
-
-    public Function<CpmDocument, Mono<String>> serialize(Formats.ProvFormat format) {
-      return (CpmDocument cpmDocument) -> Either.<ApplicationException, CpmDocument>right(cpmDocument)
-          .flatMap(FUNCTIONAL.serialize(format))
-          .fold(Mono::error, Mono::justOrEmpty);
-    }
-
-    public Mono<QualifiedName> getCpmReferencedMetaBundleId(HasOther hasOther) {
-      return FUNCTIONAL.getCpmReferencedMetaBundleId(hasOther)
-          .fold(Mono::error, Mono::justOrEmpty);
-    }
-
-    public Mono<QualifiedName> getCpmReferencedBundleId(HasOther hasOther) {
-      return FUNCTIONAL.getCpmReferencedBundleId(hasOther)
-          .fold(Mono::error, Mono::justOrEmpty);
-    }
-
-    public Mono<QualifiedName> getMainActivityReferenceMetaBundleId(CpmDocument cpmDocument) {
-      return FUNCTIONAL.getMainActivityReferenceMetaBundleId(cpmDocument)
-          .fold(Mono::error, Mono::justOrEmpty);
     }
 
   }
