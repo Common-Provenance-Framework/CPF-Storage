@@ -3,6 +3,7 @@ spring.profiles.active=live,neo4j,webflux
 
 trusted-party.url=${TRUSTED_PARTY_URL:http://trustedparty:8080/api/v1/}
 store.url=${STORE_URL:http://localhost:8080/api/v1/}
+store.mode.verbose=${CPF_STORE_VERBOSE_MODE:false}
 
 springdoc.api-docs.path=/v3/api-docs
 springdoc.swagger-ui.path=/swagger-ui.html

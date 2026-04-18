@@ -6,6 +6,7 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 
 import org.commonprovenance.framework.store.common.validation.ValidatableDTO;
+import org.commonprovenance.framework.store.config.AppConfig;
 import org.commonprovenance.framework.store.exceptions.ApplicationException;
 import org.commonprovenance.framework.store.exceptions.ConflictException;
 import org.commonprovenance.framework.store.exceptions.ConstraintException;
@@ -17,10 +18,61 @@ import io.vavr.control.Try;
 import reactor.core.publisher.Mono;
 
 public interface PublisherHelper {
-  MonoHelper MONO = new MonoHelper();
+  MonoHelper MONO = MonoHelper.get();
 
   // Mono implementation
   class MonoHelper {
+    private static class Holder {
+      static MonoHelper instance = new MonoHelper(false);
+    }
+
+    private final boolean verboseMode;
+
+    private MonoHelper(boolean verboseMode) {
+      this.verboseMode = verboseMode;
+    }
+
+    /**
+     * Initializes the singleton with the configured value. Should be called exactly
+     * once during
+     * application startup from {@link AppConfig}.
+     */
+    public static void initialize(boolean verboseMode) {
+      Holder.instance = new MonoHelper(verboseMode);
+    }
+
+    static MonoHelper get() {
+      return Holder.instance;
+    }
+
+    private <R> String defaultNullMessage(R value) {
+      if (!this.verboseMode) {
+        return "Input parameter can not be null.";
+      }
+
+      return "Input parameter can not be null. Caller="
+          + callerLocation()
+          + ", runtimeType="
+          + ((value == null) ? "unknown" : value.getClass().getName());
+    }
+
+    private <R> String defaultMessage(String message) {
+      if (!this.verboseMode) {
+        return message;
+      }
+
+      return message + " Caller=" + callerLocation();
+    }
+
+    private String callerLocation() {
+      return StackWalker.getInstance(StackWalker.Option.RETAIN_CLASS_REFERENCE)
+          .walk(frames -> frames
+              .dropWhile(frame -> frame.getClassName().equals(MonoHelper.class.getName()))
+              .findFirst()
+              .map(frame -> frame.getClassName() + "#" + frame.getMethodName() + ":" + frame.getLineNumber())
+              .orElse("unknown"));
+    }
+
     public <T extends ValidatableDTO> Mono<T> validateDTO(T value) {
       Vector<String> result = value.validate();
       return result.isEmpty()
@@ -31,7 +83,7 @@ public interface PublisherHelper {
     }
 
     public <T> Mono<T> makeSureNotNull(T value) {
-      return this.<T>makeSureNotNullWithMessage("Input parameter can not be null.").apply(value);
+      return this.<T>makeSureNotNullWithMessage(this.defaultNullMessage(value)).apply(value);
     }
 
     public <T> Function<T, Mono<T>> makeSureNotNullWithMessage(String message) {
