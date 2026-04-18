@@ -25,7 +25,7 @@ public interface ProvJsonUtils {
 
     public Function<String, Either<ApplicationException, String>> preprocessJsonForDeserialization(
         Boolean prettyPrint) {
-      return EITHER.<String, ApplicationException, String>fromFunction(
+      return EITHER.<String, ApplicationException, String>liftToEither(
           (String value) -> IMPERATIVE.preprocessJsonForDeserialization(value, prettyPrint),
           this::handleThrowable);
     }
@@ -35,7 +35,7 @@ public interface ProvJsonUtils {
 
     public Function<String, Either<ApplicationException, String>> preprocessIncompatibleJsonForDeserialization(
         Boolean prettyPrint) {
-      return EITHER.<String, ApplicationException, String>fromFunction(
+      return EITHER.<String, ApplicationException, String>liftToEither(
           (String value) -> IMPERATIVE.preprocessIncompatibleJsonForDeserialization(value, prettyPrint),
           this::handleThrowable);
     }
@@ -45,7 +45,7 @@ public interface ProvJsonUtils {
 
     public Function<String, Either<ApplicationException, String>> postprocessJsonAfterSerialization(
         Boolean prettyPrint) {
-      return EITHER.<String, ApplicationException, String>fromFunction(
+      return EITHER.<String, ApplicationException, String>liftToEither(
           (String value) -> IMPERATIVE.postprocessJsonAfterSerialization(value, prettyPrint),
           this::handleThrowable);
     }
