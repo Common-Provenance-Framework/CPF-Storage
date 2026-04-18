@@ -52,24 +52,24 @@ public interface EitherUtils {
 
     // --
 
-    public <I, R> Function<I, Either<ApplicationException, R>> fromFunction(
-        Function<I, R> function,
+    public <I, R> Function<I, Either<ApplicationException, R>> liftToEither(
+        Function<I, R> liftFunction,
         String leftMessage) {
-      return this.<I, ApplicationException, R>fromFunction(
-          function,
+      return this.<I, ApplicationException, R>liftToEither(
+          liftFunction,
           _ -> new InternalApplicationException(leftMessage));
     }
 
-    public <I, R> Function<I, Either<ApplicationException, R>> fromFunction(
-        Function<I, R> function,
-        ApplicationException left) {
-      return this.<I, ApplicationException, R>fromFunction(function, _ -> left);
+    public <I, R> Function<I, Either<ApplicationException, R>> liftToEither(
+        Function<I, R> liftFunction,
+        ApplicationException leftValue) {
+      return this.<I, ApplicationException, R>liftToEither(liftFunction, _ -> leftValue);
     }
 
-    public <I, L, R> Function<I, Either<L, R>> fromFunction(
-        Function<I, R> function,
+    public <I, L, R> Function<I, Either<L, R>> liftToEither(
+        Function<I, R> liftFunction,
         Function<Throwable, L> errorMapper) {
-      return Function1.<I, R>liftTry(function)
+      return Function1.<I, R>liftTry(liftFunction)
           .andThen((Try<R> resOrThrowable) -> resOrThrowable.toEither().mapLeft(errorMapper));
     }
 
