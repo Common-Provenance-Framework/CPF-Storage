@@ -52,21 +52,21 @@ public interface EitherUtils {
 
     // --
 
-    public <I, R> Function<I, Either<ApplicationException, R>> liftToEither(
+    public <I, R> Function<I, Either<ApplicationException, R>> liftEither(
         Function<I, R> liftFunction,
         String leftMessage) {
-      return this.<I, ApplicationException, R>liftToEither(
+      return this.<I, ApplicationException, R>liftEither(
           liftFunction,
           _ -> new InternalApplicationException(leftMessage));
     }
 
-    public <I, R> Function<I, Either<ApplicationException, R>> liftToEither(
+    public <I, R> Function<I, Either<ApplicationException, R>> liftEither(
         Function<I, R> liftFunction,
         ApplicationException leftValue) {
-      return this.<I, ApplicationException, R>liftToEither(liftFunction, _ -> leftValue);
+      return this.<I, ApplicationException, R>liftEither(liftFunction, _ -> leftValue);
     }
 
-    public <I, L, R> Function<I, Either<L, R>> liftToEither(
+    public <I, L, R> Function<I, Either<L, R>> liftEither(
         Function<I, R> liftFunction,
         Function<Throwable, L> errorMapper) {
       return Function1.<I, R>liftTry(liftFunction)
