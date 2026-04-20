@@ -71,7 +71,8 @@ public class CertUtilsTest {
     ecPkOrException
         .map(ECPrivateKey::getParams)
         .peek(params -> assertEquals(256, params.getCurve().getField().getFieldSize(),
-            "should be 256 bits long - the private key field size"));
+            "should be 256 bits long - the private key field size"))
+        .peekLeft(this::handleLeft);
 
     // Extract private scalar. Equivalent to OpenSSL:
     // `openssl ec -in ./cpf-utils/src/test/resources/cert/org_pkcs8.key -text
@@ -83,7 +84,8 @@ public class CertUtilsTest {
         .map(ECPrivateKey::getS)
         .peek(s -> assertNotNull(s))
         .peek(s -> assertEquals(1, s.signum()))
-        .peek(s -> assertEquals(expected, s.toString(16), "should be equal to private key loaded by openssl"));
+        .peek(s -> assertEquals(expected, s.toString(16), "should be equal to private key loaded by openssl"))
+        .peekLeft(this::handleLeft);
   }
 
   @Test
@@ -125,7 +127,8 @@ public class CertUtilsTest {
         .flatMap(tuple -> EITHER.zip(
             BytesUtils.bytesToHex(tuple._1.getEncoded()),
             BytesUtils.bytesToHex(tuple._2.getEncoded())))
-        .peek(tuple -> assertEquals(tuple._1, tuple._2));
+        .peek(tuple -> assertEquals(tuple._1, tuple._2))
+        .peekLeft(this::handleLeft);
 
   };
 
@@ -151,7 +154,8 @@ public class CertUtilsTest {
           -----END CERTIFICATE-----
           """;
     CertUtils.loadCertificate(pem)
-        .peek(cert -> assertTrue(cert.getPublicKey() instanceof ECPublicKey, "should be instanceof ECPublicKey"));
+        .peek(cert -> assertTrue(cert.getPublicKey() instanceof ECPublicKey, "should be instanceof ECPublicKey"))
+        .peekLeft(this::handleLeft);
 
   };
 
@@ -159,7 +163,8 @@ public class CertUtilsTest {
   @DisplayName("should return algorithm from .pem file")
   public void shouldReturnAlgorithmFromPemFile() {
     CertUtils.getAlgorithm(PEM_CERTIFICATE)
-        .peek(algorithm -> assertEquals("SHA256withECDSA", algorithm));
+        .peek(algorithm -> assertEquals("SHA256withECDSA", algorithm))
+        .peekLeft(this::handleLeft);
   }
 
   @Test
@@ -171,7 +176,8 @@ public class CertUtilsTest {
         .peek(cert -> assertEquals("X.509", cert.getPublicKey().getFormat(),
             "should be X.509 - the primary encoding format of the public key"))
         .peek(cert -> assertEquals("X.509", cert.getType(),
-            "should be X.509 - the type of this certificate"));
+            "should be X.509 - the type of this certificate"))
+        .peekLeft(this::handleLeft);
   }
 
   @Test
@@ -193,16 +199,19 @@ public class CertUtilsTest {
         privateKeyOrException,
         CertUtils.sign("SHA256withECDSA"))
         .peek(signature -> assertNotNull(signature, "should not be NULL - signature"))
-        .peek(signature -> assertTrue(signature.length > 0, "should not be EMPTY - signature"));
+        .peek(signature -> assertTrue(signature.length > 0, "should not be EMPTY - signature"))
+        .peekLeft(this::handleLeft);
 
     // Verify
     EITHER.combineM(messageOrException, signatureOrException, publicKeyOrException,
         CertUtils.verify("SHA256withECDSA"))
-        .peek(isValid -> assertTrue(isValid, "should be true - check signature with public key from cert"));
+        .peek(isValid -> assertTrue(isValid, "should be true - check signature with public key from cert"))
+        .peekLeft(this::handleLeft);
 
     EITHER.combineM(messageOrException, signatureOrException, derivedPublicKeyOrException,
         CertUtils.verify("SHA256withECDSA"))
         .peek(isValid -> assertTrue(isValid,
-            "should be true - check signature with public key derived from private key"));
+            "should be true - check signature with public key derived from private key"))
+        .peekLeft(this::handleLeft);
   }
 }
