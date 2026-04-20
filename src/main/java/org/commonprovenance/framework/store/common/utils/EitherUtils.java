@@ -14,6 +14,10 @@ import org.commonprovenance.framework.store.exceptions.ConstraintException;
 import org.commonprovenance.framework.store.exceptions.InternalApplicationException;
 
 import io.vavr.Function1;
+import io.vavr.Function3;
+import io.vavr.Tuple;
+import io.vavr.Tuple2;
+import io.vavr.Tuple3;
 import io.vavr.control.Either;
 import io.vavr.control.Try;
 
@@ -169,10 +173,23 @@ public interface EitherUtils {
       return eitherA.peek(a -> eitherB.peek(b -> consumer.accept(a, b)));
     }
 
+    public <L, R1, R2> Either<L, Tuple2<R1, R2>> zip(
+        Either<L, R1> eitherA,
+        Either<L, R2> eitherB) {
+      return eitherA.flatMap(a -> eitherB.map(b -> Tuple.of(a, b)));
+    }
+
+    public <L, R1, R2, R3> Either<L, Tuple3<R1, R2, R3>> zip(
+        Either<L, R1> eitherA,
+        Either<L, R2> eitherB,
+        Either<L, R3> eitherC) {
+      return eitherA.flatMap(a -> eitherB.flatMap(b -> eitherC.map(c -> Tuple.of(a, b, c))));
+    }
+
     /**
      * Applicative pattern: Combines three Either values.
      */
-    public <L, A, B, C, R> Either<L, R> combine3(
+    public <L, A, B, C, R> Either<L, R> combine(
         Either<L, A> eitherA,
         Either<L, B> eitherB,
         Either<L, C> eitherC,
@@ -180,9 +197,19 @@ public interface EitherUtils {
       return eitherA.flatMap(a -> eitherB.flatMap(b -> eitherC.map(c -> combiner.apply(a, b, c))));
     }
 
-    @FunctionalInterface
-    public interface Function3<A, B, C, R> {
-      R apply(A a, B b, C c);
+    public <L, A, B, C, R> Either<L, R> combineM(
+        Either<L, A> eitherA,
+        Either<L, B> eitherB,
+        Either<L, C> eitherC,
+        Function3<A, B, C, Either<L, R>> combiner) {
+      return eitherA.flatMap(a -> eitherB.flatMap(b -> eitherC.flatMap(c -> combiner.apply(a, b, c))));
+    }
+
+    public <L, A, B, R> Either<L, R> combineM(
+        Either<L, A> eitherA,
+        Either<L, B> eitherB,
+        BiFunction<A, B, Either<L, R>> combiner) {
+      return eitherA.flatMap(a -> eitherB.flatMap(b -> combiner.apply(a, b)));
     }
 
     // TODO: !!test this!!
