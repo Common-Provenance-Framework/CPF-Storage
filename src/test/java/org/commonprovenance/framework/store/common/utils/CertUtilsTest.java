@@ -50,18 +50,11 @@ public class CertUtilsTest {
   }
 
   @Test
-  @DisplayName("should preprocess 'pkcs8.key' file content")
-  public void shouldPreprocessFileContent() {
-    assertEquals(
-        this.PRIV_KEY_VALUE,
-        CertUtils.preprocessFileContent(this.PRIV_KEY_FILE_CONTENT));
-  }
-
-  @Test
   @DisplayName("should load valid private key from .key file")
   public void shouldReturnPrivKeyFromKeyFile_EC() {
     // Load EC private key (SEC1 converted to PKCS#8)
-    Either<ApplicationException, ECPrivateKey> ecPkOrException = CertUtils.loadPrivateKey(this.PRIV_KEY_VALUE)
+    Either<ApplicationException, ECPrivateKey> ecPkOrException = CertUtils.FUNCTIONAL
+        .loadPrivateKey(this.PRIV_KEY_VALUE)
         .peek(key -> assertNotNull(key, "should not be a NULL - private key"))
         .peek(key -> assertTrue(key instanceof ECPrivateKey, "should be instanceof ECPrivateKey - private key"))
         .map(ECPrivateKey.class::cast)
@@ -92,16 +85,18 @@ public class CertUtilsTest {
   @DisplayName("should load valid public key from .pem files")
   public void shouldReturnPubKeyFromPemFile_EC() {
     // Derive public key from private key (expected value)
-    Either<ApplicationException, ECPrivateKey> keyOrException = CertUtils.loadPrivateKey(this.PRIV_KEY_VALUE)
+    Either<ApplicationException, ECPrivateKey> keyOrException = CertUtils.FUNCTIONAL
+        .loadPrivateKey(this.PRIV_KEY_VALUE)
         .map(ECPrivateKey.class::cast)
         .peekLeft(this::handleLeft);
 
     Either<ApplicationException, ECPublicKey> derivedPublicKeyOrException = keyOrException
-        .flatMap(CertUtils::derivePublicKey)
+        .flatMap(CertUtils.FUNCTIONAL::derivePublicKey)
         .peekLeft(this::handleLeft);
 
     // Load public key from certificate
-    Either<ApplicationException, ECPublicKey> certPublicKeyOrException = CertUtils.loadPublicKey(PEM_CERTIFICATE)
+    Either<ApplicationException, ECPublicKey> certPublicKeyOrException = CertUtils.FUNCTIONAL
+        .loadPublicKey(PEM_CERTIFICATE)
         .peekLeft(this::handleLeft)
         .peek(certPublicKey -> assertTrue(certPublicKey instanceof ECPublicKey, "should be instanceof ECPublicKey"))
         .map(ECPublicKey.class::cast);
@@ -153,7 +148,8 @@ public class CertUtilsTest {
           xAIhAPjZszEH4rYc5bhtojbLIKz+v0UD0bd8wF0Q4tG1Cti4
           -----END CERTIFICATE-----
           """;
-    CertUtils.loadCertificate(pem)
+    CertUtils.FUNCTIONAL
+        .loadCertificate(pem)
         .peek(cert -> assertTrue(cert.getPublicKey() instanceof ECPublicKey, "should be instanceof ECPublicKey"))
         .peekLeft(this::handleLeft);
 
@@ -162,7 +158,8 @@ public class CertUtilsTest {
   @Test
   @DisplayName("should return algorithm from .pem file")
   public void shouldReturnAlgorithmFromPemFile() {
-    CertUtils.getAlgorithm(PEM_CERTIFICATE)
+    CertUtils.FUNCTIONAL
+        .getAlgorithm(PEM_CERTIFICATE)
         .peek(algorithm -> assertEquals("SHA256withECDSA", algorithm))
         .peekLeft(this::handleLeft);
   }
@@ -170,7 +167,8 @@ public class CertUtilsTest {
   @Test
   @DisplayName("should return certificate from .pem file")
   public void shouldReturnCertFromPemFile() {
-    CertUtils.loadCertificate(PEM_CERTIFICATE)
+    CertUtils.FUNCTIONAL
+        .loadCertificate(PEM_CERTIFICATE)
         .peek(cert -> assertEquals("EC", cert.getPublicKey().getAlgorithm(),
             "should be 'EC' - the name of the algorithm associated with this public key"))
         .peek(cert -> assertEquals("X.509", cert.getPublicKey().getFormat(),
@@ -184,11 +182,13 @@ public class CertUtilsTest {
   @DisplayName("should return true if massage has been sign by valid private key")
   public void testEcdsaSignatureVerification() {
     // Load keys
-    Either<ApplicationException, PrivateKey> privateKeyOrException = CertUtils.loadPrivateKey(this.PRIV_KEY_VALUE);
-    Either<ApplicationException, PublicKey> publicKeyOrException = CertUtils.loadPublicKey(PEM_CERTIFICATE);
+    Either<ApplicationException, PrivateKey> privateKeyOrException = CertUtils.FUNCTIONAL
+        .loadPrivateKey(this.PRIV_KEY_VALUE);
+    Either<ApplicationException, PublicKey> publicKeyOrException = CertUtils.FUNCTIONAL
+        .loadPublicKey(PEM_CERTIFICATE);
     Either<ApplicationException, PublicKey> derivedPublicKeyOrException = privateKeyOrException
         .map(ECPrivateKey.class::cast)
-        .flatMap(CertUtils::derivePublicKey);
+        .flatMap(CertUtils.FUNCTIONAL::derivePublicKey);
 
     // Set message
     Either<ApplicationException, byte[]> messageOrException = BytesUtils.stringToBytes_UTF8("Hello world!");
@@ -197,19 +197,19 @@ public class CertUtilsTest {
     Either<ApplicationException, byte[]> signatureOrException = EITHER.combineM(
         messageOrException,
         privateKeyOrException,
-        CertUtils.sign("SHA256withECDSA"))
+        CertUtils.FUNCTIONAL.sign("SHA256withECDSA"))
         .peek(signature -> assertNotNull(signature, "should not be NULL - signature"))
         .peek(signature -> assertTrue(signature.length > 0, "should not be EMPTY - signature"))
         .peekLeft(this::handleLeft);
 
     // Verify
     EITHER.combineM(messageOrException, signatureOrException, publicKeyOrException,
-        CertUtils.verify("SHA256withECDSA"))
+        CertUtils.FUNCTIONAL.verify("SHA256withECDSA"))
         .peek(isValid -> assertTrue(isValid, "should be true - check signature with public key from cert"))
         .peekLeft(this::handleLeft);
 
     EITHER.combineM(messageOrException, signatureOrException, derivedPublicKeyOrException,
-        CertUtils.verify("SHA256withECDSA"))
+        CertUtils.FUNCTIONAL.verify("SHA256withECDSA"))
         .peek(isValid -> assertTrue(isValid,
             "should be true - check signature with public key derived from private key"))
         .peekLeft(this::handleLeft);
