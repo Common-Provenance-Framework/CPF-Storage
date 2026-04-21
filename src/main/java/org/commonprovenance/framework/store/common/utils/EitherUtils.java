@@ -4,7 +4,6 @@ import java.util.Objects;
 import java.util.Vector;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
-import java.util.function.Function;
 import java.util.function.Predicate;
 
 import org.commonprovenance.framework.store.common.validation.ValidatableDTO;
@@ -13,7 +12,12 @@ import org.commonprovenance.framework.store.exceptions.ApplicationException;
 import org.commonprovenance.framework.store.exceptions.ConstraintException;
 import org.commonprovenance.framework.store.exceptions.InternalApplicationException;
 
+import io.vavr.CheckedFunction0;
+import io.vavr.CheckedFunction1;
+import io.vavr.CheckedFunction2;
+import io.vavr.Function0;
 import io.vavr.Function1;
+import io.vavr.Function2;
 import io.vavr.Function3;
 import io.vavr.Tuple;
 import io.vavr.Tuple2;
@@ -90,17 +94,17 @@ public interface EitherUtils {
       return this.<R>makeSureNotNullWithMessage(this.defaultNullMessage(value)).apply(value);
     }
 
-    public <R> Function<R, Either<ApplicationException, R>> makeSureNotNullWithMessage(String message) {
+    public <R> Function1<R, Either<ApplicationException, R>> makeSureNotNullWithMessage(String message) {
       return this.<R>makeSure(Objects::nonNull, message);
     }
 
-    public <R> Function<R, Either<ApplicationException, R>> makeSure(Predicate<R> validator, String message) {
+    public <R> Function1<R, Either<ApplicationException, R>> makeSure(Predicate<R> validator, String message) {
       return this.<R>makeSure(validator, _ -> new InternalApplicationException(message));
     }
 
-    public <R> Function<R, Either<ApplicationException, R>> makeSure(
+    public <R> Function1<R, Either<ApplicationException, R>> makeSure(
         Predicate<R> validator,
-        Function<R, ApplicationException> applicationExceptionBuilder) {
+        Function1<R, ApplicationException> applicationExceptionBuilder) {
       return (R value) -> validator.test(value)
           ? Either.right(value)
           : Either.left(applicationExceptionBuilder.apply(value));
@@ -108,45 +112,76 @@ public interface EitherUtils {
 
     // --
 
-    public <I, R> Function<I, Either<ApplicationException, R>> liftEither(Function<I, R> liftFunction) {
+    public <R> Either<ApplicationException, R> liftEither(Function0<R> liftSupplier) {
+      return Function0.<R>liftTry(liftSupplier)
+          .andThen((Try<R> resOrThrowable) -> resOrThrowable.toEither()
+              .mapLeft(throwable -> (ApplicationException) new InternalApplicationException(
+                  this.defaultMessage(throwable.getClass().getSimpleName() + ": " + throwable.getMessage()))))
+          .apply();
+    }
+
+    public <R> Either<ApplicationException, R> liftEitherChecked(CheckedFunction0<R> liftChecked) {
+      return CheckedFunction0.<R>liftTry(liftChecked)
+          .andThen((Try<R> resOrThrowable) -> resOrThrowable.toEither()
+              .mapLeft(throwable -> (ApplicationException) new InternalApplicationException(
+                  this.defaultMessage(throwable.getClass().getSimpleName() + ": " + throwable.getMessage()))))
+          .apply();
+    }
+
+    public <I, R> Function1<I, Either<ApplicationException, R>> liftEither(Function1<I, R> liftFunction) {
       return this.<I, ApplicationException, R>liftEither(
           liftFunction,
           (Throwable throwable) -> new InternalApplicationException(this.defaultMessage(
               throwable.getClass().getSimpleName() + ": " + throwable.getMessage())));
     }
 
-    public <I, R> Function<I, Either<ApplicationException, R>> liftEither(
-        Function<I, R> liftFunction,
+    public <I, R> Function1<I, Either<ApplicationException, R>> liftEitherChecked(CheckedFunction1<I, R> liftChecked) {
+      return CheckedFunction1.<I, R>liftTry(liftChecked)
+          .andThen((Try<R> resOrThrowable) -> resOrThrowable.toEither()
+              .mapLeft(throwable -> new InternalApplicationException(
+                  this.defaultMessage(throwable.getClass().getSimpleName() + ": " + throwable.getMessage()))));
+    }
+
+    public <I1, I2, R> Function2<I1, I2, Either<ApplicationException, R>> liftEither(
+        CheckedFunction2<I1, I2, R> liftChecked) {
+      return CheckedFunction2.<I1, I2, R>liftTry(liftChecked)
+          .andThen((Try<R> resOrThrowable) -> resOrThrowable.toEither()
+              .mapLeft(throwable -> new InternalApplicationException(
+                  this.defaultMessage(throwable.getClass().getSimpleName() + ": " + throwable.getMessage()))));
+    }
+
+    public <I, R> Function1<I, Either<ApplicationException, R>> liftEither(
+        Function1<I, R> liftFunction,
         String leftMessage) {
       return this.<I, ApplicationException, R>liftEither(
           liftFunction,
           _ -> new InternalApplicationException(leftMessage));
     }
 
-    public <I, R> Function<I, Either<ApplicationException, R>> liftEither(
-        Function<I, R> liftFunction,
+    public <I, R> Function1<I, Either<ApplicationException, R>> liftEither(
+        Function1<I, R> liftFunction,
         ApplicationException leftValue) {
       return this.<I, ApplicationException, R>liftEither(liftFunction, _ -> leftValue);
     }
 
-    public <I, L, R> Function<I, Either<L, R>> liftEither(
-        Function<I, R> liftFunction,
-        Function<Throwable, L> errorMapper) {
+    public <I, L, R> Function1<I, Either<L, R>> liftEither(
+        Function1<I, R> liftFunction,
+        Function1<Throwable, L> errorMapper) {
       return Function1.<I, R>liftTry(liftFunction)
           .andThen((Try<R> resOrThrowable) -> resOrThrowable.toEither().mapLeft(errorMapper));
     }
 
     // --
 
-    public <L, R> Function<R, Either<L, R>> makeSureBefore(
-        Boolean onlyIf,
-        Function<R, Either<L, R>> mapper) {
+    public <R> Function1<R, Either<ApplicationException, R>> makeSureBefore(
+        boolean onlyIf,
+        Function1<R, Either<ApplicationException, R>> mapper) {
       return makeSureBefore(_ -> onlyIf, mapper);
     }
 
-    public <L, R> Function<R, Either<L, R>> makeSureBefore(
+    public <L, R> Function1<R, Either<L, R>> makeSureBefore(
         Predicate<R> predicate,
-        Function<R, Either<L, R>> mapper) {
+        Function1<R, Either<L, R>> mapper) {
       return value -> predicate.test(value) ? mapper.apply(value) : Either.right(value);
     }
 
@@ -162,7 +197,7 @@ public interface EitherUtils {
     public <L, A, B, R> Either<L, R> combine(
         Either<L, A> eitherA,
         Either<L, B> eitherB,
-        BiFunction<A, B, R> combiner) {
+        Function2<A, B, R> combiner) {
       return eitherA.flatMap(a -> eitherB.map(b -> combiner.apply(a, b)));
     }
 
@@ -205,16 +240,30 @@ public interface EitherUtils {
       return eitherA.flatMap(a -> eitherB.flatMap(b -> eitherC.flatMap(c -> combiner.apply(a, b, c))));
     }
 
-    public <L, A, B, R> Either<L, R> combineM(
+    public <L extends ApplicationException, A, B, R> Either<L, R> combineM(
         Either<L, A> eitherA,
         Either<L, B> eitherB,
         BiFunction<A, B, Either<L, R>> combiner) {
       return eitherA.flatMap(a -> eitherB.flatMap(b -> combiner.apply(a, b)));
     }
 
+    public <A, B, R> Either<ApplicationException, R> combineChecked(
+        Either<ApplicationException, A> eitherA,
+        Either<ApplicationException, B> eitherB,
+        CheckedFunction2<A, B, R> combiner) {
+      return eitherA.flatMap(a -> eitherB.flatMap(b -> {
+        try {
+          return Either.<ApplicationException, R>right(combiner.apply(a, b));
+        } catch (Throwable throwable) {
+          return Either.<ApplicationException, R>left(new InternalApplicationException(
+              this.defaultMessage(throwable.getClass().getSimpleName() + ": " + throwable.getMessage())));
+        }
+      }));
+    }
+
     // TODO: !!test this!!
-    public <L, R1, R2, R3> Function<R1, Either<L, Function<R2, R3>>> applicative(
-        Function<R1, Function<R2, R3>> combiner) {
+    public <L, R1, R2, R3> Function1<R1, Either<L, Function1<R2, R3>>> applicative(
+        Function1<R1, Function1<R2, R3>> combiner) {
       return (R1 value) -> Either.<L, R1>right(value).map(combiner);
     }
   }
