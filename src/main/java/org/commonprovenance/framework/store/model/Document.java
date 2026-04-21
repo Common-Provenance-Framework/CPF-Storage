@@ -1,7 +1,6 @@
 package org.commonprovenance.framework.store.model;
 
 import java.util.Optional;
-import java.util.function.Function;
 
 import org.commonprovenance.framework.store.common.dto.HasGraph;
 import org.commonprovenance.framework.store.common.dto.HasOptionalFormat;
@@ -17,6 +16,7 @@ import org.openprovenance.prov.model.interop.Formats;
 import cz.muni.fi.cpm.model.CpmDocument;
 import cz.muni.fi.cpm.model.ICpmFactory;
 import cz.muni.fi.cpm.model.ICpmProvFactory;
+import io.vavr.Function1;
 import io.vavr.control.Either;
 
 public class Document implements HasOptionalIdentifier,
@@ -117,19 +117,18 @@ public class Document implements HasOptionalIdentifier,
       ICpmFactory cpmFactory,
       Boolean force) {
 
-    Function<Optional<Format>, Formats.ProvFormat> getFormatOrDefault = format -> format
+    Function1<Optional<Format>, Formats.ProvFormat> getFormatOrDefault = format -> format
         .map(Format::toProvFormat)
         .orElse(Formats.ProvFormat.JSON);
 
-    Function<String, Optional<org.openprovenance.prov.model.Document>> getDocument = json -> Either
+    Function1<String, Either<ApplicationException, org.openprovenance.prov.model.Document>> getDocument = json -> Either
         .<ApplicationException, String>right(json)
-        .flatMap(ProvDocumentUtils.FUNCTIONAL.deserialize(getFormatOrDefault.apply(this.format)))
-        .fold(_ -> Optional.empty(), x -> Optional.of(x));
+        .flatMap(ProvDocumentUtils.FUNCTIONAL.deserialize(getFormatOrDefault.apply(this.format)));
 
     return this.cpmDocument.isPresent() && !force
         ? this
-        : Optional.ofNullable(this.graph)
-            .map(Base64Utils::decodeToString)
+        : Either.<ApplicationException, String>right(this.graph)
+            .flatMap(Base64Utils::decodeToString)
             .flatMap(getDocument)
             .map(this.cpmFactory(provFactory, cpmProvFactory, cpmFactory))
             .map((CpmDocument cpmDocument) -> new Document(
@@ -140,7 +139,7 @@ public class Document implements HasOptionalIdentifier,
                 this.getSignature(),
                 cpmDocument,
                 this.getToken().orElse(null)))
-            .orElse(this);
+            .getOrElse(this);
   }
 
   public Document withToken(Token token) {
@@ -165,7 +164,7 @@ public class Document implements HasOptionalIdentifier,
         this.getToken().orElse(null));
   }
 
-  private Function<org.openprovenance.prov.model.Document, CpmDocument> cpmFactory(
+  private Function1<org.openprovenance.prov.model.Document, CpmDocument> cpmFactory(
       ProvFactory provFactory,
       ICpmProvFactory cpmProvFactory,
       ICpmFactory cpmFactory) {
