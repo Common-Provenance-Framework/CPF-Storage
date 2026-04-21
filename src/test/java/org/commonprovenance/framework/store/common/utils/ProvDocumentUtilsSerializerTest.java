@@ -7,7 +7,6 @@ import static org.junit.jupiter.api.Assertions.fail;
 import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
-import java.util.function.Function;
 
 import org.commonprovenance.framework.store.exceptions.ApplicationException;
 import org.junit.jupiter.api.DisplayName;
@@ -259,8 +258,8 @@ public class ProvDocumentUtilsSerializerTest {
   private Either<String, JsonNode> getProvAsJson(String document) {
     ObjectMapper mapper = new ObjectMapper();
 
-    return Either.<Throwable, String>right(document)
-        .flatMap(EITHER.liftEither(mapper::readTree, Function.identity()))
+    return Either.<ApplicationException, String>right(document)
+        .flatMap(EITHER.liftEitherChecked(mapper::readTree))
         .mapLeft(Throwable::getMessage);
   }
 
