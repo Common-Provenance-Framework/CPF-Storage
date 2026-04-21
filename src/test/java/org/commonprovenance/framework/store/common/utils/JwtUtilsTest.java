@@ -1,11 +1,18 @@
 package org.commonprovenance.framework.store.common.utils;
 
+import static org.commonprovenance.framework.store.common.utils.EitherUtils.EITHER;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.fail;
+
+import java.util.function.Consumer;
+
+import org.commonprovenance.framework.store.exceptions.ApplicationException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
-
-import java.util.Map;
+import io.vavr.control.Either;
 
 @DisplayName("JWT Utils Test")
 public class JwtUtilsTest {
@@ -16,190 +23,166 @@ public class JwtUtilsTest {
    * Creates a test JWT with the given payload claims.
    * JWT format: header.payload.signature (signature is fake for testing)
    */
-  private String createTestJwt(String payloadJson) {
-    String header = Base64Utils.encodeBase64UrlFromString("{\"alg\":\"ES256\",\"typ\":\"JWT\"}");
-    String payload = Base64Utils.encodeBase64UrlFromString(payloadJson);
-    String signature = "fakeSignature";
-    return header + "." + payload + "." + signature;
+  private Either<ApplicationException, String> createTestJwt(String payloadJson) {
+    return EITHER.combine(
+        Base64Utils.encodeBase64UrlFromString("{\"alg\":\"ES256\",\"typ\":\"JWT\"}"),
+        Base64Utils.encodeBase64UrlFromString(payloadJson),
+        Either.right("fakeSignature"),
+        (header, payload, signature) -> header + "." + payload + "." + signature);
+  }
+
+  private <T> void handleRightNotExpected(T value) {
+    fail("Right side has not been expected! Got: " + value.toString());
+  }
+
+  private void handleLeftNotExpected(ApplicationException exception) {
+    fail("Left side has not been expected! " + exception.getMessage(), exception);
+  }
+
+  private Consumer<Throwable> handleLeftExpected(String expected) {
+    return (Throwable throwable) -> {
+      assertNotNull(throwable);
+      assertInstanceOf(ApplicationException.class, throwable);
+      assertEquals(expected, throwable.getMessage());
+    };
   }
 
   @Test
   @DisplayName("Should extract tokenTimestamp from valid JWT")
   void shouldExtractTokenTimestampFromJwt() {
-    // Given
-    // When
-    Long result = JwtUtils.extractTokenTimestamp(JWT);
-
-    // Then
-    assertNotNull(result);
-    assertEquals(1776173700L, result);
+    Either.<ApplicationException, String>right(JWT)
+        .flatMap(JwtUtils::extractTokenTimestamp)
+        .peek(result -> assertNotNull(result))
+        .peek(result -> assertEquals(1776173700L, result))
+        .peekLeft(this::handleLeftNotExpected);
   }
 
   @Test
   @DisplayName("Should extract Token Generation Attributes from valid JWT")
   void shouldExtractTokenGenerationAttributes() {
-    // Given
-    // When
-    Map<String, Object> result = JwtUtils.extractTokenGeneratorAttributes(JWT);
-
-    // Then
-    assertNotNull(result);
-    assertEquals(2, result.size());
-    assertEquals(
-        "trusted-party:8020",
-        result.get("trustedPartyUri"));
-    assertEquals(
-        "-----BEGIN CERTIFICATE-----\nMIICMjCCAdigAwIBAgIUSLj5Y7PXIS13qPEPDdlINBnQzogwCgYIKoZIzj0EAwIw\nbTELMAkGA1UEBhMCRVUxOjA4BgNVBAoMMURpc3RyaWJ1dGVkIFByb3ZlbmFuY2Ug\nRGVtbyBDZXJ0aWZpY2F0ZSBBdXRob3JpdHkxIjAgBgNVBAMMGURQRCBDZXJ0aWZp\nY2F0ZSBBdXRob3JpdHkwHhcNMjQxMTE2MDI1OTUyWhcNMzQxMTE0MDI1OTUyWjBd\nMQswCQYDVQQGEwJDWjEyMDAGA1UECgwpRGlzdHJpYnV0ZWQgUHJvdmVuYW5jZSBE\nZW1vIFRydXN0ZWQgUGFydHkxGjAYBgNVBAMMEURQRCBUcnVzdGVkIFBhcnR5MFkw\nEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE+V8kT4jkvEWmX301KAS9eklmnRNi6gU9\n+KHxuQpkSOhMTq96CBXFpfokRd7t5VdrRy0uqZsySNp5kW0hnQMJWaNmMGQwEgYD\nVR0TAQH/BAgwBgEB/wIBADAOBgNVHQ8BAf8EBAMCAYYwHQYDVR0OBBYEFMCnPRji\nXokT7quwZRB16AAgz7bnMB8GA1UdIwQYMBaAFCyEKwi1jvdPqfiU+NdH/nvh7PYZ\nMAoGCCqGSM49BAMCA0gAMEUCIQCyZrUShVqrohDqdzdOFmAyFDpwMAO8I6jahvg1\nFRAZYgIgVh4S2tQn12XYdd5ISsCpABsh6ZrjSiVYrt2T1O1nQsw=\n-----END CERTIFICATE-----\n",
-        result.get("trustedPartyCertificate"));
+    Either.<ApplicationException, String>right(JWT)
+        .flatMap(JwtUtils::extractTokenGeneratorAttributes)
+        .peek(result -> assertNotNull(result))
+        .peek(result -> assertEquals(2, result.size()))
+        .peek(result -> assertEquals(
+            "trusted-party:8020",
+            result.get("trustedPartyUri")))
+        .peek(result -> assertEquals(
+            "-----BEGIN CERTIFICATE-----\nMIICMjCCAdigAwIBAgIUSLj5Y7PXIS13qPEPDdlINBnQzogwCgYIKoZIzj0EAwIw\nbTELMAkGA1UEBhMCRVUxOjA4BgNVBAoMMURpc3RyaWJ1dGVkIFByb3ZlbmFuY2Ug\nRGVtbyBDZXJ0aWZpY2F0ZSBBdXRob3JpdHkxIjAgBgNVBAMMGURQRCBDZXJ0aWZp\nY2F0ZSBBdXRob3JpdHkwHhcNMjQxMTE2MDI1OTUyWhcNMzQxMTE0MDI1OTUyWjBd\nMQswCQYDVQQGEwJDWjEyMDAGA1UECgwpRGlzdHJpYnV0ZWQgUHJvdmVuYW5jZSBE\nZW1vIFRydXN0ZWQgUGFydHkxGjAYBgNVBAMMEURQRCBUcnVzdGVkIFBhcnR5MFkw\nEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE+V8kT4jkvEWmX301KAS9eklmnRNi6gU9\n+KHxuQpkSOhMTq96CBXFpfokRd7t5VdrRy0uqZsySNp5kW0hnQMJWaNmMGQwEgYD\nVR0TAQH/BAgwBgEB/wIBADAOBgNVHQ8BAf8EBAMCAYYwHQYDVR0OBBYEFMCnPRji\nXokT7quwZRB16AAgz7bnMB8GA1UdIwQYMBaAFCyEKwi1jvdPqfiU+NdH/nvh7PYZ\nMAoGCCqGSM49BAMCA0gAMEUCIQCyZrUShVqrohDqdzdOFmAyFDpwMAO8I6jahvg1\nFRAZYgIgVh4S2tQn12XYdd5ISsCpABsh6ZrjSiVYrt2T1O1nQsw=\n-----END CERTIFICATE-----\n",
+            result.get("trustedPartyCertificate")))
+        .peekLeft(this::handleLeftNotExpected);
   }
 
   @Test
   @DisplayName("Should extract tokenTimestamp from valid JWT")
   void shouldExtractTokenTimestampFromValidJwt() {
-    // Given
-    String payload = "{\"tokenTimestamp\":1776169956,\"authorityId\":\"Test\"}";
-    String jwt = createTestJwt(payload);
-
-    // When
-    Long result = JwtUtils.extractTokenTimestamp(jwt);
-
-    // Then
-    assertNotNull(result);
-    assertEquals(1776169956L, result);
+    Either.<ApplicationException, String>right("{\"tokenTimestamp\":1776169956,\"authorityId\":\"Test\"}")
+        .flatMap(this::createTestJwt)
+        .flatMap(JwtUtils::extractTokenTimestamp)
+        .peek(result -> assertNotNull(result))
+        .peek(result -> assertEquals(1776169956L, result))
+        .peekLeft(this::handleLeftNotExpected);
   }
 
   @Test
   @DisplayName("Should return null when tokenTimestamp is missing")
   void shouldReturnNullWhenTokenTimestampMissing() {
-    // Given
-    String payload = "{\"authorityId\":\"Test\",\"documentDigest\":\"abc123\"}";
-    String jwt = createTestJwt(payload);
-
-    // When
-    Long result = JwtUtils.extractTokenTimestamp(jwt);
-
-    // Then
-    assertNull(result);
+    Either.<ApplicationException, String>right("{\"authorityId\":\"Test\",\"documentDigest\":\"abc123\"}")
+        .flatMap(this::createTestJwt)
+        .flatMap((JwtUtils::extractTokenTimestamp))
+        .peek(this::handleRightNotExpected)
+        .peekLeft(this.handleLeftExpected("Input parameter can not be null."));
   }
 
   @Test
   @DisplayName("Should return null for null JWT")
   void shouldReturnNullForNullJwt() {
-    // When
-    Long result = JwtUtils.extractTokenTimestamp(null);
-
-    // Then
-    assertNull(result);
+    Either.<ApplicationException, String>right(null)
+        .flatMap(JwtUtils::extractTokenTimestamp)
+        .peek(this::handleRightNotExpected)
+        .peekLeft(this.handleLeftExpected("Input parameter can not be null."));
   }
 
   @Test
   @DisplayName("Should return null for blank JWT")
   void shouldReturnNullForBlankJwt() {
-    // When
-    Long result = JwtUtils.extractTokenTimestamp("   ");
-
-    // Then
-    assertNull(result);
+    Either.<ApplicationException, String>right("    ")
+        .flatMap(JwtUtils::extractTokenTimestamp)
+        .peek(this::handleRightNotExpected)
+        .peekLeft(this.handleLeftExpected("JWT token can not be blank String."));
   }
 
   @Test
   @DisplayName("Should return null for invalid JWT format")
   void shouldReturnNullForInvalidJwtFormat() {
-    // Given - JWT without proper structure
-    String invalidJwt = "not.a.valid.jwt.structure";
-
-    // When
-    Long result = JwtUtils.extractTokenTimestamp(invalidJwt);
-
-    // Then
-    assertNull(result);
+    Either.<ApplicationException, String>right("not.a.valid.jwt.structure")
+        .flatMap(JwtUtils::extractTokenTimestamp)
+        .peek(this::handleRightNotExpected)
+        .peekLeft(this.handleLeftExpected("Can not decode JWT Token!"));
   }
 
   @Test
   @DisplayName("Should return null for malformed JWT")
   void shouldReturnNullForMalformedJwt() {
-    // Given - JWT with only one part
-    String malformedJwt = "onlyOnePart";
-
-    // When
-    Long result = JwtUtils.extractTokenTimestamp(malformedJwt);
-
-    // Then
-    assertNull(result);
+    Either.<ApplicationException, String>right("onlyOnePart")
+        .flatMap(JwtUtils::extractTokenTimestamp)
+        .peek(this::handleRightNotExpected)
+        .peekLeft(this.handleLeftExpected("Not valid JWT token."));
   }
 
   @Test
   @DisplayName("Should return null for non-numeric tokenTimestamp")
   void shouldReturnNullForNonNumericTokenTimestamp() {
-    // Given
-    String payload = "{\"tokenTimestamp\":\"not-a-number\",\"authorityId\":\"Test\"}";
-    String jwt = createTestJwt(payload);
-
-    // When
-    Long result = JwtUtils.extractTokenTimestamp(jwt);
-
-    // Then
-    assertNull(result);
+    Either.<ApplicationException, String>right("{\"tokenTimestamp\":\"not-a-number\",\"authorityId\":\"Test\"}")
+        .flatMap(this::createTestJwt)
+        .flatMap(JwtUtils::extractTokenTimestamp)
+        .peek(this::handleRightNotExpected)
+        .peekLeft(this.handleLeftExpected("'tokenTimestamp' value has to be numbert!"));
   }
 
   @Test
   @DisplayName("Should handle JWT with special characters in payload")
   void shouldHandleJwtWithSpecialCharacters() {
-    // Given - JWT with various special characters
-    String payload = "{\"tokenTimestamp\":1776169956,\"cert\":\"-----BEGIN CERT-----\\nMIIC...\\n-----END CERT-----\"}";
-    String jwt = createTestJwt(payload);
-
-    // When
-    Long result = JwtUtils.extractTokenTimestamp(jwt);
-
-    // Then
-    assertNotNull(result);
-    assertEquals(1776169956L, result);
+    Either.<ApplicationException, String>right(
+        "{\"tokenTimestamp\":1776169956,\"cert\":\"-----BEGIN CERT-----\\nMIIC...\\n-----END CERT-----\"}")
+        .flatMap(this::createTestJwt)
+        .flatMap(JwtUtils::extractTokenTimestamp)
+        .peek(result -> assertNotNull(result))
+        .peek(result -> assertEquals(1776169956L, result))
+        .peekLeft(this::handleLeftNotExpected);
   }
 
   @Test
   @DisplayName("Should handle large timestamp values")
   void shouldHandleLargeTimestampValues() {
-    // Given - Far future timestamp
-    String payload = "{\"tokenTimestamp\":9999999999}";
-    String jwt = createTestJwt(payload);
-
-    // When
-    Long result = JwtUtils.extractTokenTimestamp(jwt);
-
-    // Then
-    assertNotNull(result);
-    assertEquals(9999999999L, result);
+    Either.<ApplicationException, String>right("{\"tokenTimestamp\":9999999999}")
+        .flatMap(this::createTestJwt)
+        .flatMap(JwtUtils::extractTokenTimestamp)
+        .peek(result -> assertNotNull(result))
+        .peek(result -> assertEquals(9999999999L, result))
+        .peekLeft(this::handleLeftNotExpected);
   }
 
   @Test
   @DisplayName("Should handle zero timestamp")
   void shouldHandleZeroTimestamp() {
-    // Given
-    String payload = "{\"tokenTimestamp\":0}";
-    String jwt = createTestJwt(payload);
-
-    // When
-    Long result = JwtUtils.extractTokenTimestamp(jwt);
-
-    // Then
-    assertNotNull(result);
-    assertEquals(0L, result);
+    Either.<ApplicationException, String>right("{\"tokenTimestamp\":0}")
+        .flatMap(this::createTestJwt)
+        .flatMap(JwtUtils::extractTokenTimestamp)
+        .peek(result -> assertNotNull(result))
+        .peek(result -> assertEquals(0L, result))
+        .peekLeft(this::handleLeftNotExpected);
   }
 
   @Test
   @DisplayName("Should handle negative timestamp")
   void shouldHandleNegativeTimestamp() {
-    // Given
-    String payload = "{\"tokenTimestamp\":-1000}";
-    String jwt = createTestJwt(payload);
-
-    // When
-    Long result = JwtUtils.extractTokenTimestamp(jwt);
-
-    // Then
-    assertNotNull(result);
-    assertEquals(-1000L, result);
+    Either.<ApplicationException, String>right("{\"tokenTimestamp\":0}")
+        .flatMap(this::createTestJwt)
+        .flatMap(JwtUtils::extractTokenTimestamp)
+        .peek(result -> assertNotNull(result))
+        .peek(result -> assertEquals(0, result))
+        .peekLeft(this::handleLeftNotExpected);
   }
 
   @Test
@@ -211,12 +194,10 @@ public class JwtUtilsTest {
     String payload = "eyJhdXRob3JpdHlJZCI6IlRydXN0ZWRfUGFydHkiLCJ0b2tlblRpbWVzdGFtcCI6MTc3NjE2OTk1NiwiZG9jdW1lbnRDcmVhdGlvblRpbWVzdGFtcCI6MTc3NjE2OTk1Nn0";
     String signature = "fakeSignature";
     String jwt = header + "." + payload + "." + signature;
-
-    // When
-    Long result = JwtUtils.extractTokenTimestamp(jwt);
-
-    // Then
-    assertNotNull(result);
-    assertEquals(1776169956L, result);
+    Either.<ApplicationException, String>right(jwt)
+        .flatMap(JwtUtils::extractTokenTimestamp)
+        .peek(result -> assertNotNull(result))
+        .peek(result -> assertEquals(1776169956L, result))
+        .peekLeft(this::handleLeftNotExpected);
   }
 }

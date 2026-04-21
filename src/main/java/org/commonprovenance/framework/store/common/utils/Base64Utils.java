@@ -8,6 +8,7 @@ import java.util.Base64;
 import java.util.function.Function;
 
 import org.commonprovenance.framework.store.exceptions.ApplicationException;
+import org.commonprovenance.framework.store.exceptions.InternalApplicationException;
 
 import io.vavr.control.Either;
 
@@ -64,7 +65,8 @@ public class Base64Utils {
   public static Either<ApplicationException, byte[]> decodeBase64Url(String base64UrlData) {
     return Either.<ApplicationException, String>right(base64UrlData)
         .flatMap(EITHER::makeSureNotNull)
-        .flatMap(EITHER.liftEither(Base64.getUrlDecoder()::decode));
+        .flatMap(EITHER.liftEither(Base64.getUrlDecoder()::decode))
+        .mapLeft(exception -> new InternalApplicationException("Can not decode JWT Token!", exception));
   }
 
   public static Either<ApplicationException, String> encodeBase64UrlFromString(String stringData) {
