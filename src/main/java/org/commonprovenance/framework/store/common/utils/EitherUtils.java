@@ -129,7 +129,7 @@ public interface EitherUtils {
     }
 
     public <I, R> Function1<I, Either<ApplicationException, R>> liftEither(Function1<I, R> liftFunction) {
-      return this.<I, ApplicationException, R>liftEither(
+      return this.<I, R>liftEither(
           liftFunction,
           (Throwable throwable) -> new InternalApplicationException(this.defaultMessage(
               throwable.getClass().getSimpleName() + ": " + throwable.getMessage())));
@@ -153,20 +153,20 @@ public interface EitherUtils {
     public <I, R> Function1<I, Either<ApplicationException, R>> liftEither(
         Function1<I, R> liftFunction,
         String leftMessage) {
-      return this.<I, ApplicationException, R>liftEither(
+      return this.<I, R>liftEither(
           liftFunction,
-          _ -> new InternalApplicationException(leftMessage));
+          _ -> (ApplicationException) new InternalApplicationException(leftMessage));
     }
 
     public <I, R> Function1<I, Either<ApplicationException, R>> liftEither(
         Function1<I, R> liftFunction,
         ApplicationException leftValue) {
-      return this.<I, ApplicationException, R>liftEither(liftFunction, _ -> leftValue);
+      return this.<I, R>liftEither(liftFunction, _ -> leftValue);
     }
 
-    public <I, L, R> Function1<I, Either<L, R>> liftEither(
+    public <I, R> Function1<I, Either<ApplicationException, R>> liftEither(
         Function1<I, R> liftFunction,
-        Function1<Throwable, L> errorMapper) {
+        Function1<Throwable, ApplicationException> errorMapper) {
       return Function1.<I, R>liftTry(liftFunction)
           .andThen((Try<R> resOrThrowable) -> resOrThrowable.toEither().mapLeft(errorMapper));
     }
@@ -179,9 +179,9 @@ public interface EitherUtils {
       return makeSureBefore(_ -> onlyIf, mapper);
     }
 
-    public <L, R> Function1<R, Either<L, R>> makeSureBefore(
+    public <R> Function1<R, Either<ApplicationException, R>> makeSureBefore(
         Predicate<R> predicate,
-        Function1<R, Either<L, R>> mapper) {
+        Function1<R, Either<ApplicationException, R>> mapper) {
       return value -> predicate.test(value) ? mapper.apply(value) : Either.right(value);
     }
 
@@ -194,56 +194,56 @@ public interface EitherUtils {
      *
      * Example use case: Combining multiple independent validations
      */
-    public <L, A, B, R> Either<L, R> combine(
-        Either<L, A> eitherA,
-        Either<L, B> eitherB,
+    public <A, B, R> Either<ApplicationException, R> combine(
+        Either<ApplicationException, A> eitherA,
+        Either<ApplicationException, B> eitherB,
         Function2<A, B, R> combiner) {
       return eitherA.flatMap(a -> eitherB.map(b -> combiner.apply(a, b)));
     }
 
-    public <L, R1, R2> Either<L, R1> combine(
-        Either<L, R1> eitherA,
-        Either<L, R2> eitherB,
+    public <R1, R2> Either<ApplicationException, R1> combine(
+        Either<ApplicationException, R1> eitherA,
+        Either<ApplicationException, R2> eitherB,
         BiConsumer<R1, R2> consumer) {
       return eitherA.peek(a -> eitherB.peek(b -> consumer.accept(a, b)));
     }
 
-    public <L, R1, R2> Either<L, Tuple2<R1, R2>> zip(
-        Either<L, R1> eitherA,
-        Either<L, R2> eitherB) {
+    public <R1, R2> Either<ApplicationException, Tuple2<R1, R2>> zip(
+        Either<ApplicationException, R1> eitherA,
+        Either<ApplicationException, R2> eitherB) {
       return eitherA.flatMap(a -> eitherB.map(b -> Tuple.of(a, b)));
     }
 
-    public <L, R1, R2, R3> Either<L, Tuple3<R1, R2, R3>> zip(
-        Either<L, R1> eitherA,
-        Either<L, R2> eitherB,
-        Either<L, R3> eitherC) {
+    public <R1, R2, R3> Either<ApplicationException, Tuple3<R1, R2, R3>> zip(
+        Either<ApplicationException, R1> eitherA,
+        Either<ApplicationException, R2> eitherB,
+        Either<ApplicationException, R3> eitherC) {
       return eitherA.flatMap(a -> eitherB.flatMap(b -> eitherC.map(c -> Tuple.of(a, b, c))));
     }
 
     /**
      * Applicative pattern: Combines three Either values.
      */
-    public <L, A, B, C, R> Either<L, R> combine(
-        Either<L, A> eitherA,
-        Either<L, B> eitherB,
-        Either<L, C> eitherC,
+    public <A, B, C, R> Either<ApplicationException, R> combine(
+        Either<ApplicationException, A> eitherA,
+        Either<ApplicationException, B> eitherB,
+        Either<ApplicationException, C> eitherC,
         Function3<A, B, C, R> combiner) {
       return eitherA.flatMap(a -> eitherB.flatMap(b -> eitherC.map(c -> combiner.apply(a, b, c))));
     }
 
-    public <L, A, B, C, R> Either<L, R> combineM(
-        Either<L, A> eitherA,
-        Either<L, B> eitherB,
-        Either<L, C> eitherC,
-        Function3<A, B, C, Either<L, R>> combiner) {
+    public <A, B, C, R> Either<ApplicationException, R> combineM(
+        Either<ApplicationException, A> eitherA,
+        Either<ApplicationException, B> eitherB,
+        Either<ApplicationException, C> eitherC,
+        Function3<A, B, C, Either<ApplicationException, R>> combiner) {
       return eitherA.flatMap(a -> eitherB.flatMap(b -> eitherC.flatMap(c -> combiner.apply(a, b, c))));
     }
 
-    public <L extends ApplicationException, A, B, R> Either<L, R> combineM(
-        Either<L, A> eitherA,
-        Either<L, B> eitherB,
-        BiFunction<A, B, Either<L, R>> combiner) {
+    public <A, B, R> Either<ApplicationException, R> combineM(
+        Either<ApplicationException, A> eitherA,
+        Either<ApplicationException, B> eitherB,
+        BiFunction<A, B, Either<ApplicationException, R>> combiner) {
       return eitherA.flatMap(a -> eitherB.flatMap(b -> combiner.apply(a, b)));
     }
 
@@ -262,9 +262,9 @@ public interface EitherUtils {
     }
 
     // TODO: !!test this!!
-    public <L, R1, R2, R3> Function1<R1, Either<L, Function1<R2, R3>>> applicative(
+    public <R1, R2, R3> Function1<R1, Either<ApplicationException, Function1<R2, R3>>> applicative(
         Function1<R1, Function1<R2, R3>> combiner) {
-      return (R1 value) -> Either.<L, R1>right(value).map(combiner);
+      return (R1 value) -> Either.<ApplicationException, R1>right(value).map(combiner);
     }
   }
 }
