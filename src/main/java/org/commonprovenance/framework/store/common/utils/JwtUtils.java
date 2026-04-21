@@ -136,7 +136,7 @@ public class JwtUtils {
 
   public static Either<ApplicationException, Map<String, Object>> extractTokenGeneratorAttributes(String jwt) {
     return JwtUtils.getHeader(jwt)
-        .flatMap((JsonNode header) -> EITHER.<ApplicationException, String, String, Map<String, Object>>combine(
+        .flatMap((JsonNode header) -> EITHER.<String, String, Map<String, Object>>combine(
             Either.<ApplicationException, JsonNode>right(header)
                 .flatMap(JwtUtils.getItemAsText(JwtHeaderItems.TRUSTED_PARTY_URI)),
             Either.<ApplicationException, JsonNode>right(header)
