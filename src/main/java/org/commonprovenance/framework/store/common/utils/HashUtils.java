@@ -31,7 +31,7 @@ public class HashUtils {
   public static Either<ApplicationException, String> sha256(String data) {
     Function2<byte[], MessageDigest, Either<ApplicationException, String>> combiner = (bytes, digest) -> Either
         .<ApplicationException, byte[]>right(bytes)
-        .flatMap(EITHER.liftEither(digest::digest))
+        .flatMap(EITHER.<byte[], byte[]>liftEither(digest::digest))
         .flatMap(BytesUtils::bytesToHex);
 
     return EITHER.combineM(
