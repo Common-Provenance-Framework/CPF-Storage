@@ -44,7 +44,7 @@ public class TokenClientImpl implements TokenClient {
               .map(this.client.sendCustomGetManyRequest(uri, TokenTPResponseDTO.class, queryParams))
               .orElse(this.client.sendGetManyRequest(uri, TokenTPResponseDTO.class, queryParams));
         })
-        .flatMap(ModelFactory::toDomain);
+        .flatMap(MONO.liftEffectToMono(ModelFactory::toDomain));
   }
 
   @Override
@@ -60,6 +60,6 @@ public class TokenClientImpl implements TokenClient {
         .map(this.client::buildWebClient)
         .map(this.client.sendCustomGetOneRequest(uri, TokenTPResponseDTO.class, queryParams))
         .orElse(client.sendGetOneRequest(uri, TokenTPResponseDTO.class, queryParams))
-        .flatMap(ModelFactory::toDomain);
+        .flatMap(MONO.liftEffectToMono(ModelFactory::toDomain));
   }
 }

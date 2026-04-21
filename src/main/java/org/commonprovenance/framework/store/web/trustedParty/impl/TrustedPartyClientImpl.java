@@ -1,5 +1,7 @@
 package org.commonprovenance.framework.store.web.trustedParty.impl;
 
+import static org.commonprovenance.framework.store.common.publisher.PublisherHelper.MONO;
+
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
@@ -46,7 +48,7 @@ public class TrustedPartyClientImpl implements TrustedPartyClient {
             .map(this.client::buildWebClient)
             .map(this.client.sendCustomPostRequest("/issueToken", TokenTPResponseDTO.class))
             .orElse(this.client.sendPostRequest("/issueToken", TokenTPResponseDTO.class)))
-        .flatMap(ModelFactory::toDomain);
+        .flatMap(MONO.liftEffectToMono(ModelFactory::toDomain));
   }
 
   @Override
