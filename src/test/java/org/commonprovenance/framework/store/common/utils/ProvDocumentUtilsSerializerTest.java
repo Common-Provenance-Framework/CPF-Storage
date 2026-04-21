@@ -255,26 +255,25 @@ public class ProvDocumentUtilsSerializerTest {
     return provFactory.newDocument(nsDocument, List.of(bundle));
   }
 
-  private Either<String, JsonNode> getProvAsJson(String document) {
+  private Either<ApplicationException, JsonNode> getProvAsJson(String document) {
     ObjectMapper mapper = new ObjectMapper();
 
     return Either.<ApplicationException, String>right(document)
-        .flatMap(EITHER.liftEitherChecked(mapper::readTree))
-        .mapLeft(Throwable::getMessage);
+        .flatMap(EITHER.liftEitherChecked(mapper::readTree));
   }
 
   @Test
   @DisplayName("should serialize provenance Document into exact json - Serializer")
   public void shouldSerializeDocumentIntoExactJson() {
     BiConsumer<JsonNode, JsonNode> assertion = (expected, result) -> assertEquals(expected, result);
-    Consumer<String> leftSideHandler = (message) -> fail("Left side has not been expected: " + message);
+    Consumer<ApplicationException> leftSideHandler = (exception) -> fail(
+        "Left side has not been expected: " + exception.getMessage());
     EITHER.combine(
         Either.<ApplicationException, Document>right(this.getTestDocument())
             .flatMap(ProvDocumentUtils.FUNCTIONAL.serialize(Formats.ProvFormat.JSON))
-            .mapLeft(Throwable::getMessage)
             .flatMap(this::getProvAsJson)
             .peekLeft(leftSideHandler),
-        Either.<String, String>right(this.DOCUMENT_JSON)
+        Either.<ApplicationException, String>right(this.DOCUMENT_JSON)
             .flatMap(this::getProvAsJson)
             .peekLeft(leftSideHandler),
         assertion);
