@@ -1,6 +1,7 @@
 package org.commonprovenance.framework.store.persistence.metaComponent.impl;
 
 import static org.commonprovenance.framework.store.common.publisher.PublisherHelper.MONO;
+import static org.commonprovenance.framework.store.common.utils.EitherUtils.EITHER;
 
 import java.time.Instant;
 import java.util.Date;
@@ -12,6 +13,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.commonprovenance.framework.store.common.utils.JwtUtils;
 import org.commonprovenance.framework.store.config.AppConfiguration;
+import org.commonprovenance.framework.store.exceptions.ApplicationException;
 import org.commonprovenance.framework.store.exceptions.ConflictException;
 import org.commonprovenance.framework.store.exceptions.NotFoundException;
 import org.commonprovenance.framework.store.model.Token;
@@ -27,6 +29,7 @@ import org.openprovenance.prov.model.Document;
 import org.openprovenance.prov.vanilla.ProvUtilities;
 import org.springframework.stereotype.Component;
 
+import io.vavr.control.Either;
 import reactor.core.publisher.Mono;
 import reactor.util.function.Tuple2;
 import reactor.util.function.Tuple3;
@@ -116,7 +119,7 @@ public class BundlePersistenceImpl implements BundlePersistence {
         .flatMap((EntityNode lastVersion) -> Mono.zip(
             bundleRepository.findByIdentifier(identifier),
             Mono.just(lastVersion)))
-        .map(this.buildBundleWithToken(token))
+        .flatMap(MONO.liftEffectToMono(this.buildBundleWithToken(token)))
         .flatMap(this.bundleRepository::save)
         .flatMap(ProvenanceFactory.bundleToProv(configuration));
   }
@@ -198,7 +201,8 @@ public class BundlePersistenceImpl implements BundlePersistence {
         .map(v -> !v);
   }
 
-  private Function<Tuple2<BundleNode, EntityNode>, BundleNode> buildBundleWithToken(Token token) {
+  private Function<Tuple2<BundleNode, EntityNode>, Either<ApplicationException, BundleNode>> buildBundleWithToken(
+      Token token) {
     return (Tuple2<BundleNode, EntityNode> tuple) -> {
       BundleNode bundle = tuple.getT1();
       EntityNode versionEntity = tuple.getT2();
@@ -207,36 +211,49 @@ public class BundlePersistenceImpl implements BundlePersistence {
           .toXMLGregorianCalendar(Date.from(Instant.ofEpochSecond(token.getCreatedOn())));
 
       // TODO: Create factory method for this
-      AgentNode tokenGeneratorNode = new AgentNode(
-          token.getTrustedParty().getName(),
-          // TODO: Create Enum for konown types
-          "cpm:TrustedParty",
-          JwtUtils.extractTokenGeneratorAttributes(token.getJwt()));
+      Either<ApplicationException, AgentNode> tokenGeneratorNodeOrException = Either
+          .<ApplicationException, String>right(token.getJwt())
+          .flatMap(JwtUtils::extractTokenGeneratorAttributes)
+          .map(timestamp -> new AgentNode(
+              token.getTrustedParty().getName(),
+              // TODO: Create Enum for konown types
+              "cpm:TrustedParty",
+              timestamp));
 
       // TODO: Create factory method for this
-      ActivityNode tokenGenerationNode = new ActivityNode(
-          UUID.randomUUID().toString(),
-          // TODO: Create Enum for konown types
-          "cpm:TokenGeneration",
-          timestampVal.toString(),
-          timestampVal.toString())
-          .withUsedEntity(versionEntity)
-          .withWasAssociatedWithAgent(tokenGeneratorNode);
+      Either<ApplicationException, ActivityNode> tokenGenerationNodeOrException = tokenGeneratorNodeOrException
+          .map(tokenGeneratorNode -> new ActivityNode(
+              UUID.randomUUID().toString(),
+              // TODO: Create Enum for konown types
+              "cpm:TokenGeneration",
+              timestampVal.toString(),
+              timestampVal.toString())
+              .withUsedEntity(versionEntity)
+              .withWasAssociatedWithAgent(tokenGeneratorNode));
 
       // TODO: Create factory method for this
-      EntityNode tokenNode = new EntityNode(
-          UUID.randomUUID().toString(),
-          // TODO: Create Enum for konown types
-          "cpm:Token",
-          Map.of("jwt", token.getJwt()))
-          .withWasDerivedFromEntity(versionEntity)
-          .withWasGeneratedByActivity(tokenGenerationNode)
-          .withWasAttributedToAgent(tokenGeneratorNode);
 
-      return bundle
-          .withEntity(tokenNode)
-          .withActivity(tokenGenerationNode)
-          .withAgent(tokenGeneratorNode);
+      Either<ApplicationException, EntityNode> tokenNodeOrException = EITHER
+          .<AgentNode, ActivityNode, EntityNode>combine(
+              tokenGeneratorNodeOrException,
+              tokenGenerationNodeOrException,
+              (tokenGeneratorNode, tokenGenerationNode) -> new EntityNode(
+                  UUID.randomUUID().toString(),
+                  // TODO: Create Enum for konown types
+                  "cpm:Token",
+                  Map.of("jwt", token.getJwt()))
+                  .withWasDerivedFromEntity(versionEntity)
+                  .withWasGeneratedByActivity(tokenGenerationNode)
+                  .withWasAttributedToAgent(tokenGeneratorNode));
+
+      return EITHER.combine(
+          tokenGeneratorNodeOrException,
+          tokenGenerationNodeOrException,
+          tokenNodeOrException,
+          (tokenGeneratorNode, tokenGenerationNode, tokenNode) -> bundle
+              .withEntity(tokenNode)
+              .withActivity(tokenGenerationNode)
+              .withAgent(tokenGeneratorNode));
     };
   }
 
