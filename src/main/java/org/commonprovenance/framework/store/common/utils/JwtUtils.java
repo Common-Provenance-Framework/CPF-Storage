@@ -134,14 +134,14 @@ public class JwtUtils {
         .flatMap(JwtUtils.getItemAsLong(JwtPayloadItems.TOKEN_TIMESTAMP));
   }
 
-  public static Either<ApplicationException, Map<String, String>> extractTokenGeneratorAttributes(String jwt) {
+  public static Either<ApplicationException, Map<String, Object>> extractTokenGeneratorAttributes(String jwt) {
     return JwtUtils.getHeader(jwt)
-        .flatMap((JsonNode header) -> EITHER.<ApplicationException, String, String, Map<String, String>>combine(
+        .flatMap((JsonNode header) -> EITHER.<ApplicationException, String, String, Map<String, Object>>combine(
             Either.<ApplicationException, JsonNode>right(header)
                 .flatMap(JwtUtils.getItemAsText(JwtHeaderItems.TRUSTED_PARTY_URI)),
             Either.<ApplicationException, JsonNode>right(header)
                 .flatMap(JwtUtils.getItemAsText(JwtHeaderItems.TRUSTED_PARTY_CERTIFICATE)),
-            (uri, cert) -> Map.of(
+            (uri, cert) -> Map.<String, Object>of(
                 JwtHeaderItems.TRUSTED_PARTY_URI.getLabel(), uri,
                 JwtHeaderItems.TRUSTED_PARTY_CERTIFICATE.getLabel(), cert)));
   }
