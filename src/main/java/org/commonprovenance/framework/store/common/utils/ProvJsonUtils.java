@@ -4,11 +4,11 @@ import static org.commonprovenance.framework.store.common.utils.EitherUtils.EITH
 
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Function;
 
 import org.commonprovenance.framework.store.exceptions.ApplicationException;
 import org.commonprovenance.framework.store.exceptions.InternalApplicationException;
 
+import io.vavr.Function1;
 import io.vavr.control.Either;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
@@ -20,30 +20,30 @@ public interface ProvJsonUtils {
   ProvJsonImperativeUtils IMPERATIVE = new ProvJsonImperativeUtils();
 
   class ProvJsonFunctionalUtils {
-    public Function<String, Either<ApplicationException, String>> preprocessJsonForDeserialization = this
+    public Function1<String, Either<ApplicationException, String>> preprocessJsonForDeserialization = this
         .preprocessJsonForDeserialization(true);
 
-    public Function<String, Either<ApplicationException, String>> preprocessJsonForDeserialization(
+    public Function1<String, Either<ApplicationException, String>> preprocessJsonForDeserialization(
         Boolean prettyPrint) {
       return EITHER.<String, ApplicationException, String>liftEither(
           (String value) -> IMPERATIVE.preprocessJsonForDeserialization(value, prettyPrint),
           this::handleThrowable);
     }
 
-    public Function<String, Either<ApplicationException, String>> preprocessIncompatibleJsonForDeserialization = this
+    public Function1<String, Either<ApplicationException, String>> preprocessIncompatibleJsonForDeserialization = this
         .preprocessIncompatibleJsonForDeserialization(true);
 
-    public Function<String, Either<ApplicationException, String>> preprocessIncompatibleJsonForDeserialization(
+    public Function1<String, Either<ApplicationException, String>> preprocessIncompatibleJsonForDeserialization(
         Boolean prettyPrint) {
       return EITHER.<String, ApplicationException, String>liftEither(
           (String value) -> IMPERATIVE.preprocessIncompatibleJsonForDeserialization(value, prettyPrint),
           this::handleThrowable);
     }
 
-    public Function<String, Either<ApplicationException, String>> postprocessJsonAfterSerialization = this
+    public Function1<String, Either<ApplicationException, String>> postprocessJsonAfterSerialization = this
         .postprocessJsonAfterSerialization(true);
 
-    public Function<String, Either<ApplicationException, String>> postprocessJsonAfterSerialization(
+    public Function1<String, Either<ApplicationException, String>> postprocessJsonAfterSerialization(
         Boolean prettyPrint) {
       return EITHER.<String, ApplicationException, String>liftEither(
           (String value) -> IMPERATIVE.postprocessJsonAfterSerialization(value, prettyPrint),
