@@ -2,8 +2,6 @@ package org.commonprovenance.framework.store.common.utils;
 
 import static org.commonprovenance.framework.store.common.utils.EitherUtils.EITHER;
 
-import java.util.function.Function;
-
 import org.commonprovenance.framework.store.exceptions.ApplicationException;
 import org.openprovenance.prov.model.HasOther;
 import org.openprovenance.prov.model.QualifiedName;
@@ -13,13 +11,15 @@ import cz.muni.fi.cpm.constants.CpmAttribute;
 import cz.muni.fi.cpm.model.CpmDocument;
 import cz.muni.fi.cpm.model.CpmUtilities;
 import cz.muni.fi.cpm.model.INode;
+import io.vavr.Function1;
 import io.vavr.control.Either;
+
 public interface CpmDocumentUtils {
   CpmDocumentFunctionalUtils FUNCTIONAL = new CpmDocumentFunctionalUtils();
   CpmDocumentImperativeUtils IMPERATIVE = new CpmDocumentImperativeUtils();
 
   class CpmDocumentFunctionalUtils {
-    private Function<HasOther, Either<ApplicationException, QualifiedName>> getCpmAttributeValue(
+    private Function1<HasOther, Either<ApplicationException, QualifiedName>> getCpmAttributeValue(
         CpmAttribute attribute) {
       return (HasOther hasOther) -> Either.<ApplicationException, HasOther>right(hasOther)
           .flatMap(EITHER.<HasOther>makeSureNotNullWithMessage("Statement can not be null!"))
@@ -32,7 +32,7 @@ public interface CpmDocumentUtils {
           .map(QualifiedName.class::cast);
     }
 
-    public Function<CpmDocument, Either<ApplicationException, String>> serialize(Formats.ProvFormat format) {
+    public Function1<CpmDocument, Either<ApplicationException, String>> serialize(Formats.ProvFormat format) {
       return cpmDocument -> Either.<ApplicationException, CpmDocument>right(cpmDocument)
           .map(CpmDocument::toDocument)
           .flatMap(ProvDocumentUtils.FUNCTIONAL.serialize(format));
@@ -62,25 +62,25 @@ public interface CpmDocumentUtils {
   // ---
 
   class CpmDocumentImperativeUtils {
-    public Function<CpmDocument, String> serialize(Formats.ProvFormat format) throws ApplicationException {
+    public Function1<CpmDocument, String> serialize(Formats.ProvFormat format) throws ApplicationException {
       return (CpmDocument cpmDocument) -> Either.<ApplicationException, CpmDocument>right(cpmDocument)
           .flatMap(FUNCTIONAL.serialize(format))
-          .getOrElseThrow(Function.identity());
+          .getOrElseThrow(Function1.identity());
     }
 
     public QualifiedName getCpmReferencedMetaBundleId(HasOther hasOther) throws ApplicationException {
       return FUNCTIONAL.getCpmReferencedMetaBundleId(hasOther)
-          .getOrElseThrow(Function.identity());
+          .getOrElseThrow(Function1.identity());
     }
 
     public QualifiedName getCpmReferencedBundleId(HasOther hasOther) throws ApplicationException {
       return FUNCTIONAL.getCpmReferencedBundleId(hasOther)
-          .getOrElseThrow(Function.identity());
+          .getOrElseThrow(Function1.identity());
     }
 
     public QualifiedName getMainActivityReferenceMetaBundleId(CpmDocument cpmDocument) throws ApplicationException {
       return FUNCTIONAL.getMainActivityReferenceMetaBundleId(cpmDocument)
-          .getOrElseThrow(Function.identity());
+          .getOrElseThrow(Function1.identity());
     }
 
   }
