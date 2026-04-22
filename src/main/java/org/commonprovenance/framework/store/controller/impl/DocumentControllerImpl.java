@@ -409,7 +409,7 @@ public class DocumentControllerImpl implements DocumentController {
                 this.cpmProvFactory,
                 this.cpmFactory))
             .flatMap(MONO.liftEffectToMono(CpmDocumentUtils.FUNCTIONAL.serialize(Formats.ProvFormat.JSON)))
-            .map(Base64Utils::encodeFromString)
+            .flatMap(MONO.liftEffectToMono(Base64Utils::encodeFromString))
             .map(cpmStr -> document
                 .withGraph(cpmStr)
                 .withCpmDocument(provFactory, cpmProvFactory, cpmFactory, true))
@@ -452,7 +452,7 @@ public class DocumentControllerImpl implements DocumentController {
                 this.cpmProvFactory,
                 this.cpmFactory))
             .flatMap(MONO.liftEffectToMono(CpmDocumentUtils.FUNCTIONAL.serialize(Formats.ProvFormat.JSON)))
-            .map(Base64Utils::encodeFromString)
+            .flatMap(MONO.liftEffectToMono(Base64Utils::encodeFromString))
             .map(cpmStr -> document
                 .withGraph(cpmStr)
                 .withCpmDocument(provFactory, cpmProvFactory, cpmFactory, true))
