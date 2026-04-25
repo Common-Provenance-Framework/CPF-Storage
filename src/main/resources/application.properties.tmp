@@ -8,3 +8,7 @@ springdoc.api-docs.path=/v3/api-docs
 springdoc.swagger-ui.path=/swagger-ui.html
 springdoc.default-produces-media-type=application/json
 springdoc.default-consumes-media-type=application/json
+
+# Access logging
+access.slow-request-warning-enabled=false
+access.slow-request-threshold-ms=1000
