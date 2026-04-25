@@ -10,9 +10,11 @@ import org.commonprovenance.framework.store.model.Document;
 import org.commonprovenance.framework.store.model.Format;
 import org.commonprovenance.framework.store.persistence.finalizedProvComponent.DocumentPersistence;
 import org.commonprovenance.framework.store.service.persistence.finalizedProvComponent.impl.DocumentServiceImpl;
+import org.commonprovenance.framework.store.service.web.store.StoreWebService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
 
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -96,6 +98,9 @@ class DocumentServiceTest {
     }
   }
 
+  @Mock
+  private StoreWebService storeWebService;
+
   private final DocumentPersistence documentRepository;
 
   private DocumentServiceImpl documentService;
@@ -106,7 +111,7 @@ class DocumentServiceTest {
 
   @BeforeEach
   void setUp() {
-    documentService = new DocumentServiceImpl(documentRepository);
+    documentService = new DocumentServiceImpl(documentRepository, storeWebService);
   }
 
   @Test
