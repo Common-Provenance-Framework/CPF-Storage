@@ -1,6 +1,8 @@
 package org.commonprovenance.framework.store.common.publisher;
 
+import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Vector;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -15,6 +17,7 @@ import org.commonprovenance.framework.store.exceptions.InternalApplicationExcept
 import io.vavr.Function1;
 import io.vavr.control.Either;
 import io.vavr.control.Try;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 public interface PublisherHelper {
@@ -33,9 +36,7 @@ public interface PublisherHelper {
     }
 
     /**
-     * Initializes the singleton with the configured value. Should be called exactly
-     * once during
-     * application startup from {@link AppConfig}.
+     * Initializes the singleton with the configured value. Should be called exactly once during application startup from {@link AppConfig}.
      */
     public static void initialize(boolean verboseMode) {
       Holder.instance = new MonoHelper(verboseMode);
@@ -45,7 +46,7 @@ public interface PublisherHelper {
       return Holder.instance;
     }
 
-    private <R> String defaultNullMessage(R value) {
+    private <T> String defaultNullMessage(T value) {
       if (!this.verboseMode) {
         return "Input parameter can not be null.";
       }
@@ -56,7 +57,7 @@ public interface PublisherHelper {
           + ((value == null) ? "unknown" : value.getClass().getName());
     }
 
-    private <R> String defaultMessage(String message) {
+    private <T> String defaultMessage(String message) {
       if (!this.verboseMode) {
         return message;
       }
@@ -83,15 +84,15 @@ public interface PublisherHelper {
     }
 
     public <T> Mono<T> makeSureNotNull(T value) {
-      return this.<T>makeSureNotNullWithMessage(this.defaultNullMessage(value)).apply(value);
+      return this.<T> makeSureNotNullWithMessage(this.defaultNullMessage(value)).apply(value);
     }
 
     public <T> Function<T, Mono<T>> makeSureNotNullWithMessage(String message) {
-      return this.<T>makeSure(Objects::nonNull, message);
+      return this.<T> makeSure(Objects::nonNull, message);
     }
 
     public <T> Function<T, Mono<T>> makeSure(Predicate<T> validator, String message) {
-      return this.<T>makeSure(validator, _ -> new InternalApplicationException(message));
+      return this.<T> makeSure(validator, _ -> new InternalApplicationException(message));
     }
 
     public <T> Function<T, Mono<T>> makeSure(
@@ -100,6 +101,15 @@ public interface PublisherHelper {
       return (T value) -> validator.test(value)
           ? Mono.just(value)
           : Mono.error(applicationExceptionBuilder.apply(value));
+    }
+
+    public <T, E extends ApplicationException> Function<T, Mono<T>> makeSure(
+        Predicate<T> validator,
+        Function<String, E> factory,
+        Function<T, String> messageBuileder) {
+      return (T value) -> validator.test(value)
+          ? Mono.just(value)
+          : Mono.error(factory.compose(messageBuileder).apply(value));
     }
 
     public <T> Function<T, Mono<T>> makeSureAsync(
@@ -112,8 +122,23 @@ public interface PublisherHelper {
         Function<T, Mono<Boolean>> asyncValidator,
         Function<T, ApplicationException> appExceptionBuilderFunction) {
       return (T value) -> Mono.justOrEmpty(value)
-          .filterWhen(asyncValidator)
-          .switchIfEmpty(Mono.error(appExceptionBuilderFunction.apply(value)));
+          .flatMap(v -> asyncValidator.apply(v)
+              .defaultIfEmpty(false)
+              .flatMap(isValid -> isValid
+                  ? Mono.just(v)
+                  : Mono.error(appExceptionBuilderFunction.apply(v))));
+    }
+
+    public <T, E extends ApplicationException> Function<T, Mono<T>> makeSureAsync(
+        Function<T, Mono<Boolean>> asyncValidator,
+        Function<String, E> factory,
+        Function<T, String> messageBuileder) {
+      return (T value) -> Mono.justOrEmpty(value)
+          .flatMap(v -> asyncValidator.apply(v)
+              .defaultIfEmpty(false)
+              .flatMap(isValid -> isValid
+                  ? Mono.just(v)
+                  : Mono.error(factory.compose(messageBuileder).apply(v))));
     }
 
     public <I, O> Function<I, Mono<O>> liftEffectToMono(Function<I, Either<ApplicationException, O>> kleisliArrow) {
@@ -122,8 +147,15 @@ public interface PublisherHelper {
           .fold(Mono::error, Mono::justOrEmpty);
     }
 
+    public <I, O> Function<I, Flux<O>> liftEffectToFlux(Function<I, Either<ApplicationException, List<O>>> kleisliArrow) {
+      return (I value) -> kleisliArrow
+          .apply(value)
+          .map(List::stream)
+          .fold(Flux::error, Flux::fromStream);
+    }
+
     public <I, O> Function<I, Mono<O>> liftPureToMono(Function<I, O> liftFunction) {
-      return Function1.<I, O>liftTry(liftFunction)
+      return Function1.<I, O> liftTry(liftFunction)
           .andThen((Try<O> resOrThrowable) -> resOrThrowable.fold(Mono::error, Mono::justOrEmpty));
     }
 
@@ -132,10 +164,16 @@ public interface PublisherHelper {
           .fold(Mono::error, Mono::justOrEmpty);
     }
 
+    public <T> Mono<T> fromOptional(Optional<T> maybe) {
+      return maybe.isPresent()
+          ? Mono.<T> just(maybe.get())
+          : Mono.<T> error(new InternalApplicationException("Optional value is not present!"));
+    }
+
     public <E extends Throwable, T> Function<E, Mono<T>> exceptionWrapper(Function<E, String> messageBuilder) {
       return (E exception) -> (exception instanceof ApplicationException)
-          ? Mono.<T>error(exception) // Propagate existing ApplicationException as is
-          : Mono.<T>error(new InternalApplicationException(messageBuilder.apply(exception), exception));
+          ? Mono.<T> error(exception) // Propagate existing ApplicationException as is
+          : Mono.<T> error(new InternalApplicationException(messageBuilder.apply(exception), exception));
     }
 
     public <E extends Throwable, T> Function<E, Mono<T>> exceptionWrapper(String message) {
