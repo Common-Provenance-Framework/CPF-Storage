@@ -2,6 +2,9 @@ package org.commonprovenance.framework.store.controller.advice;
 
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import org.commonprovenance.framework.store.controller.dto.error.BadRequestDTO;
 import org.commonprovenance.framework.store.controller.dto.error.ErrorDTO;
 import org.commonprovenance.framework.store.controller.dto.error.InternalServerErrorDTO;
@@ -19,44 +22,30 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @Order(1)
 @RestControllerAdvice
 public class ApplicationExceptionHandler {
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(ApplicationExceptionHandler.class);
+
   @ExceptionHandler(InternalApplicationException.class)
   public ResponseEntity<ErrorDTO> handleInternalApplication(InternalApplicationException internalAppException) {
-    System.err.println("*** Internal Server Error ***");
-    System.out.println("-----------------------------------------------");
-    System.err.println(internalAppException.getMessage());
-    System.err.println(internalAppException.getCause().getMessage());
-    System.out.println("-----------------------------------------------");
-
+    LOGGER.error("Internal Server Error", internalAppException);
     return ResponseEntity.internalServerError().body(new InternalServerErrorDTO());
   }
 
   @ExceptionHandler(BadRequestException.class)
   public ResponseEntity<ErrorDTO> handleBadRequest(BadRequestException badRequest) {
-    System.err.println("*** Bad Request Error ***");
-    System.out.println("-----------------------------------------------");
-    System.err.println(badRequest.getMessage());
-    System.out.println("-----------------------------------------------");
-
+    LOGGER.warn("Bad Request: {}", badRequest.getMessage());
     return ResponseEntity.badRequest().body(new BadRequestDTO(List.of(badRequest.getMessage())));
   }
 
   @ExceptionHandler(ConflictException.class)
   public ResponseEntity<ErrorDTO> handleBadRequest(ConflictException badRequest) {
-    System.err.println("*** Conflict Error ***");
-    System.out.println("-----------------------------------------------");
-    System.err.println(badRequest.getMessage());
-    System.out.println("-----------------------------------------------");
-
+    LOGGER.warn("Conflict: {}", badRequest.getMessage());
     return ResponseEntity.status(HttpStatus.CONFLICT).body(new BadRequestDTO(List.of(badRequest.getMessage())));
   }
 
   @ExceptionHandler(NotFoundException.class)
   public ResponseEntity<ErrorDTO> handleBadRequest(NotFoundException notFound) {
-    System.err.println("*** NotFound Error ***");
-    System.out.println("-----------------------------------------------");
-    System.err.println(notFound.getMessage());
-    System.out.println("-----------------------------------------------");
-
+    LOGGER.warn("Not Found: {}", notFound.getMessage());
     return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new NotFoundDTO(notFound.getMessage()));
   }
 }
