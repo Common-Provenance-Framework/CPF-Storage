@@ -41,14 +41,16 @@ public class AccessLogFilter implements WebFilter {
           String requestPath = withQuery(exchange);
           String clientIp = resolveClientIp(exchange);
           String userAgent = resolveUserAgent(exchange);
+          String requestId = (String) exchange.getAttributes()
+              .getOrDefault(CorrelationIdFilter.REQUEST_ID_ATTR, UNKNOWN);
 
-          String message = "{} {} {} {}ms ip={} ua=\"{}\"";
+          String message = "{} {} {} {}ms requestId={} ip={} ua=\"{}\"";
           if (status >= 500)
-            log.error(message, method, requestPath, status, durationMs, clientIp, userAgent);
+            log.error(message, method, requestPath, status, durationMs, requestId, clientIp, userAgent);
           else if (status >= 400)
-            log.warn(message, method, requestPath, status, durationMs, clientIp, userAgent);
+            log.warn(message, method, requestPath, status, durationMs, requestId, clientIp, userAgent);
           else
-            log.info(message, method, requestPath, status, durationMs, clientIp, userAgent);
+            log.info(message, method, requestPath, status, durationMs, requestId, clientIp, userAgent);
         });
   }
 
