@@ -4,6 +4,7 @@ import java.net.InetSocketAddress;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
@@ -21,7 +22,14 @@ import reactor.core.publisher.SignalType;
 public class AccessLogFilter implements WebFilter {
 
   private static final Logger log = LoggerFactory.getLogger("ACCESS");
+  private static final Logger appLog = LoggerFactory.getLogger(AccessLogFilter.class);
   private static final String UNKNOWN = "-";
+
+  @Value("${access.slow-request-threshold-ms:500}")
+  private long slowRequestThresholdMs;
+
+  @Value("${access.slow-request-warning-enabled:true}")
+  private boolean slowRequestWarningEnabled;
 
   @Override
   public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
@@ -51,6 +59,10 @@ public class AccessLogFilter implements WebFilter {
             log.warn(message, method, requestPath, status, durationMs, requestId, clientIp, userAgent);
           else
             log.info(message, method, requestPath, status, durationMs, requestId, clientIp, userAgent);
+
+          if (slowRequestWarningEnabled && durationMs >= slowRequestThresholdMs)
+            appLog.warn("SLOW_REQUEST {} {} took {}ms (threshold={}ms) requestId={}",
+                method, requestPath, durationMs, slowRequestThresholdMs, requestId);
         });
   }
 
