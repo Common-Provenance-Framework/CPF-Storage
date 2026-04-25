@@ -2,10 +2,10 @@ package org.commonprovenance.framework.store.service.web.store.impl;
 
 import static org.commonprovenance.framework.store.common.publisher.PublisherHelper.MONO;
 
-import org.commonprovenance.framework.store.common.utils.CpmDocumentUtils;
 import org.commonprovenance.framework.store.exceptions.ConstraintException;
 import org.commonprovenance.framework.store.exceptions.NotFoundException;
 import org.commonprovenance.framework.store.exceptions.factory.ApplicationExceptionFactory;
+import org.commonprovenance.framework.store.model.utils.DocumentUtils;
 import org.commonprovenance.framework.store.service.web.store.StoreWebService;
 import org.commonprovenance.framework.store.web.store.PingClient;
 import org.openprovenance.prov.model.Entity;
@@ -44,7 +44,7 @@ public class StoreWebServiceImpl implements StoreWebService {
   @Override
   public Mono<Boolean> pingBundleId(Entity connector) {
     return MONO.makeSureNotNull(connector)
-        .flatMap(MONO.liftEffectToMono(CpmDocumentUtils.FUNCTIONAL::getCpmReferencedBundleId))
+        .flatMap(MONO.liftEffectToMono(DocumentUtils::getCpmReferencedBundleId))
         .onErrorMap(ApplicationExceptionFactory.build(ConstraintException::new, "Can not get 'referencedBundleId'"))
         .flatMap(this::pingQualifiedName)
         .onErrorMap(ApplicationExceptionFactory.header(buildHeader("pingBundleId", "ConnectorId: " + connector.getId())));
@@ -53,7 +53,7 @@ public class StoreWebServiceImpl implements StoreWebService {
   @Override
   public Mono<Boolean> pingMetaBundleId(Entity connector) {
     return MONO.makeSureNotNull(connector)
-        .flatMap(MONO.liftEffectToMono(CpmDocumentUtils.FUNCTIONAL::getCpmReferencedMetaBundleId))
+        .flatMap(MONO.liftEffectToMono(DocumentUtils::getCpmReferencedMetaBundleId))
         .onErrorMap(ApplicationExceptionFactory.build(ConstraintException::new, "Can not get 'referencedMetaBundleId'"))
         .flatMap(this::pingQualifiedName)
         .onErrorMap(ApplicationExceptionFactory.header(buildHeader("pingMetaBundleId", "ConnectorId: " + connector.getId())));

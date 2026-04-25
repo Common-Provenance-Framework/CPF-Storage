@@ -2,12 +2,12 @@ package org.commonprovenance.framework.store.service.persistence.finalizedProvCo
 
 import static org.commonprovenance.framework.store.common.publisher.PublisherHelper.MONO;
 
-import org.commonprovenance.framework.store.common.utils.CpmDocumentUtils;
 import org.commonprovenance.framework.store.exceptions.BadRequestException;
 import org.commonprovenance.framework.store.exceptions.ConflictException;
 import org.commonprovenance.framework.store.exceptions.NotFoundException;
 import org.commonprovenance.framework.store.exceptions.factory.ApplicationExceptionFactory;
 import org.commonprovenance.framework.store.model.Document;
+import org.commonprovenance.framework.store.model.utils.DocumentUtils;
 import org.commonprovenance.framework.store.persistence.finalizedProvComponent.DocumentPersistence;
 import org.commonprovenance.framework.store.service.persistence.finalizedProvComponent.DocumentService;
 import org.commonprovenance.framework.store.service.web.store.StoreWebService;
@@ -95,8 +95,8 @@ public class DocumentServiceImpl implements DocumentService {
   @Override
   public Mono<Void> checkSpecForwardConnectorsResolvable(Document document) {
     return MONO.makeSureNotNull(document)
-        .flatMap(MONO.liftEffectToMono(CpmDocumentUtils.FUNCTIONAL::getCpmDocument))
-        .flatMapMany(MONO.<CpmDocument, Entity> liftEffectToFlux(CpmDocumentUtils.FUNCTIONAL::getSpecForwardConnectors))
+        .flatMap(MONO.liftEffectToMono(DocumentUtils::getCpmDocument))
+        .flatMapMany(MONO.<CpmDocument, Entity> liftEffectToFlux(DocumentUtils::getSpecForwardConnectors))
         .flatMap(MONO.makeSureAsync(
             storeWebService::pingBundleId,
             BadRequestException::new,
@@ -112,8 +112,8 @@ public class DocumentServiceImpl implements DocumentService {
   @Override
   public Mono<Void> checkBackwardConnectorsResolvable(Document document) {
     return MONO.makeSureNotNull(document)
-        .flatMap(MONO.liftEffectToMono(CpmDocumentUtils.FUNCTIONAL::getCpmDocument))
-        .flatMapMany(MONO.<CpmDocument, Entity> liftEffectToFlux(CpmDocumentUtils.FUNCTIONAL::getBackwardConnectors))
+        .flatMap(MONO.liftEffectToMono(DocumentUtils::getCpmDocument))
+        .flatMapMany(MONO.<CpmDocument, Entity> liftEffectToFlux(DocumentUtils::getBackwardConnectors))
         .flatMap(MONO.makeSureAsync(
             storeWebService::pingBundleId,
             BadRequestException::new,

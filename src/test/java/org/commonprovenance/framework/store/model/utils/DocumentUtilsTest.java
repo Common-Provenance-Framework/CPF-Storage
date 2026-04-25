@@ -1,7 +1,6 @@
-package org.commonprovenance.framework.store.common.utils;
+package org.commonprovenance.framework.store.model.utils;
 
 import static org.commonprovenance.framework.store.common.publisher.PublisherHelper.MONO;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -29,7 +28,7 @@ import io.vavr.control.Either;
 import reactor.test.StepVerifier;
 
 @DisplayName("CPM Document Utils Test")
-class CpmDocumentUtilsTest {
+class DocumentUtilsTest {
 
   private static final String ERR_STATEMENT_NULL = "Statement can not be null!";
   private static final String ERR_REFERENCED_META_MISSING = "Statement does not have 'referencedMetaBundleId' attribute, or its value is null!";
@@ -93,7 +92,7 @@ class CpmDocumentUtilsTest {
   void requireCpmReferencedMetaBundleId_shouldFailForNullStatement() {
     assertLeft(
         ERR_STATEMENT_NULL,
-        CpmDocumentUtils.FUNCTIONAL.getCpmReferencedMetaBundleId(null));
+        DocumentUtils.getCpmReferencedMetaBundleId(null));
   }
 
   @Test
@@ -104,7 +103,7 @@ class CpmDocumentUtilsTest {
 
     assertLeft(
         ERR_REFERENCED_META_MISSING,
-        CpmDocumentUtils.FUNCTIONAL.getCpmReferencedMetaBundleId(hasOther));
+        DocumentUtils.getCpmReferencedMetaBundleId(hasOther));
   }
 
   @Test
@@ -115,7 +114,7 @@ class CpmDocumentUtilsTest {
         provFactory.getName().XSD_STRING);
 
     assertLeft(ERR_REFERENCED_META_WRONG_TYPE,
-        CpmDocumentUtils.FUNCTIONAL.getCpmReferencedMetaBundleId(hasOther));
+        DocumentUtils.getCpmReferencedMetaBundleId(hasOther));
   }
 
   // --
@@ -132,7 +131,7 @@ class CpmDocumentUtilsTest {
         expectedReference,
         provFactory.getName().PROV_QUALIFIED_NAME);
 
-    assertRight(expectedReference, CpmDocumentUtils.FUNCTIONAL.getCpmReferencedMetaBundleId(hasOther));
+    assertRight(expectedReference, DocumentUtils.getCpmReferencedMetaBundleId(hasOther));
   }
 
   // --
@@ -149,7 +148,7 @@ class CpmDocumentUtilsTest {
         expectedReference,
         provFactory.getName().PROV_QUALIFIED_NAME);
 
-    assertRight(expectedReference, CpmDocumentUtils.FUNCTIONAL.getCpmReferencedBundleId(hasOther));
+    assertRight(expectedReference, DocumentUtils.getCpmReferencedBundleId(hasOther));
   }
 
   // --
@@ -159,7 +158,7 @@ class CpmDocumentUtilsTest {
   void requireMainActivityReferenceMetaBundleId_shouldFailForNullDocument() {
     assertLeft(
         ERR_CPM_DOCUMENT_NULL,
-        CpmDocumentUtils.FUNCTIONAL.getMainActivityReferenceMetaBundleId(null));
+        DocumentUtils.getMainActivityReferenceMetaBundleId(null));
   }
 
   @Test
@@ -170,7 +169,7 @@ class CpmDocumentUtilsTest {
 
     assertLeft(
         ERR_MAIN_ACTIVITY_NULL,
-        CpmDocumentUtils.FUNCTIONAL.getMainActivityReferenceMetaBundleId(cpmDocument));
+        DocumentUtils.getMainActivityReferenceMetaBundleId(cpmDocument));
   }
 
   @Test
@@ -187,14 +186,14 @@ class CpmDocumentUtilsTest {
     CpmDocument cpmDocument = mock(CpmDocument.class);
     when(cpmDocument.getMainActivity()).thenReturn(mainActivity);
 
-    assertRight(expectedReference, CpmDocumentUtils.FUNCTIONAL.getMainActivityReferenceMetaBundleId(cpmDocument));
+    assertRight(expectedReference, DocumentUtils.getMainActivityReferenceMetaBundleId(cpmDocument));
   }
 
   @Test
   @DisplayName("Reactive getCpmReferencedMetaBundleId should propagate synchronous Either Left side value to reactive error channel")
 
   void getCpmReferencedMetaBundleId_shouldPropagateErrorToReactiveChannel() {
-    StepVerifier.create(MONO.fromEither(CpmDocumentUtils.FUNCTIONAL.getCpmReferencedMetaBundleId(null)))
+    StepVerifier.create(MONO.fromEither(DocumentUtils.getCpmReferencedMetaBundleId(null)))
         .expectErrorSatisfies((Throwable error) -> {
           assertInstanceOf(InternalApplicationException.class, error);
           assertEquals(ERR_STATEMENT_NULL, error.getMessage());
@@ -216,7 +215,7 @@ class CpmDocumentUtilsTest {
     CpmDocument cpmDocument = mock(CpmDocument.class);
     when(cpmDocument.getMainActivity()).thenReturn(mainActivity);
 
-    StepVerifier.create(MONO.fromEither(CpmDocumentUtils.FUNCTIONAL.getMainActivityReferenceMetaBundleId(cpmDocument)))
+    StepVerifier.create(MONO.fromEither(DocumentUtils.getMainActivityReferenceMetaBundleId(cpmDocument)))
         .expectNext(expectedReference)
         .verifyComplete();
   }
