@@ -16,9 +16,15 @@ public interface OrganizationService {
 
   Mono<Boolean> notExists(Organization organization);
 
+  Mono<Void> checkOrganizationDoesNotExists(Organization organization);
+
+  Mono<Void> checkOrganizationExists(Organization organization);
+
   Flux<Organization> getAllOrganizations();
 
   Mono<Organization> getOrganizationByIdentifier(String identifier);
+
+  Mono<Organization> getOrganization(Organization organization);
 
   Mono<Boolean> linkOwnedDocument(Document document);
 
