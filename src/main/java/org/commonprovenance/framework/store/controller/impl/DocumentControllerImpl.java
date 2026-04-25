@@ -3,11 +3,9 @@ package org.commonprovenance.framework.store.controller.impl;
 import static org.commonprovenance.framework.store.common.publisher.PublisherHelper.MONO;
 
 import java.util.Collections;
-import java.util.Objects;
 import java.util.Optional;
 
 import org.commonprovenance.framework.store.common.utils.Base64Utils;
-import org.commonprovenance.framework.store.common.utils.CpmDocumentUtils;
 import org.commonprovenance.framework.store.config.AppConfiguration;
 import org.commonprovenance.framework.store.controller.DocumentController;
 import org.commonprovenance.framework.store.controller.dto.error.BadRequestDTO;
@@ -17,25 +15,23 @@ import org.commonprovenance.framework.store.controller.dto.form.DocumentFormDTO;
 import org.commonprovenance.framework.store.controller.dto.response.DocumentResponseDTO;
 import org.commonprovenance.framework.store.controller.dto.response.TokenResponseDTO;
 import org.commonprovenance.framework.store.controller.dto.response.factory.DTOFactory;
-import org.commonprovenance.framework.store.exceptions.BadRequestException;
+import org.commonprovenance.framework.store.exceptions.ApplicationException;
 import org.commonprovenance.framework.store.exceptions.ConflictException;
 import org.commonprovenance.framework.store.exceptions.InternalApplicationException;
 import org.commonprovenance.framework.store.exceptions.NotFoundException;
+import org.commonprovenance.framework.store.exceptions.factory.ApplicationExceptionFactory;
 import org.commonprovenance.framework.store.model.Document;
-import org.commonprovenance.framework.store.model.Organization;
 import org.commonprovenance.framework.store.model.Token;
 import org.commonprovenance.framework.store.model.factory.ModelFactory;
+import org.commonprovenance.framework.store.model.utils.DocumentUtils;
+import org.commonprovenance.framework.store.model.utils.OrganizationUtils;
 import org.commonprovenance.framework.store.service.persistence.finalizedProvComponent.DocumentService;
 import org.commonprovenance.framework.store.service.persistence.finalizedProvComponent.OrganizationService;
 import org.commonprovenance.framework.store.service.persistence.finalizedProvComponent.TokenService;
 import org.commonprovenance.framework.store.service.persistence.finalizedProvComponent.TrustedPartyService;
 import org.commonprovenance.framework.store.service.persistence.metaComponent.MetaComponentService;
-import org.commonprovenance.framework.store.service.web.store.StoreWebService;
 import org.commonprovenance.framework.store.service.web.trustedParty.TrustedPartyWebService;
-import org.openprovenance.prov.model.Element;
-import org.openprovenance.prov.model.Entity;
 import org.openprovenance.prov.model.ProvFactory;
-import org.openprovenance.prov.model.QualifiedName;
 import org.openprovenance.prov.model.interop.Formats;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -49,12 +45,9 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-import cz.muni.fi.cpm.constants.CpmAttribute;
 import cz.muni.fi.cpm.model.CpmDocument;
-import cz.muni.fi.cpm.model.CpmUtilities;
 import cz.muni.fi.cpm.model.ICpmFactory;
 import cz.muni.fi.cpm.model.ICpmProvFactory;
-import cz.muni.fi.cpm.model.INode;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -62,7 +55,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.constraints.NotNull;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @Validated
@@ -77,7 +69,6 @@ public class DocumentControllerImpl implements DocumentController {
   private final MetaComponentService metaComponentService;
 
   private final TrustedPartyWebService trustedPartyWebService;
-  private final StoreWebService storeWebService;
 
   private final ProvFactory provFactory;
   private final ICpmFactory cpmFactory;
@@ -92,7 +83,6 @@ public class DocumentControllerImpl implements DocumentController {
       TrustedPartyService trustedPartyService,
       MetaComponentService metaComponentService,
       TrustedPartyWebService trustedPartyWebService,
-      StoreWebService storeWebService,
       ProvFactory provFactory,
       ICpmFactory cpmFactory,
       ICpmProvFactory cpmProvFactory,
@@ -103,7 +93,6 @@ public class DocumentControllerImpl implements DocumentController {
     this.tokenService = tokenService;
     this.trustedPartyService = trustedPartyService;
     this.trustedPartyWebService = trustedPartyWebService;
-    this.storeWebService = storeWebService;
 
     this.provFactory = provFactory;
     this.cpmFactory = cpmFactory;
@@ -125,61 +114,38 @@ public class DocumentControllerImpl implements DocumentController {
   public Mono<TokenResponseDTO> createProvDocument(
       @RequestBody DocumentFormDTO body) {
     return ModelFactory.toDomain(body)
-        // validate Organization and TrustedParty first
-        .delayUntil((Document document) -> Mono.just(new Organization())
-            .map(organization -> organization.withIdentifier(document.getOrganizationIdentifier()))
-            .flatMap(MONO.makeSureAsync(
-                this.organizationService::exists,
-                org -> new ConflictException(
-                    "Organization with identifier " + org.getIdentifier() + " has not been registered yet!")))
-            .flatMap(organization -> Mono.justOrEmpty(organization.getIdentifier())
-                .flatMap(this.organizationService::getOrganizationByIdentifier))
-            .map(organization -> organization.getTrustedParty())
-            .flatMap(Mono::justOrEmpty)
-            .flatMap(MONO.makeSure(
-                tp -> tp.getIsChecked(),
-                _ -> new ConflictException(
-                    "Trusted party has not been checked for its validity yet!")))
-            .flatMap(MONO.makeSure(
-                tp -> tp.getIsValid(),
-                _ -> new ConflictException(
-                    "Trusted party has been checked, but has not been considered as vaid!"))))
-        // --------------------------
-        // validate document signature
-        .delayUntil((Document document) -> Mono.justOrEmpty(document.getOrganizationIdentifier())
-            .flatMap(this.organizationService::getOrganizationByIdentifier)
-            .flatMap(MONO.makeSureAsync(
-                trustedPartyWebService.verifySignature(document),
-                _ -> new BadRequestException("Invalid signature!"))))
+        .delayUntil((Document document) -> Mono.just(document)
+            // validate Organization and TrustedParty first
+            .map(DocumentUtils::buildOrganization)
+            .delayUntil(this.organizationService::checkOrganizationExists)
+            .flatMap(this.organizationService::getOrganization)
+            .delayUntil(MONO.liftEffectToMono(OrganizationUtils::validateTrustedParty))
+            .onErrorMap(ApplicationExceptionFactory.to(ConflictException::new))
+            // --------------------------
+            // validate document signature
+            .delayUntil(trustedPartyWebService.verifySignature(document)))
+
         // --------------------------
         // deserialize document into CpmDocument class
         .map(document -> document.withCpmDocument(this.provFactory, this.cpmProvFactory, this.cpmFactory))
         .flatMap(MONO.makeSure(
             doc -> doc.getCpmDocument().isPresent(),
             doc -> new InternalApplicationException("Graf has not been deserialized")))
-        // --------------------------
-        // get document id from deserialized document - has to be bundle identifier
-        // local part
-        .map(document -> document
-            .withIdentifier(document.getCpmDocument().map(cpm -> cpm.getBundleId().getLocalPart()).orElse(null)))
-        // validate bundle identifier namespace uri.
-        .delayUntil(document -> Mono.justOrEmpty(document.getCpmDocument())
-            .map(CpmDocument::getBundleId)
-            .flatMap(MONO.makeSure(
-                qn -> Objects.nonNull(qn.getNamespaceURI()),
-                uri -> new BadRequestException(
-                    "The bundle namespace uri '" + uri + "' does not resolve into known storage!!")))
-            .map(QualifiedName::getNamespaceURI)
-            .flatMap(MONO.makeSure(
-                uri -> uri.equals(this.configuration.getFqdn() + "documents/"),
-                uri -> new BadRequestException(
-                    "The bundle namespace uri '" + uri + "' does not resolve into known storage!!"))))
-        .flatMap(this::checkDocumentDoesNotExists)
-        .delayUntil(this::checkBackwardConnetorsAttrs)
-        .flatMap(this::checkForwardConnetorsAttrs)
-        .delayUntil(this::checkBackwardConnectorResolvable)
-        .delayUntil(this::checkForwardConnetorsResolvable)
+        .delayUntil(MONO.liftEffectToMono(DocumentUtils.checkBundleId(this.configuration)))
 
+        // --------------------------
+        // get document id from deserialized document - has to be bundle identifier local part
+        .flatMap(MONO.liftEffectToMono(DocumentUtils::setDocumentIdentifier))
+        // --------------------------
+        // check document does not exists yet
+        .delayUntil(this.documentService::checkDocumentDoesNotExists)
+        // --------------------------
+        // check connectors
+        .delayUntil(this.documentService::checkBackwardConnectorsResolvable)
+        .delayUntil(this.documentService::checkSpecForwardConnectorsResolvable)
+        .delayUntil(MONO.liftEffectToMono(DocumentUtils::checkSpecForwardConnetorsAttrs))
+        .delayUntil(MONO.liftEffectToMono(DocumentUtils::checkBackwardConnetorsAttrs))
+        .delayUntil(MONO.liftEffectToMono(DocumentUtils::checkForwardConnetorsAttrs))
         // TODO: check hashes in connectors
         // TODO: check cpm constraints
         // TODO: check provenance constraints
@@ -200,7 +166,7 @@ public class DocumentControllerImpl implements DocumentController {
             .map(Document::getCpmDocument)
             .flatMap(Mono::justOrEmpty)
             .flatMap((CpmDocument cpm) -> Mono.just(cpm)
-                .flatMap(MONO.liftEffectToMono(CpmDocumentUtils.FUNCTIONAL::getMainActivityReferenceMetaBundleId))
+                .flatMap(MONO.liftEffectToMono(DocumentUtils::getMainActivityReferenceMetaBundleId))
                 .flatMap(this.metaComponentService::getMetaComponent)
                 .flatMap(this.metaComponentService.addNewVersion(cpm.getBundleId()))
                 .flatMap(meta -> Mono.justOrEmpty(document.getToken())
@@ -209,166 +175,14 @@ public class DocumentControllerImpl implements DocumentController {
         .delayUntil(this.organizationService::linkOwnedDocument)
         .map(Document::getToken)
         .flatMap(Mono::justOrEmpty)
-        .flatMap(DTOFactory::toTokenDTO);
-  }
-
-  private String getReferenceValue(Element element, CpmAttribute attr) {
-    return Optional.ofNullable(CpmUtilities.getCpmAttributeValue(element, attr))
-        .flatMap((Object obj) -> {
-          if (obj instanceof QualifiedName qn) {
-            return Optional.ofNullable(qn);
+        .flatMap(DTOFactory::toTokenDTO)
+        .onErrorMap(error -> {
+          if (error instanceof ApplicationException) {
+            return error;
           }
-          return Optional.empty();
-        })
-        .map(qn -> qn.getNamespaceURI() + qn.getLocalPart())
-        .orElse("???");
-  }
 
-  private Mono<Boolean> isResolvableBundleId(Element connector) {
-    if (connector instanceof Entity entity) {
-      return Mono.justOrEmpty(CpmUtilities.getCpmAttributeValue(entity, CpmAttribute.REFERENCED_BUNDLE_ID))
-          .flatMap((Object value) -> {
-            if (value instanceof QualifiedName qn) {
-              return Mono.justOrEmpty(qn);
-            }
-            return Mono.error(new BadRequestException());
-          })
-          .flatMap(this.storeWebService::pingQualifiedName);
-    }
-    return Mono.error(new BadRequestException(
-        "Invalid connector. Statement with id '" + connector.getId().toString() + "' is not entity!"));
-  }
-
-  private Mono<Boolean> isResolvableMetaBundleId(Element connector) {
-    if (connector instanceof Entity entity) {
-      return Mono.justOrEmpty(CpmUtilities.getCpmAttributeValue(entity, CpmAttribute.REFERENCED_META_BUNDLE_ID))
-          .flatMap((Object value) -> {
-            if (value instanceof QualifiedName qn) {
-              return Mono.justOrEmpty(qn);
-            }
-            return Mono.error(new BadRequestException());
-          })
-          .flatMap(this.storeWebService::pingQualifiedName);
-    }
-    return Mono.error(new BadRequestException(
-        "Invalid connector. Statement with id '" + connector.getId().toString() + "' is not entity!"));
-  }
-
-  private Boolean isValidBackwardConnector(Element connector) {
-    if (connector instanceof Entity entity) {
-      return CpmUtilities.containsCpmAttribute(entity, CpmAttribute.REFERENCED_BUNDLE_ID)
-          && CpmUtilities.containsCpmAttribute(entity, CpmAttribute.REFERENCED_META_BUNDLE_ID)
-          // TODO: referencedBundleSpecV
-          // TODO: referencedMetaBundleSpecV
-          && CpmUtilities.containsCpmAttribute(entity, CpmAttribute.REFERENCED_BUNDLE_HASH_VALUE)
-          && CpmUtilities.containsCpmAttribute(entity, CpmAttribute.HASH_ALG);
-    }
-    return false;
-  }
-
-  private Mono<Document> checkForwardConnetorsAttrs(Document document) {
-    return Mono.justOrEmpty(document)
-        .delayUntil(
-            prov -> Mono.justOrEmpty(prov.getCpmDocument())
-                .flatMapMany(cpm -> Flux.fromIterable(cpm.getForwardConnectors()))
-                .map(INode::getAnyElement)
-                .flatMap(MONO.makeSure(
-                    element -> this.isSpecForwardConnector(element)
-                        ? this.isValidSpecForwardConnector(element)
-                        : this.isValidForwardConnector(element),
-                    (Element element) -> new BadRequestException(
-                        "Element '" + element.getId() + "' is not valid forward connector"))));
-  }
-
-  private Mono<Document> checkForwardConnetorsResolvable(Document document) {
-    return Mono.justOrEmpty(document)
-        .delayUntil(prov -> Mono.justOrEmpty(prov.getCpmDocument())
-            .flatMapMany(cpm -> Flux.fromIterable(cpm.getForwardConnectors()))
-            .map(INode::getAnyElement)
-            .filter(this::isSpecForwardConnector)
-            .flatMap(MONO.makeSureAsync(
-                this::isResolvableBundleId,
-                (Element element) -> new BadRequestException(
-                    "Reference bundle id '"
-                        + getReferenceValue(element, CpmAttribute.REFERENCED_BUNDLE_ID)
-                        + "' is not resolvable. Element '" + element.getId()
-                        + "' is not valid forward connector.")))
-            .flatMap(MONO.makeSureAsync(
-                this::isResolvableMetaBundleId,
-                (Element element) -> new BadRequestException(
-                    "Reference meta bundle id '"
-                        + getReferenceValue(element, CpmAttribute.REFERENCED_META_BUNDLE_ID)
-                        + "' is not resolvable. Element '" + element.getId()
-                        + "' is not valid forward connector."))));
-  }
-
-  private Mono<Document> checkDocumentDoesNotExists(Document document) {
-    return MONO.<Document>makeSureAsync(
-        doc -> Mono.justOrEmpty(doc.getIdentifier())
-            .flatMap(this.documentService::getDocumentByIdentifier)
-            .thenReturn(false)
-            .onErrorResume(NotFoundException.class, _ -> Mono.just(true)),
-        doc -> new ConflictException("Document with identifier '" + doc.getIdentifier() + "' exists!!"))
-        .apply(document);
-  }
-
-  private Mono<Document> checkBackwardConnetorsAttrs(Document document) {
-    return Mono.justOrEmpty(document)
-        .delayUntil(
-            prov -> Mono.justOrEmpty(prov.getCpmDocument())
-                .flatMapMany(cpm -> Flux.fromIterable(cpm.getBackwardConnectors()))
-                .map(INode::getAnyElement)
-                .flatMap(MONO.makeSure(
-                    this::isValidBackwardConnector,
-                    (Element element) -> new BadRequestException(
-                        "Element '" + element.getId() + "' is not valid backward connector"))));
-  }
-
-  private Mono<Document> checkBackwardConnectorResolvable(Document document) {
-    return Mono.justOrEmpty(document)
-        .delayUntil(prov -> Mono.justOrEmpty(prov.getCpmDocument())
-            .flatMapMany(cpm -> Flux.fromIterable(cpm.getBackwardConnectors()))
-            .map(INode::getAnyElement)
-            .flatMap(MONO.makeSureAsync(
-                this::isResolvableBundleId,
-                (Element element) -> new BadRequestException(
-                    "Reference bundle id '" + getReferenceValue(element,
-                        CpmAttribute.REFERENCED_BUNDLE_ID)
-                        + "' is not resolvable. Element '"
-                        + element.getId()
-                        + "' is not valid backward connector.")))
-            .flatMap(MONO.makeSureAsync(
-                this::isResolvableMetaBundleId,
-                (Element element) -> new BadRequestException(
-                    "Reference meta bundle id '"
-                        + getReferenceValue(element, CpmAttribute.REFERENCED_META_BUNDLE_ID)
-                        + "' is not resolvable. Element '" + element.getId()
-                        + "' is not valid backward connector."))));
-  }
-
-  private Boolean isSpecForwardConnector(Element connector) {
-    return connector.getOther().isEmpty()
-        ? false
-        : true;
-  }
-
-  private Boolean isValidForwardConnector(Element connector) {
-    if (connector instanceof Entity entity) {
-      return entity.getOther().isEmpty();
-    }
-    return false;
-  }
-
-  private Boolean isValidSpecForwardConnector(Element connector) {
-    if (connector instanceof Entity entity) {
-      return CpmUtilities.containsCpmAttribute(entity, CpmAttribute.REFERENCED_BUNDLE_ID)
-          && CpmUtilities.containsCpmAttribute(entity, CpmAttribute.REFERENCED_META_BUNDLE_ID)
-          // TODO: referencedBundleSpecV
-          // TODO: referencedMetaBundleSpecV
-          && CpmUtilities.containsCpmAttribute(entity, CpmAttribute.REFERENCED_BUNDLE_HASH_VALUE)
-          && CpmUtilities.containsCpmAttribute(entity, CpmAttribute.HASH_ALG);
-    }
-    return false;
+          return new InternalApplicationException("Document creation failed", error);
+        });
   }
 
   @NotNull
@@ -408,7 +222,7 @@ public class DocumentControllerImpl implements DocumentController {
                 this.provFactory,
                 this.cpmProvFactory,
                 this.cpmFactory))
-            .flatMap(MONO.liftEffectToMono(CpmDocumentUtils.FUNCTIONAL.serialize(Formats.ProvFormat.JSON)))
+            .flatMap(MONO.liftEffectToMono(DocumentUtils.serialize(Formats.ProvFormat.JSON)))
             .flatMap(MONO.liftEffectToMono(Base64Utils::encodeFromString))
             .map(cpmStr -> document
                 .withGraph(cpmStr)
@@ -451,7 +265,7 @@ public class DocumentControllerImpl implements DocumentController {
                 this.provFactory,
                 this.cpmProvFactory,
                 this.cpmFactory))
-            .flatMap(MONO.liftEffectToMono(CpmDocumentUtils.FUNCTIONAL.serialize(Formats.ProvFormat.JSON)))
+            .flatMap(MONO.liftEffectToMono(DocumentUtils.serialize(Formats.ProvFormat.JSON)))
             .flatMap(MONO.liftEffectToMono(Base64Utils::encodeFromString))
             .map(cpmStr -> document
                 .withGraph(cpmStr)

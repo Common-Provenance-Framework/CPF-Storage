@@ -87,7 +87,6 @@ public class EitherUtilsTest {
     EITHER.traverseEither(parseIntOrLeft)
         .apply(inputs)
         .peek(this::handleRight)
-        .peekLeft(System.out::println)
         .peekLeft(error -> assertTrue(error.getMessage().contains("bad-a")));
   }
 

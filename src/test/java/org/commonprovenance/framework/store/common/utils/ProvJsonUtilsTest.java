@@ -150,7 +150,6 @@ public class ProvJsonUtilsTest {
           ProvJsonUtils.IMPERATIVE.preprocessIncompatibleJsonForDeserialization(this.DOCUMENT, false),
           "should stringify numeric value");
     } catch (Exception e) {
-      System.err.println(e.getMessage());
       fail(e.getMessage(), e.getCause());
     }
   }
@@ -164,7 +163,6 @@ public class ProvJsonUtilsTest {
           ProvJsonUtils.IMPERATIVE.preprocessJsonForDeserialization(this.DOCUMENT, false),
           "should stringify numeric value");
     } catch (Exception e) {
-      System.err.println(e.getMessage());
       fail(e.getMessage(), e.getCause());
     }
   }
@@ -178,7 +176,6 @@ public class ProvJsonUtilsTest {
           ProvJsonUtils.IMPERATIVE.postprocessJsonAfterSerialization(this.DOCUMENT_PREPROCESSED, false),
           "should stringify numeric value");
     } catch (Exception e) {
-      System.err.println(e.getMessage());
       fail(e.getMessage(), e.getCause());
     }
   }
