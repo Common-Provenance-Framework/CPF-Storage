@@ -6,6 +6,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 
+import org.commonprovenance.framework.store.exceptions.ApplicationException;
+import org.commonprovenance.framework.store.exceptions.InternalApplicationException;
 import org.commonprovenance.framework.store.model.Document;
 import org.commonprovenance.framework.store.model.GraphType;
 import org.commonprovenance.framework.store.model.Organization;
@@ -18,6 +20,7 @@ import org.commonprovenance.framework.store.web.trustedParty.dto.form.factory.DT
 import org.commonprovenance.framework.store.web.trustedParty.dto.response.TokenTPResponseDTO;
 import org.commonprovenance.framework.store.web.trustedParty.dto.response.TrustedPartyTPResponseDTO;
 import org.springframework.stereotype.Component;
+import org.springframework.web.reactive.function.client.WebClientResponseException.BadRequest;
 
 import reactor.core.publisher.Mono;
 
@@ -60,7 +63,9 @@ public class TrustedPartyClientImpl implements TrustedPartyClient {
             .map(this.client.sendCustomPostRequest("/verifySignature", Void.class))
             .orElse(this.client.sendPostRequest("/verifySignature", Void.class)))
         .then(Mono.just(true))
-        .onErrorResume(org.springframework.web.reactive.function.client.WebClientResponseException.BadRequest.class,
-            ex -> Mono.just(false));
+        .onErrorResume(BadRequest.class, _ -> Mono.just(false))
+        .onErrorMap(ex -> (ex instanceof ApplicationException)
+            ? ex
+            : new InternalApplicationException("TrustedParts responded with 500!", ex));
   }
 }

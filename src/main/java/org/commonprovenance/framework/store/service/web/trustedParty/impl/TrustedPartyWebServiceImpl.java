@@ -5,6 +5,7 @@ import static org.commonprovenance.framework.store.common.publisher.PublisherHel
 import java.util.Optional;
 import java.util.function.Function;
 
+import org.commonprovenance.framework.store.exceptions.BadRequestException;
 import org.commonprovenance.framework.store.exceptions.NotFoundException;
 import org.commonprovenance.framework.store.model.Document;
 import org.commonprovenance.framework.store.model.GraphType;
@@ -39,23 +40,23 @@ public class TrustedPartyWebServiceImpl implements TrustedPartyWebService {
     return (
         Organization organization) -> this.trustedPartyClient.getInfo(trustedPartyUri)
             .flatMap((TrustedParty trustedParty) -> MONO
-                .<Organization>makeSureNotNullWithMessage("Organization can not be null!")
+                .<Organization> makeSureNotNullWithMessage("Organization can not be null!")
                 .apply(organization)
-                .flatMap(MONO.<Organization>makeSureAsync(this::notExists, "Organization already registered!"))
+                .flatMap(MONO.<Organization> makeSureAsync(this::notExists, "Organization already registered!"))
                 .flatMap(this.organizationClient.create(trustedPartyUri))
                 .map(org -> org.withTrustedParty(trustedParty)));
   }
 
   @Override
   public Mono<Organization> updateOrganization(Organization organization) {
-    return MONO.<Organization>makeSureNotNullWithMessage("Organization can not be null!").apply(organization)
-        .flatMap(MONO.<Organization>makeSureAsync(this::exists, "Organization does not registered!"))
+    return MONO.<Organization> makeSureNotNullWithMessage("Organization can not be null!").apply(organization)
+        .flatMap(MONO.<Organization> makeSureAsync(this::exists, "Organization does not registered!"))
         .flatMap(this.certificateClient.updateOrganizationCertificate(Optional.empty()));
   }
 
   @Override
   public Mono<Boolean> exists(Organization organization) {
-    return MONO.<Organization>makeSureNotNullWithMessage("Organization can not be null!").apply(organization)
+    return MONO.<Organization> makeSureNotNullWithMessage("Organization can not be null!").apply(organization)
         .map(Organization::getIdentifier)
         .flatMap(Mono::justOrEmpty)
         .flatMap(this.organizationClient.getById(Optional.empty()))
@@ -74,10 +75,13 @@ public class TrustedPartyWebServiceImpl implements TrustedPartyWebService {
   }
 
   @Override
-  public Function<Organization, Mono<Boolean>> verifySignature(Document document) {
-    return (Organization organization) -> MONO.<Document>makeSureNotNullWithMessage("Document can not be null!")
+  public Function<Organization, Mono<Void>> verifySignature(Document document) {
+    return (Organization organization) -> MONO.<Document> makeSureNotNullWithMessage("Document can not be null!")
         .apply(document)
-        .flatMap(this.trustedPartyClient.verifySignature(organization));
+        .flatMap(MONO.makeSureAsync(
+            this.trustedPartyClient.verifySignature(organization),
+            _ -> new BadRequestException("Invalid signature!")))
+        .then();
 
   }
 
