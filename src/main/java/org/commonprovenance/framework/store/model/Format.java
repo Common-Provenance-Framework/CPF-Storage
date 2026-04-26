@@ -49,4 +49,13 @@ public enum Format {
         throw new IllegalStateException("Unsupported format: " + this);
     }
   }
+
+  public Formats.ProvFormat toProvFormat(Formats.ProvFormat defaultFormat) {
+    switch (this) {
+      case JSON:
+        return Formats.ProvFormat.JSON;
+      default:
+        return defaultFormat;
+    }
+  }
 }

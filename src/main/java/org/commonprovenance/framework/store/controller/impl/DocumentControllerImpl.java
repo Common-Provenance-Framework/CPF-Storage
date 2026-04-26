@@ -127,12 +127,8 @@ public class DocumentControllerImpl implements DocumentController {
 
         // --------------------------
         // deserialize document into CpmDocument class
-        .map(document -> document.withCpmDocument(this.provFactory, this.cpmProvFactory, this.cpmFactory))
-        .flatMap(MONO.makeSure(
-            doc -> doc.getCpmDocument().isPresent(),
-            doc -> new InternalApplicationException("Graf has not been deserialized")))
+        .flatMap(MONO.liftEffectToMono(document -> document.withCpmDocument(this.provFactory, this.cpmProvFactory, this.cpmFactory)))
         .delayUntil(MONO.liftEffectToMono(DocumentUtils.checkBundleId(this.configuration)))
-
         // --------------------------
         // get document id from deserialized document - has to be bundle identifier local part
         .flatMap(MONO.liftEffectToMono(DocumentUtils::setDocumentIdentifier))
@@ -210,7 +206,7 @@ public class DocumentControllerImpl implements DocumentController {
   public Mono<DocumentResponseDTO> getDomainProvDocumentByIdentifier(@PathVariable String identifier) {
     return Mono.justOrEmpty(identifier)
         .flatMap(this.documentService::getDocumentByIdentifier)
-        .map(document -> document.withCpmDocument(this.provFactory, this.cpmProvFactory, this.cpmFactory))
+        .flatMap(MONO.liftEffectToMono(document -> document.withCpmDocument(this.provFactory, this.cpmProvFactory, this.cpmFactory)))
         .flatMap(document -> Mono.justOrEmpty(document.getCpmDocument())
             .switchIfEmpty(Mono.error(new NotFoundException(
                 "Finalized provenance document for identifier '" + identifier + "' can not be deserialized.")))
@@ -224,9 +220,9 @@ public class DocumentControllerImpl implements DocumentController {
                 this.cpmFactory))
             .flatMap(MONO.liftEffectToMono(DocumentUtils.serialize(Formats.ProvFormat.JSON)))
             .flatMap(MONO.liftEffectToMono(Base64Utils::encodeFromString))
-            .map(cpmStr -> document
+            .flatMap(MONO.liftEffectToMono(cpmStr -> document
                 .withGraph(cpmStr)
-                .withCpmDocument(provFactory, cpmProvFactory, cpmFactory, true))
+                .withCpmDocument(provFactory, cpmProvFactory, cpmFactory)))
             .flatMap(provDoc -> Mono.justOrEmpty(provDoc.getIdentifier())
                 .flatMap(this.documentService::getOrganizationIdentifierByIdentifier)
                 .map(provDoc::withOrganizationIdentifier))
@@ -253,7 +249,7 @@ public class DocumentControllerImpl implements DocumentController {
   public Mono<DocumentResponseDTO> getBackboneProvDocumentByIdentifier(@PathVariable String identifier) {
     return Mono.justOrEmpty(identifier)
         .flatMap(this.documentService::getDocumentByIdentifier)
-        .map(document -> document.withCpmDocument(this.provFactory, this.cpmProvFactory, this.cpmFactory))
+        .flatMap(MONO.liftEffectToMono(document -> document.withCpmDocument(this.provFactory, this.cpmProvFactory, this.cpmFactory)))
         .flatMap(document -> Mono.justOrEmpty(document.getCpmDocument())
             .switchIfEmpty(Mono.error(new NotFoundException(
                 "Finalized provenance document for identifier '" + identifier + "' can not be deserialized.")))
@@ -267,9 +263,9 @@ public class DocumentControllerImpl implements DocumentController {
                 this.cpmFactory))
             .flatMap(MONO.liftEffectToMono(DocumentUtils.serialize(Formats.ProvFormat.JSON)))
             .flatMap(MONO.liftEffectToMono(Base64Utils::encodeFromString))
-            .map(cpmStr -> document
+            .flatMap(MONO.liftEffectToMono(cpmStr -> document
                 .withGraph(cpmStr)
-                .withCpmDocument(provFactory, cpmProvFactory, cpmFactory, true))
+                .withCpmDocument(provFactory, cpmProvFactory, cpmFactory)))
             .flatMap(provDoc -> Mono.justOrEmpty(provDoc.getIdentifier())
                 .flatMap(this.documentService::getOrganizationIdentifierByIdentifier)
                 .map(provDoc::withOrganizationIdentifier))

@@ -1,5 +1,7 @@
 package org.commonprovenance.framework.store.model;
 
+import static org.commonprovenance.framework.store.common.utils.EitherUtils.EITHER;
+
 import java.util.Optional;
 
 import org.commonprovenance.framework.store.common.dto.HasGraph;
@@ -10,6 +12,9 @@ import org.commonprovenance.framework.store.common.dto.HasSignature;
 import org.commonprovenance.framework.store.common.utils.Base64Utils;
 import org.commonprovenance.framework.store.common.utils.ProvDocumentUtils;
 import org.commonprovenance.framework.store.exceptions.ApplicationException;
+import org.commonprovenance.framework.store.exceptions.InternalApplicationException;
+import org.commonprovenance.framework.store.exceptions.InvalidValueException;
+import org.commonprovenance.framework.store.exceptions.factory.ApplicationExceptionFactory;
 import org.openprovenance.prov.model.ProvFactory;
 import org.openprovenance.prov.model.interop.Formats;
 
@@ -107,39 +112,28 @@ public class Document implements HasOptionalIdentifier,
         this.getToken().orElse(null));
   }
 
-  public Document withCpmDocument(ProvFactory provFactory, ICpmProvFactory cpmProvFactory, ICpmFactory cpmFactory) {
-    return this.withCpmDocument(provFactory, cpmProvFactory, cpmFactory, false);
-  }
-
-  public Document withCpmDocument(
+  public Either<ApplicationException, Document> withCpmDocument(
       ProvFactory provFactory,
       ICpmProvFactory cpmProvFactory,
-      ICpmFactory cpmFactory,
-      Boolean force) {
+      ICpmFactory cpmFactory) {
 
-    Function1<Optional<Format>, Formats.ProvFormat> getFormatOrDefault = format -> format
-        .map(Format::toProvFormat)
-        .orElse(Formats.ProvFormat.JSON);
-
-    Function1<String, Either<ApplicationException, org.openprovenance.prov.model.Document>> getDocument = json -> Either
-        .<ApplicationException, String>right(json)
-        .flatMap(ProvDocumentUtils.FUNCTIONAL.deserialize(getFormatOrDefault.apply(this.format)));
-
-    return this.cpmDocument.isPresent() && !force
-        ? this
-        : Either.<ApplicationException, String>right(this.graph)
-            .flatMap(Base64Utils::decodeToString)
-            .flatMap(getDocument)
-            .map(this.cpmFactory(provFactory, cpmProvFactory, cpmFactory))
-            .map((CpmDocument cpmDocument) -> new Document(
-                this.getIdentifier().orElse(null),
-                this.getOrganizationIdentifier(),
-                this.getGraph(),
-                this.getFormat().orElse(null),
-                this.getSignature(),
-                cpmDocument,
-                this.getToken().orElse(null)))
-            .getOrElse(this);
+    return EITHER.combineM(
+        Either.<ApplicationException, String> right(this.graph)
+            .flatMap(Base64Utils::decodeToString),
+        EITHER.liftEither(this.format)
+            .flatMap(EITHER.<Format, Formats.ProvFormat> liftEither(Format::toProvFormat))
+            .mapLeft(ApplicationExceptionFactory.build(InvalidValueException::new, "Unknown Graph format!")),
+        ProvDocumentUtils::deserialize)
+        .map(this.cpmFactory(provFactory, cpmProvFactory, cpmFactory))
+        .map((CpmDocument cpmDocument) -> new Document(
+            this.getIdentifier().orElse(null),
+            this.getOrganizationIdentifier(),
+            this.getGraph(),
+            this.getFormat().orElse(null),
+            this.getSignature(),
+            cpmDocument,
+            this.getToken().orElse(null)))
+        .mapLeft(ApplicationExceptionFactory.build(InternalApplicationException::new, "Graf has not been deserialized"));
   }
 
   public Document withToken(Token token) {
