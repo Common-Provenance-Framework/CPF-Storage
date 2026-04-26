@@ -21,7 +21,6 @@ import org.commonprovenance.framework.store.exceptions.InternalApplicationExcept
 import org.commonprovenance.framework.store.exceptions.NotFoundException;
 import org.commonprovenance.framework.store.exceptions.factory.ApplicationExceptionFactory;
 import org.commonprovenance.framework.store.model.Document;
-import org.commonprovenance.framework.store.model.Token;
 import org.commonprovenance.framework.store.model.factory.ModelFactory;
 import org.commonprovenance.framework.store.model.utils.DocumentUtils;
 import org.commonprovenance.framework.store.model.utils.OrganizationUtils;
@@ -146,18 +145,10 @@ public class DocumentControllerImpl implements DocumentController {
         // TODO: check cpm constraints
         // TODO: check provenance constraints
         // issue token
-        .flatMap((Document document) -> Mono.justOrEmpty(document)
-            .map(Document::getOrganizationIdentifier)
-            .flatMap(organizationIdentifier -> Mono.justOrEmpty(organizationIdentifier)
-                .flatMap(this.trustedPartyService::getTrustedPartyUrlByOrganizationIdentifier)
-                .map(Optional::ofNullable)
-                .flatMap(optUrl -> this.trustedPartyWebService.issueGraphToken(optUrl).apply(document))
-                .map((Token token) -> token.withDocument(document))
-                .flatMap((Token token) -> this.trustedPartyService
-                    .getTrustedPartyByOrganizationIdentifier(organizationIdentifier)
-                    .map(token::withTrustedParty))
-                .flatMap(tokenService::storeToken))
-            .map(token -> document.withToken(token)))
+        .flatMap((Document document) -> Mono.just(document)
+            .flatMap(this.trustedPartyWebService::issueGraphToken)
+            .flatMap(this.tokenService::storeToken)
+            .map(document::withToken))
         .delayUntil((Document document) -> Mono.just(document)
             .map(Document::getCpmDocument)
             .flatMap(Mono::justOrEmpty)

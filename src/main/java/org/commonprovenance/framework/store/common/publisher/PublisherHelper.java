@@ -183,5 +183,9 @@ public interface PublisherHelper {
     public <E extends Throwable, T> Function<E, Mono<T>> exceptionWrapper() {
       return exceptionWrapper("Unexpected exception!");
     }
+
+    public <I1, I2, O> Function<I2, Function<I1, Mono<O>>> flipped(Function<I1, Function<I2, Mono<O>>> function) {
+      return (I2 v2) -> (I1 v1) -> function.apply(v1).apply(v2);
+    }
   }
 }

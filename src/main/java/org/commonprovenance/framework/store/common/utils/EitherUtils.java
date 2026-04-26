@@ -32,7 +32,6 @@ import io.vavr.control.Try;
 public interface EitherUtils {
   EitherHelper EITHER = EitherHelper.get();
 
-  // Mono implementation
   class EitherHelper {
     private static class Holder {
       static EitherHelper instance = new EitherHelper(false);
@@ -321,6 +320,10 @@ public interface EitherUtils {
     public <A, B> Function1<A, Either<ApplicationException, A>> flatTap(
         Function1<A, Either<ApplicationException, B>> effect) {
       return a -> effect.apply(a).map(_ -> a);
+    }
+
+    public <I1, I2, O> Function1<I2, Function1<I1, Either<ApplicationException, O>>> flipped(Function1<I1, Function1<I2, Either<ApplicationException, O>>> function) {
+      return (I2 v2) -> (I1 v1) -> function.apply(v1).apply(v2);
     }
   }
 }

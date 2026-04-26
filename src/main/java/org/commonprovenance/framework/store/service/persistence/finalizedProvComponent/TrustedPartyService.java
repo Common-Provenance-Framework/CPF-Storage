@@ -1,5 +1,6 @@
 package org.commonprovenance.framework.store.service.persistence.finalizedProvComponent;
 
+import org.commonprovenance.framework.store.model.Organization;
 import org.commonprovenance.framework.store.model.TrustedParty;
 
 import reactor.core.publisher.Mono;
@@ -17,4 +18,6 @@ public interface TrustedPartyService {
   Mono<TrustedParty> getTrustedPartyByOrganizationIdentifier(String organizationIdentifier);
 
   Mono<String> getTrustedPartyUrlByOrganizationIdentifier(String organizationIdentifier);
+
+  Mono<String> getTrustedPartyUrlByOrganization(Organization organization);
 }
