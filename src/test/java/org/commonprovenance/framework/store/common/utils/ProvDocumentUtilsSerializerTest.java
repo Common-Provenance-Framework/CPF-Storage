@@ -258,7 +258,7 @@ public class ProvDocumentUtilsSerializerTest {
   private Either<ApplicationException, JsonNode> getProvAsJson(String document) {
     ObjectMapper mapper = new ObjectMapper();
 
-    return Either.<ApplicationException, String>right(document)
+    return Either.<ApplicationException, String> right(document)
         .flatMap(EITHER.liftEitherChecked(mapper::readTree));
   }
 
@@ -269,11 +269,11 @@ public class ProvDocumentUtilsSerializerTest {
     Consumer<ApplicationException> leftSideHandler = (exception) -> fail(
         "Left side has not been expected: " + exception.getMessage());
     EITHER.combine(
-        Either.<ApplicationException, Document>right(this.getTestDocument())
-            .flatMap(ProvDocumentUtils.FUNCTIONAL.serialize(Formats.ProvFormat.JSON))
+        Either.<ApplicationException, Document> right(this.getTestDocument())
+            .flatMap(ProvDocumentUtils.serialize(Formats.ProvFormat.JSON))
             .flatMap(this::getProvAsJson)
             .peekLeft(leftSideHandler),
-        Either.<ApplicationException, String>right(this.DOCUMENT_JSON)
+        Either.<ApplicationException, String> right(this.DOCUMENT_JSON)
             .flatMap(this::getProvAsJson)
             .peekLeft(leftSideHandler),
         assertion);

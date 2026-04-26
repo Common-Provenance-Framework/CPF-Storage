@@ -45,7 +45,7 @@ public final class DocumentUtils {
   public static Function1<CpmDocument, Either<ApplicationException, String>> serialize(Formats.ProvFormat format) {
     return cpmDocument -> Either.<ApplicationException, CpmDocument> right(cpmDocument)
         .map(CpmDocument::toDocument)
-        .flatMap(ProvDocumentUtils.FUNCTIONAL.serialize(format));
+        .flatMap(ProvDocumentUtils.serialize(format));
   }
 
   public static Boolean isValidBackwardConnector(HasOther connector) {

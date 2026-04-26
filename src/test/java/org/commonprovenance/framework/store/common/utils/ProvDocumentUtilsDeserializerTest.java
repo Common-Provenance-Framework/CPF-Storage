@@ -178,8 +178,8 @@ public class ProvDocumentUtilsDeserializerTest {
       this.provDoc = docuemnt;
     };
 
-    Either.<ApplicationException, String>right(this.DOCUMENT_JSON)
-        .flatMap(ProvDocumentUtils.FUNCTIONAL.deserialize(Formats.ProvFormat.JSON))
+    Either.<ApplicationException, String> right(this.DOCUMENT_JSON)
+        .flatMap(ProvDocumentUtils.deserialize(Formats.ProvFormat.JSON))
         .peek(onSuccess::accept)
         .peekLeft(onError::accept);
   }
