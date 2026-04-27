@@ -87,6 +87,11 @@ public final class DocumentUtils {
         .flatMap(DocumentUtils.getCpmAttributeValue(CpmAttribute.REFERENCED_BUNDLE_ID));
   }
 
+  public static Either<ApplicationException, QualifiedName> getMainActivityReferenceMetaBundleId(Document document) {
+    return DocumentUtils.getCpmDocument(document)
+        .flatMap(DocumentUtils::getMainActivityReferenceMetaBundleId);
+  }
+
   public static Either<ApplicationException, QualifiedName> getMainActivityReferenceMetaBundleId(CpmDocument cpmDocument) {
     return Either.<ApplicationException, CpmDocument> right(cpmDocument)
         .flatMap(EITHER.<CpmDocument> makeSureNotNullWithMessage("CpmDocument can not be null!"))

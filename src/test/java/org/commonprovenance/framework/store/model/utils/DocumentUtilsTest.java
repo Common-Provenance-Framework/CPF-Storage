@@ -158,7 +158,7 @@ class DocumentUtilsTest {
   void requireMainActivityReferenceMetaBundleId_shouldFailForNullDocument() {
     assertLeft(
         ERR_CPM_DOCUMENT_NULL,
-        DocumentUtils.getMainActivityReferenceMetaBundleId(null));
+        DocumentUtils.getMainActivityReferenceMetaBundleId((CpmDocument) null));
   }
 
   @Test
