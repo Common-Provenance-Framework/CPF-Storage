@@ -3,22 +3,29 @@ package org.commonprovenance.framework.store.controller.advice;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.commonprovenance.framework.store.controller.advice.utils.AdviceUtils;
 import org.commonprovenance.framework.store.controller.dto.error.BadRequestDTO;
 import org.commonprovenance.framework.store.controller.dto.error.ErrorDTO;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import org.springframework.web.server.ServerWebInputException;
 import org.springframework.web.bind.support.WebExchangeBindException;
+import org.springframework.web.server.ServerWebInputException;
 
 import jakarta.validation.ConstraintViolationException;
 
 @Order(2)
 @RestControllerAdvice
 public class ValidationExceptionHandler {
+  private static final Logger LOGGER = LoggerFactory.getLogger(ApplicationExceptionHandler.class);
+
   @ExceptionHandler(WebExchangeBindException.class)
   public ResponseEntity<ErrorDTO> handleBindException(WebExchangeBindException ex) {
+    LOGGER.warn("Bad Request: {}", AdviceUtils.buildMessage(ex));
+
     List<String> errors = ex.getBindingResult().getFieldErrors().stream()
         .map(e -> e.getField() + ": " + e.getDefaultMessage())
         .collect(Collectors.toList());
@@ -27,6 +34,8 @@ public class ValidationExceptionHandler {
 
   @ExceptionHandler(ConstraintViolationException.class)
   public ResponseEntity<ErrorDTO> handleConstraintViolation(ConstraintViolationException ex) {
+    LOGGER.warn("Bad Request: {}", AdviceUtils.buildMessage(ex));
+
     List<String> errors = ex.getConstraintViolations().stream()
         .map(violation -> violation.getPropertyPath() + ": " + violation.getMessage())
         .collect(Collectors.toList());
@@ -35,6 +44,8 @@ public class ValidationExceptionHandler {
 
   @ExceptionHandler(ServerWebInputException.class)
   public ResponseEntity<ErrorDTO> handleServerWebInputException(ServerWebInputException ex) {
+    LOGGER.warn("Bad Request: {}", AdviceUtils.buildMessage(ex));
+
     String message = ex.getReason();
     if (ex.getCause() != null && ex.getCause().getMessage() != null && !ex.getCause().getMessage().isBlank()) {
       message = ex.getCause().getMessage();
