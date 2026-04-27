@@ -19,6 +19,13 @@ public interface BundleNeo4jRepositoryClient extends ReactiveNeo4jRepository<Bun
   Mono<String> getIdByIdentifier(@Param("identifier") String identifier);
 
   @Query("""
+      RETURN EXISTS {
+        MATCH (bundle:Bundle) WHERE bundle.identifier = $identifier
+      }
+      """)
+  Mono<Boolean> existsByIdentifier(@Param("identifier") String identifier);
+
+  @Query("""
         MATCH (bundle:Bundle)
         WHERE bundle.identifier = $identifier
 

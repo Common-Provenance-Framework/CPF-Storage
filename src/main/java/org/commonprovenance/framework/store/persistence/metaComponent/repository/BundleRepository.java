@@ -6,13 +6,18 @@ import org.commonprovenance.framework.store.persistence.metaComponent.model.node
 import reactor.core.publisher.Mono;
 
 public interface BundleRepository {
+  Mono<BundleNode> create(String identifier);
+
+  Mono<Boolean> exists(String identifier);
+
+  Mono<Boolean> notExists(String identifier);
+
+  // --- old API
   Mono<BundleNode> save(BundleNode bundle);
 
   Mono<BundleNode> findByIdentifier(String identifier);
 
   Mono<BundleNode> findByGeneralEntity(EntityNode entity);
-
-  Mono<Boolean> exists(String identifier);
 
   Mono<Boolean> hasVersionEntity(String identifier);
 
