@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Vector;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
@@ -187,5 +188,13 @@ public interface PublisherHelper {
     public <I1, I2, O> Function<I2, Function<I1, Mono<O>>> flipped(Function<I1, Function<I2, Mono<O>>> function) {
       return (I2 v2) -> (I1 v1) -> function.apply(v1).apply(v2);
     }
+
+    public <A, B, R> Mono<R> combineM(
+        Mono<A> monoA,
+        Mono<B> monoB,
+        BiFunction<A, B, Mono<R>> combinerM) {
+      return monoA.flatMap(a -> monoB.flatMap(b -> combinerM.apply(a, b)));
+    }
+
   }
 }

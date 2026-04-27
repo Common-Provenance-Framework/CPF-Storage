@@ -26,7 +26,7 @@ public class OrganizationPersistenceImpl implements OrganizationPersistence {
 
   @Override
   public Mono<Organization> create(Organization organization) {
-    return MONO.<Organization>makeSureNotNullWithMessage("Organization can not be 'null'!").apply(organization)
+    return MONO.<Organization> makeSureNotNullWithMessage("Organization can not be 'null'!").apply(organization)
         .flatMap(NodeFactory::toEntity)
         .flatMap(repository::save)
         .onErrorResume(MONO.exceptionWrapper("OrganizationPersistence - Error while creating new Organization"))
@@ -35,7 +35,7 @@ public class OrganizationPersistenceImpl implements OrganizationPersistence {
 
   @Override
   public Mono<Organization> update(Organization organization) {
-    return MONO.<Organization>makeSureNotNullWithMessage("Organization can not be 'null'!").apply(organization)
+    return MONO.<Organization> makeSureNotNullWithMessage("Organization can not be 'null'!").apply(organization)
         .flatMap(NodeFactory::toEntity)
         .flatMap(repository::save)
         .onErrorResume(MONO.exceptionWrapper("OrganizationPersistence - Error while updating existing Organization"))
@@ -51,7 +51,7 @@ public class OrganizationPersistenceImpl implements OrganizationPersistence {
 
   @Override
   public Mono<Organization> getByIdentifier(String identifier) {
-    return MONO.<String>makeSureNotNullWithMessage("Organization identifier can not be 'null'!").apply(identifier)
+    return MONO.<String> makeSureNotNullWithMessage("Organization identifier can not be 'null'!").apply(identifier)
         .flatMap(repository::findByIdentifier)
         .onErrorResume(MONO.exceptionWrapper("OrganizationPersistence - Error while reading Organization"))
         .switchIfEmpty(
@@ -61,14 +61,14 @@ public class OrganizationPersistenceImpl implements OrganizationPersistence {
 
   @Override
   public Mono<Boolean> connectDocument(Document document) {
-    return MONO.<Document>makeSureNotNullWithMessage("Document can not be 'null'!")
+    return MONO.<Document> makeSureNotNullWithMessage("Document can not be 'null'!")
         .apply(document)
-        .flatMap(doc -> Mono.zip(
-            MONO.<String>makeSureNotNullWithMessage("Organization identifier can not be 'null'!")
+        .flatMap(doc -> MONO.combineM(
+            MONO.<String> makeSureNotNullWithMessage("Organization identifier can not be 'null'!")
                 .apply(doc.getOrganizationIdentifier()),
             Mono.justOrEmpty(doc.getIdentifier())
-                .flatMap(MONO.<String>makeSureNotNullWithMessage("Document identifier can not be 'null'!"))))
-        .flatMap(ids -> repository.connectOwns(ids.getT1(), ids.getT2()))
+                .flatMap(MONO.<String> makeSureNotNullWithMessage("Document identifier can not be 'null'!")),
+            repository::connectOwns))
         .onErrorResume(MONO.exceptionWrapper("OrganizationPersistence - Error while connecting document ownership"));
   }
 
