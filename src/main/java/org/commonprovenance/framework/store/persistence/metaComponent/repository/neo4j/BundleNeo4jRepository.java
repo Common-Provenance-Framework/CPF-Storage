@@ -37,8 +37,8 @@ public class BundleNeo4jRepository implements BundleRepository {
 
   @Override
   public Mono<Boolean> exists(String identifier) {
-    return this.findByIdentifier(identifier)
-        .hasElement();
+    return client.getIdByIdentifier(identifier)
+        .flatMap(client::existsById);
   }
 
   @Override
