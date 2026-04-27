@@ -10,9 +10,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.bind.support.WebExchangeBindException;
+import org.springframework.web.reactive.resource.NoResourceFoundException;
 import org.springframework.web.server.ServerWebInputException;
 
 import jakarta.validation.ConstraintViolationException;
@@ -51,6 +53,13 @@ public class ValidationExceptionHandler {
       message = ex.getCause().getMessage();
     }
     return ResponseEntity.badRequest().body(buildValedationErrorResponse(List.of(message)));
+  }
+
+  @ExceptionHandler(NoResourceFoundException.class)
+  public ResponseEntity<ErrorDTO> handleNoResource(NoResourceFoundException ex, ServerHttpRequest request) {
+    String path = request.getPath().value();
+    LOGGER.warn("Resource not found: {}", path);
+    return ResponseEntity.status(400).body(new ErrorDTO("BadRequest", "Endpoint '" + path + "' was not found."));
   }
 
   private ErrorDTO buildValedationErrorResponse(List<String> details) {
