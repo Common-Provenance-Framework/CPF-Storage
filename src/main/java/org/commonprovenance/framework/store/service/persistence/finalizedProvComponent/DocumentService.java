@@ -15,6 +15,16 @@ public interface DocumentService {
 
   Mono<Boolean> existsByIdentifier(String identifier);
 
+  Mono<Boolean> exists(Document document);
+
+  Mono<Boolean> notExists(Document document);
+
+  Mono<Void> checkDocumentDoesNotExists(Document document);
+
   Mono<String> getOrganizationIdentifierByIdentifier(String identifier);
+
+  Mono<Void> checkSpecForwardConnectorsResolvable(Document docuement);
+
+  Mono<Void> checkBackwardConnectorsResolvable(Document docuement);
 
 }

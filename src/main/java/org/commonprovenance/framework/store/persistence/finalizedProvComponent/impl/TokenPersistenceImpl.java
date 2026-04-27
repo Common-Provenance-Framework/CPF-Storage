@@ -29,14 +29,14 @@ public class TokenPersistenceImpl implements TokenPersistence {
         .flatMap(NodeFactory::toEntity)
         .flatMap(repository::save)
         .onErrorResume(MONO.exceptionWrapper("TokenPersistence - Error while creating new Token"))
-        .flatMap(ModelFactory::toDomain);
+        .flatMap(MONO.liftEffectToMono(ModelFactory::toDomain));
   }
 
   @Override
   public Flux<Token> getAll() {
     return repository.findAll()
         .onErrorResume(MONO.exceptionWrapper("TokenPersistence - Error while reading tokens"))
-        .flatMap(ModelFactory::toDomain);
+        .flatMap(MONO.liftEffectToMono(ModelFactory::toDomain));
   }
 
   @Override
@@ -44,7 +44,7 @@ public class TokenPersistenceImpl implements TokenPersistence {
     return MONO.<String>makeSureNotNullWithMessage("Document identifier can not be 'null'!").apply(documentIdentifier)
         .flatMap(repository::getTokenByDocumentIdentifier)
         .onErrorResume(MONO.exceptionWrapper("TokenPersistence - Error while reading Token"))
-        .flatMap(ModelFactory::toDomain)
+        .flatMap(MONO.liftEffectToMono(ModelFactory::toDomain))
         .switchIfEmpty(Mono.defer(() -> Mono
             .error(new NotFoundException(
                 "Token with document identifier '" + documentIdentifier + "' has not been found!"))));

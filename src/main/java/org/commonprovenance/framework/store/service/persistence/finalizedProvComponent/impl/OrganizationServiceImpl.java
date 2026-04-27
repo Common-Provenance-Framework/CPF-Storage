@@ -2,6 +2,7 @@ package org.commonprovenance.framework.store.service.persistence.finalizedProvCo
 
 import static org.commonprovenance.framework.store.common.publisher.PublisherHelper.MONO;
 
+import org.commonprovenance.framework.store.exceptions.ConflictException;
 import org.commonprovenance.framework.store.exceptions.NotFoundException;
 import org.commonprovenance.framework.store.model.Document;
 import org.commonprovenance.framework.store.model.Organization;
@@ -23,19 +24,22 @@ public class OrganizationServiceImpl implements OrganizationService {
 
   @Override
   public Mono<Organization> storeOrganization(Organization organization) {
-    return MONO.<Organization>makeSureNotNullWithMessage("Organization can not be null").apply(organization)
+    return MONO.<Organization> makeSureNotNullWithMessage("Organization can not be null")
+        .apply(organization)
         .flatMap(this.persistence::create);
   }
 
   @Override
   public Mono<Organization> updateOrganization(Organization organization) {
-    return MONO.<Organization>makeSureNotNullWithMessage("Organization can not be null").apply(organization)
+    return MONO.<Organization> makeSureNotNullWithMessage("Organization can not be null")
+        .apply(organization)
         .flatMap(this.persistence::update);
   }
 
   @Override
   public Mono<Boolean> exists(Organization organization) {
-    return MONO.<Organization>makeSureNotNullWithMessage("Organization can not be null").apply(organization)
+    return MONO.<Organization> makeSureNotNullWithMessage("Organization can not be null")
+        .apply(organization)
         .map(Organization::getIdentifier)
         .flatMap(this::getOrganizationByIdentifier)
         .thenReturn(true)
@@ -48,6 +52,26 @@ public class OrganizationServiceImpl implements OrganizationService {
   }
 
   @Override
+  public Mono<Void> checkOrganizationDoesNotExists(Organization organization) {
+    return Mono.just(organization)
+        .flatMap(MONO.makeSureAsync(
+            this::notExists,
+            ConflictException::new,
+            org -> "Organization with identifier " + org.getIdentifier() + " already exists!"))
+        .then();
+  }
+
+  @Override
+  public Mono<Void> checkOrganizationExists(Organization organization) {
+    return Mono.just(organization)
+        .flatMap(MONO.makeSureAsync(
+            this::exists,
+            ConflictException::new,
+            org -> "Organization with identifier " + org.getIdentifier() + " has not been registered yet!"))
+        .then();
+  }
+
+  @Override
   public Flux<Organization> getAllOrganizations() {
     return this.persistence.getAll();
   }
@@ -55,6 +79,14 @@ public class OrganizationServiceImpl implements OrganizationService {
   @Override
   public Mono<Organization> getOrganizationByIdentifier(String identifier) {
     return this.persistence.getByIdentifier(identifier);
+  }
+
+  @Override
+  public Mono<Organization> getOrganization(Organization organization) {
+    return MONO.<Organization> makeSureNotNullWithMessage("Organization can not be null")
+        .apply(organization)
+        .map(Organization::getIdentifier)
+        .flatMap(this::getOrganizationByIdentifier);
   }
 
   @Override

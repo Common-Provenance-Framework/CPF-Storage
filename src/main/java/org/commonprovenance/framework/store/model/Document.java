@@ -1,8 +1,8 @@
 package org.commonprovenance.framework.store.model;
 
-import java.io.IOException;
+import static org.commonprovenance.framework.store.common.utils.EitherUtils.EITHER;
+
 import java.util.Optional;
-import java.util.function.Function;
 
 import org.commonprovenance.framework.store.common.dto.HasGraph;
 import org.commonprovenance.framework.store.common.dto.HasOptionalFormat;
@@ -11,12 +11,18 @@ import org.commonprovenance.framework.store.common.dto.HasOrganizationIdentifier
 import org.commonprovenance.framework.store.common.dto.HasSignature;
 import org.commonprovenance.framework.store.common.utils.Base64Utils;
 import org.commonprovenance.framework.store.common.utils.ProvDocumentUtils;
+import org.commonprovenance.framework.store.exceptions.ApplicationException;
+import org.commonprovenance.framework.store.exceptions.InternalApplicationException;
+import org.commonprovenance.framework.store.exceptions.InvalidValueException;
+import org.commonprovenance.framework.store.exceptions.factory.ApplicationExceptionFactory;
 import org.openprovenance.prov.model.ProvFactory;
 import org.openprovenance.prov.model.interop.Formats;
 
 import cz.muni.fi.cpm.model.CpmDocument;
 import cz.muni.fi.cpm.model.ICpmFactory;
 import cz.muni.fi.cpm.model.ICpmProvFactory;
+import io.vavr.Function1;
+import io.vavr.control.Either;
 
 public class Document implements HasOptionalIdentifier,
     HasOrganizationIdentifier<Document>, HasOptionalFormat, HasSignature<Document>, HasGraph<Document> {
@@ -106,37 +112,28 @@ public class Document implements HasOptionalIdentifier,
         this.getToken().orElse(null));
   }
 
-  public Document withCpmDocument(ProvFactory provFactory, ICpmProvFactory cpmProvFactory, ICpmFactory cpmFactory) {
-    return this.withCpmDocument(provFactory, cpmProvFactory, cpmFactory, false);
-  }
+  public Either<ApplicationException, Document> withCpmDocument(
+      ProvFactory provFactory,
+      ICpmProvFactory cpmProvFactory,
+      ICpmFactory cpmFactory) {
 
-  public Document withCpmDocument(ProvFactory provFactory, ICpmProvFactory cpmProvFactory, ICpmFactory cpmFactory,
-      Boolean force) {
-    return this.cpmDocument.isPresent() && !force
-        ? this
-        : Optional.ofNullable(this.graph)
-            .map(Base64Utils::decodeToString)
-            .flatMap(
-                (String json) -> {
-                  try {
-                    return Optional.of(ProvDocumentUtils.deserialize(
-                        json,
-                        this.format.map(Format::toProvFormat).orElse(Formats.ProvFormat.JSON)));
-                  } catch (IOException e) {
-                    System.err.println("Can not deserialize document!");
-                    return Optional.empty();
-                  }
-                })
-            .map(this.cpmFactory(provFactory, cpmProvFactory, cpmFactory))
-            .map((CpmDocument cpmDocument) -> new Document(
-                this.getIdentifier().orElse(null),
-                this.getOrganizationIdentifier(),
-                this.getGraph(),
-                this.getFormat().orElse(null),
-                this.getSignature(),
-                cpmDocument,
-                this.getToken().orElse(null)))
-            .orElse(this);
+    return EITHER.combineM(
+        Either.<ApplicationException, String> right(this.graph)
+            .flatMap(Base64Utils::decodeToString),
+        EITHER.liftEither(this.format)
+            .flatMap(EITHER.<Format, Formats.ProvFormat> liftEither(Format::toProvFormat))
+            .mapLeft(ApplicationExceptionFactory.build(InvalidValueException::new, "Unknown Graph format!")),
+        ProvDocumentUtils::deserialize)
+        .map(this.cpmFactory(provFactory, cpmProvFactory, cpmFactory))
+        .map((CpmDocument cpmDocument) -> new Document(
+            this.getIdentifier().orElse(null),
+            this.getOrganizationIdentifier(),
+            this.getGraph(),
+            this.getFormat().orElse(null),
+            this.getSignature(),
+            cpmDocument,
+            this.getToken().orElse(null)))
+        .mapLeft(ApplicationExceptionFactory.build(InternalApplicationException::new, "Graf has not been deserialized"));
   }
 
   public Document withToken(Token token) {
@@ -161,7 +158,7 @@ public class Document implements HasOptionalIdentifier,
         this.getToken().orElse(null));
   }
 
-  private Function<org.openprovenance.prov.model.Document, CpmDocument> cpmFactory(
+  private Function1<org.openprovenance.prov.model.Document, CpmDocument> cpmFactory(
       ProvFactory provFactory,
       ICpmProvFactory cpmProvFactory,
       ICpmFactory cpmFactory) {

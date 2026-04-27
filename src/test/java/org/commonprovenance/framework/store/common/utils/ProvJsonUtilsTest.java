@@ -3,8 +3,6 @@ package org.commonprovenance.framework.store.common.utils;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
 
-import java.lang.reflect.Method;
-
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -28,7 +26,7 @@ public class ProvJsonUtilsTest {
     try {
       ObjectMapper mapper = new ObjectMapper();
       JsonNode input = mapper.readTree(this.DOCUMENT);
-      JsonNode output = ProvJsonUtils.addExplicitBundleId(input);
+      JsonNode output = ProvJsonUtils.IMPERATIVE.addExplicitBundleId(input);
 
       assertEquals(
           this.DOCUMENT_WITH_EXPLICIT_BUNDLE_ID,
@@ -45,7 +43,7 @@ public class ProvJsonUtilsTest {
     try {
       ObjectMapper mapper = new ObjectMapper();
       JsonNode input = mapper.readTree(this.DOCUMENT_WITH_EXPLICIT_BUNDLE_ID);
-      JsonNode output = ProvJsonUtils.addExplicitBundleId(input);
+      JsonNode output = ProvJsonUtils.IMPERATIVE.addExplicitBundleId(input);
 
       assertEquals(
           this.DOCUMENT_WITH_EXPLICIT_BUNDLE_ID,
@@ -62,7 +60,7 @@ public class ProvJsonUtilsTest {
     try {
       ObjectMapper mapper = new ObjectMapper();
       JsonNode input = mapper.readTree(this.DOCUMENT_WITH_EXPLICIT_BUNDLE_ID);
-      JsonNode output = ProvJsonUtils.removeExplicitBundleId(input);
+      JsonNode output = ProvJsonUtils.IMPERATIVE.removeExplicitBundleId(input);
       assertEquals(
           this.DOCUMENT,
           mapper.writeValueAsString(output),
@@ -78,21 +76,13 @@ public class ProvJsonUtilsTest {
     try {
       ObjectMapper mapper = new ObjectMapper();
       JsonNode input = mapper.readTree(this.DOCUMENT);
-
-      Method stringifyValues = ProvJsonUtils.class.getDeclaredMethod(
-          "stringifyValues",
-          JsonNode.class,
-          ObjectMapper.class);
-
-      stringifyValues.setAccessible(true);
-      JsonNode output = (JsonNode) stringifyValues.invoke(null, input, mapper);
+      JsonNode output = ProvJsonUtils.IMPERATIVE.stringifyValues(input, mapper);
 
       assertEquals(
           this.DOCUMENT_WITH_STRINGIFY_VALUE,
           mapper.writeValueAsString(output),
           "should stringify numeric value");
     } catch (Exception e) {
-      System.err.println(e.getMessage());
       fail(e.getMessage(), e.getCause());
     }
   }
@@ -104,20 +94,13 @@ public class ProvJsonUtilsTest {
       ObjectMapper mapper = new ObjectMapper();
       JsonNode input = mapper.readTree(this.DOCUMENT);
 
-      Method copyOuterPrefixesIntoBundles = ProvJsonUtils.class.getDeclaredMethod(
-          "copyOuterPrefixesIntoBundles",
-          JsonNode.class,
-          ObjectMapper.class);
-
-      copyOuterPrefixesIntoBundles.setAccessible(true);
-      JsonNode output = (JsonNode) copyOuterPrefixesIntoBundles.invoke(null, input, mapper);
+      JsonNode output = ProvJsonUtils.IMPERATIVE.copyOuterPrefixesIntoBundles(input, mapper);
 
       assertEquals(
           this.DOCUMENT_WITH_PREFIXES,
           mapper.writeValueAsString(output),
           "should stringify numeric value");
     } catch (Exception e) {
-      System.err.println(e.getMessage());
       fail(e.getMessage(), e.getCause());
     }
   }
@@ -129,20 +112,13 @@ public class ProvJsonUtilsTest {
       ObjectMapper mapper = new ObjectMapper();
       JsonNode input = mapper.readTree(this.DOCUMENT);
 
-      Method putTypedObjectsInArrays = ProvJsonUtils.class.getDeclaredMethod(
-          "putTypedObjectsInArrays",
-          JsonNode.class,
-          ObjectMapper.class);
-
-      putTypedObjectsInArrays.setAccessible(true);
-      JsonNode output = (JsonNode) putTypedObjectsInArrays.invoke(null, input, mapper);
+      JsonNode output = ProvJsonUtils.IMPERATIVE.putTypedObjectsInArrays(input, mapper);
 
       assertEquals(
           this.DOCUMENT_WITH_ARRAY_TYPE,
           mapper.writeValueAsString(output),
           "should stringify numeric value");
     } catch (Exception e) {
-      System.err.println(e.getMessage());
       fail(e.getMessage(), e.getCause());
     }
   }
@@ -154,21 +130,13 @@ public class ProvJsonUtilsTest {
       ObjectMapper mapper = new ObjectMapper();
       JsonNode input = mapper.readTree(this.DOCUMENT);
 
-      Method putStringValuesInArray = ProvJsonUtils.class.getDeclaredMethod(
-          "putStringValuesInArray",
-          JsonNode.class,
-          ObjectMapper.class,
-          boolean.class);
-
-      putStringValuesInArray.setAccessible(true);
-      JsonNode output = (JsonNode) putStringValuesInArray.invoke(null, input, mapper, false);
+      JsonNode output = ProvJsonUtils.IMPERATIVE.putStringValuesInArray(input, mapper, false);
 
       assertEquals(
           this.DOCUMENT_WITH_ARRAY_STRING,
           mapper.writeValueAsString(output),
           "should stringify numeric value");
     } catch (Exception e) {
-      System.err.println(e.getMessage());
       fail(e.getMessage(), e.getCause());
     }
   }
@@ -179,10 +147,9 @@ public class ProvJsonUtilsTest {
     try {
       assertEquals(
           this.DOCUMENT_PREPROCESSED,
-          ProvJsonUtils.preprocessIncompatibleJsonForDeserialization(this.DOCUMENT, false),
+          ProvJsonUtils.IMPERATIVE.preprocessIncompatibleJsonForDeserialization(this.DOCUMENT, false),
           "should stringify numeric value");
     } catch (Exception e) {
-      System.err.println(e.getMessage());
       fail(e.getMessage(), e.getCause());
     }
   }
@@ -193,10 +160,9 @@ public class ProvJsonUtilsTest {
     try {
       assertEquals(
           this.DOCUMENT_WITH_EXPLICIT_BUNDLE_ID,
-          ProvJsonUtils.preprocessJsonForDeserialization(this.DOCUMENT, false),
+          ProvJsonUtils.IMPERATIVE.preprocessJsonForDeserialization(this.DOCUMENT, false),
           "should stringify numeric value");
     } catch (Exception e) {
-      System.err.println(e.getMessage());
       fail(e.getMessage(), e.getCause());
     }
   }
@@ -207,10 +173,9 @@ public class ProvJsonUtilsTest {
     try {
       assertEquals(
           this.DOCUMENT_POSTPROCESSED,
-          ProvJsonUtils.postprocessJsonAfterSerialization(this.DOCUMENT_PREPROCESSED, false),
+          ProvJsonUtils.IMPERATIVE.postprocessJsonAfterSerialization(this.DOCUMENT_PREPROCESSED, false),
           "should stringify numeric value");
     } catch (Exception e) {
-      System.err.println(e.getMessage());
       fail(e.getMessage(), e.getCause());
     }
   }

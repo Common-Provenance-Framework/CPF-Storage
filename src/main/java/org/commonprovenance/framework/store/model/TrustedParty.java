@@ -140,6 +140,12 @@ public class TrustedParty {
     return url;
   }
 
+  public Optional<String> getUrlIfNotDefault() {
+    return isDefault
+        ? Optional.empty()
+        : url;
+  }
+
   public Boolean getIsChecked() {
     return isChecked;
   }

@@ -21,9 +21,11 @@ public interface TrustedPartyWebService {
 
   Mono<TrustedParty> getTrustedPartyByUrl(Optional<String> trustedPartyUrl);
 
-  Function<Organization, Mono<Boolean>> verifySignature(Document document);
+  Function<Organization, Mono<Void>> verifySignature(Document document);
 
   Function<Document, Mono<Token>> issueGraphToken(Optional<String> trustedPartyUrl);
+
+  Mono<Token> issueGraphToken(Document document);
 
   Function<Document, Mono<Token>> issueDomainSpecificGraphToken(Optional<String> trustedPartyUrl);
 

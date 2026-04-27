@@ -1,6 +1,7 @@
 package org.commonprovenance.framework.store.model.factory;
 
 import static org.commonprovenance.framework.store.common.publisher.PublisherHelper.MONO;
+import static org.commonprovenance.framework.store.common.utils.EitherUtils.EITHER;
 
 import java.util.Collections;
 import java.util.Optional;
@@ -13,6 +14,7 @@ import org.commonprovenance.framework.store.common.utils.JwtUtils;
 import org.commonprovenance.framework.store.common.utils.Validators;
 import org.commonprovenance.framework.store.controller.dto.form.DocumentFormDTO;
 import org.commonprovenance.framework.store.controller.dto.form.OrganizationFormDTO;
+import org.commonprovenance.framework.store.exceptions.ApplicationException;
 import org.commonprovenance.framework.store.exceptions.ArgumentValidatorException;
 import org.commonprovenance.framework.store.model.Document;
 import org.commonprovenance.framework.store.model.Format;
@@ -30,6 +32,7 @@ import org.commonprovenance.framework.store.web.trustedParty.dto.response.Organi
 import org.commonprovenance.framework.store.web.trustedParty.dto.response.TokenTPResponseDTO;
 import org.commonprovenance.framework.store.web.trustedParty.dto.response.TrustedPartyTPResponseDTO;
 
+import io.vavr.control.Either;
 import reactor.core.publisher.Mono;
 
 public class ModelFactory {
@@ -95,12 +98,14 @@ public class ModelFactory {
         .orElse(org);
   }
 
-  private static Token fromPersistance(TokenNode token) {
-    return new Token(
-        token.getJwt(),
-        ModelFactory.toDomain(token.getWasIssuedBy().getFirst().getTrustedParty()),
-        ModelFactory.toDomain(token.getBelongsTo().getFirst().getDocument()),
-        JwtUtils.extractTokenTimestamp(token.getJwt())); // TODO: Get token creation from generation Activity
+  private static Either<ApplicationException, Token> fromPersistance(TokenNode token) {
+    return Either.<ApplicationException, String>right(token.getJwt())
+        .flatMap(JwtUtils::extractTokenTimestamp)
+        .map(timestamp -> new Token(
+            token.getJwt(),
+            ModelFactory.toDomain(token.getWasIssuedBy().getFirst().getTrustedParty()),
+            ModelFactory.toDomain(token.getBelongsTo().getFirst().getDocument()),
+            timestamp)); // TODO: Get token creation from generation Activity
   }
 
   private static Organization fromDto(OrganizationTPResponseDTO dto) {
@@ -124,12 +129,14 @@ public class ModelFactory {
         dto.getIntermediateCertificates());
   }
 
-  private static Token fromDto(TokenTPResponseDTO dto) {
-    return new Token(
-        dto.getJwt(),
-        null,
-        null,
-        JwtUtils.extractTokenTimestamp(dto.getJwt()));
+  private static Either<ApplicationException, Token> fromDto(TokenTPResponseDTO dto) {
+    return Either.<ApplicationException, String>right(dto.getJwt())
+        .flatMap(JwtUtils::extractTokenTimestamp)
+        .map(timestamp -> new Token(
+            dto.getJwt(),
+            null,
+            null,
+            timestamp));
   }
 
   private static TrustedParty fromDto(TrustedPartyTPResponseDTO dto) {
@@ -155,9 +162,10 @@ public class ModelFactory {
         .map(ModelFactory::fromDto);
   }
 
-  public static Mono<Token> toDomain(TokenTPResponseDTO dto) {
-    return MONO.makeSureNotNull(dto)
-        .map(ModelFactory::fromDto);
+  public static Either<ApplicationException, Token> toDomain(TokenTPResponseDTO dto) {
+    return Either.<ApplicationException, TokenTPResponseDTO>right(dto)
+        .flatMap(EITHER::makeSureNotNull)
+        .flatMap(ModelFactory::fromDto);
   }
 
   public static Function<TrustedPartyTPResponseDTO, Mono<TrustedParty>> toDomain(String url, Boolean isDefault) {
@@ -189,9 +197,10 @@ public class ModelFactory {
         .withId(ModelFactory.getId(entity));
   }
 
-  public static Mono<Token> toDomain(TokenNode entity) {
-    return MONO.makeSureNotNull(entity)
-        .map(ModelFactory::fromPersistance);
+  public static Either<ApplicationException, Token> toDomain(TokenNode entity) {
+    return Either.<ApplicationException, TokenNode>right(entity)
+        .flatMap(EITHER::makeSureNotNull)
+        .flatMap(ModelFactory::fromPersistance);
   }
 
   // Controller

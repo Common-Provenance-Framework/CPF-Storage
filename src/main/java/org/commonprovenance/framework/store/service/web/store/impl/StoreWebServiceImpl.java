@@ -1,8 +1,14 @@
 package org.commonprovenance.framework.store.service.web.store.impl;
 
+import static org.commonprovenance.framework.store.common.publisher.PublisherHelper.MONO;
+
+import org.commonprovenance.framework.store.exceptions.ConstraintException;
 import org.commonprovenance.framework.store.exceptions.NotFoundException;
+import org.commonprovenance.framework.store.exceptions.factory.ApplicationExceptionFactory;
+import org.commonprovenance.framework.store.model.utils.DocumentUtils;
 import org.commonprovenance.framework.store.service.web.store.StoreWebService;
 import org.commonprovenance.framework.store.web.store.PingClient;
+import org.openprovenance.prov.model.Entity;
 import org.openprovenance.prov.model.QualifiedName;
 import org.springframework.stereotype.Service;
 
@@ -17,6 +23,10 @@ public class StoreWebServiceImpl implements StoreWebService {
     this.pingClient = pingClient;
   }
 
+  private String buildHeader(String methodName, String message) {
+    return "[StoreWebService].[" + methodName + "].(" + message + ")";
+  }
+
   @Override
   public Mono<Boolean> pingUrl(String url) {
     return this.pingClient.pingByUrl(url)
@@ -29,5 +39,23 @@ public class StoreWebServiceImpl implements StoreWebService {
     return this.pingClient.pingByUrl(qn.getNamespaceURI() + qn.getLocalPart())
         .thenReturn(true)
         .onErrorReturn(NotFoundException.class, false);
+  }
+
+  @Override
+  public Mono<Boolean> pingBundleId(Entity connector) {
+    return MONO.makeSureNotNull(connector)
+        .flatMap(MONO.liftEffectToMono(DocumentUtils::getCpmReferencedBundleId))
+        .onErrorMap(ApplicationExceptionFactory.build(ConstraintException::new, "Can not get 'referencedBundleId'"))
+        .flatMap(this::pingQualifiedName)
+        .onErrorMap(ApplicationExceptionFactory.header(buildHeader("pingBundleId", "ConnectorId: " + connector.getId())));
+  }
+
+  @Override
+  public Mono<Boolean> pingMetaBundleId(Entity connector) {
+    return MONO.makeSureNotNull(connector)
+        .flatMap(MONO.liftEffectToMono(DocumentUtils::getCpmReferencedMetaBundleId))
+        .onErrorMap(ApplicationExceptionFactory.build(ConstraintException::new, "Can not get 'referencedMetaBundleId'"))
+        .flatMap(this::pingQualifiedName)
+        .onErrorMap(ApplicationExceptionFactory.header(buildHeader("pingMetaBundleId", "ConnectorId: " + connector.getId())));
   }
 }
