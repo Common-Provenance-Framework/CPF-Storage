@@ -8,6 +8,7 @@ import java.util.Optional;
 import org.commonprovenance.framework.store.common.utils.Base64Utils;
 import org.commonprovenance.framework.store.config.AppConfiguration;
 import org.commonprovenance.framework.store.controller.DocumentController;
+import org.commonprovenance.framework.store.controller.advice.ApplicationExceptionHandler;
 import org.commonprovenance.framework.store.controller.dto.error.BadRequestDTO;
 import org.commonprovenance.framework.store.controller.dto.error.InternalServerErrorDTO;
 import org.commonprovenance.framework.store.controller.dto.error.NotFoundDTO;
@@ -32,6 +33,8 @@ import org.commonprovenance.framework.store.service.persistence.metaComponent.Me
 import org.commonprovenance.framework.store.service.web.trustedParty.TrustedPartyWebService;
 import org.openprovenance.prov.model.ProvFactory;
 import org.openprovenance.prov.model.interop.Formats;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.validation.annotation.Validated;
@@ -61,6 +64,8 @@ import reactor.core.publisher.Mono;
 @RequestMapping(path = "/api/v1/documents", produces = MediaType.APPLICATION_JSON_VALUE)
 @Tag(name = "Documents", description = "Operations for storing and reading provenance documents")
 public class DocumentControllerImpl implements DocumentController {
+  private static final Logger LOGGER = LoggerFactory.getLogger(ApplicationExceptionHandler.class);
+
   private final DocumentService documentService;
   private final OrganizationService organizationService;
   private final TokenService tokenService;
@@ -123,10 +128,13 @@ public class DocumentControllerImpl implements DocumentController {
             // --------------------------
             // validate document signature
             .delayUntil(trustedPartyWebService.verifySignature(document)))
+        .doOnNext(_ -> LOGGER.debug("Request verified"))
 
         // --------------------------
         // deserialize document into CpmDocument class
         .flatMap(MONO.liftEffectToMono(document -> document.withCpmDocument(this.provFactory, this.cpmProvFactory, this.cpmFactory)))
+        .doOnNext(_ -> LOGGER.debug("Document deserialized"))
+
         .delayUntil(MONO.liftEffectToMono(DocumentUtils.checkBundleId(this.configuration)))
         // --------------------------
         // get document id from deserialized document - has to be bundle identifier local part
@@ -141,6 +149,8 @@ public class DocumentControllerImpl implements DocumentController {
         .delayUntil(MONO.liftEffectToMono(DocumentUtils::checkSpecForwardConnetorsAttrs))
         .delayUntil(MONO.liftEffectToMono(DocumentUtils::checkBackwardConnetorsAttrs))
         .delayUntil(MONO.liftEffectToMono(DocumentUtils::checkForwardConnetorsAttrs))
+        .doOnNext(_ -> LOGGER.debug("Request validated"))
+
         // TODO: check hashes in connectors
         // TODO: check cpm constraints
         // TODO: check provenance constraints
@@ -149,6 +159,8 @@ public class DocumentControllerImpl implements DocumentController {
             .flatMap(this.trustedPartyWebService::issueGraphToken)
             .flatMap(this.tokenService::storeToken)
             .map(document::withToken))
+        .doOnNext(_ -> LOGGER.debug("Token stored"))
+
         .delayUntil((Document document) -> Mono.just(document)
             .map(Document::getCpmDocument)
             .flatMap(Mono::justOrEmpty)
@@ -159,6 +171,8 @@ public class DocumentControllerImpl implements DocumentController {
                 .flatMap(meta -> Mono.justOrEmpty(document.getToken())
                     .flatMap(token -> this.metaComponentService.addTokenToLastVersion(token).apply(
                         meta)))))
+        .doOnNext(_ -> LOGGER.debug("MetaComponent stored"))
+
         .delayUntil(this.organizationService::linkOwnedDocument)
         .map(Document::getToken)
         .flatMap(Mono::justOrEmpty)
@@ -169,7 +183,8 @@ public class DocumentControllerImpl implements DocumentController {
           }
 
           return new InternalApplicationException("Document creation failed", error);
-        });
+        })
+        .doOnNext(_ -> LOGGER.debug("Finito.."));
   }
 
   @NotNull
