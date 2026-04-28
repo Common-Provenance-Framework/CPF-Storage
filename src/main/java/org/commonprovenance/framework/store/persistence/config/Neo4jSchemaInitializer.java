@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Session;
+import org.neo4j.driver.exceptions.DatabaseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.ApplicationRunner;
@@ -29,7 +30,7 @@ public class Neo4jSchemaInitializer {
       new IdentifierConstraintSpec("Bundle", "bundle_identifier_unique", "bundle_identifier_required"),
       new IdentifierConstraintSpec("Entity", "entity_identifier_unique", "entity_identifier_required"),
       new IdentifierConstraintSpec("Activity", "activity_identifier_unique", "activity_identifier_required"),
-      new IdentifierConstraintSpec("Agent", "agent_identifier_unique", "agent_identifier_required"),
+      // new IdentifierConstraintSpec("Agent", "agent_identifier_unique", "agent_identifier_required"),
       new IdentifierConstraintSpec("Document", "document_identifier_unique", "document_identifier_required"),
       new IdentifierConstraintSpec("Organization", "organization_identifier_unique", "organization_identifier_required"));
 
@@ -38,20 +39,78 @@ public class Neo4jSchemaInitializer {
   ApplicationRunner initializeNeo4jSchema(Driver driver) {
     return _ -> {
       try (var session = driver.session()) {
+        boolean supportsPropertyExistenceConstraints = supportsPropertyExistenceConstraints(session);
+
         IDENTIFIER_CONSTRAINTS.forEach(spec -> {
           ensureNoDuplicateIdentifiers(session, spec);
-          ensureNoMissingIdentifiers(session, spec);
           ensureConstraint(session, spec.uniqueConstraintName(), spec.uniqueConstraintQuery());
-          ensureConstraint(session, spec.requiredConstraintName(), spec.requiredConstraintQuery());
+
+          if (supportsPropertyExistenceConstraints) {
+            ensureNoMissingIdentifiers(session, spec);
+            ensureConstraint(session, spec.requiredConstraintName(), spec.requiredConstraintQuery());
+          } else {
+            log.info("Skipping unsupported NOT NULL constraint '{}' on Neo4j Community edition",
+                spec.requiredConstraintName());
+          }
         });
 
         TRUSTED_PARTY_CONSTRAINTS.forEach(spec -> {
           ensureNoDuplicateTrustedPartyField(session, spec);
           ensureConstraint(session, spec.uniqueConstraintName(), spec.uniqueConstraintQuery());
-          ensureConstraint(session, spec.requiredConstraintName(), spec.requiredConstraintQuery());
+
+          if (supportsPropertyExistenceConstraints) {
+            ensureConstraint(session, spec.requiredConstraintName(), spec.requiredConstraintQuery());
+          } else {
+            log.info("Skipping unsupported NOT NULL constraint '{}' on Neo4j Community edition",
+                spec.requiredConstraintName());
+          }
         });
+      } catch (DatabaseException ex) {
+        log.error(
+            """
+
+                ╔══════════════════════════════════════════════════════╗
+                ║          Neo4j database initialization failed        ║
+                ╠══════════════════════════════════════════════════════╣
+                {}
+                ╚══════════════════════════════════════════════════════╝""",
+            ex.getMessage());
+        System.exit(1);
+      } catch (IllegalStateException ex) {
+        log.error(
+            """
+
+                ╔══════════════════════════════════════════════════════╗
+                ║          Neo4j schema validation failed              ║
+                ╠══════════════════════════════════════════════════════╣
+                {}
+                ╚══════════════════════════════════════════════════════╝""",
+            ex.getMessage());
+        System.exit(1);
       }
     };
+  }
+
+  private boolean supportsPropertyExistenceConstraints(Session session) {
+    try {
+      String edition = session.executeRead(tx -> tx.run("""
+          CALL dbms.components() YIELD edition
+          RETURN toLower(edition) AS edition
+          LIMIT 1
+          """)
+          .single()
+          .get("edition")
+          .asString());
+
+      boolean supports = edition.contains("enterprise");
+      if (!supports) {
+        log.info("Detected Neo4j edition '{}': property existence constraints will be skipped", edition);
+      }
+      return supports;
+    } catch (RuntimeException ex) {
+      log.warn("Could not determine Neo4j edition, defaulting to skipping NOT NULL constraints", ex);
+      return false;
+    }
   }
 
   private void ensureConstraint(Session session, String constraintName, String cypher) {
@@ -62,7 +121,7 @@ public class Neo4jSchemaInitializer {
       });
       log.info("Neo4j schema ensured: {}", constraintName);
     } catch (RuntimeException ex) {
-      log.error("Failed ensuring Neo4j constraint '{}'", constraintName, ex);
+      log.error("Failed ensuring Neo4j constraint '{}': {}", constraintName, ex.getMessage());
       throw ex;
     }
   }
