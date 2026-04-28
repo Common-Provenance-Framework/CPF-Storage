@@ -12,6 +12,8 @@ public interface BundleRepository {
 
   Function<String, Mono<Void>> addVersionEntity(String identifier);
 
+  Function<String, Mono<Void>> addToken(String identifier);
+
   Mono<Boolean> existsByIdentifier(String identifier);
 
   Mono<Boolean> notExistsByIdentifier(String identifier);

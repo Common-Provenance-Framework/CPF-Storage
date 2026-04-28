@@ -57,4 +57,24 @@ public interface BundleNeo4jRepositoryClient extends ReactiveNeo4jRepository<Bun
   Mono<Boolean> createBundleEntitiesRelationship(
       @Param("bundleIdentifier") String bundleIdentifier,
       @Param("entityIdentifier") String entityIdentifier);
+
+  @Query("""
+        MATCH (bundle:Bundle {identifier: $bundleIdentifier})
+        MATCH (activity:Activity {identifier: $activityIdentifier})
+        MERGE (bundle)-[:bundle_activities]->(activity)
+        RETURN true
+      """)
+  Mono<Boolean> createBundleActivitiesRelationship(
+      @Param("bundleIdentifier") String bundleIdentifier,
+      @Param("activityIdentifier") String activityIdentifier);
+
+  @Query("""
+        MATCH (bundle:Bundle {identifier: $bundleIdentifier})
+        MATCH (agent:Agent {identifier: $agentIdentifier})
+        MERGE (bundle)-[:bundle_agents]->(agent)
+        RETURN true
+      """)
+  Mono<Boolean> createBundleAgentsRelationship(
+      @Param("bundleIdentifier") String bundleIdentifier,
+      @Param("agentIdentifier") String agentIdentifier);
 }
