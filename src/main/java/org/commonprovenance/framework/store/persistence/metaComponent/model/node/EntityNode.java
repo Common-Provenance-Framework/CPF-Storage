@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -100,6 +101,33 @@ public class EntityNode extends BaseProvClassNode {
     super(identifier, provType, Map.of());
 
     this.pav = Map.of();
+
+    this.revisionOf = Collections.emptyList();
+    this.specializationOf = Collections.emptyList();
+    this.wasGeneratedBy = Collections.emptyList();
+    this.wasAttributedTo = Collections.emptyList();
+    this.wasDerivedFrom = Collections.emptyList();
+  }
+
+  public EntityNode(
+      String provType) {
+    super(UUID.randomUUID().toString(), provType, Map.of());
+
+    this.pav = Map.of();
+
+    this.revisionOf = Collections.emptyList();
+    this.specializationOf = Collections.emptyList();
+    this.wasGeneratedBy = Collections.emptyList();
+    this.wasAttributedTo = Collections.emptyList();
+    this.wasDerivedFrom = Collections.emptyList();
+  }
+
+  public EntityNode(
+      String identifier,
+      Integer pavVersion) {
+    super(identifier, "prov:Bundle", Map.of());
+
+    this.pav = Map.of("version", pavVersion);
 
     this.revisionOf = Collections.emptyList();
     this.specializationOf = Collections.emptyList();

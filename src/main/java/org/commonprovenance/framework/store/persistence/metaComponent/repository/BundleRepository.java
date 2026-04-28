@@ -1,5 +1,7 @@
 package org.commonprovenance.framework.store.persistence.metaComponent.repository;
 
+import java.util.function.Function;
+
 import org.commonprovenance.framework.store.persistence.metaComponent.model.node.BundleNode;
 import org.commonprovenance.framework.store.persistence.metaComponent.model.node.EntityNode;
 
@@ -8,12 +10,14 @@ import reactor.core.publisher.Mono;
 public interface BundleRepository {
   Mono<BundleNode> create(String identifier);
 
-  Mono<Boolean> exists(String identifier);
+  Function<String, Mono<Void>> addVersionEntity(String identifier);
 
-  Mono<Boolean> notExists(String identifier);
+  Mono<Boolean> existsByIdentifier(String identifier);
 
-  // --- old API
+  Mono<Boolean> notExistsByIdentifier(String identifier);
+
   Mono<BundleNode> save(BundleNode bundle);
+  // --- old API
 
   Mono<BundleNode> findByIdentifier(String identifier);
 

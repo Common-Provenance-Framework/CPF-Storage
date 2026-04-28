@@ -28,30 +28,13 @@ public interface BundleNeo4jRepositoryClient extends ReactiveNeo4jRepository<Bun
   @Query("""
         MATCH (bundle:Bundle)
         WHERE bundle.identifier = $identifier
-
-        OPTIONAL MATCH (bundle)-[rEntity:bundle_entities]->(e:Entity)
-        OPTIONAL MATCH (bundle)-[rActivity:bundle_activities]->(a:Activity)
-        OPTIONAL MATCH (bundle)-[rAgent:bundle_agents]->(ag:Agent)
-
-        RETURN bundle,
-          collect(DISTINCT rEntity),  collect(DISTINCT e),
-          collect(DISTINCT rActivity), collect(DISTINCT a),
-          collect(DISTINCT rAgent),  collect(DISTINCT ag)
+        RETURN bundle
       """)
   Mono<BundleNode> findByIdentifier(@Param("identifier") String identifier);
 
   @Query("""
       MATCH (bundle:Bundle)-[:bundle_entities]->(entity:Entity {identifier: $generalEntityIdentifier})
-      WITH DISTINCT bundle
-
-      OPTIONAL MATCH (bundle)-[rEntity:bundle_entities]->(e:Entity)
-      OPTIONAL MATCH (bundle)-[rActivity:bundle_activities]->(a:Activity)
-      OPTIONAL MATCH (bundle)-[rAgent:bundle_agents]->(ag:Agent)
-
-      RETURN bundle,
-        collect(DISTINCT rEntity),   collect(DISTINCT e),
-        collect(DISTINCT rActivity), collect(DISTINCT a),
-        collect(DISTINCT rAgent),    collect(DISTINCT ag)
+      RETURN bundle
       """)
   Mono<BundleNode> getBundleByGeneralEntity(@Param("generalEntityIdentifier") String generalEntityIdentifier);
 
@@ -64,4 +47,14 @@ public interface BundleNeo4jRepositoryClient extends ReactiveNeo4jRepository<Bun
       }
       """)
   Mono<Boolean> hasVersionEntity(@Param("identifier") String identifier);
+
+  @Query("""
+        MATCH (bundle:Bundle {identifier: $bundleIdentifier})
+        MATCH (entity:Entity {identifier: $entityIdentifier})
+        MERGE (bundle)-[:bundle_entities]->(entity)
+        RETURN true
+      """)
+  Mono<Boolean> createBundleEntitiesRelationship(
+      @Param("bundleIdentifier") String bundleIdentifier,
+      @Param("entityIdentifier") String entityIdentifier);
 }

@@ -16,6 +16,7 @@ import org.commonprovenance.framework.store.exceptions.ConstraintException;
 import org.commonprovenance.framework.store.exceptions.InternalApplicationException;
 
 import io.vavr.Function1;
+import io.vavr.Function3;
 import io.vavr.control.Either;
 import io.vavr.control.Try;
 import reactor.core.publisher.Flux;
@@ -194,6 +195,21 @@ public interface PublisherHelper {
         Mono<B> monoB,
         BiFunction<A, B, Mono<R>> combinerM) {
       return monoA.flatMap(a -> monoB.flatMap(b -> combinerM.apply(a, b)));
+    }
+
+    public <A, B, C, R> Function1<C, Mono<R>> combineM(
+        Mono<A> monoA,
+        Mono<B> monoB,
+        Function3<A, B, C, Mono<R>> combinerM) {
+      return (C c) -> monoA.flatMap(a -> monoB.flatMap(b -> combinerM.apply(a, b, c)));
+    }
+
+    public <A, B, C, R> Mono<R> combineM(
+        Mono<A> monoA,
+        Mono<B> monoB,
+        Mono<C> monoC,
+        Function3<A, B, C, Mono<R>> combinerM) {
+      return monoA.flatMap(a -> monoB.flatMap(b -> monoC.flatMap(c -> combinerM.apply(a, b, c))));
     }
 
   }

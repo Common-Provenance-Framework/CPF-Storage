@@ -15,19 +15,7 @@ public interface EntityNeo4jRepositoryClient extends ReactiveNeo4jRepository<Ent
   @Query("""
         MATCH (entity:Entity)
         WHERE entity.identifier = $identifier
-
-        OPTIONAL MATCH (entity)-[rRev:revision_of]->(rev:Entity)
-        OPTIONAL MATCH (entity)-[rSpec:specialization_of]->(spec:Entity)
-        OPTIONAL MATCH (entity)-[rGen:was_generated_by]->(act:Activity)
-        OPTIONAL MATCH (entity)-[rAttr:was_attributed_to]->(ag:Agent)
-        OPTIONAL MATCH (entity)-[rDer:was_derived_from]->(src:Entity)
-
-        RETURN entity,
-          collect(DISTINCT rRev),  collect(DISTINCT rev),
-          collect(DISTINCT rSpec), collect(DISTINCT spec),
-          collect(DISTINCT rGen),  collect(DISTINCT act),
-          collect(DISTINCT rAttr), collect(DISTINCT ag),
-          collect(DISTINCT rDer),  collect(DISTINCT src)
+        RETURN entity
       """)
   Mono<EntityNode> findByIdentifier(@Param("identifier") String identifier);
 
@@ -35,17 +23,7 @@ public interface EntityNeo4jRepositoryClient extends ReactiveNeo4jRepository<Ent
       MATCH (bundle:Bundle {identifier: $bundleIdentifier})-[:bundle_entities]->(entity:Entity)
       WHERE entity["pav:version"] IS NULL AND entity["prov:type"] = "prov:Bundle"
       WITH entity
-      OPTIONAL MATCH (entity)-[rRev:revision_of]->(rev:Entity)
-      OPTIONAL MATCH (entity)-[rSpec:specialization_of]->(spec:Entity)
-      OPTIONAL MATCH (entity)-[rGen:was_generated_by]->(act:Activity)
-      OPTIONAL MATCH (entity)-[rAttr:was_attributed_to]->(ag:Agent)
-      OPTIONAL MATCH (entity)-[rDer:was_derived_from]->(src:Entity)
-      RETURN entity,
-        collect(DISTINCT rRev),  collect(DISTINCT rev),
-        collect(DISTINCT rSpec), collect(DISTINCT spec),
-        collect(DISTINCT rGen),  collect(DISTINCT act),
-        collect(DISTINCT rAttr), collect(DISTINCT ag),
-        collect(DISTINCT rDer),  collect(DISTINCT src)
+      RETURN entity
       """)
   Mono<EntityNode> findGeneralVersion(@Param("bundleIdentifier") String identifier);
 
@@ -55,18 +33,7 @@ public interface EntityNeo4jRepositoryClient extends ReactiveNeo4jRepository<Ent
       WITH entity
       ORDER BY toInteger(entity["pav:version"]) DESC
       LIMIT 1
-      OPTIONAL MATCH (entity)-[rRev:revision_of]->(rev:Entity)
-      OPTIONAL MATCH (entity)-[rSpec:specialization_of]->(spec:Entity)
-      OPTIONAL MATCH (entity)-[rGen:was_generated_by]->(act:Activity)
-      OPTIONAL MATCH (entity)-[rAttr:was_attributed_to]->(ag:Agent)
-      OPTIONAL MATCH (entity)-[rDer:was_derived_from]->(src:Entity)
-
-      RETURN entity,
-        collect(DISTINCT rRev),  collect(DISTINCT rev),
-        collect(DISTINCT rSpec), collect(DISTINCT spec),
-        collect(DISTINCT rGen),  collect(DISTINCT act),
-        collect(DISTINCT rAttr), collect(DISTINCT ag),
-        collect(DISTINCT rDer),  collect(DISTINCT src)
+      RETURN entity
       """)
   Mono<EntityNode> findLastVersion(@Param("bundleIdentifier") String identifier);
 
@@ -84,35 +51,24 @@ public interface EntityNeo4jRepositoryClient extends ReactiveNeo4jRepository<Ent
   @Query("""
       MATCH (bundle:Bundle {identifier: $bundleIdentifier})-[:bundle_entities]->(entity:Entity)
       WITH DISTINCT entity
-
-      OPTIONAL MATCH (entity)-[rRev:revision_of]->(rev:Entity)
-      OPTIONAL MATCH (entity)-[rSpec:specialization_of]->(spec:Entity)
-      OPTIONAL MATCH (entity)-[rGen:was_generated_by]->(act:Activity)
-      OPTIONAL MATCH (entity)-[rAttr:was_attributed_to]->(ag:Agent)
-      OPTIONAL MATCH (entity)-[rDer:was_derived_from]->(src:Entity)
-
-      RETURN entity,
-        collect(DISTINCT rRev),  collect(DISTINCT rev),
-        collect(DISTINCT rSpec), collect(DISTINCT spec),
-        collect(DISTINCT rGen),  collect(DISTINCT act),
-        collect(DISTINCT rAttr), collect(DISTINCT ag),
-        collect(DISTINCT rDer),  collect(DISTINCT src)
+      RETURN entity
       """)
   Flux<EntityNode> getAllEntitiesByBundleIdentifier(@Param("bundleIdentifier") String bundleIdentifier);
 
   @Query("""
       MATCH (token:Entity)-[:was_derived_from]->(version:Entity {identifier: $versionIdentifier})
       WHERE token["prov:type"] = "cpm:Token" AND version["prov:type"] = "prov:Bundle"
-      WITH token
-
-      OPTIONAL MATCH (token)-[rAttr:was_attributed_to]->(ag:Agent)
-      OPTIONAL MATCH (token)-[rGen:was_generated_by]->(act:Activity)
-      OPTIONAL MATCH (token)-[rDer:was_derived_from]->(src:Entity)
-
-      RETURN token,
-        collect(DISTINCT rGen),  collect(DISTINCT act),
-        collect(DISTINCT rAttr), collect(DISTINCT ag),
-        collect(DISTINCT rDer),  collect(DISTINCT src)
-        """)
+      RETURN token
+      """)
   Mono<EntityNode> getTokenByVersionEntityIdentifier(@Param("versionIdentifier") String versionIdentifier);
+
+  @Query("""
+        MATCH (specific:Entity {identifier: $specificEntityIdentifier})
+        MATCH (general:Entity {identifier: $generalEntityIdentifier})
+        MERGE (specific)-[:specialization_of]->(general)
+        RETURN true
+      """)
+  Mono<Boolean> createSpecializationOfRelationship(
+      @Param("specificEntityIdentifier") String specificEntityIdentifier,
+      @Param("generalEntityIdentifier") String generalEntityIdentifier);
 }

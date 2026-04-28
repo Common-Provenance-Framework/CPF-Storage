@@ -67,6 +67,10 @@ public class BundleNode {
         this.getBundleAgents());
   }
 
+  public BundleNode withGeneralEntity() {
+    return this.withEntity(new EntityNode("prov:Bundle"));
+  }
+
   public BundleNode withEntity(EntityNode entity) {
     if (entity == null)
       return this;
