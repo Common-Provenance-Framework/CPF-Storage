@@ -10,6 +10,7 @@ import java.util.function.Function;
 import org.commonprovenance.framework.store.common.utils.JwtUtils;
 import org.commonprovenance.framework.store.exceptions.ApplicationException;
 import org.commonprovenance.framework.store.exceptions.ConflictException;
+import org.commonprovenance.framework.store.exceptions.NotFoundException;
 import org.commonprovenance.framework.store.persistence.metaComponent.model.node.ActivityNode;
 import org.commonprovenance.framework.store.persistence.metaComponent.model.node.AgentNode;
 import org.commonprovenance.framework.store.persistence.metaComponent.model.node.BundleNode;
@@ -38,21 +39,21 @@ public class BundleNeo4jRepository implements BundleRepository {
   }
 
   @Override
-  public Mono<BundleNode> create(String identifier) {
+  public Mono<Void> create(String identifier) {
     return Mono.just(identifier)
-        .flatMap(MONO::makeSureNotNull)
         .flatMap(MONO.makeSureAsync(
             this::notExistsByIdentifier,
-            id -> new ConflictException("Bundle with identifier '" + id + "' already exists!")))
+            bundleIdentifier -> new ConflictException("Bundle with identifier '" + bundleIdentifier + "' already exists!")))
         .map(BundleNode::new)
         .map(BundleNode::withGeneralEntity)
-        .flatMap(this::save);
+        .flatMap(bundleClient::save)
+        .then();
   }
 
   @Override
   public Function<String, Mono<Void>> addVersionEntity(String identifier) {
     return (String versionEntityIdentifier) -> bundleClient.hasVersionEntity(identifier)
-        .flatMap(hasLastVersion -> hasLastVersion
+        .flatMap(hasVersionEntity -> hasVersionEntity
             ? MONO.combineM(
                 entityClient.findGeneralVersion(identifier),
                 entityClient.findLastVersion(identifier),
@@ -162,29 +163,11 @@ public class BundleNeo4jRepository implements BundleRepository {
   }
 
   @Override
-  public Mono<BundleNode> save(BundleNode bundle) {
-    return bundleClient.save(bundle);
-  }
-  // --- old API
-
-  @Override
   public Mono<BundleNode> findByIdentifier(String identifier) {
     return bundleClient.getIdByIdentifier(identifier)
-        .flatMap(bundleClient::findById);
+        .flatMap(bundleClient::findById)
+        .switchIfEmpty(Mono.defer(() -> Mono
+            .error(new NotFoundException("Bundle with identifier '" + identifier + "' has not been found!"))));
   }
 
-  @Override
-  public Mono<BundleNode> findByGeneralEntity(EntityNode entity) {
-    return bundleClient.getBundleByGeneralEntity(entity.getIdentifier());
-  }
-
-  @Override
-  public Mono<Boolean> hasVersionEntity(String identifier) {
-    return bundleClient.hasVersionEntity(identifier);
-  }
-
-  @Override
-  public Mono<Boolean> hasNotVersionEntity(String identifier) {
-    return bundleClient.hasVersionEntity(identifier).map(v -> !v);
-  }
 }
