@@ -211,4 +211,9 @@ public final class DocumentUtils {
         .map(document::withIdentifier);
   }
 
+  public static Either<ApplicationException, String> getDocumentIdentifier(Document document) {
+    return EITHER.liftEither(document.getIdentifier())
+        .mapLeft(_ -> new InvalidValueException("Unknown Document identifier!"));
+  }
+
 }

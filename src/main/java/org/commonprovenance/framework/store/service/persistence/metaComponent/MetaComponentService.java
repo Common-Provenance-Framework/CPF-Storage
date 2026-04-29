@@ -1,25 +1,16 @@
 package org.commonprovenance.framework.store.service.persistence.metaComponent;
 
-import java.util.function.Function;
-
-import org.commonprovenance.framework.store.model.Token;
-import org.openprovenance.prov.model.Document;
-import org.openprovenance.prov.model.QualifiedName;
+import org.commonprovenance.framework.store.model.Document;
 
 import reactor.core.publisher.Mono;
 
 public interface MetaComponentService {
 
-  Mono<Document> createMetaComponent(QualifiedName metaBundleIdentifier);
+  Mono<Void> createMetaComponent(Document document);
 
-  Function<Document, Mono<Document>> addNewVersion(QualifiedName identifier);
+  Mono<Void> addNewVersion(Document document);
 
-  Function<Document, Mono<Document>> addTokenToLastVersion(Token token);
-
-  Mono<Document> getMetaComponent(QualifiedName metaBundleIdentifier);
-
-  Mono<Document> getByIdentifier(QualifiedName metaBundleIdentifier);
+  Mono<Void> addTokenToLastVersion(Document document);
 
   Mono<Boolean> exists(String identifier);
-
 }

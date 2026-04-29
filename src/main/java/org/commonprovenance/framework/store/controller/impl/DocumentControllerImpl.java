@@ -161,16 +161,10 @@ public class DocumentControllerImpl implements DocumentController {
             .map(document::withToken))
         .doOnNext(_ -> LOGGER.debug("Token stored"))
 
-        .delayUntil((Document document) -> Mono.just(document)
-            .map(Document::getCpmDocument)
-            .flatMap(Mono::justOrEmpty)
-            .flatMap((CpmDocument cpm) -> Mono.just(cpm)
-                .flatMap(MONO.liftEffectToMono(DocumentUtils::getMainActivityReferenceMetaBundleId))
-                .flatMap(this.metaComponentService::getMetaComponent)
-                .flatMap(this.metaComponentService.addNewVersion(cpm.getBundleId()))
-                .flatMap(meta -> Mono.justOrEmpty(document.getToken())
-                    .flatMap(token -> this.metaComponentService.addTokenToLastVersion(token).apply(
-                        meta)))))
+        .delayUntil(this.metaComponentService::createMetaComponent)
+        .delayUntil(this.metaComponentService::addNewVersion)
+        .delayUntil(this.metaComponentService::addTokenToLastVersion)
+
         .doOnNext(_ -> LOGGER.debug("MetaComponent stored"))
 
         .delayUntil(this.organizationService::linkOwnedDocument)
