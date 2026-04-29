@@ -51,10 +51,18 @@ public final class ApplicationExceptionFactory {
     return (Throwable cause) -> factory.apply(messageBuilder.apply(value), cause);
   }
 
-  public static Function<Throwable, ApplicationException> header(String header) {
+  public static Function<Throwable, ApplicationException> addHeader(String className, String methodName) {
+    return ApplicationExceptionFactory.addHeader("[" + className + "].[" + methodName + "].()");
+  }
+
+  public static Function<Throwable, ApplicationException> addHeader(String className, String methodName, String message) {
+    return ApplicationExceptionFactory.addHeader("[" + className + "].[" + methodName + "].(" + message + ")");
+  }
+
+  public static Function<Throwable, ApplicationException> addHeader(String header) {
     return (Throwable t) -> {
       if (!(t instanceof ApplicationException cause)) {
-        return new InternalApplicationException(header + ": " + t.getMessage(), t);
+        return new InternalApplicationException(header + ": *** Unhandled application exception *** " + t.getMessage(), t);
       }
 
       String newMessage = header + ": " + cause.getMessage();
@@ -69,6 +77,8 @@ public final class ApplicationExceptionFactory {
         } catch (ReflectiveOperationException e2) {
           return cause;
         }
+      } catch (Throwable throwable) {
+        return cause;
       }
     };
   }

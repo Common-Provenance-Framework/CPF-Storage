@@ -31,10 +31,6 @@ public class DocumentServiceImpl implements DocumentService {
     this.storeWebService = storeWebService;
   }
 
-  private String buildHeader(String methodName, String message) {
-    return "[DocumentService].[" + methodName + "].(" + message + ")";
-  }
-
   private String getIdentifier(Document document) {
     return document.getCpmDocument()
         .map(CpmDocument::getBundleId)
@@ -106,7 +102,10 @@ public class DocumentServiceImpl implements DocumentService {
             BadRequestException::new,
             element -> "Invalid specForwardConnector with id '" + element.getId().toString() + "'. Attribute 'referencedMetaBundleId' is not resolvable"))
         .then()
-        .onErrorMap(ApplicationExceptionFactory.header(buildHeader("checkSpecForwardConnectorsResolvable", "DocumentId: " + getIdentifier(document))));
+        .onErrorMap(ApplicationExceptionFactory.addHeader(
+            "DocumentService",
+            "checkSpecForwardConnectorsResolvable",
+            "DocumentId: " + getIdentifier(document)));
   }
 
   @Override
@@ -123,7 +122,10 @@ public class DocumentServiceImpl implements DocumentService {
             BadRequestException::new,
             element -> "Invalid backwardConnector with id '" + element.getId().toString() + "'. Attribute 'referencedMetaBundleId' is not resolvable"))
         .then()
-        .onErrorMap(ApplicationExceptionFactory.header(buildHeader("checkBackwardConnectorsResolvable", "DocumentId: " + getIdentifier(document))));
+        .onErrorMap(ApplicationExceptionFactory.addHeader(
+            "DocumentService",
+            "checkBackwardConnectorsResolvable",
+            "DocumentId: " + getIdentifier(document)));
   }
 
 }

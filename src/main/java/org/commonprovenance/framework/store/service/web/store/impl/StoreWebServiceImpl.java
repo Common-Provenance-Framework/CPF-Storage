@@ -23,10 +23,6 @@ public class StoreWebServiceImpl implements StoreWebService {
     this.pingClient = pingClient;
   }
 
-  private String buildHeader(String methodName, String message) {
-    return "[StoreWebService].[" + methodName + "].(" + message + ")";
-  }
-
   @Override
   public Mono<Boolean> pingUrl(String url) {
     return this.pingClient.pingByUrl(url)
@@ -47,7 +43,10 @@ public class StoreWebServiceImpl implements StoreWebService {
         .flatMap(MONO.liftEffectToMono(DocumentUtils::getCpmReferencedBundleId))
         .onErrorMap(ApplicationExceptionFactory.build(ConstraintException::new, "Can not get 'referencedBundleId'"))
         .flatMap(this::pingQualifiedName)
-        .onErrorMap(ApplicationExceptionFactory.header(buildHeader("pingBundleId", "ConnectorId: " + connector.getId())));
+        .onErrorMap(ApplicationExceptionFactory.addHeader(
+            "StoreWebService",
+            "pingBundleId",
+            "ConnectorId: " + connector.getId()));
   }
 
   @Override
@@ -56,6 +55,9 @@ public class StoreWebServiceImpl implements StoreWebService {
         .flatMap(MONO.liftEffectToMono(DocumentUtils::getCpmReferencedMetaBundleId))
         .onErrorMap(ApplicationExceptionFactory.build(ConstraintException::new, "Can not get 'referencedMetaBundleId'"))
         .flatMap(this::pingQualifiedName)
-        .onErrorMap(ApplicationExceptionFactory.header(buildHeader("pingMetaBundleId", "ConnectorId: " + connector.getId())));
+        .onErrorMap(ApplicationExceptionFactory.addHeader(
+            "StoreWebService",
+            "pingMetaBundleId",
+            "ConnectorId: " + connector.getId()));
   }
 }
