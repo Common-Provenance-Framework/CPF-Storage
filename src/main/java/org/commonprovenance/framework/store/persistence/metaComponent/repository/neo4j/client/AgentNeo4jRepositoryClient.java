@@ -11,9 +11,9 @@ import reactor.core.publisher.Mono;
 @Repository
 public interface AgentNeo4jRepositoryClient extends ReactiveNeo4jRepository<AgentNode, String> {
   @Query("""
-          MATCH (agent:Agent)
-          WHERE agent.identifier = $identifier
-          RETURN agent
+      MATCH (agent:Agent)
+      WHERE agent.identifier = $identifier
+      RETURN agent
       """)
   Mono<AgentNode> findByIdentifier(@Param("identifier") String identifier);
 

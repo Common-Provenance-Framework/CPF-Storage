@@ -11,30 +11,28 @@ import reactor.core.publisher.Mono;
 @Repository
 public interface ActivityNeo4jRepositoryClient extends ReactiveNeo4jRepository<ActivityNode, String> {
   @Query("""
-          MATCH (activity:Activity)
-          WHERE activity.identifier = $identifier
-          RETURN activity
+      MATCH (activity:Activity)
+      WHERE activity.identifier = $identifier
+      RETURN activity
       """)
   Mono<ActivityNode> findByIdentifier(@Param("identifier") String identifier);
 
   @Query("""
-          MATCH (activity:Activity)
-          WHERE activity.identifier = $identifier
-
-          OPTIONAL MATCH (activity)-[rAssociation:was_associated_with]->(agent:Agent)
-          OPTIONAL MATCH (activity)-[rUsed:used]->(entity:Entity)
-
-          RETURN activity,
-            collect(DISTINCT rAssociation), collect(DISTINCT agent),
-            collect(DISTINCT rUsed),  collect(DISTINCT entity)
+      MATCH (activity:Activity)
+      WHERE activity.identifier = $identifie
+      OPTIONAL MATCH (activity)-[rAssociation:was_associated_with]->(agent:Agent)
+      OPTIONAL MATCH (activity)-[rUsed:used]->(entity:Entity
+      RETURN activity,
+        collect(DISTINCT rAssociation), collect(DISTINCT agent),
+        collect(DISTINCT rUsed),  collect(DISTINCT entity)
       """)
   Mono<ActivityNode> findByIdentifierWithRelations(@Param("identifier") String identifier);
 
   @Query("""
       MATCH (activity:Activity) WHERE elementId(activity)=$activityId
       MATCH (agent:Agent) WHERE elementId(agent)=$agentId
-        MERGE (activity)-[:was_associated_with]->(agent)
-        RETURN true
+      MERGE (activity)-[:was_associated_with]->(agent)
+      RETURN true
       """)
   Mono<Boolean> createWasAssociatedWithRelationship(
       @Param("activityId") String activityId,
