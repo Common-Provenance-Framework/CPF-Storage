@@ -48,7 +48,7 @@ public class MetaDocumentControllerImpl implements MetaDocumentController {
   public Mono<Void> exists(@PathVariable String uuid) {
     return Mono.justOrEmpty(uuid)
         .flatMap(MONO.makeSureAsync(
-            this.metaComponentService::exists,
+            this.metaComponentService::bundleExists,
             id -> new NotFoundException("Meta Component with id '" + id + " does not exists! ")))
         .then();
   }

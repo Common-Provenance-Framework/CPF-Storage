@@ -24,14 +24,16 @@ public class MetaComponentServiceImpl implements MetaComponentService {
   }
 
   @Override
-  public Mono<Void> createMetaComponent(Document document) {
+  public Mono<Void> createMetaComponentIfNotExists(Document document) {
     return Mono.just(document)
         .flatMap(MONO.makeSureNotNullWithMessage("Document can not be null!"))
         .flatMap(MONO.liftEffectToMono(DocumentUtils::getMainActivityReferenceMetaBundleId))
         .flatMap(MONO.makeSureNotNullWithMessage("'referenceMetaBundleId' can not be null!"))
         .map(QualifiedName::getLocalPart)
         .flatMap(MONO.makeSureNotNullWithMessage("'referenceMetaBundleId' local part can not be null!"))
-        .flatMap(this.bundlePersistence::create);
+        .flatMap(MONO.makeSureBefore(
+            this::bundleNotExists,
+            this.bundlePersistence::create));
   }
 
   @Override
@@ -61,8 +63,14 @@ public class MetaComponentServiceImpl implements MetaComponentService {
   }
 
   @Override
-  public Mono<Boolean> exists(String id) {
-    return this.bundlePersistence.exists(id);
+  public Mono<Boolean> bundleExists(String identifier) {
+    return this.bundlePersistence.exists(identifier);
+  }
+
+  @Override
+  public Mono<Boolean> bundleNotExists(String identifier) {
+    return this.bundlePersistence.exists(identifier)
+        .map(value -> !value);
   }
 
 }

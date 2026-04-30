@@ -19,7 +19,7 @@ public final class AdviceUtils {
       return acc;
 
     if (throwable instanceof ApplicationException appException)
-      buildMessage(appException.getCause(), build.apply(appException, acc));
+      return buildMessage(appException.getCause(), build.apply(appException, acc));
 
     return build.apply(throwable, acc);
   }

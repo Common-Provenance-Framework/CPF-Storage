@@ -23,4 +23,23 @@ public interface ActivityNeo4jRepositoryClient extends ReactiveNeo4jRepository<A
       """)
   Mono<ActivityNode> findByIdentifier(@Param("identifier") String identifier);
 
+  @Query("""
+        MATCH (activity:Activity {identifier: $activityIdentifier})
+        MATCH (agent:Agent {identifier: $agentIdentifier})
+        MERGE (activity)-[:was_associated_with]->(agent)
+        RETURN true
+      """)
+  Mono<Boolean> createWasAssociatedWithRelationship(
+      @Param("activityIdentifier") String activityIdentifier,
+      @Param("agentIdentifier") String agentIdentifier);
+
+  @Query("""
+        MATCH (activity:Activity {identifier: $activityIdentifier})
+        MATCH (entity:Entity {identifier: $entityIdentifier})
+        MERGE (activity)-[:used]->(entity)
+        RETURN true
+      """)
+  Mono<Boolean> createUsedRelationship(
+      @Param("activityIdentifier") String activityIdentifier,
+      @Param("entityIdentifier") String entityIdentifier);
 }

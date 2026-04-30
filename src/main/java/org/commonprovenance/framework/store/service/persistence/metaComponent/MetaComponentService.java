@@ -6,11 +6,13 @@ import reactor.core.publisher.Mono;
 
 public interface MetaComponentService {
 
-  Mono<Void> createMetaComponent(Document document);
+  Mono<Void> createMetaComponentIfNotExists(Document document);
 
   Mono<Void> addNewVersion(Document document);
 
   Mono<Void> addTokenToLastVersion(Document document);
 
-  Mono<Boolean> exists(String identifier);
+  Mono<Boolean> bundleExists(String identifier);
+
+  Mono<Boolean> bundleNotExists(String identifier);
 }

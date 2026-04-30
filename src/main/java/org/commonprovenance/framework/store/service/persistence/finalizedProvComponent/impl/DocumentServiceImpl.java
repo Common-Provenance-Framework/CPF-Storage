@@ -4,6 +4,7 @@ import static org.commonprovenance.framework.store.common.publisher.PublisherHel
 
 import org.commonprovenance.framework.store.exceptions.BadRequestException;
 import org.commonprovenance.framework.store.exceptions.ConflictException;
+import org.commonprovenance.framework.store.exceptions.InternalApplicationException;
 import org.commonprovenance.framework.store.exceptions.NotFoundException;
 import org.commonprovenance.framework.store.exceptions.factory.ApplicationExceptionFactory;
 import org.commonprovenance.framework.store.model.Document;
@@ -102,10 +103,9 @@ public class DocumentServiceImpl implements DocumentService {
             BadRequestException::new,
             element -> "Invalid specForwardConnector with id '" + element.getId().toString() + "'. Attribute 'referencedMetaBundleId' is not resolvable"))
         .then()
-        .onErrorMap(ApplicationExceptionFactory.addHeader(
-            "DocumentService",
-            "checkSpecForwardConnectorsResolvable",
-            "DocumentId: " + getIdentifier(document)));
+        .onErrorMap(ApplicationExceptionFactory.handleThrowable(
+            new InternalApplicationException("checkSpecForwardConnectorsResolvable '" + getIdentifier(document) + "'' failed!")));
+
   }
 
   @Override
@@ -122,10 +122,8 @@ public class DocumentServiceImpl implements DocumentService {
             BadRequestException::new,
             element -> "Invalid backwardConnector with id '" + element.getId().toString() + "'. Attribute 'referencedMetaBundleId' is not resolvable"))
         .then()
-        .onErrorMap(ApplicationExceptionFactory.addHeader(
-            "DocumentService",
-            "checkBackwardConnectorsResolvable",
-            "DocumentId: " + getIdentifier(document)));
+        .onErrorMap(ApplicationExceptionFactory.handleThrowable(
+            new InternalApplicationException("checkBackwardConnectorsResolvable '" + getIdentifier(document) + "'' failed!")));
   }
 
 }

@@ -49,32 +49,32 @@ public interface BundleNeo4jRepositoryClient extends ReactiveNeo4jRepository<Bun
   Mono<Boolean> hasVersionEntity(@Param("identifier") String identifier);
 
   @Query("""
-        MATCH (bundle:Bundle {identifier: $bundleIdentifier})
-        MATCH (entity:Entity {identifier: $entityIdentifier})
+        MATCH (bundle:Bundle) WHERE bundle.identifier=$bundleIdentifier
+        MATCH (entity:Entity) WHERE elementId(entity)=$entityId
         MERGE (bundle)-[:bundle_entities]->(entity)
         RETURN true
       """)
   Mono<Boolean> createBundleEntitiesRelationship(
       @Param("bundleIdentifier") String bundleIdentifier,
-      @Param("entityIdentifier") String entityIdentifier);
+      @Param("entityId") String entityId);
 
   @Query("""
-        MATCH (bundle:Bundle {identifier: $bundleIdentifier})
-        MATCH (activity:Activity {identifier: $activityIdentifier})
+        MATCH (bundle:Bundle) WHERE bundle.identifier=$bundleIdentifier
+        MATCH (activity:Activity) WHERE elementId(activity)=$activityId
         MERGE (bundle)-[:bundle_activities]->(activity)
         RETURN true
       """)
   Mono<Boolean> createBundleActivitiesRelationship(
       @Param("bundleIdentifier") String bundleIdentifier,
-      @Param("activityIdentifier") String activityIdentifier);
+      @Param("activityId") String activityId);
 
   @Query("""
-        MATCH (bundle:Bundle {identifier: $bundleIdentifier})
-        MATCH (agent:Agent {identifier: $agentIdentifier})
+        MATCH (bundle:Bundle) WHERE bundle.identifier=$bundleIdentifier
+        MATCH (agent:Agent) WHERE elementId(agent)=$agentId
         MERGE (bundle)-[:bundle_agents]->(agent)
         RETURN true
       """)
   Mono<Boolean> createBundleAgentsRelationship(
       @Param("bundleIdentifier") String bundleIdentifier,
-      @Param("agentIdentifier") String agentIdentifier);
+      @Param("agentId") String agentId);
 }

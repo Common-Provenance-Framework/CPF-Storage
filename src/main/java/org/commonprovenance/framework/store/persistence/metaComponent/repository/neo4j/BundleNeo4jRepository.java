@@ -8,14 +8,20 @@ import java.util.UUID;
 import java.util.function.Function;
 
 import org.commonprovenance.framework.store.common.utils.JwtUtils;
+import org.commonprovenance.framework.store.controller.advice.ApplicationExceptionHandler;
 import org.commonprovenance.framework.store.exceptions.ApplicationException;
 import org.commonprovenance.framework.store.exceptions.ConflictException;
+import org.commonprovenance.framework.store.exceptions.InternalApplicationException;
 import org.commonprovenance.framework.store.exceptions.NotFoundException;
+import org.commonprovenance.framework.store.exceptions.factory.ApplicationExceptionFactory;
 import org.commonprovenance.framework.store.persistence.metaComponent.model.node.ActivityNode;
 import org.commonprovenance.framework.store.persistence.metaComponent.model.node.AgentNode;
 import org.commonprovenance.framework.store.persistence.metaComponent.model.node.BundleNode;
 import org.commonprovenance.framework.store.persistence.metaComponent.model.node.EntityNode;
+import org.commonprovenance.framework.store.persistence.metaComponent.model.relation.WasAttributedTo;
+import org.commonprovenance.framework.store.persistence.metaComponent.model.relation.WasGeneratedBy;
 import org.commonprovenance.framework.store.persistence.metaComponent.repository.BundleRepository;
+import org.commonprovenance.framework.store.persistence.metaComponent.repository.neo4j.client.AgentNeo4jRepositoryClient;
 import org.commonprovenance.framework.store.persistence.metaComponent.repository.neo4j.client.BundleNeo4jRepositoryClient;
 import org.commonprovenance.framework.store.persistence.metaComponent.repository.neo4j.client.EntityNeo4jRepositoryClient;
 import org.springframework.context.annotation.Profile;
@@ -23,19 +29,27 @@ import org.springframework.stereotype.Repository;
 
 import io.vavr.Function2;
 import io.vavr.control.Either;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Profile("live & neo4j")
 @Repository
 public class BundleNeo4jRepository implements BundleRepository {
+  private static final Logger LOGGER = LoggerFactory.getLogger(ApplicationExceptionHandler.class);
+
   private final BundleNeo4jRepositoryClient bundleClient;
   private final EntityNeo4jRepositoryClient entityClient;
+  private final AgentNeo4jRepositoryClient agentClient;
 
   public BundleNeo4jRepository(
       BundleNeo4jRepositoryClient bundleClient,
-      EntityNeo4jRepositoryClient entityClient) {
+      EntityNeo4jRepositoryClient entityClient,
+      AgentNeo4jRepositoryClient agentClient) {
     this.bundleClient = bundleClient;
     this.entityClient = entityClient;
+    this.agentClient = agentClient;
   }
 
   @Override
@@ -47,6 +61,8 @@ public class BundleNeo4jRepository implements BundleRepository {
         .map(BundleNode::new)
         .map(BundleNode::withGeneralEntity)
         .flatMap(bundleClient::save)
+        .onErrorMap(ApplicationExceptionFactory.handleThrowable(
+            new InternalApplicationException("Meta component provenance has not been created!")))
         .then();
   }
 
@@ -59,7 +75,9 @@ public class BundleNeo4jRepository implements BundleRepository {
                 entityClient.findLastVersion(identifier),
                 this.addNextVersion(identifier, versionEntityIdentifier))
             : entityClient.findGeneralVersion(identifier)
-                .flatMap(addFirstVersion(identifier, versionEntityIdentifier)));
+                .flatMap(addFirstVersion(identifier, versionEntityIdentifier)))
+        .onErrorMap(ApplicationExceptionFactory.handleThrowable(
+            new InternalApplicationException("Version has not been added into meta component provenance!")));
   }
 
   private Function<EntityNode, Mono<Void>> addFirstVersion(
@@ -71,6 +89,8 @@ public class BundleNeo4jRepository implements BundleRepository {
         .delayUntil(entityClient::save)
         .map(EntityNode::getIdentifier)
         .delayUntil(id -> bundleClient.createBundleEntitiesRelationship(bundleIdentifier, id))
+        .onErrorMap(ApplicationExceptionFactory.handleThrowable(
+            new InternalApplicationException("Version has not been added into meta component provenance!")))
         .then();
   }
 
@@ -85,6 +105,8 @@ public class BundleNeo4jRepository implements BundleRepository {
         .delayUntil(entityClient::save)
         .map(EntityNode::getIdentifier)
         .delayUntil(id -> bundleClient.createBundleEntitiesRelationship(bundleIdentifier, id))
+        .onErrorMap(ApplicationExceptionFactory.handleThrowable(
+            new InternalApplicationException("Version has not been added into meta component provenance!")))
         .then();
   }
 
@@ -133,33 +155,65 @@ public class BundleNeo4jRepository implements BundleRepository {
                         .withWasAttributedToAgent(tokenGeneratorNode));
 
             return MONO.fromEither(tokenNodeOrException)
+                .doOnNext(_ -> LOGGER.debug("Saving Token into meta component provenance.."))
                 .flatMap(entityClient::save)
-                .thenEmpty(MONO.fromEither(tokenNodeOrException)
-                    .map(EntityNode::getIdentifier)
-                    .flatMap(entityIdentifier -> bundleClient.createBundleEntitiesRelationship(identifier, entityIdentifier))
-                    .then())
-                .thenEmpty(MONO.fromEither(tokenGenerationNodeOrException)
-                    .map(ActivityNode::getIdentifier)
-                    .flatMap(activityIdentifier -> bundleClient.createBundleActivitiesRelationship(identifier, activityIdentifier))
-                    .then())
-                .thenEmpty(MONO.fromEither(tokenGeneratorNodeOrException)
-                    .map(AgentNode::getIdentifier)
-                    .flatMap(activityIdentifier -> bundleClient.createBundleActivitiesRelationship(identifier, activityIdentifier))
-                    .then());
-          });
+                .doOnNext(_ -> LOGGER.debug("Token saved"))
+                .delayUntil(this.addTokenToBundle(identifier))
+                .delayUntil(this.addTokenGenerationToBundle(identifier))
+                .delayUntil(this.addTokenGeneratorToBundle(identifier))
+                .doOnNext(_ -> LOGGER.debug("Token connected to meta bundle"))
+                .then();
+          })
+          .onErrorMap(ApplicationExceptionFactory.handleThrowable(
+              new InternalApplicationException("Token has not been added into meta componenet provenance!")));
 
     };
   }
 
+  private Function<EntityNode, Mono<Void>> addTokenToBundle(String identifier) {
+    return tokenNode -> Mono.just(tokenNode)
+        .map(EntityNode::getId)
+        .flatMap(tokenId -> bundleClient.createBundleEntitiesRelationship(identifier, tokenId))
+        .then()
+        .onErrorMap(ApplicationExceptionFactory.handleThrowable(
+            new InternalApplicationException("Token has not been connected to Bundle!")));
+  }
+
+  private Function<EntityNode, Mono<Void>> addTokenGenerationToBundle(String identifier) {
+    return tokenNode -> Mono.just(tokenNode)
+        .map(EntityNode::getWasGeneratedBy)
+        .flatMapMany(Flux::fromIterable)
+        .map(WasGeneratedBy::getActivity)
+        .map(ActivityNode::getId)
+        .flatMap(generationId -> bundleClient.createBundleActivitiesRelationship(identifier, generationId))
+        .then()
+        .onErrorMap(ApplicationExceptionFactory.handleThrowable(
+            new InternalApplicationException("Token Generation has not been connected to Bundle!")));
+  }
+
+  private Function<EntityNode, Mono<Void>> addTokenGeneratorToBundle(String identifier) {
+    return tokenNode -> Mono.just(tokenNode)
+        .map(EntityNode::getWasAttributedTo)
+        .flatMapMany(Flux::fromIterable)
+        .map(WasAttributedTo::getAgent)
+        .map(AgentNode::getId)
+        .flatMap(generatorId -> bundleClient.createBundleAgentsRelationship(identifier, generatorId))
+        .then()
+        .onErrorMap(ApplicationExceptionFactory.handleThrowable(
+            new InternalApplicationException("Token Generator has not been connected to Bundle!")));
+  }
+
   @Override
   public Mono<Boolean> existsByIdentifier(String identifier) {
-    return bundleClient.existsByIdentifier(identifier);
+    return bundleClient.existsByIdentifier(identifier)
+        .onErrorMap(ApplicationExceptionFactory.handleThrowable(new InternalApplicationException()));
   }
 
   @Override
   public Mono<Boolean> notExistsByIdentifier(String identifier) {
     return this.existsByIdentifier(identifier)
-        .map(exists -> !exists);
+        .map(exists -> !exists)
+        .onErrorMap(ApplicationExceptionFactory.handleThrowable(new InternalApplicationException()));
   }
 
   @Override
@@ -167,7 +221,9 @@ public class BundleNeo4jRepository implements BundleRepository {
     return bundleClient.getIdByIdentifier(identifier)
         .flatMap(bundleClient::findById)
         .switchIfEmpty(Mono.defer(() -> Mono
-            .error(new NotFoundException("Bundle with identifier '" + identifier + "' has not been found!"))));
+            .error(new NotFoundException("Bundle with identifier '" + identifier + "' has not been found!"))))
+        .onErrorMap(ApplicationExceptionFactory.handleThrowable(new InternalApplicationException()));
+
   }
 
 }

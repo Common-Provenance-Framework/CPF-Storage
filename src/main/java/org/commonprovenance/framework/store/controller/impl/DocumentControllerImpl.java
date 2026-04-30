@@ -161,7 +161,7 @@ public class DocumentControllerImpl implements DocumentController {
             .map(document::withToken))
         .doOnNext(_ -> LOGGER.debug("Token stored"))
 
-        .delayUntil(this.metaComponentService::createMetaComponent)
+        .delayUntil(this.metaComponentService::createMetaComponentIfNotExists)
         .delayUntil(this.metaComponentService::addNewVersion)
         .delayUntil(this.metaComponentService::addTokenToLastVersion)
 

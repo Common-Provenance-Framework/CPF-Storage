@@ -44,6 +44,28 @@ public final class ApplicationExceptionFactory {
     };
   }
 
+  public static Function<Throwable, ApplicationException> handleThrowable(ApplicationException exception) {
+    return throwable -> (throwable instanceof ApplicationException applicationException)
+        ? applicationException
+        : (ApplicationException) exception.initCause(throwable);
+  }
+
+  public static Function<Throwable, ApplicationException> handleThrowable(String className, String methodName) {
+    return throwable -> (throwable instanceof ApplicationException applicationException)
+        ? ApplicationExceptionFactory.setHeader(className, methodName)
+            .apply(applicationException)
+        : ApplicationExceptionFactory.setHeader(className, methodName)
+            .apply(new InternalApplicationException("Internal Application exception!", throwable));
+  }
+
+  public static Function<Throwable, ApplicationException> handleThrowable(String className, String methodName, String detail) {
+    return throwable -> (throwable instanceof ApplicationException applicationException)
+        ? ApplicationExceptionFactory.setHeader(className, methodName, detail)
+            .apply(applicationException)
+        : ApplicationExceptionFactory.setHeader(className, methodName, detail)
+            .apply(new InternalApplicationException("Internal Application exception!", throwable));
+  }
+
   public static <E extends ApplicationException, T> Function<Throwable, E> build(
       BiFunction<String, Throwable, E> factory,
       T value,
@@ -51,17 +73,21 @@ public final class ApplicationExceptionFactory {
     return (Throwable cause) -> factory.apply(messageBuilder.apply(value), cause);
   }
 
-  public static Function<Throwable, ApplicationException> addHeader(String className, String methodName) {
-    return ApplicationExceptionFactory.addHeader("[" + className + "].[" + methodName + "].()");
+  private static Function<ApplicationException, ApplicationException> setHeader(String className, String methodName) {
+    return ApplicationExceptionFactory.setHeader(className, methodName, null);
   }
 
-  public static Function<Throwable, ApplicationException> addHeader(String className, String methodName, String message) {
-    return ApplicationExceptionFactory.addHeader("[" + className + "].[" + methodName + "].(" + message + ")");
+  private static Function<ApplicationException, ApplicationException> setHeader(String className, String methodName, String detail) {
+    return (ApplicationException exception) -> {
+      exception.setHeader(className, methodName, detail);
+      return exception;
+    };
   }
 
-  public static Function<Throwable, ApplicationException> addHeader(String header) {
+  public static Function<Throwable, ApplicationException> setHeader(String header) {
     return (Throwable t) -> {
       if (!(t instanceof ApplicationException cause)) {
+        // ApplicationException exception =
         return new InternalApplicationException(header + ": *** Unhandled application exception *** " + t.getMessage(), t);
       }
 

@@ -212,5 +212,20 @@ public interface PublisherHelper {
       return monoA.flatMap(a -> monoB.flatMap(b -> monoC.flatMap(c -> combinerM.apply(a, b, c))));
     }
 
+    public <T> Function1<T, Mono<Void>> makeSureBefore(
+        Predicate<T> predicate,
+        Function1<T, Mono<Void>> mapper) {
+      return value -> predicate.test(value) ? mapper.apply(value) : Mono.empty();
+    }
+
+    public <T> Function1<T, Mono<Void>> makeSureBefore(
+        Function1<T, Mono<Boolean>> asyncPredicate,
+        Function1<T, Mono<Void>> mapper) {
+      return value -> asyncPredicate.apply(value)
+          .flatMap(trueOrFalse -> trueOrFalse
+              ? mapper.apply(value)
+              : Mono.empty());
+    }
   }
+
 }
