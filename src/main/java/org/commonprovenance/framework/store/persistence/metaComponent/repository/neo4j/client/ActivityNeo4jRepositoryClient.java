@@ -13,33 +13,40 @@ public interface ActivityNeo4jRepositoryClient extends ReactiveNeo4jRepository<A
   @Query("""
           MATCH (activity:Activity)
           WHERE activity.identifier = $identifier
-
-          OPTIONAL MATCH (activity)-[rAssociation:was_associated_with]->(agent:Agent)
-          OPTIONAL MATCH (activity)-[rUsed:used]->(entity:Entity)
-
           RETURN activity
-            collect(DISTINCT rAssociation), collect(DISTINCT agent),
-            collect(DISTINCT rUsed),  collect(DISTINCT entity)
       """)
   Mono<ActivityNode> findByIdentifier(@Param("identifier") String identifier);
 
   @Query("""
-        MATCH (activity:Activity {identifier: $activityIdentifier})
-        MATCH (agent:Agent {identifier: $agentIdentifier})
+          MATCH (activity:Activity)
+          WHERE activity.identifier = $identifier
+
+          OPTIONAL MATCH (activity)-[rAssociation:was_associated_with]->(agent:Agent)
+          OPTIONAL MATCH (activity)-[rUsed:used]->(entity:Entity)
+
+          RETURN activity,
+            collect(DISTINCT rAssociation), collect(DISTINCT agent),
+            collect(DISTINCT rUsed),  collect(DISTINCT entity)
+      """)
+  Mono<ActivityNode> findByIdentifierWithRelations(@Param("identifier") String identifier);
+
+  @Query("""
+      MATCH (activity:Activity) WHERE elementId(activity)=$activityId
+      MATCH (agent:Agent) WHERE elementId(agent)=$agentId
         MERGE (activity)-[:was_associated_with]->(agent)
         RETURN true
       """)
   Mono<Boolean> createWasAssociatedWithRelationship(
-      @Param("activityIdentifier") String activityIdentifier,
-      @Param("agentIdentifier") String agentIdentifier);
+      @Param("activityId") String activityId,
+      @Param("agentId") String agentId);
 
   @Query("""
-        MATCH (activity:Activity {identifier: $activityIdentifier})
-        MATCH (entity:Entity {identifier: $entityIdentifier})
-        MERGE (activity)-[:used]->(entity)
-        RETURN true
+      MATCH (activity:Activity) WHERE elementId(activity)=$activityId
+      MATCH (entity:Entity) WHERE elementId(entity)=$entityId
+      MERGE (activity)-[:used]->(entity)
+      RETURN true
       """)
   Mono<Boolean> createUsedRelationship(
-      @Param("activityIdentifier") String activityIdentifier,
-      @Param("entityIdentifier") String entityIdentifier);
+      @Param("activityId") String activityId,
+      @Param("entityId") String entityId);
 }

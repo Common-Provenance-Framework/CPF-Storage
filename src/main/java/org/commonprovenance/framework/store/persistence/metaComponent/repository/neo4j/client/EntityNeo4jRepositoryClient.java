@@ -15,6 +15,13 @@ public interface EntityNeo4jRepositoryClient extends ReactiveNeo4jRepository<Ent
   @Query("""
         MATCH (entity:Entity)
         WHERE entity.identifier = $identifier
+        RETURN entity
+      """)
+  Mono<EntityNode> findByIdentifier(@Param("identifier") String identifier);
+
+  @Query("""
+        MATCH (entity:Entity)
+        WHERE entity.identifier = $identifier
 
         OPTIONAL MATCH (entity)-[rRev:revision_of]->(rev:Entity)
         OPTIONAL MATCH (entity)-[rSpec:specialization_of]->(spec:Entity)
@@ -29,7 +36,7 @@ public interface EntityNeo4jRepositoryClient extends ReactiveNeo4jRepository<Ent
           collect(DISTINCT rAttr), collect(DISTINCT ag),
           collect(DISTINCT rDer),  collect(DISTINCT src)
       """)
-  Mono<EntityNode> findByIdentifier(@Param("identifier") String identifier);
+  Mono<EntityNode> findByIdentifierWithRelations(@Param("identifier") String identifier);
 
   @Query("""
       MATCH (bundle:Bundle {identifier: $bundleIdentifier})-[:bundle_entities]->(entity:Entity)
@@ -44,13 +51,23 @@ public interface EntityNeo4jRepositoryClient extends ReactiveNeo4jRepository<Ent
       WITH entity
       ORDER BY toInteger(entity["pav:version"]) DESC
       LIMIT 1
+      RETURN entity
+      """)
+  Mono<EntityNode> findLastVersion(@Param("bundleIdentifier") String identifier);
+
+  @Query("""
+      MATCH (bundle:Bundle {identifier: $bundleIdentifier})-[:bundle_entities]->(entity:Entity)
+      WHERE entity["pav:version"] IS NOT NULL AND entity["prov:type"] = "prov:Bundle"
+      WITH entity
+      ORDER BY toInteger(entity["pav:version"]) DESC
+      LIMIT 1
       OPTIONAL MATCH (entity)-[rSpec:specialization_of]->(spec:Entity)
       OPTIONAL MATCH (entity)-[rRev:revision_of]->(rev:Entity)
       RETURN entity,
         collect(DISTINCT rSpec), collect(DISTINCT spec),
-        collect(DISTINCT rRev),  collect(DISTINCT rev),
+        collect(DISTINCT rRev),  collect(DISTINCT rev)
       """)
-  Mono<EntityNode> findLastVersion(@Param("bundleIdentifier") String identifier);
+  Mono<EntityNode> findLastVersionWithRelations(@Param("bundleIdentifier") String identifier);
 
   @Query("""
       MATCH (bundle:Bundle {identifier: $bundleIdentifier})-[:bundle_entities]->(entity:Entity)
@@ -98,52 +115,52 @@ public interface EntityNeo4jRepositoryClient extends ReactiveNeo4jRepository<Ent
   Mono<EntityNode> getTokenByVersionEntityIdentifier(@Param("versionIdentifier") String versionIdentifier);
 
   @Query("""
-        MATCH (specific:Entity {identifier: $specificEntityIdentifier})
-        MATCH (general:Entity {identifier: $generalEntityIdentifier})
-        MERGE (specific)-[:specialization_of]->(general)
-        RETURN true
+      MATCH (specific:Entity) WHERE elementId(specific)=$specificEntityId
+      MATCH (general:Entity) WHERE elementId(general)=$generalEntityId
+      MERGE (specific)-[:specialization_of]->(general)
+      RETURN true
       """)
   Mono<Boolean> createSpecializationOfRelationship(
-      @Param("specificEntityIdentifier") String specificEntityIdentifier,
-      @Param("generalEntityIdentifier") String generalEntityIdentifier);
+      @Param("specificEntityId") String specificEntityId,
+      @Param("generalEntityId") String generalEntityId);
 
   @Query("""
-        MATCH (specific:Entity {identifier: $specificEntityIdentifier})
-        MATCH (general:Entity {identifier: $generalEntityIdentifier})
-        MERGE (specific)-[:revision_of]->(general)
-        RETURN true
+      MATCH (specific:Entity) WHERE elementId(specific)=$specificEntityId
+      MATCH (general:Entity) WHERE elementId(general)=$generalEntityId
+      MERGE (specific)-[:revision_of]->(general)
+      RETURN true
       """)
   Mono<Boolean> createRevisionOfRelationship(
-      @Param("specificEntityIdentifier") String specificEntityIdentifier,
-      @Param("generalEntityIdentifier") String generalEntityIdentifier);
+      @Param("specificEntityId") String specificEntityId,
+      @Param("generalEntityId") String generalEntityId);
 
   @Query("""
-        MATCH (specific:Entity {identifier: $specificEntityIdentifier})
-        MATCH (general:Entity {identifier: $generalEntityIdentifier})
-        MERGE (specific)-[:was_derived_from]->(general)
+      MATCH (specific:Entity) WHERE elementId(specific)=$specificEntityId
+      MATCH (general:Entity) WHERE elementId(general)=$generalEntityId
+      MERGE (specific)-[:was_derived_from]->(general)
         RETURN true
       """)
   Mono<Boolean> createWasDerivedFromRelationship(
-      @Param("specificEntityIdentifier") String specificEntityIdentifier,
-      @Param("generalEntityIdentifier") String generalEntityIdentifier);
+      @Param("specificEntityId") String specificEntityId,
+      @Param("generalEntityId") String generalEntityId);
 
   @Query("""
-        MATCH (entity:Entity {identifier: $entityIdentifier})
-        MATCH (activity:Activity {identifier: $activityIdentifier})
-        MERGE (entity)-[:was_generated_by]->(activity)
-        RETURN true
+      MATCH (entity:Entity) WHERE elementId(entity)=$entityId
+      MATCH (activity:Activity) WHERE elementId(activity)=$activityId
+      MERGE (entity)-[:was_generated_by]->(activity)
+      RETURN true
       """)
   Mono<Boolean> createWasGeneratedByRelationship(
-      @Param("entityIdentifier") String entityIdentifier,
-      @Param("activityIdentifier") String activityIdentifier);
+      @Param("entityId") String entityId,
+      @Param("activityId") String activityId);
 
   @Query("""
-        MATCH (entity:Entity {identifier: $entityIdentifier})
-        MATCH (agent:Agent {identifier: $agentIdentifier})
-        MERGE (entity)-[:was_attributed_to]->(agent)
-        RETURN true
+      MATCH (entity:Entity) WHERE elementId(entity)=$entityId
+      MATCH (agent:Agent) WHERE elementId(agent)=$agentId
+      MERGE (entity)-[:was_attributed_to]->(agent)
+      RETURN true
       """)
   Mono<Boolean> createWasAttributedToRelationship(
-      @Param("entityIdentifier") String entityIdentifier,
-      @Param("agentIdentifier") String agentIdentifier);
+      @Param("entityId") String entityId,
+      @Param("agentId") String agentId);
 }

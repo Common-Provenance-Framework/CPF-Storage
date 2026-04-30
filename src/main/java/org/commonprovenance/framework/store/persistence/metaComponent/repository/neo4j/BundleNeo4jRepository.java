@@ -21,9 +21,11 @@ import org.commonprovenance.framework.store.persistence.metaComponent.model.node
 import org.commonprovenance.framework.store.persistence.metaComponent.model.relation.WasAttributedTo;
 import org.commonprovenance.framework.store.persistence.metaComponent.model.relation.WasGeneratedBy;
 import org.commonprovenance.framework.store.persistence.metaComponent.repository.BundleRepository;
-import org.commonprovenance.framework.store.persistence.metaComponent.repository.neo4j.client.AgentNeo4jRepositoryClient;
+import org.commonprovenance.framework.store.persistence.metaComponent.repository.neo4j.client.ActivityNeo4jRepositoryClient;
 import org.commonprovenance.framework.store.persistence.metaComponent.repository.neo4j.client.BundleNeo4jRepositoryClient;
 import org.commonprovenance.framework.store.persistence.metaComponent.repository.neo4j.client.EntityNeo4jRepositoryClient;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
 
@@ -31,8 +33,6 @@ import io.vavr.Function2;
 import io.vavr.control.Either;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 @Profile("live & neo4j")
 @Repository
@@ -41,15 +41,15 @@ public class BundleNeo4jRepository implements BundleRepository {
 
   private final BundleNeo4jRepositoryClient bundleClient;
   private final EntityNeo4jRepositoryClient entityClient;
-  private final AgentNeo4jRepositoryClient agentClient;
+  private final ActivityNeo4jRepositoryClient activityClient;
 
   public BundleNeo4jRepository(
       BundleNeo4jRepositoryClient bundleClient,
       EntityNeo4jRepositoryClient entityClient,
-      AgentNeo4jRepositoryClient agentClient) {
+      ActivityNeo4jRepositoryClient activityClient) {
     this.bundleClient = bundleClient;
     this.entityClient = entityClient;
-    this.agentClient = agentClient;
+    this.activityClient = activityClient;
   }
 
   @Override
@@ -84,10 +84,10 @@ public class BundleNeo4jRepository implements BundleRepository {
       String bundleIdentifier,
       String versionIdentifier) {
     return (EntityNode generalVersion) -> Mono.just(versionIdentifier)
-        .map(fvi -> new EntityNode(fvi, 1)
-            .withSpecializationOfEntity(generalVersion))
-        .delayUntil(entityClient::save)
-        .map(EntityNode::getIdentifier)
+        .map(fvi -> new EntityNode(fvi, 1))
+        .flatMap(entityClient::save)
+        .map(EntityNode::getId)
+        .delayUntil(id -> entityClient.createSpecializationOfRelationship(id, generalVersion.getId()))
         .delayUntil(id -> bundleClient.createBundleEntitiesRelationship(bundleIdentifier, id))
         .onErrorMap(ApplicationExceptionFactory.handleThrowable(
             new InternalApplicationException("Version has not been added into meta component provenance!")))
@@ -99,11 +99,11 @@ public class BundleNeo4jRepository implements BundleRepository {
       String versionIdentifier) {
     return (EntityNode generalVersion, EntityNode lastVersion) -> Mono.just(versionIdentifier)
         .flatMap(nve -> entityClient.getLastVersion(bundleIdentifier)
-            .map(version -> new EntityNode(versionIdentifier, version + 1)
-                .withSpecializationOfEntity(generalVersion)
-                .withRevisionOfEntity(lastVersion)))
-        .delayUntil(entityClient::save)
-        .map(EntityNode::getIdentifier)
+            .map(version -> new EntityNode(versionIdentifier, version + 1)))
+        .flatMap(entityClient::save)
+        .map(EntityNode::getId)
+        .delayUntil(id -> entityClient.createSpecializationOfRelationship(id, generalVersion.getId()))
+        .delayUntil(id -> entityClient.createRevisionOfRelationship(id, lastVersion.getId()))
         .delayUntil(id -> bundleClient.createBundleEntitiesRelationship(bundleIdentifier, id))
         .onErrorMap(ApplicationExceptionFactory.handleThrowable(
             new InternalApplicationException("Version has not been added into meta component provenance!")))
@@ -137,7 +137,6 @@ public class BundleNeo4jRepository implements BundleRepository {
                     "cpm:TokenGeneration",
                     createdOn,
                     createdOn)
-                    .withUsedEntity(versionEntity)
                     .withWasAssociatedWithAgent(generator));
 
             // TODO: Create factory method for this
@@ -150,15 +149,16 @@ public class BundleNeo4jRepository implements BundleRepository {
                         // TODO: Create Enum for konown types
                         "cpm:Token",
                         Map.of("jwt", jwtToken))
-                        .withWasDerivedFromEntity(versionEntity)
                         .withWasGeneratedByActivity(tokenGenerationNode)
                         .withWasAttributedToAgent(tokenGeneratorNode));
 
             return MONO.fromEither(tokenNodeOrException)
                 .doOnNext(_ -> LOGGER.debug("Saving Token into meta component provenance.."))
                 .flatMap(entityClient::save)
+                .delayUntil(this.addTokenToBundle(versionEntity))
+                .delayUntil(this.addGenerationToBundle(versionEntity))
                 .doOnNext(_ -> LOGGER.debug("Token saved"))
-                .delayUntil(this.addTokenToBundle(identifier))
+                .delayUntil(this.addTokenToMetaBundle(identifier))
                 .delayUntil(this.addTokenGenerationToBundle(identifier))
                 .delayUntil(this.addTokenGeneratorToBundle(identifier))
                 .doOnNext(_ -> LOGGER.debug("Token connected to meta bundle"))
@@ -170,7 +170,25 @@ public class BundleNeo4jRepository implements BundleRepository {
     };
   }
 
-  private Function<EntityNode, Mono<Void>> addTokenToBundle(String identifier) {
+  private Function<EntityNode, Mono<Void>> addTokenToBundle(EntityNode versionNode) {
+    return tokenNode -> entityClient.createWasDerivedFromRelationship(tokenNode.getId(), versionNode.getId())
+        .then();
+  }
+
+  private Function<EntityNode, Mono<Void>> addGenerationToBundle(EntityNode versionNode) {
+    return tokenNode -> Mono.just(tokenNode)
+        .map(EntityNode::getWasGeneratedBy)
+        .flatMapMany(Flux::fromIterable)
+        .map(WasGeneratedBy::getActivity)
+        .map(ActivityNode::getId)
+        .flatMap(id -> activityClient.createUsedRelationship(id, versionNode.getId()))
+        .then();
+
+    // entityClient.createWasDerivedFromRelationship(tokenNode.getId(), versionNode.getId())
+    // .then();
+  }
+
+  private Function<EntityNode, Mono<Void>> addTokenToMetaBundle(String identifier) {
     return tokenNode -> Mono.just(tokenNode)
         .map(EntityNode::getId)
         .flatMap(tokenId -> bundleClient.createBundleEntitiesRelationship(identifier, tokenId))
