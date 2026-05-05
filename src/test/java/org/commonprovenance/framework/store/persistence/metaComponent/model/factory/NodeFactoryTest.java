@@ -57,7 +57,7 @@ class NodeFactoryTest {
     when(generatedEntity.getId()).thenReturn(generatedEntityId);
     when(generatedEntity.getType()).thenReturn(List.of(type));
 
-    EntityNode node = NodeFactory.toEntity(generatedEntity);
+    EntityNode node = ProvToNodeFactory.toEntity(generatedEntity);
 
     assertEquals("entity-generated", node.getIdentifier());
     assertEquals("prov:Bundle", node.getProvType());
@@ -81,7 +81,7 @@ class NodeFactoryTest {
     when(generatedEntity.getType()).thenReturn(List.of(type));
     when(generatedEntity.getOther()).thenReturn(List.of(other));
 
-    EntityNode node = NodeFactory.toEntity(generatedEntity);
+    EntityNode node = ProvToNodeFactory.toEntity(generatedEntity);
 
     assertEquals("entity-generated", node.getIdentifier());
     assertEquals("prov:Bundle", node.getProvType());
@@ -92,7 +92,7 @@ class NodeFactoryTest {
 
   @Test
   void toEntity_nullDocument_returnsEmptyMono() {
-    StepVerifier.create(NodeFactory.toEntity((Document) null))
+    StepVerifier.create(ProvToNodeFactory.toEntity((Document) null))
         .expectNextCount(0)
         .verifyComplete();
   }
@@ -102,7 +102,7 @@ class NodeFactoryTest {
     Document document = mock(Document.class);
     when(document.getStatementOrBundle()).thenReturn(List.of());
 
-    StepVerifier.create(NodeFactory.toEntity(document))
+    StepVerifier.create(ProvToNodeFactory.toEntity(document))
         .verifyErrorSatisfies(e -> {
           assertInstanceOf(InternalApplicationException.class, e);
           assertEquals(
@@ -118,7 +118,7 @@ class NodeFactoryTest {
     Bundle b2 = mock(Bundle.class);
     when(document.getStatementOrBundle()).thenReturn(List.of(b1, b2));
 
-    StepVerifier.create(NodeFactory.toEntity(document))
+    StepVerifier.create(ProvToNodeFactory.toEntity(document))
         .verifyErrorSatisfies(e -> {
           assertInstanceOf(InternalApplicationException.class, e);
           assertEquals(
@@ -133,7 +133,7 @@ class NodeFactoryTest {
     Statement statement = mock(Statement.class);
     when(document.getStatementOrBundle()).thenReturn(List.of(statement));
 
-    StepVerifier.create(NodeFactory.toEntity(document))
+    StepVerifier.create(ProvToNodeFactory.toEntity(document))
         .verifyErrorSatisfies(e -> {
           assertInstanceOf(InternalApplicationException.class, e);
           assertEquals(
@@ -214,7 +214,7 @@ class NodeFactoryTest {
     when(bundle.getStatement()).thenReturn(List.of(entity, agent, activity));
     when(document.getStatementOrBundle()).thenReturn(List.of(bundle));
 
-    StepVerifier.create(NodeFactory.toEntity(document))
+    StepVerifier.create(ProvToNodeFactory.toEntity(document))
         .assertNext((BundleNode b) -> {
           assertEquals("bundle-1", b.getIdentifier());
           assertNull(b.getId());
@@ -294,7 +294,7 @@ class NodeFactoryTest {
     when(bundle.getId()).thenReturn(bundleId);
     when(bundle.getStatement()).thenReturn(List.of(usedEntity, generatedEntity, wasDerivedFrom));
     when(document.getStatementOrBundle()).thenReturn(List.of(bundle));
-    StepVerifier.create(NodeFactory.toEntity(document))
+    StepVerifier.create(ProvToNodeFactory.toEntity(document))
         .assertNext((BundleNode b) -> {
 
           List<EntityNode> entities = b.getBundleEntities().stream()
@@ -365,7 +365,7 @@ class NodeFactoryTest {
 
     when(document.getStatementOrBundle()).thenReturn(List.of(bundle));
 
-    StepVerifier.create(NodeFactory.toEntity(document))
+    StepVerifier.create(ProvToNodeFactory.toEntity(document))
         .assertNext((BundleNode b) -> {
           List<EntityNode> entities = NodeFactoryTest.getNodesByType(b, EntityNode.class);
           List<ActivityNode> activities = NodeFactoryTest.getNodesByType(b, ActivityNode.class);

@@ -7,7 +7,6 @@ import org.commonprovenance.framework.store.exceptions.InternalApplicationExcept
 import org.commonprovenance.framework.store.exceptions.factory.ApplicationExceptionFactory;
 import org.commonprovenance.framework.store.persistence.metaComponent.model.node.EntityNode;
 import org.commonprovenance.framework.store.persistence.metaComponent.repository.EntityRepository;
-import org.commonprovenance.framework.store.persistence.metaComponent.repository.neo4j.client.ActivityNeo4jRepositoryClient;
 import org.commonprovenance.framework.store.persistence.metaComponent.repository.neo4j.client.BundleNeo4jRepositoryClient;
 import org.commonprovenance.framework.store.persistence.metaComponent.repository.neo4j.client.EntityNeo4jRepositoryClient;
 import org.slf4j.Logger;
@@ -25,15 +24,12 @@ public class EntityNeo4jRepository implements EntityRepository {
 
   private final BundleNeo4jRepositoryClient metaBundleClient;
   private final EntityNeo4jRepositoryClient entityClient;
-  private final ActivityNeo4jRepositoryClient activityClient;
 
   public EntityNeo4jRepository(
       BundleNeo4jRepositoryClient metaBundleClient,
-      EntityNeo4jRepositoryClient entityClient,
-      ActivityNeo4jRepositoryClient activityClient) {
+      EntityNeo4jRepositoryClient entityClient) {
     this.metaBundleClient = metaBundleClient;
     this.entityClient = entityClient;
-    this.activityClient = activityClient;
   }
 
   @Override

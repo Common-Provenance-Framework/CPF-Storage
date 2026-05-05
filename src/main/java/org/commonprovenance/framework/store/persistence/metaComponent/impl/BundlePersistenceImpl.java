@@ -6,7 +6,7 @@ import org.commonprovenance.framework.store.config.AppConfiguration;
 import org.commonprovenance.framework.store.exceptions.InternalApplicationException;
 import org.commonprovenance.framework.store.exceptions.factory.ApplicationExceptionFactory;
 import org.commonprovenance.framework.store.persistence.metaComponent.BundlePersistence;
-import org.commonprovenance.framework.store.persistence.metaComponent.model.factory.ProvenanceFactory;
+import org.commonprovenance.framework.store.persistence.metaComponent.model.factory.NodeToProvFactory;
 import org.commonprovenance.framework.store.persistence.metaComponent.repository.BundleRepository;
 import org.commonprovenance.framework.store.persistence.metaComponent.repository.EntityRepository;
 import org.openprovenance.prov.model.Document;
@@ -59,7 +59,7 @@ public class BundlePersistenceImpl implements BundlePersistence {
   public Mono<Document> getByIdentifier(String identifier) {
     return Mono.just(identifier)
         .flatMap(metaBundleRepository::findByIdentifier)
-        .flatMap(ProvenanceFactory.bundleToProv(configuration));
+        .flatMap(NodeToProvFactory.bundleToProv(configuration));
   }
 
   @Override

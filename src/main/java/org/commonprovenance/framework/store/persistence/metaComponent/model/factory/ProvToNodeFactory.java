@@ -37,33 +37,33 @@ import org.openprovenance.prov.vanilla.ProvFactory;
 
 import reactor.core.publisher.Mono;
 
-public class NodeFactory {
+public class ProvToNodeFactory {
   private static final ProvFactory provFactory = new org.openprovenance.prov.vanilla.ProvFactory();
 
   public static EntityNode toEntity(Entity entity) {
     return new EntityNode(
         entity.getId().getLocalPart(),
-        NodeFactory.getType(entity),
-        NodeFactory.getCpmAttributes(entity),
-        NodeFactory.getPavAttributes(entity));
+        ProvToNodeFactory.getType(entity),
+        ProvToNodeFactory.getCpmAttributes(entity),
+        ProvToNodeFactory.getPavAttributes(entity));
   }
 
   public static AgentNode toEntity(Agent agent) {
     return new AgentNode(
         agent.getId().getLocalPart(),
-        NodeFactory.getType(agent),
-        NodeFactory.getCpmAttributes(agent));
+        ProvToNodeFactory.getType(agent),
+        ProvToNodeFactory.getCpmAttributes(agent));
   }
 
   public static ActivityNode toEntity(Activity activity) {
     return new ActivityNode(
         activity.getId().getLocalPart(),
-        NodeFactory.getType(activity),
+        ProvToNodeFactory.getType(activity),
         Optional.ofNullable(activity.getStartTime())
             .map(XMLGregorianCalendar::toString).orElse(""),
         Optional.ofNullable(activity.getEndTime())
             .map(XMLGregorianCalendar::toString).orElse(""),
-        NodeFactory.getCpmAttributes(activity));
+        ProvToNodeFactory.getCpmAttributes(activity));
   }
 
   public static Mono<BundleNode> toEntity(Document document) {
@@ -115,7 +115,7 @@ public class NodeFactory {
               .map(Entity.class::cast)
               .map((Entity e) -> Map.entry(
                   e.getId().getLocalPart(),
-                  NodeFactory.toEntity(e)))
+                  ProvToNodeFactory.toEntity(e)))
               .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
           Map<String, AgentNode> agents = statements.getOrDefault(Agent.class, List.of())
@@ -123,7 +123,7 @@ public class NodeFactory {
               .map(Agent.class::cast)
               .map(a -> Map.entry(
                   a.getId().getLocalPart(),
-                  NodeFactory.toEntity(a)))
+                  ProvToNodeFactory.toEntity(a)))
               .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
           Map<String, ActivityNode> activities = statements.getOrDefault(Activity.class, List.of())
@@ -131,7 +131,7 @@ public class NodeFactory {
               .map(Activity.class::cast)
               .map(a -> Map.entry(
                   a.getId().getLocalPart(),
-                  NodeFactory.toEntity(a)))
+                  ProvToNodeFactory.toEntity(a)))
               .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
           statements.getOrDefault(WasDerivedFrom.class, List.of()).stream()
@@ -198,20 +198,20 @@ public class NodeFactory {
   private static Map<String, Object> getCpmAttributes(Element element) {
     return element.getOther().stream()
         .filter(attr -> attr.getElementName().getPrefix().equals("cpm"))
-        .map(NodeFactory::attributeToMapEntry)
+        .map(ProvToNodeFactory::attributeToMapEntry)
         .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
   }
 
   private static Map<String, Object> getPavAttributes(Element element) {
     return element.getOther().stream()
         .filter(attr -> attr.getElementName().getPrefix().equals("pav"))
-        .map(NodeFactory::attributeToMapEntry)
+        .map(ProvToNodeFactory::attributeToMapEntry)
         .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
   }
 
   private static String getType(Element element) {
     Map<String, List<Object>> types = element.getType().stream()
-        .map(NodeFactory::attributeToMapEntry)
+        .map(ProvToNodeFactory::attributeToMapEntry)
         .collect(Collectors.groupingBy(
             Map.Entry::getKey,
             LinkedHashMap::new,
@@ -230,11 +230,11 @@ public class NodeFactory {
     Object value = attr.getValue();
 
     if (value instanceof LangString ls)
-      return Map.entry(name, NodeFactory.getLangStringValue(ls));
+      return Map.entry(name, ProvToNodeFactory.getLangStringValue(ls));
     else if (value instanceof QualifiedName qn)
-      return Map.entry(name, NodeFactory.getQualifiedNameValue(qn));
+      return Map.entry(name, ProvToNodeFactory.getQualifiedNameValue(qn));
     else
-      return Map.entry(name, NodeFactory.getAttributeValue(attr));
+      return Map.entry(name, ProvToNodeFactory.getAttributeValue(attr));
   };
 
   private static Object getLangStringValue(LangString ls) {
