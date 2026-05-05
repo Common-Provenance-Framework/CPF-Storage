@@ -9,9 +9,9 @@ import reactor.core.publisher.Mono;
 public interface BundleRepository {
   Mono<Void> create(String identifier);
 
-  Function<String, Mono<Void>> addVersionEntity(String identifier);
-
   Function<String, Mono<Void>> addToken(String identifier);
+
+  Mono<Boolean> hasVersionEntity(String identifier);
 
   Mono<Boolean> existsByIdentifier(String identifier);
 

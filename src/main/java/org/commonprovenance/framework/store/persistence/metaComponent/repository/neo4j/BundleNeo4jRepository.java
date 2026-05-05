@@ -29,7 +29,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
 
-import io.vavr.Function2;
 import io.vavr.control.Either;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -63,50 +62,6 @@ public class BundleNeo4jRepository implements BundleRepository {
         .flatMap(bundleClient::save)
         .onErrorMap(ApplicationExceptionFactory.handleThrowable(
             new InternalApplicationException("Meta component provenance has not been created!")))
-        .then();
-  }
-
-  @Override
-  public Function<String, Mono<Void>> addVersionEntity(String identifier) {
-    return (String versionEntityIdentifier) -> bundleClient.hasVersionEntity(identifier)
-        .flatMap(hasVersionEntity -> hasVersionEntity
-            ? MONO.combineM(
-                entityClient.findGeneralVersion(identifier),
-                entityClient.findLastVersion(identifier),
-                this.addNextVersion(identifier, versionEntityIdentifier))
-            : entityClient.findGeneralVersion(identifier)
-                .flatMap(addFirstVersion(identifier, versionEntityIdentifier)))
-        .onErrorMap(ApplicationExceptionFactory.handleThrowable(
-            new InternalApplicationException("Version has not been added into meta component provenance!")));
-  }
-
-  private Function<EntityNode, Mono<Void>> addFirstVersion(
-      String bundleIdentifier,
-      String versionIdentifier) {
-    return (EntityNode generalVersion) -> Mono.just(versionIdentifier)
-        .map(fvi -> new EntityNode(fvi, 1))
-        .flatMap(entityClient::save)
-        .map(EntityNode::getId)
-        .delayUntil(id -> entityClient.createSpecializationOfRelationship(id, generalVersion.getId()))
-        .delayUntil(id -> bundleClient.createBundleEntitiesRelationship(bundleIdentifier, id))
-        .onErrorMap(ApplicationExceptionFactory.handleThrowable(
-            new InternalApplicationException("Version has not been added into meta component provenance!")))
-        .then();
-  }
-
-  private Function2<EntityNode, EntityNode, Mono<Void>> addNextVersion(
-      String bundleIdentifier,
-      String versionIdentifier) {
-    return (EntityNode generalVersion, EntityNode lastVersion) -> Mono.just(versionIdentifier)
-        .flatMap(nve -> entityClient.getLastVersion(bundleIdentifier)
-            .map(version -> new EntityNode(versionIdentifier, version + 1)))
-        .flatMap(entityClient::save)
-        .map(EntityNode::getId)
-        .delayUntil(id -> entityClient.createSpecializationOfRelationship(id, generalVersion.getId()))
-        .delayUntil(id -> entityClient.createRevisionOfRelationship(id, lastVersion.getId()))
-        .delayUntil(id -> bundleClient.createBundleEntitiesRelationship(bundleIdentifier, id))
-        .onErrorMap(ApplicationExceptionFactory.handleThrowable(
-            new InternalApplicationException("Version has not been added into meta component provenance!")))
         .then();
   }
 
@@ -184,14 +139,12 @@ public class BundleNeo4jRepository implements BundleRepository {
         .flatMap(id -> activityClient.createUsedRelationship(id, versionNode.getId()))
         .then();
 
-    // entityClient.createWasDerivedFromRelationship(tokenNode.getId(), versionNode.getId())
-    // .then();
   }
 
   private Function<EntityNode, Mono<Void>> addTokenToMetaBundle(String identifier) {
-    return tokenNode -> Mono.just(tokenNode)
-        .map(EntityNode::getId)
-        .flatMap(tokenId -> bundleClient.createBundleEntitiesRelationship(identifier, tokenId))
+    return tokenNode -> Mono.just(identifier)
+        .flatMap(bundleClient::getIdByIdentifier)
+        .delayUntil(metaBundleId -> bundleClient.createBundleEntitiesRelationship(metaBundleId, tokenNode.getId()))
         .then()
         .onErrorMap(ApplicationExceptionFactory.handleThrowable(
             new InternalApplicationException("Token has not been connected to Bundle!")));
@@ -242,6 +195,11 @@ public class BundleNeo4jRepository implements BundleRepository {
             .error(new NotFoundException("Bundle with identifier '" + identifier + "' has not been found!"))))
         .onErrorMap(ApplicationExceptionFactory.handleThrowable(new InternalApplicationException()));
 
+  }
+
+  @Override
+  public Mono<Boolean> hasVersionEntity(String identifier) {
+    return bundleClient.hasVersionEntity(identifier);
   }
 
 }

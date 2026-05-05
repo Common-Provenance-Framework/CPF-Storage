@@ -47,13 +47,39 @@ public interface EntityNeo4jRepositoryClient extends ReactiveNeo4jRepository<Ent
 
   @Query("""
       MATCH (bundle:Bundle {identifier: $bundleIdentifier})-[:bundle_entities]->(entity:Entity)
+      WHERE entity["pav:version"] IS NULL AND entity["prov:type"] = "prov:Bundle"
+      RETURN elementId(entity)
+      """)
+  Mono<String> getGeneralVersionIdByMetaBundleIdentifier(@Param("bundleIdentifier") String identifier);
+
+  @Query("""
+      MATCH (bundle:Bundle {identifier: $bundleIdentifier})-[:bundle_entities]->(entity:Entity)
       WHERE entity["pav:version"] IS NOT NULL AND entity["prov:type"] = "prov:Bundle"
       WITH entity
       ORDER BY toInteger(entity["pav:version"]) DESC
       LIMIT 1
       RETURN entity
       """)
-  Mono<EntityNode> findLastVersion(@Param("bundleIdentifier") String identifier);
+  Mono<EntityNode> findLastVersionEntity(@Param("bundleIdentifier") String identifier);
+
+  @Query("""
+      MATCH (bundle:Bundle {identifier: $bundleIdentifier})-[:bundle_entities]->(entity:Entity)
+      WHERE entity["pav:version"] IS NOT NULL AND entity["prov:type"] = "prov:Bundle"
+      WITH entity
+      ORDER BY toInteger(entity["pav:version"]) DESC
+      LIMIT 1
+      RETURN elementId(entity)
+      """)
+  Mono<String> getLastVersionEntityId(@Param("bundleIdentifier") String identifier);
+
+  @Query("""
+      MATCH (bundle:Bundle {identifier: $bundleIdentifier})-[:bundle_entities]->(entity:Entity)
+      WHERE entity["pav:version"]=$version AND entity["prov:type"] = "prov:Bundle"
+      RETURN elementId(entity);
+      """)
+  Mono<String> getVersionEntityId(
+      @Param("bundleIdentifier") String identifier,
+      @Param("version") Integer version);
 
   @Query("""
       MATCH (bundle:Bundle {identifier: $bundleIdentifier})-[:bundle_entities]->(entity:Entity)
@@ -67,7 +93,7 @@ public interface EntityNeo4jRepositoryClient extends ReactiveNeo4jRepository<Ent
         collect(DISTINCT rSpec), collect(DISTINCT spec),
         collect(DISTINCT rRev),  collect(DISTINCT rev)
       """)
-  Mono<EntityNode> findLastVersionWithRelations(@Param("bundleIdentifier") String identifier);
+  Mono<EntityNode> findLastVersionEntityWithRelations(@Param("bundleIdentifier") String identifier);
 
   @Query("""
       MATCH (bundle:Bundle {identifier: $bundleIdentifier})-[:bundle_entities]->(entity:Entity)

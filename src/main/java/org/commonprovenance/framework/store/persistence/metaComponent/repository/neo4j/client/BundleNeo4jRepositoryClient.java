@@ -49,13 +49,13 @@ public interface BundleNeo4jRepositoryClient extends ReactiveNeo4jRepository<Bun
   Mono<Boolean> hasVersionEntity(@Param("identifier") String identifier);
 
   @Query("""
-      MATCH (bundle:Bundle) WHERE bundle.identifier=$bundleIdentifier
+      MATCH (bundle:Bundle) WHERE elementId(bundle)=$bundleId
       MATCH (entity:Entity) WHERE elementId(entity)=$entityId
       MERGE (bundle)-[:bundle_entities]->(entity)
       RETURN true
       """)
   Mono<Boolean> createBundleEntitiesRelationship(
-      @Param("bundleIdentifier") String bundleIdentifier,
+      @Param("bundleId") String bundleId,
       @Param("entityId") String entityId);
 
   @Query("""
