@@ -1,19 +1,16 @@
 package org.commonprovenance.framework.store.persistence.metaComponent.repository.neo4j;
 
 import static org.commonprovenance.framework.store.common.publisher.PublisherHelper.MONO;
-import static org.commonprovenance.framework.store.common.utils.EitherUtils.EITHER;
 
-import java.util.Map;
-import java.util.UUID;
 import java.util.function.Function;
 
 import org.commonprovenance.framework.store.common.utils.JwtUtils;
 import org.commonprovenance.framework.store.controller.advice.ApplicationExceptionHandler;
-import org.commonprovenance.framework.store.exceptions.ApplicationException;
 import org.commonprovenance.framework.store.exceptions.ConflictException;
 import org.commonprovenance.framework.store.exceptions.InternalApplicationException;
 import org.commonprovenance.framework.store.exceptions.NotFoundException;
 import org.commonprovenance.framework.store.exceptions.factory.ApplicationExceptionFactory;
+import org.commonprovenance.framework.store.persistence.metaComponent.model.factory.JwtTokenToNodeFactory;
 import org.commonprovenance.framework.store.persistence.metaComponent.model.node.ActivityNode;
 import org.commonprovenance.framework.store.persistence.metaComponent.model.node.AgentNode;
 import org.commonprovenance.framework.store.persistence.metaComponent.model.node.BundleNode;
@@ -29,7 +26,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
 
-import io.vavr.control.Either;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -65,83 +61,39 @@ public class BundleNeo4jRepository implements BundleRepository {
         .then();
   }
 
-  public Function<String, Mono<Void>> addToken(String identifier) {
-    return (String jwtToken) -> {
-      return MONO.fromEither(JwtUtils.extractBundleIdentifier(jwtToken))
-          .flatMap(entityClient::findByIdentifier)
-          .flatMap(versionEntity -> {
-            // TODO: Create factory method for this
-            Either<ApplicationException, AgentNode> tokenGeneratorNodeOrException = EITHER.<Map<String, Object>, String, AgentNode> combine(
-                Either.<ApplicationException, String> right(jwtToken)
-                    .flatMap(JwtUtils::extractTokenGeneratorAttributes),
-                Either.<ApplicationException, String> right(jwtToken)
-                    .flatMap(JwtUtils::extractTokenGeneratorIdentifier),
-                (cpmAttrs, authorityId) -> new AgentNode(
-                    authorityId,
-                    // TODO: Create Enum for konown types
-                    "cpm:TrustedParty",
-                    cpmAttrs));
-
-            // TODO: Create factory method for this
-            Either<ApplicationException, ActivityNode> tokenGenerationNodeOrException = EITHER.<AgentNode, String, ActivityNode> combine(
-                tokenGeneratorNodeOrException,
-                JwtUtils.extractTokenCreationString(jwtToken),
-                (generator, createdOn) -> new ActivityNode(
-                    UUID.randomUUID().toString(),
-                    // TODO: Create Enum for konown types
-                    "cpm:TokenGeneration",
-                    createdOn,
-                    createdOn)
-                    .withWasAssociatedWithAgent(generator));
-
-            // TODO: Create factory method for this
-            Either<ApplicationException, EntityNode> tokenNodeOrException = EITHER
-                .<AgentNode, ActivityNode, EntityNode> combine(
-                    tokenGeneratorNodeOrException,
-                    tokenGenerationNodeOrException,
-                    (tokenGeneratorNode, tokenGenerationNode) -> new EntityNode(
-                        UUID.randomUUID().toString(),
-                        // TODO: Create Enum for konown types
-                        "cpm:Token",
-                        Map.of("jwt", jwtToken))
-                        .withWasGeneratedByActivity(tokenGenerationNode)
-                        .withWasAttributedToAgent(tokenGeneratorNode));
-
-            return MONO.fromEither(tokenNodeOrException)
-                .doOnNext(_ -> LOGGER.debug("Saving Token into meta component provenance.."))
-                .flatMap(entityClient::save)
-                .delayUntil(this.addTokenToBundle(versionEntity))
-                .delayUntil(this.addGenerationToBundle(versionEntity))
-                .doOnNext(_ -> LOGGER.debug("Token saved"))
-                .delayUntil(this.addTokenToMetaBundle(identifier))
-                .delayUntil(this.addTokenGenerationToBundle(identifier))
-                .delayUntil(this.addTokenGeneratorToBundle(identifier))
-                .doOnNext(_ -> LOGGER.debug("Token connected to meta bundle"))
-                .then();
-          })
-          .onErrorMap(ApplicationExceptionFactory.handleThrowable(
-              new InternalApplicationException("Token has not been added into meta componenet provenance!")));
-
-    };
+  public Mono<EntityNode> addToken(String metaBundleIdentifier, String jwtToken) {
+    return MONO.fromEither(JwtUtils.extractBundleIdentifier(jwtToken))
+        .flatMap(entityClient::getIdByIdentifier)
+        .flatMap(versionId -> MONO.fromEither(JwtTokenToNodeFactory.toTokenEntity(jwtToken))
+            .flatMap(entityClient::save)
+            .delayUntil(this.addTokenToBundle(versionId))
+            .delayUntil(this.addGenerationToBundle(versionId))
+        // .delayUntil(this.addTokenToMetaBundle(identifier))
+        // .delayUntil(this.addTokenGenerationToBundle(identifier))
+        // .delayUntil(this.addTokenGeneratorToBundle(identifier))
+        // .then()
+        )
+        .onErrorMap(ApplicationExceptionFactory.handleThrowable(
+            new InternalApplicationException("Token has not been added into meta componenet provenance!")));
   }
 
-  private Function<EntityNode, Mono<Void>> addTokenToBundle(EntityNode versionNode) {
-    return tokenNode -> entityClient.createWasDerivedFromRelationship(tokenNode.getId(), versionNode.getId())
+  private Function<EntityNode, Mono<Void>> addTokenToBundle(String versionId) {
+    return tokenNode -> entityClient.createWasDerivedFromRelationship(tokenNode.getId(), versionId)
         .then();
   }
 
-  private Function<EntityNode, Mono<Void>> addGenerationToBundle(EntityNode versionNode) {
+  private Function<EntityNode, Mono<Void>> addGenerationToBundle(String versionId) {
     return tokenNode -> Mono.just(tokenNode)
         .map(EntityNode::getWasGeneratedBy)
         .flatMapMany(Flux::fromIterable)
         .map(WasGeneratedBy::getActivity)
         .map(ActivityNode::getId)
-        .flatMap(id -> activityClient.createUsedRelationship(id, versionNode.getId()))
+        .flatMap(id -> activityClient.createUsedRelationship(id, versionId))
         .then();
 
   }
 
-  private Function<EntityNode, Mono<Void>> addTokenToMetaBundle(String identifier) {
+  public Function<EntityNode, Mono<Void>> addTokenToMetaBundle(String identifier) {
     return tokenNode -> Mono.just(identifier)
         .flatMap(bundleClient::getIdByIdentifier)
         .delayUntil(metaBundleId -> bundleClient.createBundleEntitiesRelationship(metaBundleId, tokenNode.getId()))
@@ -150,7 +102,7 @@ public class BundleNeo4jRepository implements BundleRepository {
             new InternalApplicationException("Token has not been connected to Bundle!")));
   }
 
-  private Function<EntityNode, Mono<Void>> addTokenGenerationToBundle(String identifier) {
+  public Function<EntityNode, Mono<Void>> addTokenGenerationToBundle(String identifier) {
     return tokenNode -> Mono.just(tokenNode)
         .map(EntityNode::getWasGeneratedBy)
         .flatMapMany(Flux::fromIterable)
@@ -162,7 +114,7 @@ public class BundleNeo4jRepository implements BundleRepository {
             new InternalApplicationException("Token Generation has not been connected to Bundle!")));
   }
 
-  private Function<EntityNode, Mono<Void>> addTokenGeneratorToBundle(String identifier) {
+  public Function<EntityNode, Mono<Void>> addTokenGeneratorToBundle(String identifier) {
     return tokenNode -> Mono.just(tokenNode)
         .map(EntityNode::getWasAttributedTo)
         .flatMapMany(Flux::fromIterable)

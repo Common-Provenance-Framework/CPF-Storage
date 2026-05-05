@@ -22,6 +22,13 @@ public interface EntityNeo4jRepositoryClient extends ReactiveNeo4jRepository<Ent
   @Query("""
         MATCH (entity:Entity)
         WHERE entity.identifier = $identifier
+        RETURN elementId(entity)
+      """)
+  Mono<String> getIdByIdentifier(@Param("identifier") String identifier);
+
+  @Query("""
+        MATCH (entity:Entity)
+        WHERE entity.identifier = $identifier
 
         OPTIONAL MATCH (entity)-[rRev:revision_of]->(rev:Entity)
         OPTIONAL MATCH (entity)-[rSpec:specialization_of]->(spec:Entity)

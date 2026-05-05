@@ -8,16 +8,16 @@ import reactor.core.publisher.Mono;
 
 public interface BundlePersistence {
 
-  Mono<Void> create(String identifier);
+  Mono<Void> create(String metaBundleIdentifier);
 
-  Function<String, Mono<Void>> addVersionEntity(String identifier);
+  Function<String, Mono<Void>> addVersionEntity(String metaBundleIdentifier);
 
-  Function<String, Mono<Void>> addToken(String identifier);
+  Function<String, Mono<Void>> addToken(String metaBundleIdentifier);
 
-  Mono<Document> getByIdentifier(String identifier);
+  Mono<Document> getByIdentifier(String metaBundleIdentifier);
 
-  Mono<Boolean> exists(String identifier);
+  Mono<Boolean> exists(String metaBundleIdentifier);
 
-  Mono<Boolean> notExists(String identifier);
+  Mono<Boolean> notExists(String metaBundleIdentifier);
 
 }

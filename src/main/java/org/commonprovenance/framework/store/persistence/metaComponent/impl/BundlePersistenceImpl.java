@@ -31,8 +31,8 @@ public class BundlePersistenceImpl implements BundlePersistence {
   }
 
   @Override
-  public Mono<Void> create(String identifier) {
-    return Mono.just(identifier)
+  public Mono<Void> create(String metaBundleIdentifier) {
+    return Mono.just(metaBundleIdentifier)
         .flatMap(metaBundleRepository::create);
   }
 
@@ -50,27 +50,30 @@ public class BundlePersistenceImpl implements BundlePersistence {
   }
 
   @Override
-  public Function<String, Mono<Void>> addToken(String identifier) {
-    return (String jwtToken) -> Mono.just(jwtToken)
-        .flatMap(metaBundleRepository.addToken(identifier));
+  public Function<String, Mono<Void>> addToken(String metaBundleIdentifier) {
+    return (String jwtToken) -> metaBundleRepository.addToken(metaBundleIdentifier, jwtToken)
+        .delayUntil(metaBundleRepository.addTokenToMetaBundle(metaBundleIdentifier))
+        .delayUntil(metaBundleRepository.addTokenGenerationToBundle(metaBundleIdentifier))
+        .delayUntil(metaBundleRepository.addTokenGeneratorToBundle(metaBundleIdentifier))
+        .then();
   }
 
   @Override
-  public Mono<Document> getByIdentifier(String identifier) {
-    return Mono.just(identifier)
+  public Mono<Document> getByIdentifier(String metaBundleIdentifier) {
+    return Mono.just(metaBundleIdentifier)
         .flatMap(metaBundleRepository::findByIdentifier)
         .flatMap(NodeToProvFactory.bundleToProv(configuration));
   }
 
   @Override
-  public Mono<Boolean> exists(String identifier) {
-    return Mono.just(identifier)
+  public Mono<Boolean> exists(String metaBundleIdentifier) {
+    return Mono.just(metaBundleIdentifier)
         .flatMap(metaBundleRepository::existsByIdentifier);
   }
 
   @Override
-  public Mono<Boolean> notExists(String identifier) {
-    return this.exists(identifier).map(exists -> !exists);
+  public Mono<Boolean> notExists(String metaBundleIdentifier) {
+    return this.exists(metaBundleIdentifier).map(exists -> !exists);
   }
 
 }

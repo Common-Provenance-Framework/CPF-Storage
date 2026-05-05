@@ -3,13 +3,14 @@ package org.commonprovenance.framework.store.persistence.metaComponent.repositor
 import java.util.function.Function;
 
 import org.commonprovenance.framework.store.persistence.metaComponent.model.node.BundleNode;
+import org.commonprovenance.framework.store.persistence.metaComponent.model.node.EntityNode;
 
 import reactor.core.publisher.Mono;
 
 public interface BundleRepository {
   Mono<Void> create(String identifier);
 
-  Function<String, Mono<Void>> addToken(String identifier);
+  Mono<EntityNode> addToken(String metaBundleIdentifier, String jwtToken);
 
   Mono<Boolean> hasVersionEntity(String identifier);
 
@@ -19,4 +20,9 @@ public interface BundleRepository {
 
   Mono<BundleNode> findByIdentifier(String identifier);
 
+  Function<EntityNode, Mono<Void>> addTokenToMetaBundle(String identifier);
+
+  Function<EntityNode, Mono<Void>> addTokenGenerationToBundle(String identifier);
+
+  Function<EntityNode, Mono<Void>> addTokenGeneratorToBundle(String identifier);
 }
