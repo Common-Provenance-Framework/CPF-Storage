@@ -9,7 +9,7 @@ import org.springframework.stereotype.Repository;
 import reactor.core.publisher.Mono;
 
 @Repository
-public interface BundleNeo4jRepositoryClient extends ReactiveNeo4jRepository<BundleNode, String> {
+public interface MetaBundleNeo4jClient extends ReactiveNeo4jRepository<BundleNode, String> {
 
   @Query("""
       MATCH (bundle:Bundle)
@@ -49,13 +49,13 @@ public interface BundleNeo4jRepositoryClient extends ReactiveNeo4jRepository<Bun
   Mono<Boolean> hasVersionEntity(@Param("identifier") String identifier);
 
   @Query("""
-      MATCH (bundle:Bundle) WHERE elementId(bundle)=$bundleId
+      MATCH (bundle:Bundle) WHERE bundle.identifier=$bundleIdentifier
       MATCH (entity:Entity) WHERE elementId(entity)=$entityId
       MERGE (bundle)-[:bundle_entities]->(entity)
       RETURN true
       """)
   Mono<Boolean> createBundleEntitiesRelationship(
-      @Param("bundleId") String bundleId,
+      @Param("bundleIdentifier") String bundleIdentifier,
       @Param("entityId") String entityId);
 
   @Query("""

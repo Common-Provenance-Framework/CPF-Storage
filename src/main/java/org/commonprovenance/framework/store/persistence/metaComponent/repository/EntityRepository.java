@@ -11,9 +11,10 @@ public interface EntityRepository {
 
   Mono<EntityNode> addVersion(String metaBundleIdentifier, String versionIdentifier);
 
+  Mono<EntityNode> addToken(String metaBundleIdentifier, String jwtToken);
+
   Function<EntityNode, Mono<Void>> makeSpecializationOfGeneralVersion(String metaBundleIdentifier);
 
   Function<EntityNode, Mono<Void>> makeRevisionOfVersion(String metaBundleIdentifier, Integer version);
 
-  public Function<EntityNode, Mono<Void>> addToBundle(String metaBundleIdentifier);
 }

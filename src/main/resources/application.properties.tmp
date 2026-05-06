@@ -13,3 +13,6 @@ springdoc.default-consumes-media-type=application/json
 # Access logging
 access.slow-request-warning-enabled=false
 access.slow-request-threshold-ms=1000
+
+logging.level.org.commonprovenance=INFO
+

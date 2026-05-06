@@ -1,13 +1,16 @@
 package org.commonprovenance.framework.store.persistence.metaComponent.impl;
 
+import static org.commonprovenance.framework.store.common.publisher.PublisherHelper.MONO;
+
 import java.util.function.Function;
 
 import org.commonprovenance.framework.store.config.AppConfiguration;
+import org.commonprovenance.framework.store.exceptions.ConflictException;
 import org.commonprovenance.framework.store.exceptions.InternalApplicationException;
 import org.commonprovenance.framework.store.exceptions.factory.ApplicationExceptionFactory;
 import org.commonprovenance.framework.store.persistence.metaComponent.BundlePersistence;
 import org.commonprovenance.framework.store.persistence.metaComponent.model.factory.NodeToProvFactory;
-import org.commonprovenance.framework.store.persistence.metaComponent.repository.BundleRepository;
+import org.commonprovenance.framework.store.persistence.metaComponent.repository.MetaBundleRepository;
 import org.commonprovenance.framework.store.persistence.metaComponent.repository.EntityRepository;
 import org.openprovenance.prov.model.Document;
 import org.springframework.stereotype.Component;
@@ -17,12 +20,12 @@ import reactor.core.publisher.Mono;
 @Component
 public class BundlePersistenceImpl implements BundlePersistence {
 
-  private final BundleRepository metaBundleRepository;
+  private final MetaBundleRepository metaBundleRepository;
   private final EntityRepository entityRepository;
   private final AppConfiguration configuration;
 
   public BundlePersistenceImpl(
-      BundleRepository metaBundleRepository,
+      MetaBundleRepository metaBundleRepository,
       EntityRepository entityRepository,
       AppConfiguration configuration) {
     this.metaBundleRepository = metaBundleRepository;
@@ -33,6 +36,9 @@ public class BundlePersistenceImpl implements BundlePersistence {
   @Override
   public Mono<Void> create(String metaBundleIdentifier) {
     return Mono.just(metaBundleIdentifier)
+        .flatMap(MONO.makeSureAsync(
+            metaBundleRepository::notExistsByIdentifier,
+            identifier -> new ConflictException("Meta Bundle with identifier '" + identifier + "' already exists!")))
         .flatMap(metaBundleRepository::create);
   }
 
@@ -43,7 +49,7 @@ public class BundlePersistenceImpl implements BundlePersistence {
             ? entityRepository.addVersion(metaBundleIdentifier, versionEntityIdentifier)
             : entityRepository.addFirstVersion(metaBundleIdentifier, versionEntityIdentifier))
         .delayUntil(entityRepository.makeSpecializationOfGeneralVersion(metaBundleIdentifier))
-        .delayUntil(entityRepository.addToBundle(metaBundleIdentifier))
+        .delayUntil(metaBundleRepository.addEntityToMetaBundle(metaBundleIdentifier))
         .then()
         .onErrorMap(ApplicationExceptionFactory.handleThrowable(
             new InternalApplicationException("Version has not been added into meta component provenance!")));
@@ -51,10 +57,10 @@ public class BundlePersistenceImpl implements BundlePersistence {
 
   @Override
   public Function<String, Mono<Void>> addToken(String metaBundleIdentifier) {
-    return (String jwtToken) -> metaBundleRepository.addToken(metaBundleIdentifier, jwtToken)
-        .delayUntil(metaBundleRepository.addTokenToMetaBundle(metaBundleIdentifier))
-        .delayUntil(metaBundleRepository.addTokenGenerationToBundle(metaBundleIdentifier))
-        .delayUntil(metaBundleRepository.addTokenGeneratorToBundle(metaBundleIdentifier))
+    return (String jwtToken) -> entityRepository.addToken(metaBundleIdentifier, jwtToken)
+        .delayUntil(metaBundleRepository.addEntityToMetaBundle(metaBundleIdentifier))
+        .delayUntil(metaBundleRepository.addTokenGenerationToMetaBundle(metaBundleIdentifier))
+        .delayUntil(metaBundleRepository.addTokenGeneratorToMetaBundle(metaBundleIdentifier))
         .then();
   }
 

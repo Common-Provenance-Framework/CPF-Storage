@@ -3,7 +3,7 @@ spring.neo4j.authentication.username=${NEO4J_USERNAME:neo4j}
 spring.neo4j.authentication.password=${NEO4J_PASSWORD:s6cr9t}
 
 # Application log level for production
-logging.level.org.commonprovenance=INFO
+logging.level.org.commonprovenance.framework.store.persistence.metaComponent.repository.neo4j.MetaBundleNeo4jRepository=TRACE
 
 # Spring Data Neo4j mapping/query preparation (uncomment to debug)
 # logging.level.org.springframework.data.neo4j=DEBUG
