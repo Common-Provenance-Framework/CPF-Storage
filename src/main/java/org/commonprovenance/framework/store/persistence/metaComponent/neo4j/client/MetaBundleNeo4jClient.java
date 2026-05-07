@@ -1,4 +1,4 @@
-package org.commonprovenance.framework.store.persistence.metaComponent.repository.neo4j.client;
+package org.commonprovenance.framework.store.persistence.metaComponent.neo4j.client;
 
 import org.commonprovenance.framework.store.persistence.metaComponent.model.node.BundleNode;
 import org.springframework.data.neo4j.repository.ReactiveNeo4jRepository;

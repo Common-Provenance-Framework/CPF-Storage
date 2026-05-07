@@ -1,4 +1,4 @@
-package org.commonprovenance.framework.store.persistence.metaComponent.repository;
+package org.commonprovenance.framework.store.persistence.metaComponent;
 
 import java.util.function.Function;
 

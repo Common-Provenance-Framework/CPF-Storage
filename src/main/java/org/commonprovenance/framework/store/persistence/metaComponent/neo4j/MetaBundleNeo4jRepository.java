@@ -1,18 +1,18 @@
-package org.commonprovenance.framework.store.persistence.metaComponent.repository.neo4j;
+package org.commonprovenance.framework.store.persistence.metaComponent.neo4j;
 
 import java.util.function.Function;
 
 import org.commonprovenance.framework.store.exceptions.InternalApplicationException;
 import org.commonprovenance.framework.store.exceptions.NotFoundException;
 import org.commonprovenance.framework.store.exceptions.factory.ApplicationExceptionFactory;
+import org.commonprovenance.framework.store.persistence.metaComponent.MetaBundleRepository;
 import org.commonprovenance.framework.store.persistence.metaComponent.model.node.ActivityNode;
 import org.commonprovenance.framework.store.persistence.metaComponent.model.node.AgentNode;
 import org.commonprovenance.framework.store.persistence.metaComponent.model.node.BundleNode;
 import org.commonprovenance.framework.store.persistence.metaComponent.model.node.EntityNode;
 import org.commonprovenance.framework.store.persistence.metaComponent.model.relation.WasAttributedTo;
 import org.commonprovenance.framework.store.persistence.metaComponent.model.relation.WasGeneratedBy;
-import org.commonprovenance.framework.store.persistence.metaComponent.repository.MetaBundleRepository;
-import org.commonprovenance.framework.store.persistence.metaComponent.repository.neo4j.client.MetaBundleNeo4jClient;
+import org.commonprovenance.framework.store.persistence.metaComponent.neo4j.client.MetaBundleNeo4jClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Profile;

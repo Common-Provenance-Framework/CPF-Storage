@@ -1,4 +1,4 @@
-package org.commonprovenance.framework.store.persistence.metaComponent.repository.neo4j;
+package org.commonprovenance.framework.store.persistence.metaComponent.neo4j;
 
 import static org.commonprovenance.framework.store.common.publisher.PublisherHelper.MONO;
 
@@ -7,13 +7,13 @@ import java.util.function.Function;
 import org.commonprovenance.framework.store.common.utils.JwtUtils;
 import org.commonprovenance.framework.store.exceptions.InternalApplicationException;
 import org.commonprovenance.framework.store.exceptions.factory.ApplicationExceptionFactory;
+import org.commonprovenance.framework.store.persistence.metaComponent.EntityRepository;
 import org.commonprovenance.framework.store.persistence.metaComponent.model.factory.JwtTokenToNodeFactory;
 import org.commonprovenance.framework.store.persistence.metaComponent.model.node.ActivityNode;
 import org.commonprovenance.framework.store.persistence.metaComponent.model.node.EntityNode;
 import org.commonprovenance.framework.store.persistence.metaComponent.model.relation.WasGeneratedBy;
-import org.commonprovenance.framework.store.persistence.metaComponent.repository.EntityRepository;
-import org.commonprovenance.framework.store.persistence.metaComponent.repository.neo4j.client.ActivityNeo4jRepositoryClient;
-import org.commonprovenance.framework.store.persistence.metaComponent.repository.neo4j.client.EntityNeo4jRepositoryClient;
+import org.commonprovenance.framework.store.persistence.metaComponent.neo4j.client.ActivityNeo4jRepositoryClient;
+import org.commonprovenance.framework.store.persistence.metaComponent.neo4j.client.EntityNeo4jRepositoryClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Profile;

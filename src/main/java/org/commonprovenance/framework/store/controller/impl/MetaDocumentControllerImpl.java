@@ -6,7 +6,7 @@ import org.commonprovenance.framework.store.controller.MetaDocumentController;
 import org.commonprovenance.framework.store.controller.dto.error.InternalServerErrorDTO;
 import org.commonprovenance.framework.store.controller.dto.error.NotFoundDTO;
 import org.commonprovenance.framework.store.exceptions.NotFoundException;
-import org.commonprovenance.framework.store.service.persistence.metaComponent.MetaComponentService;
+import org.commonprovenance.framework.store.service.persistence.metaComponent.MetaProvenanceComponentService;
 import org.springframework.http.MediaType;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -29,10 +29,10 @@ import reactor.core.publisher.Mono;
 @RequestMapping("/api/v1/documents/meta")
 @Tag(name = "Meta Documents", description = "Meta component endpoints")
 public class MetaDocumentControllerImpl implements MetaDocumentController {
-  private final MetaComponentService metaComponentService;
+  private final MetaProvenanceComponentService metaComponentService;
 
   public MetaDocumentControllerImpl(
-      MetaComponentService metaComponentService) {
+      MetaProvenanceComponentService metaComponentService) {
     this.metaComponentService = metaComponentService;
   }
 
@@ -48,7 +48,7 @@ public class MetaDocumentControllerImpl implements MetaDocumentController {
   public Mono<Void> exists(@PathVariable String uuid) {
     return Mono.justOrEmpty(uuid)
         .flatMap(MONO.makeSureAsync(
-            this.metaComponentService::bundleExists,
+            this.metaComponentService::metaProvenanceComponentExists,
             id -> new NotFoundException("Meta Component with id '" + id + " does not exists! ")))
         .then();
   }

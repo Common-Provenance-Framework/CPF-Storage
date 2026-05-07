@@ -29,7 +29,7 @@ import org.commonprovenance.framework.store.service.persistence.finalizedProvCom
 import org.commonprovenance.framework.store.service.persistence.finalizedProvComponent.OrganizationService;
 import org.commonprovenance.framework.store.service.persistence.finalizedProvComponent.TokenService;
 import org.commonprovenance.framework.store.service.persistence.finalizedProvComponent.TrustedPartyService;
-import org.commonprovenance.framework.store.service.persistence.metaComponent.MetaComponentService;
+import org.commonprovenance.framework.store.service.persistence.metaComponent.MetaProvenanceComponentService;
 import org.commonprovenance.framework.store.service.web.trustedParty.TrustedPartyWebService;
 import org.openprovenance.prov.model.ProvFactory;
 import org.openprovenance.prov.model.interop.Formats;
@@ -70,7 +70,7 @@ public class DocumentControllerImpl implements DocumentController {
   private final OrganizationService organizationService;
   private final TokenService tokenService;
   private final TrustedPartyService trustedPartyService;
-  private final MetaComponentService metaComponentService;
+  private final MetaProvenanceComponentService metaComponentService;
 
   private final TrustedPartyWebService trustedPartyWebService;
 
@@ -85,7 +85,7 @@ public class DocumentControllerImpl implements DocumentController {
       OrganizationService organizationService,
       TokenService tokenService,
       TrustedPartyService trustedPartyService,
-      MetaComponentService metaComponentService,
+      MetaProvenanceComponentService metaComponentService,
       TrustedPartyWebService trustedPartyWebService,
       ProvFactory provFactory,
       ICpmFactory cpmFactory,
@@ -161,9 +161,9 @@ public class DocumentControllerImpl implements DocumentController {
             .map(document::withToken))
         .doOnNext(_ -> LOGGER.debug("Token stored"))
 
-        .delayUntil(this.metaComponentService::createMetaComponentIfNotExists)
-        .delayUntil(this.metaComponentService::addNewVersion)
-        .delayUntil(this.metaComponentService::addTokenToLastVersion)
+        .delayUntil(this.metaComponentService::createMetaProvenanceComponentIfNotExists)
+        .delayUntil(this.metaComponentService::addBundleVersionIntoMetaProvenanceComponent)
+        .delayUntil(this.metaComponentService::addTokenIntoMetaProvenanceComponent)
 
         .doOnNext(_ -> LOGGER.debug("MetaComponent stored"))
 
