@@ -44,11 +44,12 @@ public class BundlePersistenceImpl implements BundlePersistence {
 
   @Override
   public Function<String, Mono<Void>> addVersionEntity(String metaBundleIdentifier) {
-    return (String versionEntityIdentifier) -> metaBundleRepository.hasVersionEntity(metaBundleIdentifier)
-        .flatMap(hasVersionEntity -> hasVersionEntity
-            ? entityRepository.addVersion(metaBundleIdentifier, versionEntityIdentifier)
-            : entityRepository.addFirstVersion(metaBundleIdentifier, versionEntityIdentifier))
+    return (String versionEntityIdentifier) -> metaBundleRepository.getLastVersionNo(metaBundleIdentifier)
+        .defaultIfEmpty(0)
+        .map(lastVersionNo -> lastVersionNo + 1)
+        .flatMap(entityRepository.createBundleVersionEntity(metaBundleIdentifier, versionEntityIdentifier))
         .delayUntil(entityRepository.makeSpecializationOfGeneralVersion(metaBundleIdentifier))
+        .delayUntil(entityRepository.makeRevisionOfPreviousVersion(metaBundleIdentifier))
         .delayUntil(metaBundleRepository.addEntityToMetaBundle(metaBundleIdentifier))
         .then()
         .onErrorMap(ApplicationExceptionFactory.handleThrowable(
@@ -57,7 +58,8 @@ public class BundlePersistenceImpl implements BundlePersistence {
 
   @Override
   public Function<String, Mono<Void>> addToken(String metaBundleIdentifier) {
-    return (String jwtToken) -> entityRepository.addToken(metaBundleIdentifier, jwtToken)
+    return (String jwtToken) -> entityRepository.createBundleTokenEntity(metaBundleIdentifier, jwtToken)
+        .delayUntil(entityRepository.addToBundleVersionEntity(jwtToken))
         .delayUntil(metaBundleRepository.addEntityToMetaBundle(metaBundleIdentifier))
         .delayUntil(metaBundleRepository.addTokenGenerationToMetaBundle(metaBundleIdentifier))
         .delayUntil(metaBundleRepository.addTokenGeneratorToMetaBundle(metaBundleIdentifier))

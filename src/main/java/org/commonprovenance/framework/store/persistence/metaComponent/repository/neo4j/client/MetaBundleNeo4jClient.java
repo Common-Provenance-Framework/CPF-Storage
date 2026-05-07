@@ -49,6 +49,16 @@ public interface MetaBundleNeo4jClient extends ReactiveNeo4jRepository<BundleNod
   Mono<Boolean> hasVersionEntity(@Param("identifier") String identifier);
 
   @Query("""
+      MATCH (bundle:Bundle {identifier: $identifier})-[:bundle_entities]->(entity:Entity)
+      WHERE entity["pav:version"] IS NOT NULL AND entity["prov:type"] = "prov:Bundle"
+      WITH toInteger(entity["pav:version"]) AS version
+      ORDER BY version DESC
+      LIMIT 1
+      RETURN version
+      """)
+  Mono<Integer> getLastVersionNo(@Param("identifier") String identifier);
+
+  @Query("""
       MATCH (bundle:Bundle) WHERE bundle.identifier=$bundleIdentifier
       MATCH (entity:Entity) WHERE elementId(entity)=$entityId
       MERGE (bundle)-[:bundle_entities]->(entity)

@@ -63,6 +63,21 @@ public class MetaBundleNeo4jRepository implements MetaBundleRepository {
   }
 
   @Override
+  public Mono<Integer> getLastVersionNo(String metaBundleIdentifier) {
+    return Mono.just(metaBundleIdentifier)
+        .flatMap(metaBundleClient::getLastVersionNo)
+        .doOnSuccess(versionNo -> {
+          if (versionNo == null)
+            LOGGER.trace(LOG_PREFIX + "Meta bunlde does not have version entity yet.");
+          else
+            LOGGER.trace(LOG_PREFIX + "Last bundle version is: " + versionNo);
+        })
+        .doOnError(throwable -> LOGGER.error("Error while retrieve last bundle version number!\n" + throwable.getMessage()))
+        .onErrorMap(ApplicationExceptionFactory.handleThrowable(
+            new InternalApplicationException("Error while retrieve last bundle version number!")));
+  }
+
+  @Override
   public Mono<Boolean> existsByIdentifier(String metaBundleIdentifier) {
     return metaBundleClient.existsByIdentifier(metaBundleIdentifier)
         .doOnSuccess(exists -> {
@@ -105,11 +120,12 @@ public class MetaBundleNeo4jRepository implements MetaBundleRepository {
         .switchIfEmpty(Mono.error(() -> new InternalApplicationException("Entity has not been connected to Bundle!")))
         .then()
         .doOnSuccess(_ -> LOGGER.trace(
-            LOG_PREFIX + "Entity with identifier '" + entity.getIdentifier() + "' has been connected to Bundle '" + metaBundleIdentifier + "'."))
+            LOG_PREFIX + "Entity with identifier '" + entity.getIdentifier() + "' has been connected to meta provenance component '" + metaBundleIdentifier + "'."))
         .doOnError(throwable -> LOGGER.error(
-            LOG_PREFIX + "Entity with identifier '" + entity.getIdentifier() + "' has not been connected to Bundle '" + metaBundleIdentifier + "'.\n" + throwable.getMessage()))
+            LOG_PREFIX + "Entity with identifier '" + entity.getIdentifier() + "' has not been connected to meta provenance component '" + metaBundleIdentifier + "'.\n"
+                + throwable.getMessage()))
         .onErrorMap(ApplicationExceptionFactory.handleThrowable(
-            new InternalApplicationException("Entity has not been connected to Bundle!")));
+            new InternalApplicationException("Entity has not been connected to meta provenance component!")));
   }
 
   @Override
@@ -123,11 +139,12 @@ public class MetaBundleNeo4jRepository implements MetaBundleRepository {
         .flatMap(generationId -> metaBundleClient.createBundleActivitiesRelationship(metaBundleIdentifier, generationId))
         .switchIfEmpty(Mono.error(() -> new InternalApplicationException("Generation activity has not been connected to Bundle!")))
         .then()
-        .doOnSuccess(_ -> LOGGER.trace(LOG_PREFIX + "Generation activity has been connected to Bundle '" + metaBundleIdentifier + "'."))
+        .doOnSuccess(_ -> LOGGER.trace(LOG_PREFIX + "Generation activity has been connected to meta provenance component '" + metaBundleIdentifier + "'."))
         .doOnError(
-            throwable -> LOGGER.error(LOG_PREFIX + "Generation activity has not been connected to Bundle '" + metaBundleIdentifier + "'.\n" + throwable.getMessage()))
+            throwable -> LOGGER
+                .error(LOG_PREFIX + "Generation activity has not been connected to meta provenance component '" + metaBundleIdentifier + "'.\n" + throwable.getMessage()))
         .onErrorMap(ApplicationExceptionFactory.handleThrowable(
-            new InternalApplicationException("Token Generation has not been connected to Bundle!")));
+            new InternalApplicationException("Token Generation has not been connected to meta provenance component!")));
   }
 
   @Override
@@ -139,12 +156,13 @@ public class MetaBundleNeo4jRepository implements MetaBundleRepository {
         .map(AgentNode::getId)
         .single()
         .flatMap(generatorId -> metaBundleClient.createBundleAgentsRelationship(metaBundleIdentifier, generatorId))
-        .switchIfEmpty(Mono.error(() -> new InternalApplicationException("Generator agent has not been connected to Bundle!")))
+        .switchIfEmpty(Mono.error(() -> new InternalApplicationException("Generator agent has not been connected to meta provenance component!")))
         .then()
-        .doOnSuccess(_ -> LOGGER.trace(LOG_PREFIX + "Generator agent has been connected to Bundle '" + metaBundleIdentifier + "'."))
-        .doOnError(throwable -> LOGGER.error(LOG_PREFIX + "Generator agent has not been connected to Bundle '" + metaBundleIdentifier + "'.\n" + throwable.getMessage()))
+        .doOnSuccess(_ -> LOGGER.trace(LOG_PREFIX + "Generator agent has been connected to meta provenance component '" + metaBundleIdentifier + "'."))
+        .doOnError(throwable -> LOGGER
+            .error(LOG_PREFIX + "Generator agent has not been connected to meta provenance component '" + metaBundleIdentifier + "'.\n" + throwable.getMessage()))
         .onErrorMap(ApplicationExceptionFactory.handleThrowable(
-            new InternalApplicationException("Token Generator agent has not been connected to Bundle!")));
+            new InternalApplicationException("Token Generator agent has not been connected to meta provenance component!")));
   }
 
 }

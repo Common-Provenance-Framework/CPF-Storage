@@ -12,6 +12,8 @@ public interface MetaBundleRepository {
 
   Mono<Boolean> hasVersionEntity(String metaBundleIdentifier);
 
+  Mono<Integer> getLastVersionNo(String metaBundleIdentifier);
+
   Mono<Boolean> existsByIdentifier(String metaBundleIdentifier);
 
   Mono<Boolean> notExistsByIdentifier(String metaBundleIdentifier);

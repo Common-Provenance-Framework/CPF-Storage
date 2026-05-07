@@ -5,7 +5,6 @@ import static org.commonprovenance.framework.store.common.publisher.PublisherHel
 import java.util.function.Function;
 
 import org.commonprovenance.framework.store.common.utils.JwtUtils;
-import org.commonprovenance.framework.store.controller.advice.ApplicationExceptionHandler;
 import org.commonprovenance.framework.store.exceptions.InternalApplicationException;
 import org.commonprovenance.framework.store.exceptions.factory.ApplicationExceptionFactory;
 import org.commonprovenance.framework.store.persistence.metaComponent.model.factory.JwtTokenToNodeFactory;
@@ -14,7 +13,6 @@ import org.commonprovenance.framework.store.persistence.metaComponent.model.node
 import org.commonprovenance.framework.store.persistence.metaComponent.model.relation.WasGeneratedBy;
 import org.commonprovenance.framework.store.persistence.metaComponent.repository.EntityRepository;
 import org.commonprovenance.framework.store.persistence.metaComponent.repository.neo4j.client.ActivityNeo4jRepositoryClient;
-import org.commonprovenance.framework.store.persistence.metaComponent.repository.neo4j.client.MetaBundleNeo4jClient;
 import org.commonprovenance.framework.store.persistence.metaComponent.repository.neo4j.client.EntityNeo4jRepositoryClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,67 +25,69 @@ import reactor.core.publisher.Mono;
 @Profile("live & neo4j")
 @Repository
 public class EntityNeo4jRepository implements EntityRepository {
+  private final String LOG_PREFIX = "EntityNeo4jRepository: ";
+  private final Logger LOGGER = LoggerFactory.getLogger(EntityNeo4jRepository.class);
 
-  private final Logger LOGGER = LoggerFactory.getLogger(ApplicationExceptionHandler.class);
-
-  private final MetaBundleNeo4jClient metaBundleClient;
   private final EntityNeo4jRepositoryClient entityClient;
   private final ActivityNeo4jRepositoryClient activityClient;
 
   public EntityNeo4jRepository(
-      MetaBundleNeo4jClient metaBundleClient,
       EntityNeo4jRepositoryClient entityClient,
       ActivityNeo4jRepositoryClient activityClient) {
-    this.metaBundleClient = metaBundleClient;
     this.entityClient = entityClient;
     this.activityClient = activityClient;
   }
 
   @Override
-  public Mono<EntityNode> addFirstVersion(String metaBundleIdentifier, String versionIdentifier) {
-
-    return Mono.just(versionIdentifier)
-        .map(fvi -> new EntityNode(fvi, 1))
+  public Function<Integer, Mono<EntityNode>> createBundleVersionEntity(String metaBundleIdentifier, String versionEntityIdentifier) {
+    return (Integer versionNo) -> Mono.just(new EntityNode(versionEntityIdentifier, versionNo))
         .flatMap(entityClient::save)
+        .doOnSuccess(_ -> LOGGER.trace(LOG_PREFIX + "Bundle version entity has been added into meta component provenance."))
+        .doOnError(throwable -> LOGGER.error(LOG_PREFIX + "Bundle version entity has not been added into meta component provenance!\n" + throwable.getMessage()))
         .onErrorMap(ApplicationExceptionFactory.handleThrowable(
-            new InternalApplicationException("First version entity has not been added into meta component provenance!")));
+            new InternalApplicationException("Bundle version entity has not been added into meta component provenance!")));
   }
 
   @Override
-  public Mono<EntityNode> addVersion(String metaBundleIdentifier, String versionIdentifier) {
-    return Mono.just(metaBundleIdentifier)
-        .flatMap(entityClient::getLastVersion)
-        .flatMap(lastVersion -> Mono.just(new EntityNode(versionIdentifier, lastVersion + 1))
-            .flatMap(entityClient::save)
-            .delayUntil(this.makeRevisionOfVersion(metaBundleIdentifier, lastVersion)))
+  public Mono<EntityNode> createBundleTokenEntity(String metaBundleIdentifier, String jwtToken) {
+    return Mono.just(jwtToken)
+        .map(JwtTokenToNodeFactory::toTokenEntity)
+        .flatMap(MONO::fromEither)
+        .flatMap(entityClient::save)
+        .doOnSuccess(_ -> LOGGER.trace(LOG_PREFIX + "Token entity has been added into meta component provenance."))
+        .doOnError(throwable -> LOGGER.error(LOG_PREFIX + "Token entity has not been added into meta component provenance!\n" + throwable.getMessage()))
         .onErrorMap(ApplicationExceptionFactory.handleThrowable(
-            new InternalApplicationException("Version entity has not been added into meta component provenance!")));
+            new InternalApplicationException("Token entity has not been added into meta component provenance!")));
   }
 
-  public Mono<EntityNode> addToken(String metaBundleIdentifier, String jwtToken) {
-    return MONO.fromEither(JwtUtils.extractBundleIdentifier(jwtToken))
+  @Override
+  public Function<EntityNode, Mono<Void>> addToBundleVersionEntity(String jwtToken) {
+    return (EntityNode tokenNode) -> Mono.just(jwtToken)
+        .map(JwtUtils::extractBundleIdentifier)
+        .flatMap(MONO::fromEither)
         .flatMap(entityClient::getIdByIdentifier)
-        .flatMap(versionId -> MONO.fromEither(JwtTokenToNodeFactory.toTokenEntity(jwtToken))
-            .flatMap(entityClient::save)
-            .delayUntil(this.addTokenToBundle(versionId))
-            .delayUntil(this.addGenerationToBundle(versionId)))
+        .flatMap(bundleVersionId -> Mono.when(
+            Mono.just(tokenNode)
+                .map(EntityNode::getId)
+                .flatMap(id -> entityClient.createWasDerivedFromRelationship(id, bundleVersionId))
+                .doOnSuccess(_ -> LOGGER.trace(LOG_PREFIX + "Token entity has been connected with bundle version with 'wasDerivedFrom' relation."))
+                .doOnError(throwable -> LOGGER.error(
+                    LOG_PREFIX + "Token entity has not been connected with bundle version with 'wasDerivedFrom' relation!\n" + throwable.getMessage())),
+            Mono.just(tokenNode)
+                .map(EntityNode::getWasGeneratedBy)
+                .flatMapMany(Flux::fromIterable)
+                .single()
+                .map(WasGeneratedBy::getActivity)
+                .map(ActivityNode::getId)
+                .flatMap(id -> activityClient.createUsedRelationship(id, bundleVersionId))
+                .doOnSuccess(_ -> LOGGER.trace(LOG_PREFIX + "Token generation activity has been connected with bundle version with 'used' relation."))
+                .doOnError(throwable -> LOGGER.error(
+                    LOG_PREFIX + "Token generation activity has not been connected with bundle version with 'used' relation!\n" + throwable.getMessage()))))
+        .doOnSuccess(_ -> LOGGER.trace(LOG_PREFIX + "Token Entity has been connected with bundle version entity."))
+        .doOnError(throwable -> LOGGER.error(LOG_PREFIX + "Token Entity has not been connected with bundle version entity!\n" + throwable.getMessage()))
+        .then()
         .onErrorMap(ApplicationExceptionFactory.handleThrowable(
-            new InternalApplicationException("Token has not been added into meta componenet provenance!")));
-  }
-
-  private Function<EntityNode, Mono<Void>> addTokenToBundle(String versionId) {
-    return tokenNode -> entityClient.createWasDerivedFromRelationship(tokenNode.getId(), versionId)
-        .then();
-  }
-
-  private Function<EntityNode, Mono<Void>> addGenerationToBundle(String versionId) {
-    return tokenNode -> Mono.just(tokenNode)
-        .map(EntityNode::getWasGeneratedBy)
-        .flatMapMany(Flux::fromIterable)
-        .map(WasGeneratedBy::getActivity)
-        .map(ActivityNode::getId)
-        .flatMap(id -> activityClient.createUsedRelationship(id, versionId))
-        .then();
+            new InternalApplicationException("Token Entity has not been connected with bundle version entity!")));
 
   }
 
@@ -96,18 +96,35 @@ public class EntityNeo4jRepository implements EntityRepository {
     return entity -> Mono.just(metaBundleIdentifier)
         .flatMap(entityClient::getGeneralVersionIdByMetaBundleIdentifier)
         .flatMap(generalVersionId -> entityClient.createSpecializationOfRelationship(entity.getId(), generalVersionId))
-        .onErrorMap(ApplicationExceptionFactory.handleThrowable(
-            new InternalApplicationException("First and general version entities has not been connected  with 'specializationOf' relation!")))
-        .then();
+        .doOnSuccess(_ -> LOGGER.trace(LOG_PREFIX + "Bundle version entity has been connected with general version entity with 'specializationOf' relation."))
+        .doOnError(throwable -> LOGGER.error(
+            LOG_PREFIX + "Bundle version entity has not been connected with general version entity with 'specializationOf' relation!\n" + throwable.getMessage()))
+        .then()
+        .onErrorMap(ApplicationExceptionFactory.handleThrowable(new InternalApplicationException(
+            "Bundle version entity has not been connected with general version entity with 'specializationOf' relation!")));
   }
 
   @Override
-  public Function<EntityNode, Mono<Void>> makeRevisionOfVersion(String metaBundleIdentifier, Integer version) {
-    return versionEntity -> entityClient.getVersionEntityId(metaBundleIdentifier, version)
-        .flatMap(generalEntityId -> entityClient.createRevisionOfRelationship(versionEntity.getId(), generalEntityId))
+  public Function<EntityNode, Mono<Void>> makeRevisionOfPreviousVersion(String metaBundleIdentifier) {
+    return (EntityNode versionEntity) -> Mono.just(versionEntity)
+        .map(EntityNode::getPav)
+        .map(pav -> pav.get("version"))
+        .map(Integer.class::cast)
+        .flatMap(version -> version == 1
+            ? Mono.empty()
+            : Mono.just(version - 1))
+        .flatMap(prevVersion -> entityClient.getVersionEntityId(metaBundleIdentifier, prevVersion))
+        .flatMap(prevVersionId -> entityClient.createRevisionOfRelationship(versionEntity.getId(), prevVersionId))
+        .doOnSuccess(connected -> {
+          if (connected == null)
+            LOGGER.trace(LOG_PREFIX + "This is first bundle version. There is no previous version to connect with.");
+          else
+            LOGGER.trace(LOG_PREFIX + "New and last bundle version entities has been connected  with 'revisionOf' relation.");
+        })
+        .doOnError(throwable -> LOGGER.error(LOG_PREFIX + "New and last bundle version entities has not been connected  with 'revisionOf' relation!\n" + throwable.getMessage()))
+        .then()
         .onErrorMap(ApplicationExceptionFactory.handleThrowable(
-            new InternalApplicationException("New and last version entities has not been connected  with 'revisionOf' relation!")))
-        .then();
+            new InternalApplicationException("New and last bundle version entities has not been connected  with 'revisionOf' relation!")));
   }
 
 }
