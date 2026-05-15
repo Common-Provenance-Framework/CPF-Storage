@@ -2,17 +2,14 @@ package org.commonprovenance.framework.store.persistence.metaComponent.model.fac
 
 import static org.commonprovenance.framework.store.common.utils.EitherUtils.EITHER;
 
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
 import org.commonprovenance.framework.store.common.utils.JwtUtils;
 import org.commonprovenance.framework.store.exceptions.ApplicationException;
-import org.commonprovenance.framework.store.exceptions.ConflictException;
 import org.commonprovenance.framework.store.persistence.metaComponent.model.node.ActivityNode;
 import org.commonprovenance.framework.store.persistence.metaComponent.model.node.AgentNode;
 import org.commonprovenance.framework.store.persistence.metaComponent.model.node.EntityNode;
-import org.commonprovenance.framework.store.persistence.metaComponent.model.relation.WasAssociatedWith;
 
 import io.vavr.control.Either;
 
@@ -20,7 +17,7 @@ public final class JwtTokenToNodeFactory {
   public static Either<ApplicationException, EntityNode> toTokenEntity(String jwtToken) {
     return JwtTokenToNodeFactory.toTokenGenerationActivity(jwtToken)
         .flatMap(tokenGenerationNode -> EITHER.<AgentNode, ActivityNode, EntityNode> combine(
-            JwtTokenToNodeFactory.getTokenGeneratorFromTokenGeneration(tokenGenerationNode),
+            EITHER.liftEitherChecked(tokenGenerationNode::getTokenGenerator),
             Either.right(tokenGenerationNode),
             (generator, generation) -> new EntityNode(
                 UUID.randomUUID().toString(),
@@ -57,12 +54,4 @@ public final class JwtTokenToNodeFactory {
             .withWasAssociatedWithAgent(generator));
   }
 
-  private static Either<ApplicationException, AgentNode> getTokenGeneratorFromTokenGeneration(ActivityNode tokenGeneration) {
-    List<WasAssociatedWith> associations = tokenGeneration.getWasAssociatedWith();
-    return associations.size() == 1
-        ? Either.right(associations.getFirst().getAgent())
-        : associations.size() == 0
-            ? Either.left(new ConflictException("Token generation is not associated with token generator!"))
-            : Either.left(new ConflictException("Token generation is associated with more than one token generator!"));
-  }
 }
