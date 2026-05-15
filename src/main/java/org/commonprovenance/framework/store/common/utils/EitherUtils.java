@@ -91,6 +91,12 @@ public interface EitherUtils {
                   + result.stream().reduce("", (acc, i) -> acc.isEmpty() ? i : acc + ", " + i)));
     }
 
+    public <R> Either<ApplicationException, R> valueOrException(R value, ApplicationException exception) {
+      return (value == null)
+          ? Either.left(exception)
+          : Either.right(value);
+    }
+
     public <R> Either<ApplicationException, R> makeSureNotNull(R value) {
       return this.<R> makeSureNotNullWithMessage(this.defaultNullMessage(value)).apply(value);
     }
