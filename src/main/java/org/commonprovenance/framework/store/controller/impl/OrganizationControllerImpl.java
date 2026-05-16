@@ -84,7 +84,8 @@ public class OrganizationControllerImpl implements OrganizationController {
                 .flatMap(trustedParty -> this.trustedPartyService.findTrustedParty(trustedParty)
                     .onErrorResume(NotFoundException.class,
                         (NotFoundException notFound) -> trustedParty.getIsDefault()
-                            ? this.trustedPartyService.storeTrustedParty(trustedParty)
+                            ? Mono.just(trustedParty)
+                                .delayUntil(this.trustedPartyService::storeTrustedParty)
                             : Mono.error(notFound)))
                 .map(organization::withTrustedParty))
         .flatMap(this.organizationService::storeOrganization)
@@ -133,7 +134,7 @@ public class OrganizationControllerImpl implements OrganizationController {
       @ApiResponse(responseCode = "500", description = "Internal server error", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = InternalServerErrorDTO.class)))
   })
   public Mono<OrganizationResponseDTO> getOrganizationByIdentifier(@PathVariable String identifier) {
-    return MONO.<String>makeSureNotNullWithMessage("Identifier can not be null!").apply(identifier)
+    return MONO.<String> makeSureNotNullWithMessage("Identifier can not be null!").apply(identifier)
         .flatMap(this.organizationService::getOrganizationByIdentifier)
         .flatMap(DTOFactory::toDTO);
   }

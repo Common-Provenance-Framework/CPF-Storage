@@ -1,21 +1,18 @@
 
 package org.commonprovenance.framework.store.persistence.finalizedProvComponent.repository;
 
-import org.commonprovenance.framework.store.persistence.finalizedProvComponent.model.node.TrustedPartyNode;
+import org.commonprovenance.framework.store.model.TrustedParty;
 
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 public interface TrustedPartyRepository {
-  Mono<TrustedPartyNode> save(TrustedPartyNode entity);
+  Mono<Void> create(TrustedParty trustedParty);
 
-  Flux<TrustedPartyNode> findAll();
+  Mono<TrustedParty> findByName(String name);
 
-  Mono<TrustedPartyNode> findByName(String name);
+  Mono<TrustedParty> findDefault();
 
-  Mono<TrustedPartyNode> findDefault();
-
-  Mono<TrustedPartyNode> findByOrganizationIdentifier(String organizationIdentifier);
+  Mono<TrustedParty> findByOrganizationIdentifier(String organizationIdentifier);
 
   Mono<String> findUrlByOrganizationIdentifier(String organizationIdentifier);
 

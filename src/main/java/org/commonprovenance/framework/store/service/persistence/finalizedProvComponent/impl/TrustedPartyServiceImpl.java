@@ -19,7 +19,7 @@ public class TrustedPartyServiceImpl implements TrustedPartyService {
   }
 
   @Override
-  public Mono<TrustedParty> storeTrustedParty(TrustedParty trustedParty) {
+  public Mono<Void> storeTrustedParty(TrustedParty trustedParty) {
     return MONO.<TrustedParty> makeSureNotNullWithMessage("TrustedParty can not be null").apply(trustedParty)
         .flatMap(this.persistence::create);
   }

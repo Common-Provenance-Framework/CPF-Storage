@@ -2,16 +2,11 @@ package org.commonprovenance.framework.store.persistence.finalizedProvComponent;
 
 import org.commonprovenance.framework.store.model.TrustedParty;
 
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 public interface TrustedPartyPersistence {
 
-  Mono<TrustedParty> create(TrustedParty trustedParty);
-
-  Mono<TrustedParty> update(TrustedParty trustedParty);
-
-  Flux<TrustedParty> getAll();
+  Mono<Void> create(TrustedParty trustedParty);
 
   Mono<TrustedParty> getByName(String name);
 

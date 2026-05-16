@@ -7,7 +7,7 @@ import reactor.core.publisher.Mono;
 
 public interface TrustedPartyService {
 
-  Mono<TrustedParty> storeTrustedParty(TrustedParty trustedParty);
+  Mono<Void> storeTrustedParty(TrustedParty trustedParty);
 
   Mono<TrustedParty> findTrustedParty(TrustedParty trustedParty);
 
