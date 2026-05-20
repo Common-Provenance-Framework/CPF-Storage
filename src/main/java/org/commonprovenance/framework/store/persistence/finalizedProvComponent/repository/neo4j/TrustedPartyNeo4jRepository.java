@@ -40,8 +40,7 @@ public class TrustedPartyNeo4jRepository implements TrustedPartyRepository {
         .then()
         .doOnSuccess(_ -> LOGGER.trace(LOG_PREFIX + "New Trusted Party has been created."))
         .doOnError(throwable -> LOGGER.error(LOG_PREFIX + "New Trusted Party has not been created!\n" + throwable.getMessage()))
-        .onErrorMap(ApplicationExceptionFactory.handleThrowable(
-            new InternalApplicationException("New Trusted Party has not been created!")));
+        .onErrorMap(ApplicationExceptionFactory.handleThrowable(new InternalApplicationException("New Trusted Party has not been created!")));
   }
 
   @Override
@@ -50,19 +49,16 @@ public class TrustedPartyNeo4jRepository implements TrustedPartyRepository {
         .single()
         .onErrorMap(
             NoSuchElementException.class,
-            _ -> new NotFoundException(
-                "TrustedParty with name '" + name + "' has not been found!"))
+            _ -> new NotFoundException("TrustedParty with name '" + name + "' has not been found!"))
         .onErrorMap(
             IndexOutOfBoundsException.class,
-            _ -> new ConflictException(
-                "There is more then one TrustedParty with name '" + name + "'!"))
+            _ -> new ConflictException("There is more then one TrustedParty with name '" + name + "'!"))
         .flatMap(trustedPartyClient::findById)
-        .switchIfEmpty(Mono.error(new NotFoundException("TrustedParty with name '" + name + "' has not found!")))
+        .switchIfEmpty(Mono.error(() -> new NotFoundException("TrustedParty with name '" + name + "' has not found!")))
         .map(ModelFactory::toDomain)
         .doOnSuccess(_ -> LOGGER.trace(LOG_PREFIX + "Trusted Party with name '" + name + "' has been found."))
         .doOnError(throwable -> LOGGER.error(LOG_PREFIX + "Search Trusted Party with name '" + name + "' failed!\n" + throwable.getMessage()))
-        .onErrorMap(ApplicationExceptionFactory.handleThrowable(
-            new InternalApplicationException("Search Trusted Party with name '" + name + "' has been failed!")));
+        .onErrorMap(ApplicationExceptionFactory.handleThrowable(new InternalApplicationException("Search Trusted Party with name '" + name + "' has been failed!")));
   }
 
   @Override
@@ -71,19 +67,16 @@ public class TrustedPartyNeo4jRepository implements TrustedPartyRepository {
         .single()
         .onErrorMap(
             NoSuchElementException.class,
-            _ -> new NotFoundException(
-                "Default TrustedParty has not been found!"))
+            _ -> new NotFoundException("Default TrustedParty has not been found!"))
         .onErrorMap(
             IndexOutOfBoundsException.class,
-            _ -> new ConflictException(
-                "There is more then one default TrustedParty!"))
+            _ -> new ConflictException("There is more then one default TrustedParty!"))
         .flatMap(trustedPartyClient::findById)
-        .switchIfEmpty(Mono.error(new NotFoundException("Default TrustedParty has not been found!")))
+        .switchIfEmpty(Mono.error(() -> new NotFoundException("Default TrustedParty has not been found!")))
         .map(ModelFactory::toDomain)
         .doOnSuccess(_ -> LOGGER.trace(LOG_PREFIX + "Default TrustedParty has been found."))
         .doOnError(throwable -> LOGGER.error(LOG_PREFIX + "Search default Trusted Party has been failed!\n" + throwable.getMessage()))
-        .onErrorMap(ApplicationExceptionFactory.handleThrowable(
-            new InternalApplicationException("Search default Trusted Party has been failed!")));
+        .onErrorMap(ApplicationExceptionFactory.handleThrowable(new InternalApplicationException("Search default Trusted Party has been failed!")));
   }
 
   @Override
@@ -92,18 +85,16 @@ public class TrustedPartyNeo4jRepository implements TrustedPartyRepository {
         .single()
         .onErrorMap(
             NoSuchElementException.class,
-            _ -> new NotFoundException(
-                "Trusted Party for organization with identifier '" + organizationIdentifier + "' has not been found!"))
+            _ -> new NotFoundException("Trusted Party for organization with identifier '" + organizationIdentifier + "' has not been found!"))
         .onErrorMap(
             IndexOutOfBoundsException.class,
-            _ -> new ConflictException(
-                "Organization with identifier '" + organizationIdentifier + "' has more then one TrustedParty!"))
+            _ -> new ConflictException("Organization with identifier '" + organizationIdentifier + "' has more then one TrustedParty!"))
         .flatMap(trustedPartyClient::findById)
-        .switchIfEmpty(Mono.error(new NotFoundException("Trusted Party for organization with identifier '" + organizationIdentifier + "' has not been found!")))
+        .switchIfEmpty(Mono.error(() -> new NotFoundException("Trusted Party for organization with identifier '" + organizationIdentifier + "' has not been found!")))
         .map(ModelFactory::toDomain)
         .doOnSuccess(_ -> LOGGER.trace(LOG_PREFIX + "Trusted Party for organization with identifier '" + organizationIdentifier + "' has been found."))
-        .doOnError(throwable -> LOGGER.error(LOG_PREFIX + "Search Trusted Party for organization with identifier '" + organizationIdentifier + "' has been failed!\n"
-            + throwable.getMessage()))
+        .doOnError(throwable -> LOGGER.error(
+            LOG_PREFIX + "Search Trusted Party for organization with identifier '" + organizationIdentifier + "' has been failed!\n" + throwable.getMessage()))
         .onErrorMap(ApplicationExceptionFactory.handleThrowable(
             new InternalApplicationException("Search Trusted Party for organization with identifier '" + organizationIdentifier + "' has been failed!")));
   }
@@ -114,17 +105,15 @@ public class TrustedPartyNeo4jRepository implements TrustedPartyRepository {
         .single()
         .onErrorMap(
             NoSuchElementException.class,
-            _ -> new NotFoundException(
-                "Organization with identifier '" + organizationIdentifier + "' has no TrustedParty!"))
+            _ -> new NotFoundException("Organization with identifier '" + organizationIdentifier + "' has no TrustedParty!"))
         .onErrorMap(
             IndexOutOfBoundsException.class,
-            _ -> new ConflictException(
-                "Organization with identifier '" + organizationIdentifier + "' has more then one TrustedParty!"))
+            _ -> new ConflictException("Organization with identifier '" + organizationIdentifier + "' has more then one TrustedParty!"))
         .flatMap(trustedPartyClient::findUrlById)
-        .switchIfEmpty(Mono.error(new NotFoundException("Trusted Party URL for organization with identifier '" + organizationIdentifier + "' has not been found!")))
+        .switchIfEmpty(Mono.error(() -> new NotFoundException("Trusted Party URL for organization with identifier '" + organizationIdentifier + "' has not been found!")))
         .doOnSuccess(_ -> LOGGER.trace(LOG_PREFIX + "Trusted Party URL for organization with identifier '" + organizationIdentifier + "' has been found."))
-        .doOnError(throwable -> LOGGER.error(LOG_PREFIX + "Search Trusted Party URL for organization with identifier '" + organizationIdentifier + "' has been failed!\n"
-            + throwable.getMessage()))
+        .doOnError(throwable -> LOGGER.error(
+            LOG_PREFIX + "Search Trusted Party URL for organization with identifier '" + organizationIdentifier + "' has been failed!\n" + throwable.getMessage()))
         .onErrorMap(ApplicationExceptionFactory.handleThrowable(
             new InternalApplicationException("Search Trusted Party URL for organization with identifier '" + organizationIdentifier + "' has been failed!")));
   }

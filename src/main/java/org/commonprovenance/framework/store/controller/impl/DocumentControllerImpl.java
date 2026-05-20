@@ -157,7 +157,7 @@ public class DocumentControllerImpl implements DocumentController {
         // issue token
         .flatMap((Document document) -> Mono.just(document)
             .flatMap(this.trustedPartyWebService::issueGraphToken)
-            .flatMap(this.tokenService::storeToken)
+            .delayUntil(this.tokenService::storeToken)
             .map(document::withToken))
         .doOnNext(_ -> LOGGER.debug("Token stored"))
 
