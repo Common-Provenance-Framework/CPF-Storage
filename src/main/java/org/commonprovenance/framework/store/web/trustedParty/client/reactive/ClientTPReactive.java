@@ -1,11 +1,11 @@
-package org.commonprovenance.framework.store.web.trustedParty.client.webFlux;
+package org.commonprovenance.framework.store.web.trustedParty.client.reactive;
 
 import java.util.Map;
 import java.util.function.Function;
 
 import org.commonprovenance.framework.store.exceptions.NotFoundException;
+import org.commonprovenance.framework.store.web.config.WebConfig;
 import org.commonprovenance.framework.store.web.trustedParty.client.ClientTP;
-import org.commonprovenance.framework.store.web.trustedParty.client.webFlux.config.WebConfigTP;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -16,18 +16,18 @@ import reactor.core.publisher.Mono;
 
 @Component
 @Profile("live & webflux")
-public class ClientTPWebFlux implements ClientTP {
+public class ClientTPReactive implements ClientTP {
   private final WebClient client;
-  private final WebConfigTP config;
+  private final String defaultUrl;
 
-  public ClientTPWebFlux(WebClient client, WebConfigTP config) {
-    this.client = client;
-    this.config = config;
+  public ClientTPReactive(WebConfig config) {
+    this.client = config.getDefaultTrustedPartyWebClient();
+    this.defaultUrl = config.getTrustedPartyUrl();
   }
 
   @Override
   public String getUrl() {
-    return this.config.getTrustedPartyUrl();
+    return this.defaultUrl;
   }
 
   @Override
@@ -44,25 +44,25 @@ public class ClientTPWebFlux implements ClientTP {
       Map<String, String> queryParams) {
     return (WebClient customClient) -> customClient
         .get()
-        .uri(uriBuilder -> buildUriWithParams(uriBuilder, uri, queryParams))
+        .uri(buildUriWithParams(uri, queryParams))
         .retrieve()
         .onStatus(status -> status.value() == 404,
-            response -> Mono.error(new NotFoundException("Resource not found at: " + uri)))
+            response -> Mono.error(new NotFoundException("Resource not found at: " + response.request().getURI())))
         .bodyToMono(responseType);
   }
 
   public <T> Mono<T> sendGetOneRequest(String uri, Class<T> responseType, Map<String, String> queryParams) {
     return this.client.get()
-        .uri(uriBuilder -> buildUriWithParams(uriBuilder, uri, queryParams))
+        .uri(buildUriWithParams(uri, queryParams))
         .retrieve()
         .onStatus(status -> status.value() == 404,
-            response -> Mono.error(new NotFoundException("Resource not found at: " + uri)))
+            response -> Mono.error(new NotFoundException("Resource not found at: " + response.request().getURI())))
         .bodyToMono(responseType);
   }
 
   public <T> Flux<T> sendGetManyRequest(String uri, Class<T> responseType, Map<String, String> queryParams) {
     return this.client.get()
-        .uri(uriBuilder -> buildUriWithParams(uriBuilder, uri, queryParams))
+        .uri(buildUriWithParams(uri, queryParams))
         .retrieve()
         .bodyToFlux(responseType);
   }
@@ -72,7 +72,7 @@ public class ClientTPWebFlux implements ClientTP {
       Class<T> responseType,
       Map<String, String> queryParams) {
     return (WebClient customClient) -> customClient.get()
-        .uri(uriBuilder -> buildUriWithParams(uriBuilder, uri, queryParams))
+        .uri(buildUriWithParams(uri, queryParams))
         .retrieve()
         .bodyToFlux(responseType);
   }
@@ -125,12 +125,14 @@ public class ClientTPWebFlux implements ClientTP {
         .bodyToMono(responseType);
   }
 
-  private java.net.URI buildUriWithParams(UriBuilder uriBuilder, String uri, Map<String, String> queryParams) {
-    UriBuilder builder = uriBuilder.path(uri);
-    if (queryParams != null) {
-      queryParams.forEach(builder::queryParam);
-    }
-    return builder.build();
+  private Function<UriBuilder, java.net.URI> buildUriWithParams(String uri, Map<String, String> queryParams) {
+    return (UriBuilder uriBuilder) -> {
+      UriBuilder builder = uriBuilder.path(uri);
+      if (queryParams != null) {
+        queryParams.forEach(builder::queryParam);
+      }
+      return builder.build();
+    };
   }
 
 }
