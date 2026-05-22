@@ -5,7 +5,7 @@ import java.util.function.Function;
 
 import org.commonprovenance.framework.store.exceptions.NotFoundException;
 import org.commonprovenance.framework.store.web.config.WebConfig;
-import org.commonprovenance.framework.store.web.trustedParty.client.ClientTP;
+import org.commonprovenance.framework.store.web.trustedParty.client.ClientTrustedParty;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -16,17 +16,17 @@ import reactor.core.publisher.Mono;
 
 @Component
 @Profile("live & webflux")
-public class ClientTPReactive implements ClientTP {
+public class ClientTrustedPartyReactive implements ClientTrustedParty {
   private final WebClient client;
   private final String defaultUrl;
 
-  public ClientTPReactive(WebConfig config) {
+  public ClientTrustedPartyReactive(WebConfig config) {
     this.client = config.getDefaultTrustedPartyWebClient();
     this.defaultUrl = config.getTrustedPartyUrl();
   }
 
   @Override
-  public String getUrl() {
+  public String getDefaultTrustedPartyUrl() {
     return this.defaultUrl;
   }
 

@@ -7,8 +7,8 @@ import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-public interface ClientTP {
-  String getUrl();
+public interface ClientTrustedParty {
+  String getDefaultTrustedPartyUrl();
 
   WebClient buildWebClient(String trustedPartyUrl);
 
