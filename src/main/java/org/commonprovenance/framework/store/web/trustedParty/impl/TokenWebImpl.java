@@ -25,8 +25,8 @@ import reactor.core.publisher.Mono;
 
 @Component
 public class TokenWebImpl implements TokenWeb {
-  private final String LOG_PREFIX = "TrustedPartyWebImpl: ";
-  private static final Logger LOGGER = LoggerFactory.getLogger(TrustedPartyWebImpl.class);
+  private final String LOG_PREFIX = "TokenWebImpl: ";
+  private static final Logger LOGGER = LoggerFactory.getLogger(TokenWebImpl.class);
 
   private final ClientTrustedParty client;
 
@@ -48,7 +48,7 @@ public class TokenWebImpl implements TokenWeb {
         .map(this.client.sendCustomGetManyRequest(getTokensUri(organizationId), TokenTPResponseDTO.class, queryParams))
         .orElse(this.client.sendGetManyRequest(getTokensUri(organizationId), TokenTPResponseDTO.class, queryParams))
         .flatMap(MONO.liftEffectToMono(ModelFactory::toDomain))
-        .doOnComplete(() -> LOGGER.trace(LOG_PREFIX + "Tokens for organization with id '" + organizationId + "' has been fetched!\n"))
+        .doOnComplete(() -> LOGGER.trace(LOG_PREFIX + "Tokens for organization with id '" + organizationId + "' has been fetched."))
         .doOnError(throwable -> LOGGER.error(LOG_PREFIX + "Tokens for organization with id '" + organizationId + "' has not been fetched!\n" + throwable.getMessage()))
         .onErrorMap(ApplicationExceptionFactory.handleThrowable(
             new InternalApplicationException("Tokens for organization with id '" + organizationId + "' has not been fetched!")));
