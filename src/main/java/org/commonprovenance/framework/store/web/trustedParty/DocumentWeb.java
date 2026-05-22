@@ -8,11 +8,11 @@ import org.openprovenance.prov.model.QualifiedName;
 
 import reactor.core.publisher.Mono;
 
-public interface DocumentClient {
+public interface DocumentWeb {
 
   Mono<Document> getById(
-      String organizationId,
-      QualifiedName bundle_identifier,
+      String organizationIdentifier,
+      QualifiedName bundleIdentifier,
       Format documentFormat,
-      Optional<String> trustedPartyUrl);
+      Optional<String> optTrustedPartyUrl);
 }

@@ -43,24 +43,24 @@ public class TokenWebImpl implements TokenWeb {
   public Function<String, Flux<Token>> getAllByOrganization(Optional<String> optTrustedPartyUrl) {
     Map<String, String> queryParams = Map.of("tokenFormat", "jwt");
 
-    return (String organizationId) -> optTrustedPartyUrl
+    return (String organizationIdentifier) -> optTrustedPartyUrl
         .map(this.client::buildWebClient)
-        .map(this.client.sendCustomGetManyRequest(getTokensUri(organizationId), TokenTPResponseDTO.class, queryParams))
-        .orElse(this.client.sendGetManyRequest(getTokensUri(organizationId), TokenTPResponseDTO.class, queryParams))
+        .map(this.client.sendCustomGetManyRequest(getTokensUri(organizationIdentifier), TokenTPResponseDTO.class, queryParams))
+        .orElse(this.client.sendGetManyRequest(getTokensUri(organizationIdentifier), TokenTPResponseDTO.class, queryParams))
         .flatMap(MONO.liftEffectToMono(ModelFactory::toDomain))
-        .doOnComplete(() -> LOGGER.trace(LOG_PREFIX + "Tokens for organization with id '" + organizationId + "' has been fetched."))
-        .doOnError(throwable -> LOGGER.error(LOG_PREFIX + "Tokens for organization with id '" + organizationId + "' has not been fetched!\n" + throwable.getMessage()))
+        .doOnComplete(() -> LOGGER.trace(LOG_PREFIX + "Tokens for organization with id '" + organizationIdentifier + "' has been fetched."))
+        .doOnError(throwable -> LOGGER.error(LOG_PREFIX + "Tokens for organization with id '" + organizationIdentifier + "' has not been fetched!\n" + throwable.getMessage()))
         .onErrorMap(ApplicationExceptionFactory.handleThrowable(
-            new InternalApplicationException("Tokens for organization with id '" + organizationId + "' has not been fetched!")));
+            new InternalApplicationException("Tokens for organization with id '" + organizationIdentifier + "' has not been fetched!")));
   }
 
   @Override
   public Mono<Token> getByDocumentId(
-      String organizationId,
+      String organizationIdentifier,
       QualifiedName bundleIdentifier,
       Format documentFormat,
       Optional<String> optTrustedPartyUrl) {
-    String uri = getTokensUri(organizationId) + "/" + bundleIdentifier.getUri() + "/" + documentFormat.toString();
+    String uri = getTokensUri(organizationIdentifier) + "/" + bundleIdentifier.getUri() + "/" + documentFormat.toString();
     Map<String, String> queryParams = Map.of("tokenFormat", "jwt");
 
     return optTrustedPartyUrl
@@ -69,12 +69,12 @@ public class TokenWebImpl implements TokenWeb {
         .orElse(client.sendGetOneRequest(uri, TokenTPResponseDTO.class, queryParams))
         .flatMap(MONO.liftEffectToMono(ModelFactory::toDomain))
         .doOnSuccess(_ -> LOGGER.trace(
-            LOG_PREFIX + "Token has been fetched. Organization identifier is '" + organizationId + "'. Document identifier is '" + bundleIdentifier.getUri() + "'."))
+            LOG_PREFIX + "Token has been fetched. Organization identifier is '" + organizationIdentifier + "'. Document identifier is '" + bundleIdentifier.getUri() + "'."))
         .doOnError(throwable -> {
           if (throwable instanceof NotFoundException notFound)
             LOGGER.trace(LOG_PREFIX + notFound.getMessage());
           else
-            LOGGER.error(LOG_PREFIX + "Token has not been fetched. Organization identifier is '" + organizationId
+            LOGGER.error(LOG_PREFIX + "Token has not been fetched. Organization identifier is '" + organizationIdentifier
                 + "'. Document identifier is '" + bundleIdentifier.getUri() + "'!\n" + throwable.getMessage());
         })
         .onErrorMap(ApplicationExceptionFactory.handleThrowable(new InternalApplicationException("Token has not been fetched!")));

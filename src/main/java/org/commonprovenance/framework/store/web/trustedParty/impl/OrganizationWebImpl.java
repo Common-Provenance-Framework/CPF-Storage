@@ -23,8 +23,8 @@ import reactor.core.publisher.Mono;
 
 @Component
 public class OrganizationWebImpl implements OrganizationWeb {
-  private final String LOG_PREFIX = "TrustedPartyWebImpl: ";
-  private static final Logger LOGGER = LoggerFactory.getLogger(TrustedPartyWebImpl.class);
+  private final String LOG_PREFIX = "OrganizationWebImpl: ";
+  private static final Logger LOGGER = LoggerFactory.getLogger(OrganizationWebImpl.class);
 
   private final ClientTrustedParty client;
 
