@@ -42,7 +42,6 @@ public class TrustedPartyWebImpl implements TrustedPartyWeb {
   @Override
   public Mono<TrustedParty> getInfo(Optional<String> optTrustedPartyUrl) {
     return optTrustedPartyUrl
-        .map(this.client::buildWebClient)
         .map(this.client.sendCustomGetOneRequest("/info", TrustedPartyTPResponseDTO.class, Map.of()))
         .orElse(this.client.sendGetOneRequest("/info", TrustedPartyTPResponseDTO.class, Map.of()))
         .flatMap(MONO.liftEffectToMono(ModelFactory.toDomain(
@@ -63,7 +62,6 @@ public class TrustedPartyWebImpl implements TrustedPartyWeb {
   public Function<Document, Mono<Token>> issueGraphToken(Optional<String> optTrustedPartyUrl, GraphType graphType) {
     return (Document document) -> MONO.fromEither(DTOFactory.toForm(document, graphType))
         .flatMap(optTrustedPartyUrl
-            .map(this.client::buildWebClient)
             .map(this.client.sendCustomPostRequest("/issueToken", TokenTPResponseDTO.class))
             .orElse(this.client.sendPostRequest("/issueToken", TokenTPResponseDTO.class)))
         .flatMap(MONO.liftEffectToMono(ModelFactory::toDomain))
@@ -79,7 +77,6 @@ public class TrustedPartyWebImpl implements TrustedPartyWeb {
     return (Document document) -> MONO.fromEither(DTOFactory.toForm(organization, document))
         .flatMap(organization.getTrustedParty()
             .flatMap(TrustedParty::getUrl)
-            .map(this.client::buildWebClient)
             .map(this.client.sendCustomPostRequest("/verifySignature", Void.class))
             .orElse(this.client.sendPostRequest("/verifySignature", Void.class)))
         .then(Mono.just(true))

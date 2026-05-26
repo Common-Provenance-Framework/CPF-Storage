@@ -44,7 +44,6 @@ public class TokenWebImpl implements TokenWeb {
     Map<String, String> queryParams = Map.of("tokenFormat", "jwt");
 
     return (String organizationIdentifier) -> optTrustedPartyUrl
-        .map(this.client::buildWebClient)
         .map(this.client.sendCustomGetManyRequest(getTokensUri(organizationIdentifier), TokenTPResponseDTO.class, queryParams))
         .orElse(this.client.sendGetManyRequest(getTokensUri(organizationIdentifier), TokenTPResponseDTO.class, queryParams))
         .flatMap(MONO.liftEffectToMono(ModelFactory::toDomain))
@@ -64,7 +63,6 @@ public class TokenWebImpl implements TokenWeb {
     Map<String, String> queryParams = Map.of("tokenFormat", "jwt");
 
     return optTrustedPartyUrl
-        .map(this.client::buildWebClient)
         .map(this.client.sendCustomGetOneRequest(uri, TokenTPResponseDTO.class, queryParams))
         .orElse(client.sendGetOneRequest(uri, TokenTPResponseDTO.class, queryParams))
         .flatMap(MONO.liftEffectToMono(ModelFactory::toDomain))

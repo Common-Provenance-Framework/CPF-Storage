@@ -31,18 +31,11 @@ public class ClientTrustedPartyReactive implements ClientTrustedParty {
   }
 
   @Override
-  public WebClient buildWebClient(String trustedPartyUrl) {
-    return WebClient.builder()
-        .baseUrl(trustedPartyUrl)
-        .defaultHeader("Accept", "application/json")
-        .build();
-  }
-
-  public <T> Function<WebClient, Mono<T>> sendCustomGetOneRequest(
+  public <T> Function<String, Mono<T>> sendCustomGetOneRequest(
       String uri,
       Class<T> responseType,
       Map<String, String> queryParams) {
-    return (WebClient customClient) -> customClient
+    return (String trustedPartyUrl) -> this.buildWebClient(trustedPartyUrl)
         .get()
         .uri(buildUriWithParams(uri, queryParams))
         .retrieve()
@@ -51,6 +44,7 @@ public class ClientTrustedPartyReactive implements ClientTrustedParty {
         .bodyToMono(responseType);
   }
 
+  @Override
   public <T> Mono<T> sendGetOneRequest(String uri, Class<T> responseType, Map<String, String> queryParams) {
     return this.client.get()
         .uri(buildUriWithParams(uri, queryParams))
@@ -60,6 +54,7 @@ public class ClientTrustedPartyReactive implements ClientTrustedParty {
         .bodyToMono(responseType);
   }
 
+  @Override
   public <T> Flux<T> sendGetManyRequest(String uri, Class<T> responseType, Map<String, String> queryParams) {
     return this.client.get()
         .uri(buildUriWithParams(uri, queryParams))
@@ -67,16 +62,19 @@ public class ClientTrustedPartyReactive implements ClientTrustedParty {
         .bodyToFlux(responseType);
   }
 
-  public <T> Function<WebClient, Flux<T>> sendCustomGetManyRequest(
+  @Override
+  public <T> Function<String, Flux<T>> sendCustomGetManyRequest(
       String uri,
       Class<T> responseType,
       Map<String, String> queryParams) {
-    return (WebClient customClient) -> customClient.get()
+    return (String trustedPartyUrl) -> this.buildWebClient(trustedPartyUrl)
+        .get()
         .uri(buildUriWithParams(uri, queryParams))
         .retrieve()
         .bodyToFlux(responseType);
   }
 
+  @Override
   public <T, B> Function<B, Mono<T>> sendPostRequest(String uri, Class<T> responseType) {
     return (B body) -> this.client.post()
         .uri(uri)
@@ -85,8 +83,9 @@ public class ClientTrustedPartyReactive implements ClientTrustedParty {
         .bodyToMono(responseType);
   }
 
-  public <T, B> Function<WebClient, Function<B, Mono<T>>> sendCustomPostRequest(String uri, Class<T> responseType) {
-    return (WebClient customClient) -> (B body) -> customClient
+  @Override
+  public <T, B> Function<String, Function<B, Mono<T>>> sendCustomPostRequest(String uri, Class<T> responseType) {
+    return (String trustedPartyUrl) -> (B body) -> this.buildWebClient(trustedPartyUrl)
         .post()
         .uri(uri)
         .bodyValue(body)
@@ -94,6 +93,7 @@ public class ClientTrustedPartyReactive implements ClientTrustedParty {
         .bodyToMono(responseType);
   }
 
+  @Override
   public <T, B> Function<B, Mono<T>> sendPutRequest(String uri, Class<T> responseType) {
     return (B body) -> this.client.put()
         .uri(uri)
@@ -102,8 +102,9 @@ public class ClientTrustedPartyReactive implements ClientTrustedParty {
         .bodyToMono(responseType);
   }
 
-  public <T, B> Function<WebClient, Function<B, Mono<T>>> sendCustomPutRequest(String uri, Class<T> responseType) {
-    return (WebClient customClient) -> (B body) -> customClient
+  @Override
+  public <T, B> Function<String, Function<B, Mono<T>>> sendCustomPutRequest(String uri, Class<T> responseType) {
+    return (String trustedPartyUrl) -> (B body) -> this.buildWebClient(trustedPartyUrl)
         .put()
         .uri(uri)
         .bodyValue(body)
@@ -111,6 +112,7 @@ public class ClientTrustedPartyReactive implements ClientTrustedParty {
         .bodyToMono(responseType);
   }
 
+  @Override
   public <T> Mono<T> sendDeleteRequest(String uri, Class<T> responseType) {
     return this.client.delete()
         .uri(uri)
@@ -118,8 +120,10 @@ public class ClientTrustedPartyReactive implements ClientTrustedParty {
         .bodyToMono(responseType);
   }
 
-  public <T> Function<WebClient, Mono<T>> sendCustomDeleteRequest(String uri, Class<T> responseType) {
-    return (WebClient customClient) -> customClient.delete()
+  @Override
+  public <T> Function<String, Mono<T>> sendCustomDeleteRequest(String uri, Class<T> responseType) {
+    return (String trustedPartyUrl) -> this.buildWebClient(trustedPartyUrl)
+        .delete()
         .uri(uri)
         .retrieve()
         .bodyToMono(responseType);
@@ -135,4 +139,10 @@ public class ClientTrustedPartyReactive implements ClientTrustedParty {
     };
   }
 
+  private WebClient buildWebClient(String trustedPartyUrl) {
+    return WebClient.builder()
+        .baseUrl(trustedPartyUrl)
+        .defaultHeader("Accept", "application/json")
+        .build();
+  }
 }

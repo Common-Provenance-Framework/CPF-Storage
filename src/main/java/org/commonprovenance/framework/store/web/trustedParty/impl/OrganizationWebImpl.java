@@ -38,7 +38,6 @@ public class OrganizationWebImpl implements OrganizationWeb {
     return (Organization organization) -> Mono.just(organization)
         .flatMap(MONO.liftEffectToMono(DTOFactory::toForm))
         .flatMap(optTrustedPartyUrl
-            .map(this.client::buildWebClient)
             .map(this.client.sendCustomPostRequest("/organizations/" + organization.getIdentifier(), Void.class))
             .orElse(this.client.sendPostRequest("/organizations/" + organization.getIdentifier(), Void.class)))
         .doOnSuccess(_ -> LOGGER.trace(LOG_PREFIX + "New organization with identifier '" + organization.getIdentifier() + "' has been registered."))
@@ -51,7 +50,6 @@ public class OrganizationWebImpl implements OrganizationWeb {
   @Override
   public Flux<Organization> getAll(Optional<String> optTrustedPartyUrl) {
     return optTrustedPartyUrl
-        .map(this.client::buildWebClient)
         .map(this.client.sendCustomGetManyRequest("/organizations", OrganizationTPResponseDTO.class, Map.of()))
         .orElse(this.client.sendGetManyRequest("/organizations", OrganizationTPResponseDTO.class, Map.of()))
         .flatMap(MONO.liftEffectToMono(ModelFactory::toDomain))
@@ -65,7 +63,6 @@ public class OrganizationWebImpl implements OrganizationWeb {
     return (String organizationIdentifier) -> MONO.<String> makeSureNotNullWithMessage("Organization id can not be null!")
         .apply(organizationIdentifier)
         .flatMap((String id) -> optTrustedPartyUrl
-            .map(this.client::buildWebClient)
             .map(this.client.sendCustomGetOneRequest("/organizations/" + id, OrganizationTPResponseDTO.class, Map.of()))
             .orElse(this.client.sendGetOneRequest("/organizations/" + id, OrganizationTPResponseDTO.class, Map.of())))
         .flatMap(MONO.liftEffectToMono(ModelFactory::toDomain))

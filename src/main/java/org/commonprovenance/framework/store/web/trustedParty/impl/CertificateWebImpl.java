@@ -44,7 +44,6 @@ public class CertificateWebImpl implements CertificateWeb {
   @Override
   public Function<String, Mono<Organization>> getOrganizationCertificate(Optional<String> optTrustedPartyUrl) {
     return (String organizationIdentifier) -> optTrustedPartyUrl
-        .map(this.client::buildWebClient)
         .map(this.client.sendCustomGetOneRequest(getUri(organizationIdentifier), CertificateTPResponseDTO.class, Map.of()))
         .orElse(this.client.sendGetOneRequest(getUri(organizationIdentifier), CertificateTPResponseDTO.class, Map.of()))
         .flatMap(MONO.liftEffectToMono(ModelFactory::toDomain))
@@ -64,7 +63,6 @@ public class CertificateWebImpl implements CertificateWeb {
     return (Organization organization) -> Mono.just(organization)
         .flatMap(MONO.liftEffectToMono(DTOFactory::toUpdateForm))
         .flatMap(optTrustedPartyUrl
-            .map(this.client::buildWebClient)
             .map(this.client.sendCustomPutRequest(getUri(organization), Void.class))
             .orElse(this.client.sendPutRequest(getUri(organization), Void.class)))
         .doOnSuccess(_ -> LOGGER.trace(LOG_PREFIX + "Certificates for organization with identifier '" + organization.getIdentifier() + "' has been updated."))
