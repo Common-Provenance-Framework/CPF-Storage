@@ -16,7 +16,7 @@ public class ClientStoreReactive implements ClientStore {
   private final WebClient client;
 
   public ClientStoreReactive(WebConfig config) {
-    this.client = config.getDefaultStoreWebClient();
+    this.client = config.getStoreWebClient();
   }
 
   @Override

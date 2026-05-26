@@ -18,16 +18,16 @@ import reactor.core.publisher.Mono;
 @Profile("live & webflux")
 public class ClientTrustedPartyReactive implements ClientTrustedParty {
   private final WebClient client;
-  private final String defaultUrl;
+  private final String defaultBaseUrl;
 
   public ClientTrustedPartyReactive(WebConfig config) {
     this.client = config.getDefaultTrustedPartyWebClient();
-    this.defaultUrl = config.getTrustedPartyUrl();
+    this.defaultBaseUrl = config.getTrustedPartyBaseUrl();
   }
 
   @Override
   public String getDefaultTrustedPartyUrl() {
-    return this.defaultUrl;
+    return this.defaultBaseUrl;
   }
 
   @Override

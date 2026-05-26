@@ -18,14 +18,14 @@ public class WebConfig {
     this.env = env;
   }
 
-  public String getTrustedPartyUrl() {
+  public String getTrustedPartyBaseUrl() {
     return env.getProperty(
         "trusted-party.url",
         String.class,
         "http://127.0.0.1:8081/api/v1");
   }
 
-  public String getStoreUrl() {
+  public String getStoreBaseUrl() {
     return env.getProperty(
         "store.url",
         String.class,
@@ -36,17 +36,17 @@ public class WebConfig {
   public WebClient getDefaultTrustedPartyWebClient() {
     return Objects.requireNonNull(
         WebClient.builder()
-            .baseUrl(this.getTrustedPartyUrl())
+            .baseUrl(this.getTrustedPartyBaseUrl())
             .defaultHeader("Accept", "application/json")
             .build(),
         "Trusted Party client can not be null!");
   }
 
   @NotNull
-  public WebClient getDefaultStoreWebClient() {
+  public WebClient getStoreWebClient() {
     return Objects.requireNonNull(
         WebClient.builder()
-            .baseUrl(this.getStoreUrl())
+            .baseUrl(this.getStoreBaseUrl())
             .defaultHeader("Accept", "application/json")
             .build(),
         "Store client can not be null!");
