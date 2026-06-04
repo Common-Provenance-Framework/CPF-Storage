@@ -9,6 +9,7 @@ import org.commonprovenance.framework.store.common.composition.MonoidComposition
 import org.commonprovenance.framework.store.common.dto.HasClientCertificate;
 import org.commonprovenance.framework.store.common.dto.HasIdentifier;
 import org.commonprovenance.framework.store.common.dto.HasIntermediateCertificates;
+import org.commonprovenance.framework.store.common.dto.HasOrganizationId;
 import org.commonprovenance.framework.store.exceptions.ApplicationException;
 import org.commonprovenance.framework.store.model.Organization;
 import org.commonprovenance.framework.store.web.trustedParty.dto.form.RegisterOrganizationTPFormDTO;
@@ -19,7 +20,7 @@ public class RegisterOrganizationFormFactory {
   private static <T extends HasIdentifier<T> & HasClientCertificate<T> & HasIntermediateCertificates<T>> UnaryOperator<RegisterOrganizationTPFormDTO> mapper(T data) {
     return MonoidComposition.<RegisterOrganizationTPFormDTO> composeOperators(
         List.of(
-            HasIdentifier.addIdentifier(data),
+            HasOrganizationId.addOrganizationId(data),
             HasClientCertificate.addClientCertificate(data),
             HasIntermediateCertificates.addIntermediateCertificates(data)));
   }
@@ -29,4 +30,5 @@ public class RegisterOrganizationFormFactory {
         .map(RegisterOrganizationFormFactory.mapper(organization))
         .flatMap(EITHER::validateDTO);
   }
+
 }

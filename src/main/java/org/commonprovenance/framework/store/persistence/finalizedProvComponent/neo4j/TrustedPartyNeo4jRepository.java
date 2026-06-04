@@ -1,7 +1,5 @@
 package org.commonprovenance.framework.store.persistence.finalizedProvComponent.neo4j;
 
-import static org.commonprovenance.framework.store.common.publisher.PublisherHelper.MONO;
-
 import java.util.NoSuchElementException;
 
 import org.commonprovenance.framework.store.exceptions.ConflictException;
@@ -36,8 +34,7 @@ public class TrustedPartyNeo4jRepository implements TrustedPartyRepository {
   @Override
   public Mono<Void> create(TrustedParty trustedParty) {
     return Mono.just(trustedParty)
-        .flatMap(MONO.liftEffectToMono(TrustedPartyNodeFactory::build))
-        .doOnSuccess(System.out::println)
+        .map(TrustedPartyNodeFactory::build)
         .flatMap(trustedPartyClient::save)
         .then()
         .doOnSuccess(_ -> LOGGER.trace(LOG_PREFIX + "Trusted Party has been saved into DB."))

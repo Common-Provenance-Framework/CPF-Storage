@@ -2,29 +2,15 @@ package org.commonprovenance.framework.store.controller.impl;
 
 import static org.commonprovenance.framework.store.common.publisher.PublisherHelper.MONO;
 
-import java.util.Collections;
-import java.util.Optional;
-
-import org.commonprovenance.framework.store.common.utils.Base64Utils;
 import org.commonprovenance.framework.store.config.AppConfiguration;
 import org.commonprovenance.framework.store.controller.DocumentController;
 import org.commonprovenance.framework.store.controller.advice.ApplicationExceptionHandler;
 import org.commonprovenance.framework.store.controller.dto.error.BadRequestDTO;
 import org.commonprovenance.framework.store.controller.dto.error.InternalServerErrorDTO;
-import org.commonprovenance.framework.store.controller.dto.error.NotFoundDTO;
 import org.commonprovenance.framework.store.controller.dto.form.DocumentFormDTO;
-import org.commonprovenance.framework.store.controller.dto.response.DocumentResponseDTO;
 import org.commonprovenance.framework.store.controller.dto.response.TokenResponseDTO;
 import org.commonprovenance.framework.store.controller.facade.DocumentFacade;
-import org.commonprovenance.framework.store.exceptions.ApplicationException;
 import org.commonprovenance.framework.store.exceptions.BadRequestException;
-import org.commonprovenance.framework.store.exceptions.ConflictException;
-import org.commonprovenance.framework.store.exceptions.InternalApplicationException;
-import org.commonprovenance.framework.store.exceptions.NotFoundException;
-import org.commonprovenance.framework.store.exceptions.factory.ApplicationExceptionFactory;
-import org.commonprovenance.framework.store.model.Document;
-import org.commonprovenance.framework.store.model.utils.DocumentUtils;
-import org.commonprovenance.framework.store.model.utils.OrganizationUtils;
 import org.commonprovenance.framework.store.service.persistence.finalizedProvComponent.DocumentService;
 import org.commonprovenance.framework.store.service.persistence.finalizedProvComponent.OrganizationService;
 import org.commonprovenance.framework.store.service.persistence.finalizedProvComponent.TokenService;
@@ -32,13 +18,11 @@ import org.commonprovenance.framework.store.service.persistence.finalizedProvCom
 import org.commonprovenance.framework.store.service.persistence.metaComponent.MetaProvenanceComponentService;
 import org.commonprovenance.framework.store.service.web.trustedParty.TrustedPartyWebService;
 import org.openprovenance.prov.model.ProvFactory;
-import org.openprovenance.prov.model.interop.Formats;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -47,7 +31,6 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-import cz.muni.fi.cpm.model.CpmDocument;
 import cz.muni.fi.cpm.model.ICpmFactory;
 import cz.muni.fi.cpm.model.ICpmProvFactory;
 import io.swagger.v3.oas.annotations.Operation;
@@ -111,7 +94,7 @@ public class DocumentControllerImpl implements DocumentController {
   }
 
   @ResponseStatus(HttpStatus.CREATED)
-  @PostMapping(path = "/", consumes = MediaType.APPLICATION_JSON_VALUE)
+  @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
   @NotNull
   @Operation(summary = "Create a provenance document")
   @ApiResponses({
@@ -120,7 +103,10 @@ public class DocumentControllerImpl implements DocumentController {
       @ApiResponse(responseCode = "409", description = "Conflict with existing data", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = BadRequestDTO.class))),
       @ApiResponse(responseCode = "500", description = "Internal server error", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = InternalServerErrorDTO.class)))
   })
-  public Mono<TokenResponseDTO> createProvDocument(@PathVariable String organizationIdentifier, @RequestBody DocumentFormDTO body) {
+  public Mono<TokenResponseDTO> createProvDocument(
+      @PathVariable String organizationIdentifier,
+      @RequestBody DocumentFormDTO body) {
+    System.out.println(organizationIdentifier);
     return this.documentFacade.createProvDocument(organizationIdentifier, body);
 
   }

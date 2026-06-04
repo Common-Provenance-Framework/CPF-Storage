@@ -27,14 +27,30 @@ public interface HasUrlOptional<T extends HasUrlOptional<T>> {
         .orElse(to);
   }
 
-  static <U extends HasUrlOptional<U>, F> UnaryOperator<U> addUrlIfPresent(F from) {
+  static <U extends HasUrlOptional<U>, F extends org.commonprovenance.framework.store.persistence.finalizedProvComponent.model.types.HasUrl> UnaryOperator<U> addUrl(F from) {
     return (U to) -> Optional.ofNullable(from)
-        .flatMap((F v) -> (v instanceof HasUrl<?> has)
-            ? Optional.of(has).map(HasUrl::getUrl)
-            : (v instanceof HasUrlOptional<?> maybeHas)
-                ? maybeHas.getUrl()
-                : Optional.empty())
+        .map(F::getUrl)
         .map(to::withUrl)
         .orElse(to);
+  }
+
+  static <U extends HasUrlOptional<U>, F> UnaryOperator<U> addUrlIfPresent(F from) {
+    return (U to) -> Optional.ofNullable(from)
+        .flatMap(HasUrlOptional::getValue)
+        .map(to::withUrl)
+        .orElse(to);
+  }
+
+  private static <T> Optional<String> getValue(T form) {
+    if (form instanceof HasUrl<?> has)
+      return Optional.of(has.getUrl());
+
+    if (form instanceof HasUrlOptional<?> maybeHas)
+      return maybeHas.getUrl();
+
+    if (form instanceof org.commonprovenance.framework.store.persistence.finalizedProvComponent.model.types.HasUrl has)
+      return Optional.of(has.getUrl());
+
+    return Optional.empty();
   }
 }

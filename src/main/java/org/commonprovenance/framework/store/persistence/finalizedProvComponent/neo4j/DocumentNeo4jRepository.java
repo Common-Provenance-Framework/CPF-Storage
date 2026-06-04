@@ -36,7 +36,7 @@ public class DocumentNeo4jRepository implements DocumentRepository {
   @Override
   public Mono<Void> save(Document document) {
     return Mono.just(document)
-        .flatMap(MONO.liftEffectToMono(DocumentNodeFactory::buildWithRelations))
+        .map(DocumentNodeFactory::buildWithRelations)
         .flatMap(client::save)
         .then()
         .doOnSuccess(_ -> LOGGER.trace(LOG_PREFIX + "Document has been saved into DB."))

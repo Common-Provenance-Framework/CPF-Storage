@@ -23,6 +23,23 @@ public interface HasJwtToken<T extends HasJwtToken<T>> {
         .orElse(to);
   }
 
+  static <T extends HasJwtToken<T>, F> UnaryOperator<T> addJwtIfPresent(F from) {
+    return (T to) -> Optional.ofNullable(from)
+        .flatMap(HasJwtToken::getValue)
+        .map(to::withJwt)
+        .orElse(to);
+  }
+
+  private static <T> Optional<String> getValue(T form) {
+    if (form instanceof HasJwtToken<?> has)
+      return Optional.of(has.getJwt());
+
+    if (form instanceof org.commonprovenance.framework.store.persistence.finalizedProvComponent.model.types.HasJwtToken has)
+      return Optional.of(has.getJwt());
+
+    return Optional.empty();
+  }
+
   static <T extends HasJwtToken<T> & HasCreatedOn<T>> Either<ApplicationException, T> loadCreatedOn(T value) {
     return Either.<ApplicationException, T> right(value)
         .map(T::getJwt)

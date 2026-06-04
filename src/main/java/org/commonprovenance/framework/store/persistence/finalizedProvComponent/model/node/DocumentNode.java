@@ -2,17 +2,17 @@ package org.commonprovenance.framework.store.persistence.finalizedProvComponent.
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.commonprovenance.framework.store.common.dto.HasFormatSerialized;
-import org.commonprovenance.framework.store.common.dto.HasGraph;
-import org.commonprovenance.framework.store.common.dto.HasId;
-import org.commonprovenance.framework.store.common.dto.HasIdentifier;
-import org.commonprovenance.framework.store.common.dto.HasTokenNodeList;
-import org.commonprovenance.framework.store.common.validation.ValidatableDTO;
 import org.commonprovenance.framework.store.model.Format;
 import org.commonprovenance.framework.store.persistence.finalizedProvComponent.model.relation.HasToken;
+import org.commonprovenance.framework.store.persistence.finalizedProvComponent.model.types.HasFormat;
+import org.commonprovenance.framework.store.persistence.finalizedProvComponent.model.types.HasGraph;
+import org.commonprovenance.framework.store.persistence.finalizedProvComponent.model.types.HasId;
+import org.commonprovenance.framework.store.persistence.finalizedProvComponent.model.types.HasIdentifier;
+import org.commonprovenance.framework.store.persistence.finalizedProvComponent.model.types.HasTokenNodes;
 import org.springframework.data.annotation.PersistenceCreator;
 import org.springframework.data.neo4j.core.schema.GeneratedValue;
 import org.springframework.data.neo4j.core.schema.Id;
@@ -20,12 +20,12 @@ import org.springframework.data.neo4j.core.schema.Node;
 import org.springframework.data.neo4j.core.schema.Relationship;
 
 @Node("Document")
-public class DocumentNode extends ValidatableDTO implements
+public class DocumentNode implements
     HasId,
-    HasIdentifier<DocumentNode>,
-    HasGraph<DocumentNode>,
-    HasFormatSerialized<DocumentNode>,
-    HasTokenNodeList<DocumentNode> {
+    HasIdentifier,
+    HasGraph,
+    HasFormat,
+    HasTokenNodes {
   @Id
   @GeneratedValue
   private final String id;
@@ -51,15 +51,6 @@ public class DocumentNode extends ValidatableDTO implements
     this.format = format;
 
     this.hasToken = hasToken;
-  }
-
-  public DocumentNode() {
-    this.id = null;
-    this.identifier = null;
-    this.graph = null;
-    this.format = null;
-
-    this.hasToken = Collections.emptyList();
   }
 
   // Constructor for creating new node (id will be generated)
@@ -90,7 +81,7 @@ public class DocumentNode extends ValidatableDTO implements
         this.getId(),
         identifier,
         this.getGraph(),
-        this.getDocumentFormat(),
+        this.getFormat(),
         this.getHasToken());
   }
 
@@ -99,7 +90,7 @@ public class DocumentNode extends ValidatableDTO implements
         this.getId(),
         this.getIdentifier(),
         graph,
-        this.getDocumentFormat(),
+        this.getFormat(),
         this.getHasToken());
   }
 
@@ -112,21 +103,25 @@ public class DocumentNode extends ValidatableDTO implements
         this.getHasToken());
   }
 
-  public DocumentNode withToken(TokenNode tokenEntity) {
-    if (tokenEntity == null) {
+  public DocumentNode withToken(Optional<TokenNode> maybeTokenNode) {
+    return maybeTokenNode.map(this::withToken).orElse(this);
+  }
+
+  public DocumentNode withToken(TokenNode tokenNode) {
+    if (tokenNode == null) {
       return this;
     }
 
     List<HasToken> updatedHasToken = Stream.concat(
         this.getHasToken().stream(),
-        Stream.of(new HasToken(tokenEntity)))
+        Stream.of(new HasToken(tokenNode)))
         .collect(Collectors.toList());
 
     return new DocumentNode(
         this.getId(),
         this.getIdentifier(),
         this.getGraph(),
-        this.getDocumentFormat(),
+        this.getFormat(),
         updatedHasToken);
   }
 
@@ -136,23 +131,27 @@ public class DocumentNode extends ValidatableDTO implements
         this.getId(),
         this.getIdentifier(),
         this.getGraph(),
-        this.getDocumentFormat(),
+        this.getFormat(),
         hasToken);
   }
 
+  @Override
   public String getId() {
     return this.id;
   }
 
+  @Override
   public String getIdentifier() {
     return this.identifier;
   }
 
+  @Override
   public String getGraph() {
     return this.graph;
   }
 
-  public String getDocumentFormat() {
+  @Override
+  public String getFormat() {
     return this.format;
   }
 
@@ -160,6 +159,7 @@ public class DocumentNode extends ValidatableDTO implements
     return hasToken;
   }
 
+  @Override
   public List<TokenNode> getTokens() {
     return this.getHasToken().stream()
         .map(HasToken::getToken)

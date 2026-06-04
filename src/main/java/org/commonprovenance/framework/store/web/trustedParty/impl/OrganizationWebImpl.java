@@ -35,8 +35,10 @@ public class OrganizationWebImpl implements OrganizationWeb {
   @Override
   public Mono<Void> create(Organization organization) {
     return MONO.combineM(
-        MONO.fromEitherOptional(organization.getTrustedPartyBaseUrl()),
-        Mono.just(organization).flatMap(MONO.liftEffectToMono(RegisterOrganizationFormFactory::build)),
+        Mono.just(organization)
+            .flatMap(MONO.liftEffectToMono(Organization::getTrustedPartyBaseUrl)),
+        Mono.just(organization)
+            .flatMap(MONO.liftEffectToMono(RegisterOrganizationFormFactory::build)),
         (optTrustedPartyBaseUrl, form) -> Mono.just(form)
             .flatMap(optTrustedPartyBaseUrl
                 .map(this.client.sendCustomPostRequest("/organizations/" + organization.getIdentifier(), Void.class))

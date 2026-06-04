@@ -3,12 +3,12 @@ package org.commonprovenance.framework.store.web.trustedParty.dto.form;
 import java.util.List;
 
 import org.commonprovenance.framework.store.common.dto.HasClientCertificate;
-import org.commonprovenance.framework.store.common.dto.HasIdentifier;
 import org.commonprovenance.framework.store.common.dto.HasIntermediateCertificates;
+import org.commonprovenance.framework.store.common.dto.HasOrganizationId;
 import org.commonprovenance.framework.store.common.validation.ValidatableDTO;
 
 public class RegisterOrganizationTPFormDTO extends ValidatableDTO implements
-    HasIdentifier<RegisterOrganizationTPFormDTO>,
+    HasOrganizationId<RegisterOrganizationTPFormDTO>,
     HasClientCertificate<RegisterOrganizationTPFormDTO>,
     HasIntermediateCertificates<RegisterOrganizationTPFormDTO> {
   private final String organizationId;
@@ -31,21 +31,40 @@ public class RegisterOrganizationTPFormDTO extends ValidatableDTO implements
   }
 
   @Override
-  public RegisterOrganizationTPFormDTO withIdentifier(String identifier) {
+  public RegisterOrganizationTPFormDTO withOrganizationId(String organizationId) {
     return new RegisterOrganizationTPFormDTO(
-        identifier,
+        organizationId,
         this.getClientCertificate(),
         this.getIntermediateCertificates());
   }
 
-  public String getIdentifier() {
+  @Override
+  public RegisterOrganizationTPFormDTO withClientCertificate(String clientCertificate) {
+    return new RegisterOrganizationTPFormDTO(
+        this.getOrganizationId(),
+        clientCertificate,
+        this.getIntermediateCertificates());
+  }
+
+  @Override
+  public RegisterOrganizationTPFormDTO withIntermediateCertificates(List<String> intermediateCertificates) {
+    return new RegisterOrganizationTPFormDTO(
+        this.getOrganizationId(),
+        this.getClientCertificate(),
+        intermediateCertificates);
+  }
+
+  @Override
+  public String getOrganizationId() {
     return organizationId;
   }
 
+  @Override
   public String getClientCertificate() {
     return clientCertificate;
   }
 
+  @Override
   public List<String> getIntermediateCertificates() {
     return intermediateCertificates;
   }

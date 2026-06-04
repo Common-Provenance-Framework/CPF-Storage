@@ -19,14 +19,14 @@ public interface HasTrustedPartyNodeList<T extends HasTrustedPartyNodeList<T>> {
   static <T extends HasTrustedPartyNodeList<T>, F extends HasTrustedPartyOptional<F>> Function<T, Either<ApplicationException, T>> addTrustedParty(F from) {
     return (T to) -> EITHER.makeSureNotNull(from)
         .flatMap(EITHER.liftEitherOptional(F::getTrustedParty))
-        .flatMap(TrustedPartyNodeFactory::build)
+        .map(TrustedPartyNodeFactory::build)
         .map(to::withTrustedParty);
   }
 
   static <T extends HasTrustedPartyNodeList<T>, F extends HasTrustedParty<F>> Function<T, Either<ApplicationException, T>> addTrustedParty(F from) {
     return (T to) -> EITHER.makeSureNotNull(from)
         .map(F::getTrustedParty)
-        .flatMap(TrustedPartyNodeFactory::build)
+        .map(TrustedPartyNodeFactory::build)
         .map(to::withTrustedParty);
   }
 

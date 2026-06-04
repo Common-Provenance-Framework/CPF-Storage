@@ -20,14 +20,28 @@ public interface HasClientCertificate<T extends HasClientCertificate<T>> {
         .orElse(to);
   }
 
-  static <U extends HasClientCertificate<U>, F> UnaryOperator<U> addClientCertificateIfPresent(F from) {
+  static <U extends HasClientCertificate<U>, F extends org.commonprovenance.framework.store.persistence.finalizedProvComponent.model.types.HasClientCertificate> UnaryOperator<U> addClientCertificate(
+      F from) {
     return (U to) -> Optional.ofNullable(from)
-        .flatMap((F v) -> (v instanceof HasClientCertificate<?> has)
-            ? Optional.of(has)
-            : Optional.empty())
-        .map(HasClientCertificate::getClientCertificate)
+        .map(F::getClientCertificate)
         .map(to::withClientCertificate)
         .orElse(to);
   }
 
+  static <U extends HasClientCertificate<U>, F> UnaryOperator<U> addClientCertificateIfPresent(F from) {
+    return (U to) -> Optional.ofNullable(from)
+        .flatMap(HasClientCertificate::getValue)
+        .map(to::withClientCertificate)
+        .orElse(to);
+  }
+
+  private static <T> Optional<String> getValue(T form) {
+    if (form instanceof HasClientCertificate<?> has)
+      return Optional.of(has.getClientCertificate());
+
+    if (form instanceof org.commonprovenance.framework.store.persistence.finalizedProvComponent.model.types.HasClientCertificate has)
+      return Optional.of(has.getClientCertificate());
+
+    return Optional.empty();
+  }
 }

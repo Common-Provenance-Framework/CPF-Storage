@@ -51,6 +51,30 @@ public class OrganizationResponseDTO implements
     this.intermediateCertificates = Collections.emptyList();
   }
 
+  @Override
+  public OrganizationResponseDTO withIdentifier(String identifier) {
+    return new OrganizationResponseDTO(
+        identifier,
+        this.getClientCertificate(),
+        this.getIntermediateCertificates());
+  }
+
+  @Override
+  public OrganizationResponseDTO withClientCertificate(String clientCertificate) {
+    return new OrganizationResponseDTO(
+        this.getIdentifier(),
+        clientCertificate,
+        this.getIntermediateCertificates());
+  }
+
+  @Override
+  public OrganizationResponseDTO withIntermediateCertificates(List<String> intermediateCertificates) {
+    return new OrganizationResponseDTO(
+        this.getIdentifier(),
+        this.getClientCertificate(),
+        intermediateCertificates);
+  }
+
   public String getIdentifier() {
     return identifier;
   }
@@ -62,4 +86,5 @@ public class OrganizationResponseDTO implements
   public List<String> getIntermediateCertificates() {
     return intermediateCertificates;
   }
+
 }

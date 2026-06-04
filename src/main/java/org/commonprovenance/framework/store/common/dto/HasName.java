@@ -16,13 +16,27 @@ public interface HasName<T extends HasName<T>> {
         .orElse(to);
   }
 
-  static <U extends HasName<U>, F> UnaryOperator<U> addNameIfPresent(F from) {
+  static <U extends HasName<U>, F extends org.commonprovenance.framework.store.persistence.finalizedProvComponent.model.types.HasName> UnaryOperator<U> addName(F from) {
     return (U to) -> Optional.ofNullable(from)
-        .flatMap((F v) -> (v instanceof HasName<?> has)
-            ? Optional.of(has)
-            : Optional.empty())
-        .map(HasName::getName)
+        .map(F::getName)
         .map(to::withName)
         .orElse(to);
+  }
+
+  static <U extends HasName<U>, F> UnaryOperator<U> addNameIfPresent(F from) {
+    return (U to) -> Optional.ofNullable(from)
+        .flatMap(HasName::getValue)
+        .map(to::withName)
+        .orElse(to);
+  }
+
+  private static <T> Optional<String> getValue(T form) {
+    if (form instanceof HasName<?> has)
+      return Optional.of(has.getName());
+
+    if (form instanceof org.commonprovenance.framework.store.persistence.finalizedProvComponent.model.types.HasName has)
+      return Optional.of(has.getName());
+
+    return Optional.empty();
   }
 }

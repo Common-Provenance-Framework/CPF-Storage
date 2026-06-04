@@ -12,6 +12,7 @@ import org.commonprovenance.framework.store.exceptions.InvalidValueException;
 import org.commonprovenance.framework.store.model.Document;
 import org.commonprovenance.framework.store.model.factory.DocumentFactory;
 import org.commonprovenance.framework.store.persistence.finalizedProvComponent.model.node.DocumentNode;
+import org.commonprovenance.framework.store.persistence.finalizedProvComponent.model.types.HasDocumentNodes;
 
 import io.vavr.control.Either;
 
@@ -34,10 +35,10 @@ public interface HasDocumentOptional<T extends HasDocumentOptional<T>> {
         .orElse(to);
   }
 
-  static <T extends HasDocumentOptional<T>, F extends HasDocumentNodeList<F>> Function<T, Either<ApplicationException, T>> addDocument(F from) {
+  static <T extends HasDocumentOptional<T>, F extends HasDocumentNodes> Function<T, Either<ApplicationException, T>> addDocument(F from) {
     return (T to) -> Either.<ApplicationException, F> right(from)
         .flatMap(EITHER.makeSureNotNull(_ -> new InvalidValueException("From Object can not be null!")))
-        .map(F::getDoucments)
+        .map(F::getDocuments)
         .flatMap(EITHER.<List<DocumentNode>> makeSure(
             documents -> documents.size() <= 1,
             documents -> new InvalidValueException("Max one Document expected, got " + documents.size() + "!")))

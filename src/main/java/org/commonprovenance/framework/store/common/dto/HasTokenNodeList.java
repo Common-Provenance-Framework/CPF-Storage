@@ -19,14 +19,14 @@ public interface HasTokenNodeList<T extends HasTokenNodeList<T>> {
   static <T extends HasTokenNodeList<T>, F extends HasTokenOptional<F>> Function<T, Either<ApplicationException, T>> addToken(F from) {
     return (T to) -> EITHER.makeSureNotNull(from)
         .flatMap(EITHER.liftEitherOptional(F::getToken))
-        .flatMap(TokenNodeFactory::build)
+        .map(TokenNodeFactory::build)
         .map(to::withToken);
   }
 
   static <T extends HasTokenNodeList<T>, F extends HasTokenOptional<F>> Function<T, Either<ApplicationException, T>> addTokenFull(F from) {
     return (T to) -> EITHER.makeSureNotNull(from)
         .flatMap(EITHER.liftEitherOptional(F::getToken))
-        .flatMap(TokenNodeFactory::buildWithRelations)
+        .map(TokenNodeFactory::buildWithRelations)
         .map(to::withToken);
   }
 

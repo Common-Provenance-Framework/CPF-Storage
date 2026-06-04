@@ -12,6 +12,7 @@ import org.commonprovenance.framework.store.exceptions.InvalidValueException;
 import org.commonprovenance.framework.store.model.Token;
 import org.commonprovenance.framework.store.model.factory.TokenFactory;
 import org.commonprovenance.framework.store.persistence.finalizedProvComponent.model.node.TokenNode;
+import org.commonprovenance.framework.store.persistence.finalizedProvComponent.model.types.HasTokenNodes;
 
 import io.vavr.control.Either;
 
@@ -27,7 +28,7 @@ public interface HasTokenOptional<T extends HasTokenOptional<T>> {
         .orElse(to);
   }
 
-  static <T extends HasTokenOptional<T>, F extends HasTokenNodeList<F>> Function<T, Either<ApplicationException, T>> addToken(F from) {
+  static <T extends HasTokenOptional<T>, F extends HasTokenNodes> Function<T, Either<ApplicationException, T>> addToken(F from) {
     return (T to) -> Either.<ApplicationException, F> right(from)
         .flatMap(EITHER.makeSureNotNull(_ -> new InvalidValueException("Form Object can not be null!")))
         .map(F::getTokens)

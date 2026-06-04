@@ -16,14 +16,28 @@ public interface HasIsChecked<T extends HasIsChecked<T>> {
         .orElse(to);
   }
 
-  static <U extends HasIsChecked<U>, F> UnaryOperator<U> addIsCheckedIfPresent(F from) {
+  static <U extends HasIsChecked<U>, F extends org.commonprovenance.framework.store.persistence.finalizedProvComponent.model.types.HasIsChecked> UnaryOperator<U> addIsChecked(
+      F from) {
     return (U to) -> Optional.ofNullable(from)
-        .flatMap((F v) -> (v instanceof HasIsChecked<?> has)
-            ? Optional.of(has)
-            : Optional.empty())
-        .map(HasIsChecked::getIsChecked)
+        .map(F::getIsChecked)
         .map(to::withIsChecked)
         .orElse(to);
   }
 
+  static <U extends HasIsChecked<U>, F> UnaryOperator<U> addIsCheckedIfPresent(F from) {
+    return (U to) -> Optional.ofNullable(from)
+        .flatMap(HasIsChecked::getValue)
+        .map(to::withIsChecked)
+        .orElse(to);
+  }
+
+  private static <T> Optional<Boolean> getValue(T form) {
+    if (form instanceof HasIsChecked<?> has)
+      return Optional.of(has.getIsChecked());
+
+    if (form instanceof org.commonprovenance.framework.store.persistence.finalizedProvComponent.model.types.HasIsChecked has)
+      return Optional.of(has.getIsChecked());
+
+    return Optional.empty();
+  }
 }

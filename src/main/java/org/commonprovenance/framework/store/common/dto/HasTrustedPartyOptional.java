@@ -12,6 +12,7 @@ import org.commonprovenance.framework.store.exceptions.InvalidValueException;
 import org.commonprovenance.framework.store.model.TrustedParty;
 import org.commonprovenance.framework.store.model.factory.TrustedPartyFactory;
 import org.commonprovenance.framework.store.persistence.finalizedProvComponent.model.node.TrustedPartyNode;
+import org.commonprovenance.framework.store.persistence.finalizedProvComponent.model.types.HasTrustedPartyNodes;
 
 import io.vavr.control.Either;
 
@@ -34,7 +35,7 @@ public interface HasTrustedPartyOptional<T extends HasTrustedPartyOptional<T>> {
         .orElse(to);
   }
 
-  static <T extends HasTrustedPartyOptional<T>, F extends HasTrustedPartyNodeList<F>> Function<T, Either<ApplicationException, T>> addTrustedParty(F from) {
+  static <T extends HasTrustedPartyOptional<T>, F extends HasTrustedPartyNodes> Function<T, Either<ApplicationException, T>> addTrustedParty(F from) {
     return (T to) -> Either.<ApplicationException, F> right(from)
         .flatMap(EITHER.makeSureNotNull(_ -> new InvalidValueException("Form Object can not be null!")))
         .map(F::getTrustedParties)
@@ -48,7 +49,7 @@ public interface HasTrustedPartyOptional<T extends HasTrustedPartyOptional<T>> {
                 .map(to::withTrustedParty));
   }
 
-  static <T extends HasTrustedPartyOptional<T>, F extends HasTrustedPartyNodeList<F>> Function<T, Either<ApplicationException, T>> addTrustedPartyStrict(F from) {
+  static <T extends HasTrustedPartyOptional<T>, F extends HasTrustedPartyNodes> Function<T, Either<ApplicationException, T>> addTrustedPartyStrict(F from) {
     return (T to) -> Either.<ApplicationException, F> right(from)
         .flatMap(EITHER.makeSureNotNull(_ -> new InvalidValueException("Form Object can not be null!")))
         .map(F::getTrustedParties)

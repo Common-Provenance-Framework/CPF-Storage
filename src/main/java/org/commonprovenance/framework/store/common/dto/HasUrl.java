@@ -26,4 +26,14 @@ public interface HasUrl<T extends HasUrl<T>> {
         .map(to::withUrl)
         .orElse(to);
   }
+
+  static <U extends HasUrl<U>, F> UnaryOperator<U> addUrlIfPresent(F from) {
+    return (U to) -> Optional.ofNullable(from)
+        .flatMap((F v) -> (v instanceof HasUrl<?> has)
+            ? Optional.of(has)
+            : Optional.empty())
+        .map(HasUrl::getUrl)
+        .map(to::withUrl)
+        .orElse(to);
+  }
 }

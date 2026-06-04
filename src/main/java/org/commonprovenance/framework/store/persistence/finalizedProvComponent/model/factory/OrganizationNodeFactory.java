@@ -1,51 +1,26 @@
 package org.commonprovenance.framework.store.persistence.finalizedProvComponent.model.factory;
 
-import static org.commonprovenance.framework.store.common.utils.EitherUtils.EITHER;
-
-import java.util.List;
-
-import org.commonprovenance.framework.store.common.composition.MonoidComposition;
-import org.commonprovenance.framework.store.common.dto.HasClientCertificate;
-import org.commonprovenance.framework.store.common.dto.HasDocumentNodeList;
-import org.commonprovenance.framework.store.common.dto.HasIdentifier;
-import org.commonprovenance.framework.store.common.dto.HasIntermediateCertificates;
-import org.commonprovenance.framework.store.common.dto.HasTrustedPartyNodeList;
-import org.commonprovenance.framework.store.exceptions.ApplicationException;
 import org.commonprovenance.framework.store.model.Organization;
 import org.commonprovenance.framework.store.persistence.finalizedProvComponent.model.node.OrganizationNode;
 
-import io.vavr.control.Either;
-
 public class OrganizationNodeFactory {
 
-  private static OrganizationNode mapper(Organization organization) {
-    return MonoidComposition.compose(
-        new OrganizationNode(),
-        List.of(
-            HasIdentifier.addIdentifier(organization),
-            HasClientCertificate.addClientCertificate(organization),
-            HasIntermediateCertificates.addIntermediateCertificates(organization)));
+  public static OrganizationNode build(Organization organization) {
+    return new OrganizationNode(organization.getIdentifier(),
+        organization.getClientCertificate(),
+        organization.getIntermediateCertificates());
   }
 
-  public static Either<ApplicationException, OrganizationNode> build(Organization organization) {
-    return Either.<ApplicationException, Organization> right(organization)
-        .map(OrganizationNodeFactory::mapper)
-        .flatMap(EITHER::validateDTO);
+  public static OrganizationNode buildWithRelations(Organization organization) {
+    return build(organization)
+        .withTrustedParty(organization.getTrustedParty().map(TrustedPartyNodeFactory::build))
+        .withDocument(organization.getDocument().map(DocumentNodeFactory::build));
   }
 
-  public static Either<ApplicationException, OrganizationNode> buildWithRelations(Organization organization) {
-    return Either.<ApplicationException, Organization> right(organization)
-        .map(OrganizationNodeFactory::mapper)
-        .flatMap(HasTrustedPartyNodeList.addTrustedParty(organization))
-        .flatMap(HasDocumentNodeList.addDocumentWithRelations(organization))
-        .flatMap(EITHER::validateDTO);
+  public static OrganizationNode buildWithFullRelations(Organization organization) {
+    return build(organization)
+        .withTrustedParty(organization.getTrustedParty().map(TrustedPartyNodeFactory::build))
+        .withDocument(organization.getDocument().map(DocumentNodeFactory::buildWithRelations));
   }
 
-  public static Either<ApplicationException, OrganizationNode> buildWithFullRelations(Organization organization) {
-    return Either.<ApplicationException, Organization> right(organization)
-        .map(OrganizationNodeFactory::mapper)
-        .flatMap(HasTrustedPartyNodeList.addTrustedParty(organization))
-        .flatMap(HasDocumentNodeList.addDocumentWithFullRelations(organization))
-        .flatMap(EITHER::validateDTO);
-  }
 }

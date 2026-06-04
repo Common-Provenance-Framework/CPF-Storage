@@ -24,10 +24,26 @@ public class UpdateOrganizationTPFormDTO extends ValidatableDTO implements
     this.intermediateCertificates = intermediateCertificates;
   }
 
+  @Override
+  public UpdateOrganizationTPFormDTO withClientCertificate(String clientCertificate) {
+    return new UpdateOrganizationTPFormDTO(
+        clientCertificate,
+        this.getIntermediateCertificates());
+  }
+
+  @Override
+  public UpdateOrganizationTPFormDTO withIntermediateCertificates(List<String> intermediateCertificates) {
+    return new UpdateOrganizationTPFormDTO(
+        this.getClientCertificate(),
+        intermediateCertificates);
+  }
+
+  @Override
   public String getClientCertificate() {
     return clientCertificate;
   }
 
+  @Override
   public List<String> getIntermediateCertificates() {
     return intermediateCertificates;
   }

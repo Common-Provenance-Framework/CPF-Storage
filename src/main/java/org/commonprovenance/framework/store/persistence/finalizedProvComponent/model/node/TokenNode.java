@@ -2,14 +2,14 @@ package org.commonprovenance.framework.store.persistence.finalizedProvComponent.
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.commonprovenance.framework.store.common.dto.HasId;
-import org.commonprovenance.framework.store.common.dto.HasJwtToken;
-import org.commonprovenance.framework.store.common.dto.HasTrustedPartyNodeList;
-import org.commonprovenance.framework.store.common.validation.ValidatableDTO;
 import org.commonprovenance.framework.store.persistence.finalizedProvComponent.model.relation.WasIssuedBy;
+import org.commonprovenance.framework.store.persistence.finalizedProvComponent.model.types.HasId;
+import org.commonprovenance.framework.store.persistence.finalizedProvComponent.model.types.HasJwtToken;
+import org.commonprovenance.framework.store.persistence.finalizedProvComponent.model.types.HasTrustedPartyNodes;
 import org.springframework.data.annotation.PersistenceCreator;
 import org.springframework.data.neo4j.core.schema.GeneratedValue;
 import org.springframework.data.neo4j.core.schema.Id;
@@ -17,10 +17,10 @@ import org.springframework.data.neo4j.core.schema.Node;
 import org.springframework.data.neo4j.core.schema.Relationship;
 
 @Node("Token")
-public class TokenNode extends ValidatableDTO implements
+public class TokenNode implements
     HasId,
-    HasJwtToken<TokenNode>,
-    HasTrustedPartyNodeList<TokenNode> {
+    HasJwtToken,
+    HasTrustedPartyNodes {
   @Id
   @GeneratedValue
   private final String id;
@@ -42,11 +42,6 @@ public class TokenNode extends ValidatableDTO implements
   }
 
   // Constructor for creating new node (id will be generated)
-  public TokenNode() {
-    this.id = null;
-    this.jwt = null;
-    this.wasIssuedBy = Collections.emptyList();
-  }
 
   public TokenNode(String jwt) {
     this.id = null;
@@ -62,14 +57,18 @@ public class TokenNode extends ValidatableDTO implements
         this.getWasIssuedBy());
   }
 
-  public TokenNode withTrustedParty(TrustedPartyNode trustedPartyEntity) {
-    if (trustedPartyEntity == null) {
+  public TokenNode withTrustedParty(Optional<TrustedPartyNode> maybeTrustedPartyNode) {
+    return maybeTrustedPartyNode.map(this::withTrustedParty).orElse(this);
+  }
+
+  public TokenNode withTrustedParty(TrustedPartyNode trustedPartyNode) {
+    if (trustedPartyNode == null) {
       return this;
     }
 
     List<WasIssuedBy> updatedWasIssuedBy = Stream.concat(
         this.getWasIssuedBy().stream(),
-        Stream.of(new WasIssuedBy(trustedPartyEntity)))
+        Stream.of(new WasIssuedBy(trustedPartyNode)))
         .collect(Collectors.toList());
 
     return new TokenNode(
@@ -86,10 +85,12 @@ public class TokenNode extends ValidatableDTO implements
         wasIssuedBy);
   }
 
+  @Override
   public String getId() {
     return this.id;
   }
 
+  @Override
   public String getJwt() {
     return jwt;
   }
@@ -98,6 +99,7 @@ public class TokenNode extends ValidatableDTO implements
     return wasIssuedBy;
   }
 
+  @Override
   public List<TrustedPartyNode> getTrustedParties() {
     return this.getWasIssuedBy().stream()
         .map(WasIssuedBy::getTrustedParty)

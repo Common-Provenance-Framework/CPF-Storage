@@ -40,7 +40,7 @@ public class TokenNeo4jRepository implements TokenRepository {
   @Override
   public Mono<Void> save(Token token) {
     return Mono.just(token)
-        .flatMap(MONO.liftEffectToMono(TokenNodeFactory::build))
+        .map(TokenNodeFactory::build)
         .flatMap(client::save)
         .then()
         .doOnSuccess(_ -> LOGGER.trace(LOG_PREFIX + "Token has been saved into DB."))

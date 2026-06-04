@@ -16,13 +16,27 @@ public interface HasIsValid<T extends HasIsValid<T>> {
         .orElse(to);
   }
 
-  static <U extends HasIsValid<U>, F> UnaryOperator<U> addIsValidIfPresent(F from) {
+  static <U extends HasIsValid<U>, F extends org.commonprovenance.framework.store.persistence.finalizedProvComponent.model.types.HasIsValid> UnaryOperator<U> addIsValid(F from) {
     return (U to) -> Optional.ofNullable(from)
-        .flatMap((F v) -> (v instanceof HasIsValid<?> has)
-            ? Optional.of(has)
-            : Optional.empty())
-        .map(HasIsValid::getIsValid)
+        .map(F::getIsValid)
         .map(to::withIsValid)
         .orElse(to);
+  }
+
+  static <U extends HasIsValid<U>, F> UnaryOperator<U> addIsValidIfPresent(F from) {
+    return (U to) -> Optional.ofNullable(from)
+        .flatMap(HasIsValid::getValue)
+        .map(to::withIsValid)
+        .orElse(to);
+  }
+
+  private static <T> Optional<Boolean> getValue(T form) {
+    if (form instanceof HasIsValid<?> has)
+      return Optional.of(has.getIsValid());
+
+    if (form instanceof org.commonprovenance.framework.store.persistence.finalizedProvComponent.model.types.HasIsValid has)
+      return Optional.of(has.getIsValid());
+
+    return Optional.empty();
   }
 }

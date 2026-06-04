@@ -2,18 +2,18 @@ package org.commonprovenance.framework.store.persistence.finalizedProvComponent.
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.commonprovenance.framework.store.common.dto.HasClientCertificate;
-import org.commonprovenance.framework.store.common.dto.HasDocumentNodeList;
-import org.commonprovenance.framework.store.common.dto.HasId;
-import org.commonprovenance.framework.store.common.dto.HasIdentifier;
-import org.commonprovenance.framework.store.common.dto.HasIntermediateCertificates;
-import org.commonprovenance.framework.store.common.dto.HasTrustedPartyNodeList;
-import org.commonprovenance.framework.store.common.validation.ValidatableDTO;
 import org.commonprovenance.framework.store.persistence.finalizedProvComponent.model.relation.Owns;
 import org.commonprovenance.framework.store.persistence.finalizedProvComponent.model.relation.Trusts;
+import org.commonprovenance.framework.store.persistence.finalizedProvComponent.model.types.HasClientCertificate;
+import org.commonprovenance.framework.store.persistence.finalizedProvComponent.model.types.HasDocumentNodes;
+import org.commonprovenance.framework.store.persistence.finalizedProvComponent.model.types.HasId;
+import org.commonprovenance.framework.store.persistence.finalizedProvComponent.model.types.HasIdentifier;
+import org.commonprovenance.framework.store.persistence.finalizedProvComponent.model.types.HasIntermediateCertificates;
+import org.commonprovenance.framework.store.persistence.finalizedProvComponent.model.types.HasTrustedPartyNodes;
 import org.springframework.data.annotation.PersistenceCreator;
 import org.springframework.data.neo4j.core.schema.GeneratedValue;
 import org.springframework.data.neo4j.core.schema.Id;
@@ -22,13 +22,13 @@ import org.springframework.data.neo4j.core.schema.Property;
 import org.springframework.data.neo4j.core.schema.Relationship;
 
 @Node("Organization")
-public class OrganizationNode extends ValidatableDTO implements
+public class OrganizationNode implements
     HasId,
-    HasIdentifier<OrganizationNode>,
-    HasClientCertificate<OrganizationNode>,
-    HasIntermediateCertificates<OrganizationNode>,
-    HasTrustedPartyNodeList<OrganizationNode>,
-    HasDocumentNodeList<OrganizationNode> {
+    HasIdentifier,
+    HasClientCertificate,
+    HasIntermediateCertificates,
+    HasTrustedPartyNodes,
+    HasDocumentNodes {
   @Id
   @GeneratedValue
   private final String id;
@@ -74,16 +74,6 @@ public class OrganizationNode extends ValidatableDTO implements
     this.identifier = identifier;
     this.clientCertificate = clientCertificate;
     this.intermediateCertificates = intermediateCertificates;
-
-    this.trusts = Collections.emptyList();
-    this.owns = Collections.emptyList();
-  }
-
-  public OrganizationNode() {
-    this.id = null;
-    this.identifier = null;
-    this.clientCertificate = null;
-    this.intermediateCertificates = null;
 
     this.trusts = Collections.emptyList();
     this.owns = Collections.emptyList();
@@ -152,14 +142,18 @@ public class OrganizationNode extends ValidatableDTO implements
         owns);
   }
 
-  public OrganizationNode withTrustedParty(TrustedPartyNode trustedPartyEntity) {
-    if (trustedPartyEntity == null) {
+  public OrganizationNode withTrustedParty(Optional<TrustedPartyNode> maybeTrustedPartyNode) {
+    return maybeTrustedPartyNode.map(this::withTrustedParty).orElse(this);
+  }
+
+  public OrganizationNode withTrustedParty(TrustedPartyNode trustedPartyNode) {
+    if (trustedPartyNode == null) {
       return this;
     }
 
     List<Trusts> updatedTrusts = Stream.concat(
         this.getTrusts().stream(),
-        Stream.of(new Trusts(trustedPartyEntity)))
+        Stream.of(new Trusts(trustedPartyNode)))
         .collect(Collectors.toList());
 
     return new OrganizationNode(
@@ -169,6 +163,10 @@ public class OrganizationNode extends ValidatableDTO implements
         this.getIntermediateCertificates(),
         updatedTrusts,
         this.getOwns());
+  }
+
+  public OrganizationNode withDocument(Optional<DocumentNode> maybeDocumentNode) {
+    return maybeDocumentNode.map(this::withDocument).orElse(this);
   }
 
   public OrganizationNode withDocument(DocumentNode documentNode) {
@@ -190,18 +188,22 @@ public class OrganizationNode extends ValidatableDTO implements
         updatedOwns);
   }
 
+  @Override
   public String getId() {
     return this.id;
   }
 
+  @Override
   public String getIdentifier() {
     return this.identifier;
   }
 
+  @Override
   public String getClientCertificate() {
     return clientCertificate;
   }
 
+  @Override
   public List<String> getIntermediateCertificates() {
     return intermediateCertificates;
   }
@@ -222,7 +224,7 @@ public class OrganizationNode extends ValidatableDTO implements
   }
 
   @Override
-  public List<DocumentNode> getDoucments() {
+  public List<DocumentNode> getDocuments() {
     return this.getOwns().stream()
         .map(Owns::getDocument)
         .collect(Collectors.toList());

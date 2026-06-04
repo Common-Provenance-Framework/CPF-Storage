@@ -38,7 +38,7 @@ public class OrganizationNeo4jRepository implements OrganizationRepository {
   @Override
   public Mono<Void> save(Organization organization) {
     return Mono.just(organization)
-        .flatMap(MONO.liftEffectToMono(OrganizationNodeFactory::build))
+        .map(OrganizationNodeFactory::build)
         .flatMap(client::save)
         .then()
         .doOnSuccess(_ -> LOGGER.trace(LOG_PREFIX + "Organization has been saved into DB."))
