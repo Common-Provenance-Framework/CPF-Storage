@@ -11,11 +11,10 @@ import org.commonprovenance.framework.store.common.dto.HasDocumentOptional;
 import org.commonprovenance.framework.store.common.dto.HasIdentifier;
 import org.commonprovenance.framework.store.common.dto.HasIntermediateCertificates;
 import org.commonprovenance.framework.store.common.dto.HasTrustedPartyOptional;
-import org.commonprovenance.framework.store.controller.dto.form.OrganizationFormDTO;
+import org.commonprovenance.framework.store.controller.dto.form.OrganizationRegisterFormDTO;
 import org.commonprovenance.framework.store.exceptions.ApplicationException;
 import org.commonprovenance.framework.store.model.Organization;
 import org.commonprovenance.framework.store.persistence.finalizedProvComponent.model.node.OrganizationNode;
-import org.commonprovenance.framework.store.web.trustedParty.dto.response.OrganizationTPResponseDTO;
 
 import io.vavr.control.Either;
 
@@ -39,7 +38,7 @@ public class OrganizationFactory {
             HasIntermediateCertificates.addIntermediateCertificatesIfPresent(data)));
   }
 
-  public static Organization build(OrganizationFormDTO form) {
+  public static Organization build(OrganizationRegisterFormDTO form) {
     return OrganizationFactory.mapper(form).apply(new Organization());
   }
 
