@@ -19,7 +19,7 @@ public interface HasIdentifier<T extends HasIdentifier<T>> {
         .orElse(to);
   }
 
-  static <T extends HasIdentifier<T>, F extends HasIdentifierOptional<F>> UnaryOperator<T> addIdentifier(F from) {
+  static <T extends HasIdentifier<T>, F extends HasCpmDocument<F>> UnaryOperator<T> addIdentifier(F from) {
     return (T to) -> Optional.ofNullable(from)
         .flatMap(F::getIdentifier)
         .map(to::withIdentifier)
@@ -37,7 +37,7 @@ public interface HasIdentifier<T extends HasIdentifier<T>> {
     if (form instanceof HasIdentifier<?> has)
       return Optional.of(has.getIdentifier());
 
-    if (form instanceof HasIdentifierOptional<?> maybeHas)
+    if (form instanceof HasCpmDocument<?> maybeHas)
       return maybeHas.getIdentifier();
 
     if (form instanceof org.commonprovenance.framework.store.persistence.finalizedProvComponent.model.types.HasIdentifier has)

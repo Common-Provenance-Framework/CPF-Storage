@@ -6,7 +6,7 @@ import java.util.Optional;
 
 import org.commonprovenance.framework.store.common.dto.HasFormat;
 import org.commonprovenance.framework.store.common.dto.HasGraph;
-import org.commonprovenance.framework.store.common.dto.HasIdentifierOptional;
+import org.commonprovenance.framework.store.common.dto.HasCpmDocument;
 import org.commonprovenance.framework.store.common.dto.HasTokenOptional;
 import org.commonprovenance.framework.store.common.utils.Base64Utils;
 import org.commonprovenance.framework.store.common.utils.ProvDocumentUtils;
@@ -26,7 +26,7 @@ import io.vavr.Function1;
 import io.vavr.control.Either;
 
 public class Document extends ValidatableDTO implements
-    HasIdentifierOptional<Document>,
+    HasCpmDocument<Document>,
     HasGraph<Document>,
     HasFormat<Document>,
     HasTokenOptional<Document> {
