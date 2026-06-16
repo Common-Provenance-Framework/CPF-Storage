@@ -2,44 +2,51 @@ package org.commonprovenance.framework.store.service.persistence;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.mockito.Mockito.when;
 
 import java.util.UUID;
 
 import org.commonprovenance.framework.store.exceptions.InternalApplicationException;
 import org.commonprovenance.framework.store.model.Document;
 import org.commonprovenance.framework.store.model.Format;
+import org.commonprovenance.framework.store.model.Token;
 import org.commonprovenance.framework.store.persistence.finalizedProvComponent.DocumentRepository;
 import org.commonprovenance.framework.store.service.persistence.finalizedProvComponent.impl.DocumentServiceImpl;
 import org.commonprovenance.framework.store.service.web.store.StoreWebService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.openprovenance.prov.vanilla.QualifiedName;
 
+import cz.muni.fi.cpm.model.CpmDocument;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 @DisplayName("Service - DocumentServiceImpl UnitTest")
-
+@ExtendWith(MockitoExtension.class)
 class DocumentServiceTest {
+  @Mock
+  private Token token;
+
+  @Mock
+  private CpmDocument cpmDocument;
+
+  final private String UUID_STR_1 = "e3cf8742-b595-47f4-8aae-a1e94b62a856";
+  final private String TEST_ORG_ID_1 = "6ee9d79b-0615-4cb1-b0f3-2303d10c8cff";
+  final private String BASE64_STRING_GRAPH_1 = "AAAAQQAAAGIAAAByAAAAYQAAAGsAAABhAAAAIAAAAEQAAABhAAAAYgAAAHIAAABhAAAALgAAAC4=";
+  final private Format FORMAT_1 = Format.JSON;
+
+  private Document DOCUMENT_1;
+
+  final private String UUID_STR_2 = "dc3b1fc8-d01e-4405-8cf8-94320a11ba4c";
+  final private String BASE64_STRING_GRAPH_2 = "AAAASAAAAGUAAABsAAAAbAAAAG8AAAAgAAAAVwAAAG8AAAByAAAAbAAAAGQAAAAh";
+  final private Format FORMAT_2 = Format.JSON;
+  private Document DOCUMENT_2;
+
   private class DocumentRepositoryStub implements DocumentRepository {
-    final static String UUID_STR_1 = "e3cf8742-b595-47f4-8aae-a1e94b62a856";
-    final static String TEST_ORG_ID_1 = "6ee9d79b-0615-4cb1-b0f3-2303d10c8cff";
-    final static String BASE64_STRING_GRAPH_1 = "AAAAQQAAAGIAAAByAAAAYQAAAGsAAABhAAAAIAAAAEQAAABhAAAAYgAAAHIAAABhAAAALgAAAC4=";
-    final static Format FORMAT_1 = Format.JSON;
-    final static String SIGNATURE = "...";
-
-    final static Document DOCUMENT_1 = new Document(UUID_STR_1, TEST_ORG_ID_1, BASE64_STRING_GRAPH_1,
-        FORMAT_1,
-        SIGNATURE);
-
-    final static String UUID_STR_2 = "dc3b1fc8-d01e-4405-8cf8-94320a11ba4c";
-    final static String TEST_ORG_ID_2 = "6ee9d79b-0615-4cb1-b0f3-2303d10c8cff";
-    final static String BASE64_STRING_GRAPH_2 = "AAAASAAAAGUAAABsAAAAbAAAAG8AAAAgAAAAVwAAAG8AAAByAAAAbAAAAGQAAAAh";
-    final static Format FORMAT_2 = Format.JSON;
-    final static Document DOCUMENT_2 = new Document(UUID_STR_2, TEST_ORG_ID_2, BASE64_STRING_GRAPH_2,
-        FORMAT_2,
-        SIGNATURE);
 
     @Override
     public Mono<Void> save(Document document) {
@@ -51,6 +58,7 @@ class DocumentServiceTest {
 
     @Override
     public Mono<Document> findByIdentifier(String identifier) {
+
       if (identifier == null)
         return Mono.error(new InternalApplicationException(
             "DocumentNeo4jRepository - Error while reading document",
@@ -87,7 +95,6 @@ class DocumentServiceTest {
 
     @Override
     public Mono<String> getOrganizationIdentifierByIdentifier(String identifier) {
-      // Stub implementation for testing
       return Mono.just(TEST_ORG_ID_1);
     }
   }
@@ -106,13 +113,15 @@ class DocumentServiceTest {
   @BeforeEach
   void setUp() {
     documentService = new DocumentServiceImpl(documentRepository, storeWebService);
+    DOCUMENT_1 = new Document(BASE64_STRING_GRAPH_1, FORMAT_1, cpmDocument, token);
+    DOCUMENT_2 = new Document(BASE64_STRING_GRAPH_2, FORMAT_2);
   }
 
   @Test
   @DisplayName("HappyPath - storeDocument - should return new Document which has been stored.")
   void storeDocument_return_new_document() {
 
-    StepVerifier.create(documentService.storeDocument(DocumentRepositoryStub.DOCUMENT_1))
+    StepVerifier.create(documentService.storeDocument(DOCUMENT_1))
         .verifyComplete();
   }
 
@@ -143,10 +152,15 @@ class DocumentServiceTest {
   @Test
   @DisplayName("HappyPath - getDocumentById - should return Mono with exact document from repository.")
   void getDocumentByIdentifier_should_return_mono_with_exact_document() {
-
-    StepVerifier.create(documentService.getDocumentByIdentifier(DocumentRepositoryStub.UUID_STR_1))
+    when(cpmDocument.getBundleId()).thenAnswer(invocation -> {
+      return new QualifiedName(
+          "http://localhost:8080/api/v1/organizations/6fb292aa-ee38-48ae-998f-079ad9d01e7c/documents/",
+          UUID_STR_1,
+          "storage");
+    });
+    StepVerifier.create(documentService.getDocumentByIdentifier(UUID_STR_1))
         .assertNext(doc -> {
-          assertEquals(DocumentRepositoryStub.UUID_STR_1, doc.getIdentifier().get(),
+          assertEquals(UUID_STR_1, doc.getIdentifier().get(),
               "should have exact id");
         })
         .verifyComplete();

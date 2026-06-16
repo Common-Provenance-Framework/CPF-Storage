@@ -10,6 +10,7 @@ import static org.mockito.Mockito.when;
 
 import org.commonprovenance.framework.store.model.Document;
 import org.commonprovenance.framework.store.model.Format;
+import org.commonprovenance.framework.store.model.Token;
 import org.commonprovenance.framework.store.persistence.finalizedProvComponent.model.node.DocumentNode;
 import org.commonprovenance.framework.store.persistence.finalizedProvComponent.neo4j.DocumentNeo4jRepository;
 import org.commonprovenance.framework.store.persistence.finalizedProvComponent.neo4j.client.DocumentNeo4jRepositoryClient;
@@ -20,7 +21,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.openprovenance.prov.vanilla.QualifiedName;
 
+import cz.muni.fi.cpm.model.CpmDocument;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
@@ -33,12 +36,15 @@ class DocumentRepositorySpec {
   private DocumentNeo4jRepositoryClient client;
 
   private DocumentNeo4jRepository repository;
+  @Mock
+  private CpmDocument cpmDocument;
+
+  @Mock
+  private Token token;
 
   private final String TEST_ID_1 = "e3cf8742-b595-47f4-8aae-a1e94b62a856";
-  private final String TEST_ORG_ID_2 = "6ee9d79b-0615-4cb1-b0f3-2303d10c8cff";
   private final String BASE64_STRING_GRAPH_1 = "AAAAQQAAAGIAAAByAAAAYQAAAGsAAABhAAAAIAAAAEQAAABhAAAAYgAAAHIAAABhAAAALgAAAC4=";
-  private final String FORMAT_1 = "JSON";
-  private final String SIGNATURE = "..";
+  private final Format FORMAT_1 = Format.JSON;
 
   @BeforeEach
   void setUp() {
@@ -49,15 +55,18 @@ class DocumentRepositorySpec {
   @DisplayName("Create - should call save method with exact parameters")
   void created_should_call_save_method_with_exact_paramters() {
     Document doucment = new Document(
-        TEST_ID_1,
-        TEST_ORG_ID_2,
         BASE64_STRING_GRAPH_1,
-        Format.from(FORMAT_1).get(),
-        SIGNATURE);
+        FORMAT_1,
+        cpmDocument,
+        token);
 
     when(client.save(any())).thenAnswer(invocation -> {
       DocumentNode argumentEntity = invocation.getArgument(0);
       return Mono.just(argumentEntity);
+    });
+
+    when(cpmDocument.getBundleId()).thenAnswer(invocation -> {
+      return new QualifiedName("http://localhost:8080/api/v1/organizations/6fb292aa-ee38-48ae-998f-079ad9d01e7c/documents/", TEST_ID_1, "storage");
     });
 
     StepVerifier.create(repository.save(doucment))
@@ -73,7 +82,7 @@ class DocumentRepositorySpec {
     DocumentNode capturedEntity = captor.getValue();
     assertTrue(capturedEntity.getIdentifier().equals(TEST_ID_1)
         && capturedEntity.getGraph().equals(BASE64_STRING_GRAPH_1)
-        && capturedEntity.getDocumentFormat().equals(FORMAT_1),
+        && capturedEntity.getFormat().equals(FORMAT_1.toString()),
         "should be called with exact entity");
   }
 

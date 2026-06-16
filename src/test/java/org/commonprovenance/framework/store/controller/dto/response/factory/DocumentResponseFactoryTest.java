@@ -1,11 +1,8 @@
 package org.commonprovenance.framework.store.controller.dto.response.factory;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertInstanceOf;
-import static org.junit.jupiter.api.Assertions.assertNull;
 
 import org.commonprovenance.framework.store.controller.dto.response.DocumentResponseDTO;
-import org.commonprovenance.framework.store.exceptions.InternalApplicationException;
 import org.commonprovenance.framework.store.model.Document;
 import org.commonprovenance.framework.store.model.Format;
 import org.commonprovenance.framework.store.model.Token;
@@ -13,18 +10,13 @@ import org.commonprovenance.framework.store.model.TrustedParty;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import reactor.test.StepVerifier;
-
 @DisplayName("Controller - DTO Mapper (Model to Response)")
-public class DTOFactoryTest {
+public class DocumentResponseFactoryTest {
   @Test
   @DisplayName("HappyPath - should return Mono with DocumentResponseDTO")
   void should_map_Document_to_DocumentResponseDTO() {
-    String testId = "6ee9d79b-0615-4cb1-b0f3-2303d10c8cff";
-    String organizationId = "6ee9d79b-0615-4cb1-b0f3-2303d10c8cff";
     String base64StringGraph = "AAAAQQAAAGIAAAByAAAAYQAAAGsAAABhAAAAIAAAAEQAAABhAAAAYgAAAHIAAABhAAAALgAAAC4=";
     String format = "JSON";
-    String signature = "..";
 
     String cert = """
         -----BEGIN CERTIFICATE-----
@@ -47,47 +39,31 @@ public class DTOFactoryTest {
 
     TrustedParty trustedParty = new TrustedParty(
         "Trusted_Party",
-        "Trusted_Party",
         cert,
         "https://trusted-party.org/",
         true,
         true,
         true);
 
-    Document document = new Document(
-        testId,
-        organizationId,
-        base64StringGraph,
-        Format.from(format).get(),
-        signature);
-
     Token token = new Token(
         jwt,
         trustedParty,
-        document,
-        1774953179L);
+        1774953179L)
+        .withTrustedParty(trustedParty);
 
-    StepVerifier.create(DTOFactory.toDocumentDTO(token))
-        .assertNext((DocumentResponseDTO response) -> {
-          assertEquals(base64StringGraph, response.getDocument(),
-              "response should have document field with exact value");
+    Document document = new Document(
+        base64StringGraph,
+        Format.from(format).get())
+        .withToken(token);
 
-          assertEquals(jwt, response.getToken().getJwt(),
-              "response should have token field with exact jwt");
-        })
-        .verifyComplete();
+    DocumentResponseDTO response = DocumentResponseFactory.build(document);
+
+    assertEquals(base64StringGraph, response.getGraph(),
+        "response should have graph field with exact value");
+
+    assertEquals(jwt, response.getToken().getJwt(),
+        "response should have token field with exact jwt");
+
   }
 
-  @Test
-  @DisplayName("ErrorPath - should return Mono with exact error")
-  void should_return_Mono_with_error() {
-
-    StepVerifier.create(DTOFactory.toDocumentDTO((Token) null))
-        .expectErrorSatisfies(error -> {
-          assertInstanceOf(InternalApplicationException.class, error);
-          assertEquals("Input parameter can not be null.", error.getMessage());
-          assertNull(error.getCause());
-        })
-        .verify();
-  }
 }
