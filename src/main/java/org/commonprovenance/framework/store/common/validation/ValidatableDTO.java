@@ -10,6 +10,8 @@ public abstract class ValidatableDTO {
     return Stream.of(this.getClass().getDeclaredFields())
         .map(field -> {
           try {
+            field.setAccessible(true);
+
             if (field.get(this) == null)
               return "Field with name '" + field.getName() + "' can not be null!";
 
@@ -18,10 +20,10 @@ public abstract class ValidatableDTO {
 
             return "";
           } catch (Exception e) {
-            return "Field '" + field.getName() + "' can not be checked!";
+            return "Field '" + field.getName() + "' can not be checked! " + e.getMessage();
           }
         })
-        .filter(String::isBlank)
+        .filter(message -> !message.isBlank())
         .collect(Collectors.toCollection(Vector::new));
   }
 }

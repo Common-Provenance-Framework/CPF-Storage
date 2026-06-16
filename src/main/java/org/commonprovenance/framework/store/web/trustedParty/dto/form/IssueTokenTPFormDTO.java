@@ -3,14 +3,24 @@ package org.commonprovenance.framework.store.web.trustedParty.dto.form;
 import java.time.Instant;
 
 import org.commonprovenance.framework.store.common.dto.HasCreatedOn;
-import org.commonprovenance.framework.store.common.dto.HasDocument;
+import org.commonprovenance.framework.store.common.dto.HasDocumentGraph;
+import org.commonprovenance.framework.store.common.dto.HasFormatSerialized;
 import org.commonprovenance.framework.store.common.dto.HasOrganizationId;
 import org.commonprovenance.framework.store.common.dto.HasSignature;
+import org.commonprovenance.framework.store.common.dto.HasTokenFormat;
+import org.commonprovenance.framework.store.common.dto.HasType;
 import org.commonprovenance.framework.store.common.validation.ValidatableDTO;
+import org.commonprovenance.framework.store.model.Format;
+import org.commonprovenance.framework.store.model.GraphType;
 
-public class IssueTokenTPFormDTO extends ValidatableDTO
-    implements HasOrganizationId<IssueTokenTPFormDTO>, HasDocument<IssueTokenTPFormDTO>,
-    HasSignature<IssueTokenTPFormDTO>, HasCreatedOn<IssueTokenTPFormDTO> {
+public class IssueTokenTPFormDTO extends ValidatableDTO implements
+    HasOrganizationId<IssueTokenTPFormDTO>,
+    HasDocumentGraph<IssueTokenTPFormDTO>,
+    HasFormatSerialized<IssueTokenTPFormDTO>,
+    HasSignature<IssueTokenTPFormDTO>,
+    HasType<IssueTokenTPFormDTO>,
+    HasCreatedOn<IssueTokenTPFormDTO>,
+    HasTokenFormat<IssueTokenTPFormDTO> {
   private final String organizationId;
   private final String document;
   private final String documentFormat;
@@ -47,9 +57,9 @@ public class IssueTokenTPFormDTO extends ValidatableDTO
   }
 
   @Override
-  public IssueTokenTPFormDTO withOrganizationId(String organizationId) {
+  public IssueTokenTPFormDTO withOrganizationId(String identifier) {
     return new IssueTokenTPFormDTO(
-        organizationId,
+        identifier,
         this.getDocument(),
         this.getDocumentFormat(),
         this.getSignature(),
@@ -70,17 +80,19 @@ public class IssueTokenTPFormDTO extends ValidatableDTO
         this.getTokenFormat());
   }
 
-  public IssueTokenTPFormDTO withDocumentFormat(String format) {
+  @Override
+  public IssueTokenTPFormDTO withDocumentFormat(Format format) {
     return new IssueTokenTPFormDTO(
         this.getOrganizationId(),
         this.getDocument(),
-        format,
+        format.toString().toLowerCase(),
         this.getSignature(),
         this.getType(),
         this.getCreatedOn(),
         this.getTokenFormat());
   }
 
+  @Override
   public IssueTokenTPFormDTO withSignature(String signature) {
     return new IssueTokenTPFormDTO(
         this.getOrganizationId(),
@@ -92,7 +104,12 @@ public class IssueTokenTPFormDTO extends ValidatableDTO
         this.getTokenFormat());
   }
 
-  public IssueTokenTPFormDTO withGraphType(String type) {
+  public IssueTokenTPFormDTO withType(GraphType graphType) {
+    return this.withType(graphType.toString().toLowerCase());
+  }
+
+  @Override
+  public IssueTokenTPFormDTO withType(String type) {
     return new IssueTokenTPFormDTO(
         this.getOrganizationId(),
         this.getDocument(),
@@ -103,6 +120,7 @@ public class IssueTokenTPFormDTO extends ValidatableDTO
         this.getTokenFormat());
   }
 
+  @Override
   public IssueTokenTPFormDTO withCreatedOn(Long createdOn) {
     return new IssueTokenTPFormDTO(
         this.getOrganizationId(),
@@ -114,6 +132,7 @@ public class IssueTokenTPFormDTO extends ValidatableDTO
         this.getTokenFormat());
   }
 
+  @Override
   public IssueTokenTPFormDTO withTokenFormat(String tokenFormat) {
     return new IssueTokenTPFormDTO(
         this.getOrganizationId(),
@@ -130,27 +149,34 @@ public class IssueTokenTPFormDTO extends ValidatableDTO
     return organizationId;
   }
 
+  @Override
   public String getDocument() {
     return document;
   }
 
+  @Override
   public String getDocumentFormat() {
     return documentFormat;
   }
 
+  @Override
   public String getSignature() {
     return signature;
   }
 
+  @Override
   public String getType() {
     return type;
   }
 
+  @Override
   public Long getCreatedOn() {
     return createdOn;
   }
 
+  @Override
   public String getTokenFormat() {
     return tokenFormat;
   }
+
 }

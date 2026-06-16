@@ -2,11 +2,15 @@ package org.commonprovenance.framework.store.web.trustedParty.dto.form;
 
 import java.util.List;
 
+import org.commonprovenance.framework.store.common.dto.HasClientCertificate;
+import org.commonprovenance.framework.store.common.dto.HasIntermediateCertificates;
 import org.commonprovenance.framework.store.common.dto.HasOrganizationId;
 import org.commonprovenance.framework.store.common.validation.ValidatableDTO;
 
-public class RegisterOrganizationTPFormDTO extends ValidatableDTO
-    implements HasOrganizationId<RegisterOrganizationTPFormDTO> {
+public class RegisterOrganizationTPFormDTO extends ValidatableDTO implements
+    HasOrganizationId<RegisterOrganizationTPFormDTO>,
+    HasClientCertificate<RegisterOrganizationTPFormDTO>,
+    HasIntermediateCertificates<RegisterOrganizationTPFormDTO> {
   private final String organizationId;
   private final String clientCertificate;
   private final List<String> intermediateCertificates;
@@ -34,14 +38,33 @@ public class RegisterOrganizationTPFormDTO extends ValidatableDTO
         this.getIntermediateCertificates());
   }
 
+  @Override
+  public RegisterOrganizationTPFormDTO withClientCertificate(String clientCertificate) {
+    return new RegisterOrganizationTPFormDTO(
+        this.getOrganizationId(),
+        clientCertificate,
+        this.getIntermediateCertificates());
+  }
+
+  @Override
+  public RegisterOrganizationTPFormDTO withIntermediateCertificates(List<String> intermediateCertificates) {
+    return new RegisterOrganizationTPFormDTO(
+        this.getOrganizationId(),
+        this.getClientCertificate(),
+        intermediateCertificates);
+  }
+
+  @Override
   public String getOrganizationId() {
     return organizationId;
   }
 
+  @Override
   public String getClientCertificate() {
     return clientCertificate;
   }
 
+  @Override
   public List<String> getIntermediateCertificates() {
     return intermediateCertificates;
   }

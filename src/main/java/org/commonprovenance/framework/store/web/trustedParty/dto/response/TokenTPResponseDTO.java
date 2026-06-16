@@ -1,6 +1,9 @@
 package org.commonprovenance.framework.store.web.trustedParty.dto.response;
 
-public class TokenTPResponseDTO {
+import org.commonprovenance.framework.store.common.dto.HasJwtToken;
+
+public class TokenTPResponseDTO implements
+    HasJwtToken<TokenTPResponseDTO> {
   private final String jwt;
 
   public TokenTPResponseDTO(String jwt) {
@@ -10,4 +13,5 @@ public class TokenTPResponseDTO {
   public String getJwt() {
     return jwt;
   }
+
 }

@@ -16,6 +16,7 @@ import org.commonprovenance.framework.store.exceptions.ConstraintException;
 import org.commonprovenance.framework.store.exceptions.InternalApplicationException;
 
 import io.vavr.Function1;
+import io.vavr.Function3;
 import io.vavr.control.Either;
 import io.vavr.control.Try;
 import reactor.core.publisher.Flux;
@@ -88,6 +89,10 @@ public interface PublisherHelper {
       return this.<T> makeSureNotNullWithMessage(this.defaultNullMessage(value)).apply(value);
     }
 
+    public <T> Function<T, Mono<T>> makeSureNotNull(ApplicationException exception) {
+      return this.<T> makeSure(Objects::nonNull, _ -> exception);
+    }
+
     public <T> Function<T, Mono<T>> makeSureNotNullWithMessage(String message) {
       return this.<T> makeSure(Objects::nonNull, message);
     }
@@ -148,6 +153,27 @@ public interface PublisherHelper {
           .fold(Mono::error, Mono::justOrEmpty);
     }
 
+    public <I, O> Function<I, Mono<O>> liftOptionalToMono(Function<I, Optional<O>> maybe, String message) {
+      return (I value) -> maybe
+          .apply(value)
+          .map(Mono::justOrEmpty)
+          .orElse(Mono.error(new InternalApplicationException(message)));
+    }
+
+    public <I, O> Function<I, Mono<O>> liftOptionalToMono(Function<I, Optional<O>> maybe) {
+      return (I value) -> maybe
+          .apply(value)
+          .map(Mono::justOrEmpty)
+          .orElse(Mono.empty());
+    }
+
+    public <I, O> Function<I, Mono<O>> liftOptionalToMono(Function<I, Optional<O>> maybe, Function<I, ApplicationException> exceptionBuilder) {
+      return (I value) -> maybe
+          .apply(value)
+          .map(Mono::justOrEmpty)
+          .orElse(Mono.error(exceptionBuilder.apply(value)));
+    }
+
     public <I, O> Function<I, Flux<O>> liftEffectToFlux(Function<I, Either<ApplicationException, List<O>>> kleisliArrow) {
       return (I value) -> kleisliArrow
           .apply(value)
@@ -163,6 +189,11 @@ public interface PublisherHelper {
     public <T> Mono<T> fromEither(Either<ApplicationException, T> valueOrException) {
       return valueOrException
           .fold(Mono::error, Mono::justOrEmpty);
+    }
+
+    public <T> Mono<Optional<T>> fromEitherOptional(Either<ApplicationException, Optional<T>> valueOrException) {
+      return valueOrException
+          .fold(Mono::error, Mono::just);
     }
 
     public <T> Mono<T> fromOptional(Optional<T> maybe) {
@@ -189,6 +220,13 @@ public interface PublisherHelper {
       return (I2 v2) -> (I1 v1) -> function.apply(v1).apply(v2);
     }
 
+    public <A, B, R> Mono<R> combine(
+        Mono<A> monoA,
+        Mono<B> monoB,
+        BiFunction<A, B, R> combiner) {
+      return monoA.flatMap(a -> monoB.map(b -> combiner.apply(a, b)));
+    }
+
     public <A, B, R> Mono<R> combineM(
         Mono<A> monoA,
         Mono<B> monoB,
@@ -196,5 +234,35 @@ public interface PublisherHelper {
       return monoA.flatMap(a -> monoB.flatMap(b -> combinerM.apply(a, b)));
     }
 
+    public <A, B, C, R> Function1<C, Mono<R>> combineM(
+        Mono<A> monoA,
+        Mono<B> monoB,
+        Function3<A, B, C, Mono<R>> combinerM) {
+      return (C c) -> monoA.flatMap(a -> monoB.flatMap(b -> combinerM.apply(a, b, c)));
+    }
+
+    public <A, B, C, R> Mono<R> combineM(
+        Mono<A> monoA,
+        Mono<B> monoB,
+        Mono<C> monoC,
+        Function3<A, B, C, Mono<R>> combinerM) {
+      return monoA.flatMap(a -> monoB.flatMap(b -> monoC.flatMap(c -> combinerM.apply(a, b, c))));
+    }
+
+    public <T> Function1<T, Mono<Void>> makeSureBefore(
+        Predicate<T> predicate,
+        Function1<T, Mono<Void>> mapper) {
+      return value -> predicate.test(value) ? mapper.apply(value) : Mono.empty();
+    }
+
+    public <T> Function1<T, Mono<Void>> makeSureBefore(
+        Function1<T, Mono<Boolean>> asyncPredicate,
+        Function1<T, Mono<Void>> mapper) {
+      return value -> asyncPredicate.apply(value)
+          .flatMap(trueOrFalse -> trueOrFalse
+              ? mapper.apply(value)
+              : Mono.empty());
+    }
   }
+
 }

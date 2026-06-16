@@ -14,15 +14,12 @@ import org.springframework.web.server.WebFilterChain;
 import reactor.core.publisher.Mono;
 
 /**
- * Assigns a unique request ID to every incoming request and propagates it
- * through the Reactor Context so that all downstream loggers include it in
- * their MDC (via {@link MdcContextLifter}).
+ * Assigns a unique request ID to every incoming request and propagates it through the Reactor Context so that all downstream loggers include it in their MDC (via
+ * {@link MdcContextLifter}).
  *
  * <p>
- * The request ID is sourced from the {@code X-Request-ID} request header
- * when present (so callers can pass in their own correlation ID); otherwise a
- * random UUID is generated. The resolved ID is echoed back in the
- * {@code X-Request-ID} response header.
+ * The request ID is sourced from the {@code X-Request-ID} request header when present (so callers can pass in their own correlation ID); otherwise a random UUID is generated. The
+ * resolved ID is echoed back in the {@code X-Request-ID} response header.
  */
 @Component
 @Order(Ordered.HIGHEST_PRECEDENCE + 1)

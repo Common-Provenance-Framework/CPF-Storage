@@ -27,10 +27,6 @@ import io.vavr.Function1;
 import io.vavr.control.Either;
 
 public final class DocumentUtils {
-  public static Organization buildOrganization(Document document) {
-    return (new Organization())
-        .withIdentifier(document.getOrganizationIdentifier());
-  }
 
   public static Function1<HasOther, Either<ApplicationException, QualifiedName>> getCpmAttributeValue(CpmAttribute attribute) {
     return (HasOther hasOther) -> Either.<ApplicationException, HasOther> right(hasOther).flatMap(EITHER.<HasOther> makeSureNotNullWithMessage("Statement can not be null!"))
@@ -180,14 +176,15 @@ public final class DocumentUtils {
         .mapToVoid();
   }
 
-  public static Function1<Document, Either<ApplicationException, Void>> checkBundleId(AppConfiguration configuration) {
-    return (Document document) -> Either.<ApplicationException, Document> right(document)
+  public static Function1<Organization, Either<ApplicationException, Void>> checkBundleId(AppConfiguration configuration) {
+    return (Organization organization) -> Either.<ApplicationException, Organization> right(organization)
+        .flatMap(EITHER.liftEitherOptional(Organization::getDocument))
         .flatMap(DocumentUtils::getCpmDocument)
         .map(CpmDocument::getBundleId)
         .map(QualifiedName::getNamespaceURI)
         .flatMap(EITHER.makeSureNotNull(uri -> new InternalApplicationException("The bundle namespace uri '" + uri + "' does not resolve into known storage!!")))
         .flatMap(EITHER.makeSure(
-            uri -> uri.equals(configuration.getFqdn() + "documents/"),
+            uri -> uri.equals(configuration.getFqdn() + "organizations/" + organization.getIdentifier() + "/documents/"),
             InvalidValueException::new,
             uri -> "The bundle namespace uri '" + uri + "' does not resolve into known storage!!"))
         .mapToVoid();
@@ -203,12 +200,9 @@ public final class DocumentUtils {
             "CpmDocument is not present!"));
   }
 
-  public static Either<ApplicationException, Document> setDocumentIdentifier(Document document) {
-    return Either.<ApplicationException, Document> right(document)
-        .flatMap(DocumentUtils::getCpmDocument)
-        .map(CpmDocument::getBundleId)
-        .map(QualifiedName::getLocalPart)
-        .map(document::withIdentifier);
+  public static Either<ApplicationException, String> getDocumentIdentifier(Document document) {
+    return EITHER.liftEither(document.getIdentifier())
+        .mapLeft(_ -> new InvalidValueException("Unknown Document identifier!"));
   }
 
 }

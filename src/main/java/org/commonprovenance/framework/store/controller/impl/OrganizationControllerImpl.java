@@ -1,27 +1,19 @@
 package org.commonprovenance.framework.store.controller.impl;
 
-import static org.commonprovenance.framework.store.common.publisher.PublisherHelper.MONO;
-
-import java.util.Optional;
-
 import org.commonprovenance.framework.store.controller.OrganizationController;
 import org.commonprovenance.framework.store.controller.dto.error.BadRequestDTO;
 import org.commonprovenance.framework.store.controller.dto.error.InternalServerErrorDTO;
 import org.commonprovenance.framework.store.controller.dto.error.NotFoundDTO;
-import org.commonprovenance.framework.store.controller.dto.form.OrganizationFormDTO;
+import org.commonprovenance.framework.store.controller.dto.form.OrganizationRegisterFormDTO;
+import org.commonprovenance.framework.store.controller.dto.form.OrganizationUpdateFormDTO;
 import org.commonprovenance.framework.store.controller.dto.response.OrganizationResponseDTO;
-import org.commonprovenance.framework.store.controller.dto.response.factory.DTOFactory;
-import org.commonprovenance.framework.store.exceptions.NotFoundException;
+import org.commonprovenance.framework.store.controller.facade.OrganizationFacade;
+import org.commonprovenance.framework.store.controller.resolver.annotation.LoadOrganization;
 import org.commonprovenance.framework.store.model.Organization;
-import org.commonprovenance.framework.store.model.factory.ModelFactory;
-import org.commonprovenance.framework.store.service.persistence.finalizedProvComponent.OrganizationService;
-import org.commonprovenance.framework.store.service.persistence.finalizedProvComponent.TrustedPartyService;
-import org.commonprovenance.framework.store.service.web.trustedParty.TrustedPartyWebService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -30,14 +22,14 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-
 import jakarta.validation.constraints.NotNull;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @Validated
@@ -45,97 +37,52 @@ import reactor.core.publisher.Mono;
 @RequestMapping(path = "/api/v1/organizations", produces = MediaType.APPLICATION_JSON_VALUE)
 @Tag(name = "Organizations", description = "Organization and trusted-party management")
 public class OrganizationControllerImpl implements OrganizationController {
-  private final OrganizationService organizationService;
-  private final TrustedPartyService trustedPartyService;
+  private final OrganizationFacade organizationFacade;
 
-  private final TrustedPartyWebService trustedPartyWebService;
-
-  public OrganizationControllerImpl(
-      OrganizationService organizationService,
-      TrustedPartyService trustedPartyService,
-      TrustedPartyWebService trustedPartyWebService) {
-    this.organizationService = organizationService;
-    this.trustedPartyService = trustedPartyService;
-
-    this.trustedPartyWebService = trustedPartyWebService;
+  public OrganizationControllerImpl(OrganizationFacade organizationFacade) {
+    this.organizationFacade = organizationFacade;
   }
 
   @ResponseStatus(HttpStatus.CREATED)
   @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
   @NotNull
   @Operation(summary = "Create organization")
-  @ApiResponses({
-      @ApiResponse(responseCode = "201", description = "Organization created"),
+  @ApiResponses({ @ApiResponse(responseCode = "201", description = "Organization created"),
       @ApiResponse(responseCode = "400", description = "Invalid request payload", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = BadRequestDTO.class))),
       @ApiResponse(responseCode = "409", description = "Organization already exists", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = BadRequestDTO.class))),
-      @ApiResponse(responseCode = "500", description = "Internal server error", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = InternalServerErrorDTO.class)))
-  })
+      @ApiResponse(responseCode = "500", description = "Internal server error", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = InternalServerErrorDTO.class))) })
   public Mono<OrganizationResponseDTO> createOrganization(
-      @RequestBody OrganizationFormDTO body) {
-
-    return ModelFactory.toDomain(body)
-        .flatMap(MONO.makeSureAsync(
-            this.organizationService::notExists,
-            // this.trustedPartyWebService::notExists,
-            "Organization with identifier '" + body.getIdentifier() + "' already exists!"))
-        .flatMap(this.trustedPartyWebService.createOrganization(Optional.ofNullable(body.getTrustedPartyUri())))
-        .flatMap(
-            (Organization organization) -> Mono.justOrEmpty(organization.getTrustedParty())
-                .flatMap(trustedParty -> this.trustedPartyService.findTrustedParty(trustedParty)
-                    .onErrorResume(NotFoundException.class,
-                        (NotFoundException notFound) -> trustedParty.getIsDefault()
-                            ? this.trustedPartyService.storeTrustedParty(trustedParty)
-                            : Mono.error(notFound)))
-                .map(organization::withTrustedParty))
-        .flatMap(this.organizationService::storeOrganization)
-        .flatMap(DTOFactory::toDTO);
+      @RequestBody OrganizationRegisterFormDTO body) {
+    return organizationFacade.register(body);
   }
 
   @PutMapping(path = "/{identifier}", consumes = MediaType.APPLICATION_JSON_VALUE)
   @NotNull
-  @Operation(summary = "Update organization")
+  @Operation(summary = "Update organization", parameters = { @Parameter(name = "identifier", in = ParameterIn.PATH, required = true, schema = @Schema(type = "string")) })
   @ApiResponses({
       @ApiResponse(responseCode = "200", description = "Organization updated"),
-      @ApiResponse(responseCode = "400", description = "Invalid request payload", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = BadRequestDTO.class))),
+      @ApiResponse(responseCode = "400", description = "Bad Request", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = BadRequestDTO.class))),
       @ApiResponse(responseCode = "404", description = "Organization not found", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = NotFoundDTO.class))),
-      @ApiResponse(responseCode = "500", description = "Internal server error", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = InternalServerErrorDTO.class)))
-  })
-  public Mono<OrganizationResponseDTO> updateOrganization(
-      @PathVariable String identifier,
-      @RequestBody OrganizationFormDTO body) {
-    return ModelFactory.toDomain(body)
-        .flatMap((MONO.makeSureAsync(
-            this.organizationService::exists,
-            "Organization with identifier '" + body.getIdentifier() + "' does not exists!")))
-        .flatMap(this.trustedPartyWebService::updateOrganization)
-        .flatMap(this.organizationService::updateOrganization)
-        .flatMap(DTOFactory::toDTO);
-  }
+      @ApiResponse(responseCode = "500", description = "Internal server error", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = InternalServerErrorDTO.class))) })
 
-  @GetMapping()
-  @NotNull
-  @Operation(summary = "List organizations")
-  @ApiResponses({
-      @ApiResponse(responseCode = "200", description = "Organizations fetched"),
-      @ApiResponse(responseCode = "500", description = "Internal server error", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = InternalServerErrorDTO.class)))
-  })
-  public Flux<OrganizationResponseDTO> getAllOrganizations() {
-    return this.organizationService.getAllOrganizations()
-        .flatMap(DTOFactory::toDTO);
+  public Mono<OrganizationResponseDTO> updateOrganization(
+      @Parameter(hidden = true) @LoadOrganization(value = "identifier") Organization organization,
+      @RequestBody OrganizationUpdateFormDTO body) {
+    return organizationFacade.update(organization, body);
   }
 
   @NotNull
   @GetMapping("/{identifier}")
-  @Operation(summary = "Get organization by identifier")
+  @Operation(summary = "Get organization by identifier", parameters = {
+      @Parameter(name = "identifier", in = ParameterIn.PATH, required = true, schema = @Schema(type = "string")) })
   @ApiResponses({
       @ApiResponse(responseCode = "200", description = "Organization fetched"),
+      @ApiResponse(responseCode = "400", description = "Bad Request", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = BadRequestDTO.class))),
       @ApiResponse(responseCode = "404", description = "Organization not found", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = NotFoundDTO.class))),
-      @ApiResponse(responseCode = "500", description = "Internal server error", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = InternalServerErrorDTO.class)))
-  })
-  public Mono<OrganizationResponseDTO> getOrganizationByIdentifier(@PathVariable String identifier) {
-    return MONO.<String>makeSureNotNullWithMessage("Identifier can not be null!").apply(identifier)
-        .flatMap(this.organizationService::getOrganizationByIdentifier)
-        .flatMap(DTOFactory::toDTO);
+      @ApiResponse(responseCode = "500", description = "Internal server error", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = InternalServerErrorDTO.class))) })
+  public Mono<OrganizationResponseDTO> getOrganizationByIdentifier(
+      @Parameter(hidden = true) @LoadOrganization(value = "identifier") Organization organization) {
+    return organizationFacade.getOrganizationByIdentifier(organization);
   }
 
 }

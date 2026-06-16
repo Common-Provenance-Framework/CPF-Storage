@@ -1,8 +1,11 @@
 package org.commonprovenance.framework.store.web.trustedParty.dto.response;
 
-import org.commonprovenance.framework.store.common.dto.HasId;
+import org.commonprovenance.framework.store.common.dto.HasClientCertificate;
+import org.commonprovenance.framework.store.common.dto.HasIdentifier;
 
-public class OrganizationTPResponseDTO implements HasId {
+public class OrganizationTPResponseDTO implements
+    HasIdentifier<OrganizationTPResponseDTO>,
+    HasClientCertificate<OrganizationTPResponseDTO> {
   private final String id;
   private final String certificate;
 
@@ -13,11 +16,28 @@ public class OrganizationTPResponseDTO implements HasId {
     this.certificate = certificate;
   }
 
-  public String getId() {
-    return id;
+  @Override
+  public OrganizationTPResponseDTO withIdentifier(String identifier) {
+    return new OrganizationTPResponseDTO(
+        identifier,
+        this.getClientCertificate());
   }
 
-  public String getCertificate() {
-    return certificate;
+  @Override
+  public OrganizationTPResponseDTO withClientCertificate(String clientCertificate) {
+    return new OrganizationTPResponseDTO(
+        this.getIdentifier(),
+        clientCertificate);
   }
+
+  @Override
+  public String getIdentifier() {
+    return this.id;
+  }
+
+  @Override
+  public String getClientCertificate() {
+    return this.certificate;
+  }
+
 }

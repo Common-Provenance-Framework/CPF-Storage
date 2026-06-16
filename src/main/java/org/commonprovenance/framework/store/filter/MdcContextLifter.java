@@ -6,9 +6,8 @@ import reactor.core.CoreSubscriber;
 import reactor.util.context.Context;
 
 /**
- * Propagates Reactor Context values into SLF4J MDC on each reactive signal so
- * that standard loggers pick up context-scoped fields (e.g. requestId) on
- * every thread the reactive pipeline uses.
+ * Propagates Reactor Context values into SLF4J MDC on each reactive signal so that standard loggers pick up context-scoped fields (e.g. requestId) on every thread the reactive
+ * pipeline uses.
  */
 public class MdcContextLifter<T> implements CoreSubscriber<T> {
 

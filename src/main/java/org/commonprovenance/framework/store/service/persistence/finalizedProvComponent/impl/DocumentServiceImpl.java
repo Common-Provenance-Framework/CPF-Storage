@@ -4,11 +4,13 @@ import static org.commonprovenance.framework.store.common.publisher.PublisherHel
 
 import org.commonprovenance.framework.store.exceptions.BadRequestException;
 import org.commonprovenance.framework.store.exceptions.ConflictException;
+import org.commonprovenance.framework.store.exceptions.InternalApplicationException;
+import org.commonprovenance.framework.store.exceptions.InvalidValueException;
 import org.commonprovenance.framework.store.exceptions.NotFoundException;
 import org.commonprovenance.framework.store.exceptions.factory.ApplicationExceptionFactory;
 import org.commonprovenance.framework.store.model.Document;
 import org.commonprovenance.framework.store.model.utils.DocumentUtils;
-import org.commonprovenance.framework.store.persistence.finalizedProvComponent.DocumentPersistence;
+import org.commonprovenance.framework.store.persistence.finalizedProvComponent.DocumentRepository;
 import org.commonprovenance.framework.store.service.persistence.finalizedProvComponent.DocumentService;
 import org.commonprovenance.framework.store.service.web.store.StoreWebService;
 import org.openprovenance.prov.model.Entity;
@@ -16,23 +18,18 @@ import org.openprovenance.prov.model.QualifiedName;
 import org.springframework.stereotype.Service;
 
 import cz.muni.fi.cpm.model.CpmDocument;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @Service
 public class DocumentServiceImpl implements DocumentService {
-  private final DocumentPersistence persistence;
+  private final DocumentRepository repository;
   private final StoreWebService storeWebService;
 
   public DocumentServiceImpl(
-      DocumentPersistence persistence,
+      DocumentRepository repository,
       StoreWebService storeWebService) {
-    this.persistence = persistence;
+    this.repository = repository;
     this.storeWebService = storeWebService;
-  }
-
-  private String buildHeader(String methodName, String message) {
-    return "[DocumentService].[" + methodName + "].(" + message + ")";
   }
 
   private String getIdentifier(Document document) {
@@ -43,30 +40,26 @@ public class DocumentServiceImpl implements DocumentService {
   }
 
   @Override
-  public Mono<Document> storeDocument(Document document) {
-    return this.persistence.create(document);
-  }
-
-  @Override
-  public Flux<Document> getAllDocuments() {
-    return this.persistence.getAll();
+  public Mono<Void> storeDocument(Document document) {
+    return this.repository.save(document);
   }
 
   @Override
   public Mono<Document> getDocumentByIdentifier(String identifier) {
-    return this.persistence.getByIdentifier(identifier);
+    return this.repository.findByIdentifier(identifier);
   }
 
   @Override
   public Mono<Boolean> existsByIdentifier(String identifier) {
-    return this.persistence.existsByIdentifier(identifier);
+    return this.repository.existsByIdentifier(identifier);
   }
 
   @Override
   public Mono<Boolean> exists(Document document) {
     return MONO.makeSureNotNull(document)
-        .map(Document::getIdentifier)
-        .flatMap(MONO::fromOptional)
+        .flatMap(MONO.liftOptionalToMono(
+            Document::getIdentifier,
+            _ -> new InvalidValueException("Document has not been deserialized yet!")))
         .flatMap(this::existsByIdentifier)
         .onErrorResume(NotFoundException.class, _ -> Mono.just(false));
   }
@@ -89,7 +82,7 @@ public class DocumentServiceImpl implements DocumentService {
 
   @Override
   public Mono<String> getOrganizationIdentifierByIdentifier(String identifier) {
-    return this.persistence.getOrganizationIdentifierByIdentifier(identifier);
+    return this.repository.getOrganizationIdentifierByIdentifier(identifier);
   }
 
   @Override
@@ -106,7 +99,9 @@ public class DocumentServiceImpl implements DocumentService {
             BadRequestException::new,
             element -> "Invalid specForwardConnector with id '" + element.getId().toString() + "'. Attribute 'referencedMetaBundleId' is not resolvable"))
         .then()
-        .onErrorMap(ApplicationExceptionFactory.header(buildHeader("checkSpecForwardConnectorsResolvable", "DocumentId: " + getIdentifier(document))));
+        .onErrorMap(ApplicationExceptionFactory.handleThrowable(
+            new InternalApplicationException("checkSpecForwardConnectorsResolvable '" + getIdentifier(document) + "'' failed!")));
+
   }
 
   @Override
@@ -123,7 +118,8 @@ public class DocumentServiceImpl implements DocumentService {
             BadRequestException::new,
             element -> "Invalid backwardConnector with id '" + element.getId().toString() + "'. Attribute 'referencedMetaBundleId' is not resolvable"))
         .then()
-        .onErrorMap(ApplicationExceptionFactory.header(buildHeader("checkBackwardConnectorsResolvable", "DocumentId: " + getIdentifier(document))));
+        .onErrorMap(ApplicationExceptionFactory.handleThrowable(
+            new InternalApplicationException("checkBackwardConnectorsResolvable '" + getIdentifier(document) + "'' failed!")));
   }
 
 }

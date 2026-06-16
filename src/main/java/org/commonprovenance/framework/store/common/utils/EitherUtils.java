@@ -91,6 +91,12 @@ public interface EitherUtils {
                   + result.stream().reduce("", (acc, i) -> acc.isEmpty() ? i : acc + ", " + i)));
     }
 
+    public <R> Either<ApplicationException, R> valueOrException(R value, ApplicationException exception) {
+      return (value == null)
+          ? Either.left(exception)
+          : Either.right(value);
+    }
+
     public <R> Either<ApplicationException, R> makeSureNotNull(R value) {
       return this.<R> makeSureNotNullWithMessage(this.defaultNullMessage(value)).apply(value);
     }
@@ -115,6 +121,14 @@ public interface EitherUtils {
           : Either.left(applicationExceptionBuilder.apply(value));
     }
 
+    public <R> Function1<R, Either<ApplicationException, R>> makeSureNot(
+        Predicate<R> validator,
+        Function1<R, ApplicationException> applicationExceptionBuilder) {
+      return (R value) -> !validator.test(value)
+          ? Either.right(value)
+          : Either.left(applicationExceptionBuilder.apply(value));
+    }
+
     public <R> Function1<R, Either<ApplicationException, R>> makeSure(
         Predicate<R> validator,
         Function1<String, ApplicationException> factory,
@@ -135,6 +149,12 @@ public interface EitherUtils {
       return (I input) -> maybe.apply(input)
           .map(Either::<ApplicationException, R> right)
           .orElse(Either.<ApplicationException, R> left(new InternalApplicationException("Optional value is not present!")));
+    }
+
+    public <I, R> Function1<I, Either<ApplicationException, R>> liftEitherOptional(Function1<I, Optional<R>> maybe, Function1<I, ApplicationException> exceptionBuilder) {
+      return (I input) -> maybe.apply(input)
+          .map(Either::<ApplicationException, R> right)
+          .orElse(Either.<ApplicationException, R> left(exceptionBuilder.apply(input)));
     }
 
     public <R> Either<ApplicationException, R> liftEither(Function0<R> liftSupplier) {

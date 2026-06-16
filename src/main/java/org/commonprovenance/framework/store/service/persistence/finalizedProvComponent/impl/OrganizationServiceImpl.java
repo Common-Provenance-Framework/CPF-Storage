@@ -3,46 +3,63 @@ package org.commonprovenance.framework.store.service.persistence.finalizedProvCo
 import static org.commonprovenance.framework.store.common.publisher.PublisherHelper.MONO;
 
 import org.commonprovenance.framework.store.exceptions.ConflictException;
+import org.commonprovenance.framework.store.exceptions.InvalidValueException;
 import org.commonprovenance.framework.store.exceptions.NotFoundException;
-import org.commonprovenance.framework.store.model.Document;
 import org.commonprovenance.framework.store.model.Organization;
-import org.commonprovenance.framework.store.persistence.finalizedProvComponent.OrganizationPersistence;
+import org.commonprovenance.framework.store.persistence.finalizedProvComponent.DocumentRepository;
+import org.commonprovenance.framework.store.persistence.finalizedProvComponent.OrganizationRepository;
+import org.commonprovenance.framework.store.persistence.finalizedProvComponent.TokenRepository;
+import org.commonprovenance.framework.store.persistence.finalizedProvComponent.TrustedPartyRepository;
 import org.commonprovenance.framework.store.service.persistence.finalizedProvComponent.OrganizationService;
 import org.springframework.stereotype.Service;
 
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @Service
 public class OrganizationServiceImpl implements OrganizationService {
 
-  private final OrganizationPersistence persistence;
+  private final OrganizationRepository organizationRepository;
+  private final TrustedPartyRepository trustedPartyRepository;
+  private final DocumentRepository documentRepository;
+  private final TokenRepository tokenRepository;
 
-  public OrganizationServiceImpl(OrganizationPersistence persistence) {
-    this.persistence = persistence;
+  public OrganizationServiceImpl(
+      OrganizationRepository organizationRepository,
+      TrustedPartyRepository trustedPartyRepository,
+      DocumentRepository documentRepository,
+      TokenRepository tokenRepository) {
+    this.organizationRepository = organizationRepository;
+    this.trustedPartyRepository = trustedPartyRepository;
+    this.documentRepository = documentRepository;
+    this.tokenRepository = tokenRepository;
   }
 
   @Override
-  public Mono<Organization> storeOrganization(Organization organization) {
-    return MONO.<Organization> makeSureNotNullWithMessage("Organization can not be null")
-        .apply(organization)
-        .flatMap(this.persistence::create);
+  public Mono<Void> storeOrganization(Organization organization) {
+    return Mono.just(organization)
+        .delayUntil(MONO.makeSureAsync(
+            this::notExists,
+            org -> new ConflictException("Organization with identifier '" + org.getIdentifier() + "' already registered in CPF-Store!")))
+        .delayUntil(this.organizationRepository::save)
+        .delayUntil(this.organizationRepository::connectTrusts)
+        .then();
   }
 
   @Override
-  public Mono<Organization> updateOrganization(Organization organization) {
-    return MONO.<Organization> makeSureNotNullWithMessage("Organization can not be null")
-        .apply(organization)
-        .flatMap(this.persistence::update);
+  public Mono<Void> updateOrganization(Organization organization) {
+    return Mono.just(organization)
+        .flatMap((MONO.makeSureAsync(
+            this::exists,
+            org -> new ConflictException("Organization with identifier '" + org.getIdentifier() + "' has not been registered yet!"))))
+        .flatMap(this.organizationRepository::save);
   }
 
   @Override
   public Mono<Boolean> exists(Organization organization) {
-    return MONO.<Organization> makeSureNotNullWithMessage("Organization can not be null")
-        .apply(organization)
+    return Mono.just(organization)
         .map(Organization::getIdentifier)
         .flatMap(this::getOrganizationByIdentifier)
-        .thenReturn(true)
+        .hasElement()
         .onErrorResume(NotFoundException.class, _ -> Mono.just(false));
   }
 
@@ -72,13 +89,11 @@ public class OrganizationServiceImpl implements OrganizationService {
   }
 
   @Override
-  public Flux<Organization> getAllOrganizations() {
-    return this.persistence.getAll();
-  }
-
-  @Override
   public Mono<Organization> getOrganizationByIdentifier(String identifier) {
-    return this.persistence.getByIdentifier(identifier);
+    return MONO.combine(
+        this.organizationRepository.findByIdentifier(identifier),
+        this.trustedPartyRepository.findByOrganizationIdentifier(identifier),
+        (organization, trustedParty) -> organization.withTrustedParty(trustedParty));
   }
 
   @Override
@@ -90,8 +105,16 @@ public class OrganizationServiceImpl implements OrganizationService {
   }
 
   @Override
-  public Mono<Boolean> linkOwnedDocument(Document document) {
-    return this.persistence.connectDocument(document);
+  public Mono<Void> storeDocument(Organization organization) {
+    return Mono.just(organization)
+        .flatMap(MONO.liftOptionalToMono(
+            Organization::getDocument,
+            _ -> new InvalidValueException("Document has not been deserialized yet!")))
+        .delayUntil(this.documentRepository::save)
+        .delayUntil(this.organizationRepository.connectOwns(organization.getIdentifier()))
+        .delayUntil(this.tokenRepository.connectWasIssuedBy(organization.getTrustedParty()))
+        .then();
+
   }
 
 }

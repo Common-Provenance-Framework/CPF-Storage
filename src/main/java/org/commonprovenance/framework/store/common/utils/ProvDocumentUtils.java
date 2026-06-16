@@ -6,19 +6,34 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.nio.charset.Charset;
+import java.util.Map;
 import java.util.function.Function;
+
+import javax.xml.datatype.DatatypeConfigurationException;
+import javax.xml.datatype.DatatypeFactory;
+import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.commonprovenance.framework.store.exceptions.ApplicationException;
 import org.commonprovenance.framework.store.exceptions.InternalApplicationException;
 import org.commonprovenance.framework.store.exceptions.InvalidValueException;
 import org.openprovenance.prov.interop.InteropFramework;
 import org.openprovenance.prov.model.Document;
+import org.openprovenance.prov.model.NamespacePrefixMapper;
+import org.openprovenance.prov.model.ProvFactory;
+import org.openprovenance.prov.model.QualifiedName;
+import org.openprovenance.prov.model.Type;
 import org.openprovenance.prov.model.interop.Formats;
 import org.openprovenance.prov.model.interop.InteropMediaType;
 
+import cz.muni.fi.cpm.constants.CpmNamespaceConstants;
 import io.vavr.control.Either;
 
 public final class ProvDocumentUtils {
+  private static final ProvFactory provFactory = new org.openprovenance.prov.vanilla.ProvFactory();
+
+  private static final Map<String, String> knownProvTypeNS = Map.of(
+      NamespacePrefixMapper.PROV_PREFIX, NamespacePrefixMapper.PROV_NS,
+      CpmNamespaceConstants.CPM_PREFIX, CpmNamespaceConstants.CPM_NS);
 
   public final static Charset charset = java.nio.charset.StandardCharsets.UTF_8;
 
@@ -51,15 +66,14 @@ public final class ProvDocumentUtils {
 
   public static Function<String, Either<ApplicationException, Document>> deserialize(Formats.ProvFormat format) {
 
-    Function<Formats.ProvFormat, Function<String, Either<ApplicationException, Document>>> stringToProv = (
-        Formats.ProvFormat provFormat) -> (String document) -> {
-          return EITHER.<InputStream, InteropFramework, Document> combineChecked(
-              Either.<ApplicationException, String> right(document)
-                  .flatMap(BytesUtils::stringToBytes_UTF8)
-                  .flatMap(EITHER.liftEither(bs -> new ByteArrayInputStream(bs))),
-              EITHER.liftEither(() -> new InteropFramework()),
-              (InputStream is, InteropFramework interop) -> interop.readDocument(is, format));
-        };
+    Function<Formats.ProvFormat, Function<String, Either<ApplicationException, Document>>> stringToProv = (Formats.ProvFormat provFormat) -> (String document) -> {
+      return EITHER.<InputStream, InteropFramework, Document> combineChecked(
+          Either.<ApplicationException, String> right(document)
+              .flatMap(BytesUtils::stringToBytes_UTF8)
+              .flatMap(EITHER.liftEither(bs -> new ByteArrayInputStream(bs))),
+          EITHER.liftEither(() -> new InteropFramework()),
+          (InputStream is, InteropFramework interop) -> interop.readDocument(is, format));
+    };
 
     return (String document) -> Either.<ApplicationException, String> right(document)
         .flatMap(EITHER.makeSureBefore(
@@ -67,6 +81,29 @@ public final class ProvDocumentUtils {
             ProvJsonUtils.FUNCTIONAL.preprocessJsonForDeserialization))
         .flatMap(stringToProv.apply(format));
 
+  }
+
+  public static Either<ApplicationException, XMLGregorianCalendar> toXMLGregorianCalendar(String timestamp) {
+    try {
+      DatatypeFactory dtf = DatatypeFactory.newInstance();
+      return Either.right(dtf.newXMLGregorianCalendar(timestamp));
+    } catch (DatatypeConfigurationException e) {
+      return Either.left(new InvalidValueException("Timestamp '" + timestamp + "' can not be converted into XMLGregorianCalendar timestamp!"));
+    }
+
+  }
+
+  public static Either<ApplicationException, Type> getTypeAsQN(String value) {
+    if (!value.contains(":"))
+      return Either.left(new InvalidValueException("Value '" + value + "'' is not valid QualifiedName string!"));
+
+    String[] valueParts = value.split(":");
+
+    return Either.<ApplicationException, String> right(valueParts[0])
+        .flatMap(prefix -> knownProvTypeNS.containsKey(prefix)
+            ? Either.<ApplicationException, QualifiedName> right(provFactory.newQualifiedName(knownProvTypeNS.get(prefix), valueParts[1], prefix))
+            : Either.<ApplicationException, QualifiedName> left(new InvalidValueException("Unknown prefix in element type: " + prefix + "!")))
+        .map(qn -> provFactory.newType(qn, provFactory.getName().PROV_QUALIFIED_NAME));
   }
 
   private static Either<ApplicationException, String> provFormatToIntermediaType(Formats.ProvFormat format) {

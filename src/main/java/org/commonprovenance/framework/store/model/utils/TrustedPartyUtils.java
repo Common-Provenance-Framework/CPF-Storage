@@ -10,29 +10,15 @@ import io.vavr.control.Either;
 
 public final class TrustedPartyUtils {
 
-  public static Either<ApplicationException, Void> isChecked(TrustedParty trustedParty) {
+  public static Either<ApplicationException, TrustedParty> validate(TrustedParty trustedParty) {
     return Either.<ApplicationException, TrustedParty> right(trustedParty)
         .flatMap(EITHER.makeSure(
             TrustedParty::getIsChecked,
             ConstraintException::new,
-            tp -> "Trusted party has not been checked for its validity yet!"))
-        .mapToVoid();
-  }
-
-  public static Either<ApplicationException, Void> isValid(TrustedParty trustedParty) {
-    return Either.<ApplicationException, TrustedParty> right(trustedParty)
+            _ -> "TrustedParty is registered in Store, but has not been checked for its validity yet!"))
         .flatMap(EITHER.makeSure(
             TrustedParty::getIsValid,
             ConstraintException::new,
-            _ -> "Trusted party has been checked, but has not been considered as vaid!"))
-        .mapToVoid();
-  }
-
-  public static Either<ApplicationException, Void> validate(TrustedParty trustedParty) {
-    return Either.<ApplicationException, TrustedParty> right(trustedParty)
-        .flatMap(EITHER::makeSureNotNull)
-        .flatMap(EITHER.flatTap(TrustedPartyUtils::isChecked))
-        .flatMap(EITHER.flatTap(TrustedPartyUtils::isValid))
-        .mapToVoid();
+            _ -> "TrustedParty is registered in Store and checked, but has not been considered as vaid!"));
   }
 }

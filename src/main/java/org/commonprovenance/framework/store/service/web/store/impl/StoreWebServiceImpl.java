@@ -3,11 +3,12 @@ package org.commonprovenance.framework.store.service.web.store.impl;
 import static org.commonprovenance.framework.store.common.publisher.PublisherHelper.MONO;
 
 import org.commonprovenance.framework.store.exceptions.ConstraintException;
+import org.commonprovenance.framework.store.exceptions.InternalApplicationException;
 import org.commonprovenance.framework.store.exceptions.NotFoundException;
 import org.commonprovenance.framework.store.exceptions.factory.ApplicationExceptionFactory;
 import org.commonprovenance.framework.store.model.utils.DocumentUtils;
 import org.commonprovenance.framework.store.service.web.store.StoreWebService;
-import org.commonprovenance.framework.store.web.store.PingClient;
+import org.commonprovenance.framework.store.web.store.StoreWeb;
 import org.openprovenance.prov.model.Entity;
 import org.openprovenance.prov.model.QualifiedName;
 import org.springframework.stereotype.Service;
@@ -16,27 +17,23 @@ import reactor.core.publisher.Mono;
 
 @Service
 public class StoreWebServiceImpl implements StoreWebService {
-  private final PingClient pingClient;
+  private final StoreWeb pingClient;
 
   public StoreWebServiceImpl(
-      PingClient pingClient) {
+      StoreWeb pingClient) {
     this.pingClient = pingClient;
-  }
-
-  private String buildHeader(String methodName, String message) {
-    return "[StoreWebService].[" + methodName + "].(" + message + ")";
   }
 
   @Override
   public Mono<Boolean> pingUrl(String url) {
-    return this.pingClient.pingByUrl(url)
+    return this.pingClient.pingByResourcePath(url)
         .thenReturn(true)
         .onErrorReturn(NotFoundException.class, false);
   }
 
   @Override
   public Mono<Boolean> pingQualifiedName(QualifiedName qn) {
-    return this.pingClient.pingByUrl(qn.getNamespaceURI() + qn.getLocalPart())
+    return this.pingClient.pingByResourcePath(qn.getNamespaceURI() + qn.getLocalPart())
         .thenReturn(true)
         .onErrorReturn(NotFoundException.class, false);
   }
@@ -47,7 +44,8 @@ public class StoreWebServiceImpl implements StoreWebService {
         .flatMap(MONO.liftEffectToMono(DocumentUtils::getCpmReferencedBundleId))
         .onErrorMap(ApplicationExceptionFactory.build(ConstraintException::new, "Can not get 'referencedBundleId'"))
         .flatMap(this::pingQualifiedName)
-        .onErrorMap(ApplicationExceptionFactory.header(buildHeader("pingBundleId", "ConnectorId: " + connector.getId())));
+        .onErrorMap(ApplicationExceptionFactory.handleThrowable(
+            new InternalApplicationException("Ping bundle id '" + connector.getId() + "'' failed!")));
   }
 
   @Override
@@ -56,6 +54,7 @@ public class StoreWebServiceImpl implements StoreWebService {
         .flatMap(MONO.liftEffectToMono(DocumentUtils::getCpmReferencedMetaBundleId))
         .onErrorMap(ApplicationExceptionFactory.build(ConstraintException::new, "Can not get 'referencedMetaBundleId'"))
         .flatMap(this::pingQualifiedName)
-        .onErrorMap(ApplicationExceptionFactory.header(buildHeader("pingMetaBundleId", "ConnectorId: " + connector.getId())));
+        .onErrorMap(ApplicationExceptionFactory.handleThrowable(
+            new InternalApplicationException("Ping meta bundle id '" + connector.getId() + "'' failed!")));
   }
 }

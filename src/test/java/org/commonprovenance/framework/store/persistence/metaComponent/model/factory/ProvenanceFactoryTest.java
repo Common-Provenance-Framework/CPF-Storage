@@ -61,7 +61,7 @@ class ProvenanceFactoryTest {
         .withAgents(List.of(ag1))
         .withEntities(List.of(e1, e2));
 
-    Document document = ProvenanceFactory.bundleToProv(config).apply(bundleNode).block();
+    Document document = NodeToProvFactory.bundleToProv(config).apply(bundleNode).block();
 
     assertNotNull(document);
     assertEquals(1, document.getStatementOrBundle().size());
@@ -227,7 +227,7 @@ class ProvenanceFactoryTest {
     BundleNode bundleNode = new BundleNode("bundle-1")
         .withEntities(List.of(e1, e2));
 
-    Document document = ProvenanceFactory.bundleToProv(config).apply(bundleNode).block();
+    Document document = NodeToProvFactory.bundleToProv(config).apply(bundleNode).block();
     assertNotNull(document);
 
     Bundle bundle = assertInstanceOf(Bundle.class,
@@ -290,7 +290,7 @@ class ProvenanceFactoryTest {
     BundleNode bundleNode = new BundleNode("bundle-1")
         .withEntities(List.of(entityNode));
 
-    Document document = ProvenanceFactory.bundleToProv(config).apply(bundleNode).block();
+    Document document = NodeToProvFactory.bundleToProv(config).apply(bundleNode).block();
     assertNotNull(document);
 
     Bundle bundle = assertInstanceOf(Bundle.class,

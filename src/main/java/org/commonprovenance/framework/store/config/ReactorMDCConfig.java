@@ -10,11 +10,8 @@ import reactor.core.publisher.Hooks;
 import reactor.core.publisher.Operators;
 
 /**
- * Installs a global Reactor operator hook that copies select Reactor Context
- * values (currently {@code requestId}) into SLF4J MDC on every reactive signal,
- * making MDC-based log patterns like {@code %X{requestId}} work correctly
- * across
- * all reactive threads.
+ * Installs a global Reactor operator hook that copies select Reactor Context values (currently {@code requestId}) into SLF4J MDC on every reactive signal, making MDC-based log
+ * patterns like {@code %X{requestId}} work correctly across all reactive threads.
  */
 @Configuration
 public class ReactorMDCConfig {
@@ -24,7 +21,7 @@ public class ReactorMDCConfig {
   @PostConstruct
   public void installHook() {
     Hooks.onEachOperator(HOOK_KEY,
-        Operators.<Object, Object>lift((scannable, subscriber) -> new MdcContextLifter<>(subscriber)));
+        Operators.<Object, Object> lift((scannable, subscriber) -> new MdcContextLifter<>(subscriber)));
   }
 
   @PreDestroy

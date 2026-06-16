@@ -7,6 +7,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.commonprovenance.framework.store.exceptions.ConflictException;
 import org.commonprovenance.framework.store.persistence.metaComponent.model.relation.Used;
 import org.commonprovenance.framework.store.persistence.metaComponent.model.relation.WasAssociatedWith;
 import org.springframework.data.annotation.PersistenceCreator;
@@ -170,4 +171,13 @@ public class ActivityNode extends BaseProvClassNode {
     return used;
   }
 
+  public AgentNode getTokenGenerator() throws ConflictException {
+    if (this.wasAssociatedWith.size() == 0)
+      throw new ConflictException("Token generation is not associated with token generator!");
+
+    if (this.wasAssociatedWith.size() > 1)
+      throw new ConflictException("Token generation is associated with more than one token generator!");
+
+    return this.wasAssociatedWith.getFirst().getAgent();
+  }
 }

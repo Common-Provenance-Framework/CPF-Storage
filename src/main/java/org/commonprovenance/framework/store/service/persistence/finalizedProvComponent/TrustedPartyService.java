@@ -7,7 +7,7 @@ import reactor.core.publisher.Mono;
 
 public interface TrustedPartyService {
 
-  Mono<TrustedParty> storeTrustedParty(TrustedParty trustedParty);
+  Mono<Void> storeTrustedParty(TrustedParty trustedParty);
 
   Mono<TrustedParty> findTrustedParty(TrustedParty trustedParty);
 
@@ -20,4 +20,8 @@ public interface TrustedPartyService {
   Mono<String> getTrustedPartyUrlByOrganizationIdentifier(String organizationIdentifier);
 
   Mono<String> getTrustedPartyUrlByOrganization(Organization organization);
+
+  Mono<Boolean> isRegistered(TrustedParty trustedParty);
+
+  Mono<Boolean> isTrustedPartyValid(Organization organization);
 }

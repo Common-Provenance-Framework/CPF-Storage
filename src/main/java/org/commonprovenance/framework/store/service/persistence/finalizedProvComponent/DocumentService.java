@@ -2,14 +2,11 @@ package org.commonprovenance.framework.store.service.persistence.finalizedProvCo
 
 import org.commonprovenance.framework.store.model.Document;
 
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 public interface DocumentService {
 
-  Mono<Document> storeDocument(Document document);
-
-  Flux<Document> getAllDocuments();
+  Mono<Void> storeDocument(Document document);
 
   Mono<Document> getDocumentByIdentifier(String identifier);
 

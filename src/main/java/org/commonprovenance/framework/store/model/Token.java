@@ -1,50 +1,72 @@
 package org.commonprovenance.framework.store.model;
 
-public class Token {
+import java.util.Optional;
+
+import org.commonprovenance.framework.store.common.dto.HasCreatedOn;
+import org.commonprovenance.framework.store.common.dto.HasJwtToken;
+import org.commonprovenance.framework.store.common.dto.HasTrustedPartyOptional;
+
+public class Token implements
+    HasJwtToken<Token>,
+    HasTrustedPartyOptional<Token>,
+    HasCreatedOn<Token> {
   private final String jwt;
 
-  private final TrustedParty trustedParty;
-  private final Document document;
+  private final Optional<TrustedParty> trustedParty;
 
   private final Long createdOn;
 
   public Token(
       String jwt,
       TrustedParty trustedParty,
-      Document document,
       Long createdOn) {
     this.jwt = jwt;
-    this.trustedParty = trustedParty;
-    this.document = document;
+    this.trustedParty = Optional.ofNullable(trustedParty);
     this.createdOn = createdOn;
+  }
+
+  public Token() {
+    this.jwt = null;
+    this.trustedParty = Optional.empty();
+    this.createdOn = 0L;
+  }
+
+  public Token withJwt(String jwtToken) {
+    return new Token(
+        jwtToken,
+        this.getTrustedParty().orElse(null),
+        this.getCreatedOn());
   }
 
   public Token withTrustedParty(TrustedParty trustedParty) {
     return new Token(
         this.getJwt(),
         trustedParty,
-        this.getDocument(),
         this.getCreatedOn());
   }
 
-  public Token withDocument(Document document) {
+  public Token withTrustedParty(Optional<TrustedParty> maybeTrustedParty) {
+    return maybeTrustedParty
+        .map(trustedParty -> new Token(
+            this.getJwt(),
+            trustedParty,
+            this.getCreatedOn()))
+        .orElse(this);
+  }
+
+  public Token withCreatedOn(Long createdOn) {
     return new Token(
         this.getJwt(),
-        this.getTrustedParty(),
-        document,
-        this.getCreatedOn());
+        this.getTrustedParty().orElse(null),
+        createdOn);
   }
 
   public String getJwt() {
     return jwt;
   }
 
-  public TrustedParty getTrustedParty() {
+  public Optional<TrustedParty> getTrustedParty() {
     return trustedParty;
-  }
-
-  public Document getDocument() {
-    return document;
   }
 
   public Long getCreatedOn() {
