@@ -100,7 +100,7 @@ public class DocumentFacadeImpl implements DocumentFacade {
             // check connectors
             .delayUntil(this.documentService::checkBackwardConnectorsResolvable)
             .delayUntil(this.documentService::checkSpecForwardConnectorsResolvable)
-            .delayUntil(MONO.liftEffectToMono(Document::checkSpecForwardConnetorsAttrs))
+            .delayUntil(MONO.liftEffectToMono(DocumentUtils::checkSpecForwardConnetorsAttrs))
             .delayUntil(MONO.liftEffectToMono(DocumentUtils::checkBackwardConnetorsAttrs))
             .delayUntil(MONO.liftEffectToMono(DocumentUtils::checkForwardConnetorsAttrs))
         // TODO: check hashes in connectors

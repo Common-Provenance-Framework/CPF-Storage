@@ -168,4 +168,13 @@ public final class DocumentUtils {
 
   }
 
+  public static Either<ApplicationException, Void> checkSpecForwardConnetorsAttrs(Document document) {
+    return Either.<ApplicationException, Document> right(document)
+        .flatMap(Document::getSpecForwardConnectors)
+        .flatMap(EITHER.traverseEither(EITHER.<Entity> makeSure(
+            DocumentUtils::isValidSpecForwardConnector,
+            InvalidValueException::new,
+            element -> "Entity '" + element.getId() + "' is not valid specialized forward connector")))
+        .mapToVoid();
+  }
 }

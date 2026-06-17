@@ -6,7 +6,6 @@ import java.util.List;
 
 import org.commonprovenance.framework.store.exceptions.ApplicationException;
 import org.commonprovenance.framework.store.exceptions.InvalidValueException;
-import org.commonprovenance.framework.store.model.utils.DocumentUtils;
 import org.openprovenance.prov.model.Entity;
 import org.openprovenance.prov.model.QualifiedName;
 
@@ -32,15 +31,6 @@ public interface HasCpmDocument<T extends HasCpmDocument<T>> {
             InvalidValueException::new,
             element -> "Invalid connector. Statement with id '" + element.getId().toString() + "' is not entity!")))
         .map(EITHER.traverse(Entity.class::cast));
-  }
-
-  default Either<ApplicationException, Void> checkSpecForwardConnetorsAttrs() {
-    return getSpecForwardConnectors()
-        .flatMap(EITHER.traverseEither(EITHER.<Entity> makeSure(
-            DocumentUtils::isValidSpecForwardConnector,
-            InvalidValueException::new,
-            element -> "Entity '" + element.getId() + "' is not valid specialized forward connector")))
-        .mapToVoid();
   }
 
 }
