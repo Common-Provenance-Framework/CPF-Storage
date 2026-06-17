@@ -153,18 +153,6 @@ public final class DocumentUtils {
         .mapToVoid();
   }
 
-  public static Either<ApplicationException, List<Entity>> getSpecForwardConnectors(CpmDocument cpmDocument) {
-    return Either.<ApplicationException, CpmDocument> right(cpmDocument)
-        .flatMap(EITHER::makeSureNotNull)
-        .map(CpmDocument::getSpecForwardConnectors)
-        .map(EITHER.traverse(INode::getAnyElement))
-        .flatMap(EITHER.traverseEither(EITHER.makeSure(
-            Entity.class::isInstance,
-            InvalidValueException::new,
-            element -> "Invalid connector. Statement with id '" + element.getId().toString() + "' is not entity!")))
-        .map(EITHER.traverse(Entity.class::cast));
-  }
-
   public static Function1<Organization, Either<ApplicationException, Void>> checkBundleId(AppConfiguration configuration) {
     return (Organization organization) -> Either.<ApplicationException, Organization> right(organization)
         .flatMap(EITHER.liftEitherOptional(Organization::getDocument))

@@ -84,9 +84,8 @@ public class DocumentServiceImpl implements DocumentService {
 
   @Override
   public Mono<Void> checkSpecForwardConnectorsResolvable(Document document) {
-    return MONO.makeSureNotNull(document)
-        .flatMap(MONO.liftEffectToMono(Document::getCpmDocument))
-        .flatMapMany(MONO.<CpmDocument, Entity> liftEffectToFlux(DocumentUtils::getSpecForwardConnectors))
+    return Mono.just(document)
+        .flatMapMany(MONO.liftEffectToFlux(Document::getSpecForwardConnectors))
         .flatMap(MONO.makeSureAsync(
             storeWebService::pingBundleId,
             BadRequestException::new,
