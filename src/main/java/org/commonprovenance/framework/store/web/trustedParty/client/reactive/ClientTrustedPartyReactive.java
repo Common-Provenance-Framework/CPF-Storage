@@ -9,7 +9,6 @@ import org.commonprovenance.framework.store.web.trustedParty.client.ClientTruste
 import org.commonprovenance.framework.store.web.trustedParty.impl.TokenWebImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -20,7 +19,6 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @Component
-@Profile("live & webflux")
 public class ClientTrustedPartyReactive implements ClientTrustedParty {
   private final String LOG_PREFIX = "ClientTrustedParty: ";
   private static final Logger LOGGER = LoggerFactory.getLogger(ClientTrustedParty.class);

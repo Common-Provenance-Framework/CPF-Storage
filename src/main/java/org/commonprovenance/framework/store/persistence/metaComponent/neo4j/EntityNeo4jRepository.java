@@ -16,13 +16,11 @@ import org.commonprovenance.framework.store.persistence.metaComponent.neo4j.clie
 import org.commonprovenance.framework.store.persistence.metaComponent.neo4j.client.EntityNeo4jRepositoryClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
 
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-@Profile("live & neo4j")
 @Repository
 public class EntityNeo4jRepository implements EntityRepository {
   private final String LOG_PREFIX = "EntityNeo4jRepository: ";

@@ -1,0 +1,11 @@
+trusted-party:
+  url: http://localhost:8093/api/v1/
+
+store:
+  url: http://localhost:8080/api/v1/
+  mode:
+    verbose: true
+
+logging:
+  level:
+    org.commonprovenance: DEBUG

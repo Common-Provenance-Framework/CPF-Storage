@@ -9,8 +9,6 @@ RUN apt-get update \
 COPY .mvn/ .mvn/
 COPY mvnw pom.xml ./
 COPY src/ src/
-COPY src/main/resources/application.properties.tmp src/main/resources/application.properties
-COPY src/main/resources/application-neo4j.properties.tmp  src/main/resources/application-neo4j.properties
 
 RUN chmod +x mvnw
 RUN ./mvnw -B org.apache.maven.plugins:maven-install-plugin:3.1.4:install-file \

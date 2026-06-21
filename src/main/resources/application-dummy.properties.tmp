@@ -1,3 +1,0 @@
-# Verbose logging for local/dummy profile
-logging.level.org.commonprovenance=DEBUG
-logging.level.org.springframework.web=DEBUG
