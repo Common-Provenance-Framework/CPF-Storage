@@ -92,6 +92,8 @@ public class DocumentFacadeImpl implements DocumentFacade {
             .flatMap(document -> document.withCpmDocument(this.provFactory, this.cpmProvFactory, this.cpmFactory))
             .map(org::withDocument)))
         .doOnNext(_ -> LOGGER.debug("{} Document has been deserialized and loaded.", LOG_PREFIX))
+        .delayUntil(this.documentService::checkDocumentDoesNotExists)
+        .doOnNext(_ -> LOGGER.debug("{} Document does not exists.", LOG_PREFIX))
         .delayUntil(this.trustedPartyWebService.verifySignature(body.getSignature()))
         .doOnNext(_ -> LOGGER.debug("{} Signature has been verified.", LOG_PREFIX))
         .delayUntil(MONO.liftEffectToMono(CPMAttributesValidator.validate(this.configuration)))
@@ -99,8 +101,6 @@ public class DocumentFacadeImpl implements DocumentFacade {
             .flatMap(MONO.liftOptionalToMono(
                 Organization::getDocument,
                 _ -> new InvalidValueException("Document has not been deserialized yet!")))
-            // check document does not exists yet
-            .delayUntil(this.documentService::checkDocumentDoesNotExists)
             // check connectors
             .delayUntil(this.documentService::checkBackwardConnectorsResolvable)
             .delayUntil(this.documentService::checkSpecForwardConnectorsResolvable)

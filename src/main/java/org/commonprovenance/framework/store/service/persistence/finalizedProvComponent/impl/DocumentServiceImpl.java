@@ -6,9 +6,11 @@ import org.commonprovenance.framework.store.exceptions.ApplicationException;
 import org.commonprovenance.framework.store.exceptions.BadRequestException;
 import org.commonprovenance.framework.store.exceptions.ConflictException;
 import org.commonprovenance.framework.store.exceptions.InternalApplicationException;
+import org.commonprovenance.framework.store.exceptions.InvalidValueException;
 import org.commonprovenance.framework.store.exceptions.NotFoundException;
 import org.commonprovenance.framework.store.exceptions.factory.ApplicationExceptionFactory;
 import org.commonprovenance.framework.store.model.Document;
+import org.commonprovenance.framework.store.model.Organization;
 import org.commonprovenance.framework.store.persistence.finalizedProvComponent.DocumentRepository;
 import org.commonprovenance.framework.store.service.persistence.finalizedProvComponent.DocumentService;
 import org.commonprovenance.framework.store.service.web.store.StoreWebService;
@@ -65,8 +67,11 @@ public class DocumentServiceImpl implements DocumentService {
   }
 
   @Override
-  public Mono<Void> checkDocumentDoesNotExists(Document document) {
-    return Mono.just(document)
+  public Mono<Void> checkDocumentDoesNotExists(Organization organization) {
+    return Mono.just(organization)
+        .flatMap(MONO.liftOptionalToMono(
+            Organization::getDocument,
+            _ -> new InvalidValueException("Document has not been deserialized yet!")))
         .flatMap(MONO.makeSureAsync(
             this::notExists,
             ConflictException::new,
