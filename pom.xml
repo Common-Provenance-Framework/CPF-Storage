@@ -3,118 +3,62 @@
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
+
   <parent>
     <groupId>org.springframework.boot</groupId>
     <artifactId>spring-boot-starter-parent</artifactId>
-    <version>4.0.1</version>
+    <version>4.1.0</version>
     <relativePath /> <!-- lookup parent from repository -->
   </parent>
+
   <groupId>org.commonprovenance.framework</groupId>
   <artifactId>store</artifactId>
-  <version>0.0.1-SNAPSHOT</version>
   <name>cpf-store</name>
-  <description>Store service of the Common Provenance Framework.</description>
-  <url />
-  <licenses>
-    <license />
-  </licenses>
-  <developers>
-    <developer />
-  </developers>
-  <scm>
-    <connection />
-    <developerConnection />
-    <tag />
-    <url />
-  </scm>
+  <version>0.0.1-SNAPSHOT</version>
+  <description>Store service of the Common Provenance Framework</description>
+
   <properties>
     <java.version>25</java.version>
-    <prov.ver>2.2.2</prov.ver>
-    <cpm.ver>2.2.0</cpm.ver>
-    <springboot.ver>4.0.2</springboot.ver>
-    <bouncycastle.ver>1.83</bouncycastle.ver>
-    <jackson.ver>3.0.4</jackson.ver>
-    <networknt.ver>3.0.0</networknt.ver>
-    <springdoc.ver>3.0.2</springdoc.ver>
+
+    <openprovenance.version>2.2.3</openprovenance.version>
+    <common.provenance.management.version>2.2.0</common.provenance.management.version>
+
+    <bouncycastle.version>1.84</bouncycastle.version>
+    <logstash.version>8.1</logstash.version>
+    <json.schema.validator.version>3.0.4</json.schema.validator.version>
+    <springdoc.version>3.0.3</springdoc.version>
     <vavr.ver>1.0.1</vavr.ver>
   </properties>
+
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-dependencies</artifactId>
+        <version>4.1.0</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+
   <dependencies>
+    <!-- Spring Boot -->
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-data-neo4j</artifactId>
-      <version>${springboot.ver}</version>
     </dependency>
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-webflux</artifactId>
-      <version>${springboot.ver}</version>
     </dependency>
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-validation</artifactId>
-      <version>${springboot.ver}</version>
     </dependency>
     <dependency>
       <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-starter-data-neo4j-test</artifactId>
-      <version>${springboot.ver}</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-starter-webflux-test</artifactId>
-      <version>${springboot.ver}</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.bouncycastle</groupId>
-      <artifactId>bcprov-jdk18on</artifactId>
-      <version>${bouncycastle.ver}</version>
-    </dependency>
-    <dependency>
-      <groupId>io.vavr</groupId>
-      <artifactId>vavr</artifactId>
-      <version>${vavr.ver}</version>
-    </dependency>
-    <dependency>
-      <groupId>tools.jackson.core</groupId>
-      <artifactId>jackson-databind</artifactId>
-      <version>${jackson.ver}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.openprovenance.prov</groupId>
-      <artifactId>prov-interop</artifactId>
-      <version>${prov.ver}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.openprovenance.prov</groupId>
-      <artifactId>prov-model</artifactId>
-      <version>${prov.ver}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.openprovenance.prov</groupId>
-      <artifactId>prov-nf</artifactId>
-      <version>${prov.ver}</version>
-    </dependency>
-    <dependency>
-      <groupId>cz.muni.fi.cpm</groupId>
-      <artifactId>cpm-core</artifactId>
-      <version>${cpm.ver}</version>
-    </dependency>
-    <dependency>
-      <groupId>cz.muni.fi.cpm</groupId>
-      <artifactId>cpm-template</artifactId>
-      <version>${cpm.ver}</version>
-    </dependency>
-    <dependency>
-      <groupId>com.networknt</groupId>
-      <artifactId>json-schema-validator</artifactId>
-      <version>${networknt.ver}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.springdoc</groupId>
-      <artifactId>springdoc-openapi-starter-webflux-ui</artifactId>
-      <version>${springdoc.ver}</version>
+      <artifactId>spring-boot-starter-jackson</artifactId>
     </dependency>
     <dependency>
       <groupId>org.springframework.boot</groupId>
@@ -122,56 +66,89 @@
       <scope>runtime</scope>
       <optional>true</optional>
     </dependency>
+
+    <!-- Common Provenance Management -->
+    <!-- TODO - Use MVNRepo/Artifactory instead of locally maintaining JARs -->
+    <dependency>
+      <groupId>cz.muni.fi.cpm</groupId>
+      <artifactId>cpm-core</artifactId>
+      <version>${common.provenance.management.version}</version>
+      <scope>system</scope>
+      <systemPath>${project.basedir}/src/main/resources/CPF-Toolbox/cpm-core-2.2.0.jar</systemPath>
+    </dependency>
+
+    <dependency>
+      <groupId>cz.muni.fi.cpm</groupId>
+      <artifactId>cpm-template</artifactId>
+      <version>${common.provenance.management.version}</version>
+      <scope>system</scope>
+      <systemPath>${project.basedir}/src/main/resources/CPF-Toolbox/cpm-template-2.2.0.jar</systemPath>
+    </dependency>
+
+    <!-- Open provenance -->
+    <dependency>
+      <groupId>org.openprovenance.prov</groupId>
+      <artifactId>prov-interop</artifactId>
+      <version>${openprovenance.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.openprovenance.prov</groupId>
+      <artifactId>prov-model</artifactId>
+      <version>${openprovenance.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.openprovenance.prov</groupId>
+      <artifactId>prov-nf</artifactId>
+      <version>${openprovenance.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.bouncycastle</groupId>
+      <artifactId>bcprov-jdk18on</artifactId>
+      <version>${bouncycastle.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.vavr</groupId>
+      <artifactId>vavr</artifactId>
+      <version>${vavr.ver}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.networknt</groupId>
+      <artifactId>json-schema-validator</artifactId>
+      <version>${json.schema.validator.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.springdoc</groupId>
+      <artifactId>springdoc-openapi-starter-webflux-ui</artifactId>
+      <version>${springdoc.version}</version>
+    </dependency>
     <dependency>
       <groupId>net.logstash.logback</groupId>
       <artifactId>logstash-logback-encoder</artifactId>
-      <version>8.0</version>
+      <version>${logstash.version}</version>
+    </dependency>
+
+    <!-- Test dependencies -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-data-neo4j-test</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-webflux-test</artifactId>
+      <scope>test</scope>
     </dependency>
   </dependencies>
 
   <build>
     <plugins>
       <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-install-plugin</artifactId>
-        <version>3.1.4</version>
-        <executions>
-          <execution>
-            <id>install-core</id>
-            <phase>clean</phase>
-            <configuration>
-              <file>${project.basedir}/src/main/resources/CPF-Toolbox/cpm-core-2.2.0.jar</file>
-              <groupId>cz.muni.fi.cpm</groupId>
-              <artifactId>cpm-core</artifactId>
-              <version>${cpm.ver}</version>
-              <packaging>jar</packaging>
-              <generatePom>true</generatePom>
-            </configuration>
-            <goals>
-              <goal>install-file</goal>
-            </goals>
-          </execution>
-          <execution>
-            <id>install-template</id>
-            <phase>clean</phase>
-            <configuration>
-              <file>${project.basedir}/src/main/resources/CPF-Toolbox/cpm-template-2.2.0.jar</file>
-              <groupId>cz.muni.fi.cpm</groupId>
-              <artifactId>cpm-template</artifactId>
-              <version>${cpm.ver}</version>
-              <packaging>jar</packaging>
-              <generatePom>true</generatePom>
-            </configuration>
-            <goals>
-              <goal>install-file</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-
-      <plugin>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-maven-plugin</artifactId>
+        <configuration>
+          <includeSystemScope>true</includeSystemScope>
+        </configuration>
       </plugin>
 
       <plugin>
