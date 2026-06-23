@@ -9,7 +9,6 @@ import org.commonprovenance.framework.store.exceptions.InvalidValueException;
 import org.commonprovenance.framework.store.exceptions.factory.ApplicationExceptionFactory;
 import org.commonprovenance.framework.store.model.Document;
 import org.commonprovenance.framework.store.model.Organization;
-import org.commonprovenance.framework.store.model.Token;
 import org.commonprovenance.framework.store.persistence.metaComponent.EntityRepository;
 import org.commonprovenance.framework.store.persistence.metaComponent.MetaBundleRepository;
 import org.commonprovenance.framework.store.persistence.metaComponent.model.factory.NodeToProvFactory;
@@ -98,12 +97,11 @@ public class MetaProvenanceComponentServiceImpl implements MetaProvenanceCompone
             .flatMap(MONO.liftOptionalToMono(
                 Organization::getDocument,
                 _ -> new InvalidValueException("Document has not been deserialized yet!")))
-            .flatMap(MONO.liftOptionalToMono(Document::getToken, "Token can not be null!"))
-            .map(Token::getJwt)
-            .flatMap(MONO.makeSureNotNullWithMessage(
-                "JWT Token can not be null!")),
-        (metaBundleIdentifier, jwtToken) -> entityRepository.createBundleTokenEntity(metaBundleIdentifier, jwtToken)
-            .delayUntil(entityRepository.addToBundleVersionEntity(jwtToken))
+            .flatMap(MONO.liftOptionalToMono(
+                Document::getToken,
+                "Token can not be null!")),
+        (metaBundleIdentifier, token) -> entityRepository.createBundleTokenEntity(metaBundleIdentifier, token)
+            .delayUntil(entityRepository.addToBundleVersionEntity(token))
             .delayUntil(metaBundleRepository.addEntityToMetaBundle(metaBundleIdentifier))
             .delayUntil(metaBundleRepository.addTokenGenerationToMetaBundle(metaBundleIdentifier))
             .delayUntil(metaBundleRepository.addTokenGeneratorToMetaBundle(metaBundleIdentifier)))

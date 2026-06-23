@@ -27,7 +27,8 @@
     <logstash.version>8.1</logstash.version>
     <json.schema.validator.version>3.0.4</json.schema.validator.version>
     <springdoc.version>3.0.3</springdoc.version>
-    <vavr.ver>1.0.1</vavr.ver>
+    <vavr.version>1.0.1</vavr.version>
+    <nimbus.version>10.9.1</nimbus.version>
   </properties>
 
   <dependencyManagement>
@@ -117,7 +118,7 @@
     <dependency>
       <groupId>io.vavr</groupId>
       <artifactId>vavr</artifactId>
-      <version>${vavr.ver}</version>
+      <version>${vavr.version}</version>
     </dependency>
     <dependency>
       <groupId>com.networknt</groupId>
@@ -134,7 +135,11 @@
       <artifactId>logstash-logback-encoder</artifactId>
       <version>${logstash.version}</version>
     </dependency>
-
+    <dependency>
+      <groupId>com.nimbusds</groupId>
+      <artifactId>nimbus-jose-jwt</artifactId>
+      <version>${nimbus.version}</version>
+    </dependency>
     <!-- Test dependencies -->
     <dependency>
       <groupId>org.springframework.boot</groupId>

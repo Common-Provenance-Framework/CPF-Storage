@@ -5,8 +5,8 @@ import static org.commonprovenance.framework.store.common.utils.EitherUtils.EITH
 import java.util.Map;
 import java.util.UUID;
 
-import org.commonprovenance.framework.store.common.utils.JwtUtils;
 import org.commonprovenance.framework.store.exceptions.ApplicationException;
+import org.commonprovenance.framework.store.model.Token;
 import org.commonprovenance.framework.store.persistence.metaComponent.model.node.ActivityNode;
 import org.commonprovenance.framework.store.persistence.metaComponent.model.node.AgentNode;
 import org.commonprovenance.framework.store.persistence.metaComponent.model.node.EntityNode;
@@ -14,8 +14,8 @@ import org.commonprovenance.framework.store.persistence.metaComponent.model.node
 import io.vavr.control.Either;
 
 public final class JwtTokenToNodeFactory {
-  public static Either<ApplicationException, EntityNode> toTokenEntity(String jwtToken) {
-    return JwtTokenToNodeFactory.toTokenGenerationActivity(jwtToken)
+  public static Either<ApplicationException, EntityNode> toTokenEntity(Token token) {
+    return JwtTokenToNodeFactory.toTokenGenerationActivity(token)
         .flatMap(tokenGenerationNode -> EITHER.<AgentNode, ActivityNode, EntityNode> combine(
             EITHER.liftEitherChecked(tokenGenerationNode::getTokenGenerator),
             Either.right(tokenGenerationNode),
@@ -23,17 +23,17 @@ public final class JwtTokenToNodeFactory {
                 UUID.randomUUID().toString(),
                 // TODO: Create Enum for konown types
                 "cpm:Token",
-                Map.of("jwt", jwtToken))
+                Map.of("jwt", token.getJwt()))
                 .withWasGeneratedByActivity(generation)
                 .withWasAttributedToAgent(generator)));
   }
 
-  public static Either<ApplicationException, AgentNode> toTokenGeneratorAgent(String jwtToken) {
+  public static Either<ApplicationException, AgentNode> toTokenGeneratorAgent(Token token) {
     return EITHER.<Map<String, Object>, String, AgentNode> combine(
-        Either.<ApplicationException, String> right(jwtToken)
-            .flatMap(JwtUtils::extractTokenGeneratorAttributes),
-        Either.<ApplicationException, String> right(jwtToken)
-            .flatMap(JwtUtils::extractTokenGeneratorIdentifier),
+        Either.<ApplicationException, Token> right(token)
+            .flatMap(Token::getTokenGeneratorAttributes),
+        Either.<ApplicationException, Token> right(token)
+            .flatMap(Token::getTokenGeneratorIdentifier),
         (cpmAttrs, authorityId) -> new AgentNode(
             authorityId,
             // TODO: Create Enum for konown types
@@ -41,10 +41,10 @@ public final class JwtTokenToNodeFactory {
             cpmAttrs));
   }
 
-  public static Either<ApplicationException, ActivityNode> toTokenGenerationActivity(String jwtToken) {
+  public static Either<ApplicationException, ActivityNode> toTokenGenerationActivity(Token token) {
     return EITHER.<AgentNode, String, ActivityNode> combine(
-        toTokenGeneratorAgent(jwtToken),
-        JwtUtils.extractTokenCreationString(jwtToken),
+        toTokenGeneratorAgent(token),
+        token.getTokenTimestampAsString(),
         (generator, createdOn) -> new ActivityNode(
             UUID.randomUUID().toString(),
             // TODO: Create Enum for konown types

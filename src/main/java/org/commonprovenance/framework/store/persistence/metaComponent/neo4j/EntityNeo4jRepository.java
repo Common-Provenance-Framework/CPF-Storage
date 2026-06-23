@@ -4,9 +4,9 @@ import static org.commonprovenance.framework.store.common.publisher.PublisherHel
 
 import java.util.function.Function;
 
-import org.commonprovenance.framework.store.common.utils.JwtUtils;
 import org.commonprovenance.framework.store.exceptions.InternalApplicationException;
 import org.commonprovenance.framework.store.exceptions.factory.ApplicationExceptionFactory;
+import org.commonprovenance.framework.store.model.Token;
 import org.commonprovenance.framework.store.persistence.metaComponent.EntityRepository;
 import org.commonprovenance.framework.store.persistence.metaComponent.model.factory.JwtTokenToNodeFactory;
 import org.commonprovenance.framework.store.persistence.metaComponent.model.node.ActivityNode;
@@ -49,8 +49,8 @@ public class EntityNeo4jRepository implements EntityRepository {
   }
 
   @Override
-  public Mono<EntityNode> createBundleTokenEntity(String metaBundleIdentifier, String jwtToken) {
-    return Mono.just(jwtToken)
+  public Mono<EntityNode> createBundleTokenEntity(String metaBundleIdentifier, Token token) {
+    return Mono.just(token)
         .map(JwtTokenToNodeFactory::toTokenEntity)
         .flatMap(MONO::fromEither)
         .flatMap(entityClient::save)
@@ -61,9 +61,9 @@ public class EntityNeo4jRepository implements EntityRepository {
   }
 
   @Override
-  public Function<EntityNode, Mono<Void>> addToBundleVersionEntity(String jwtToken) {
-    return (EntityNode tokenNode) -> Mono.just(jwtToken)
-        .map(JwtUtils::extractBundleIdentifier)
+  public Function<EntityNode, Mono<Void>> addToBundleVersionEntity(Token token) {
+    return (EntityNode tokenNode) -> Mono.just(token)
+        .map(Token::getBundleIdentifier)
         .flatMap(MONO::fromEither)
         .flatMap(entityClient::getIdByIdentifier)
         .flatMap(bundleVersionId -> Mono.when(
