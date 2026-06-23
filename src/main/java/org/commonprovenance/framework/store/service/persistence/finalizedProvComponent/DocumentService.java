@@ -21,8 +21,4 @@ public interface DocumentService {
 
   Mono<String> getOrganizationIdentifierByIdentifier(String identifier);
 
-  Mono<Void> checkSpecForwardConnectorsResolvable(Document docuement);
-
-  Mono<Void> checkBackwardConnectorsResolvable(Document docuement);
-
 }

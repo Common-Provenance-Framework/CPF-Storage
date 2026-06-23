@@ -84,39 +84,4 @@ public class DocumentServiceImpl implements DocumentService {
     return this.repository.getOrganizationIdentifierByIdentifier(identifier);
   }
 
-  @Override
-  public Mono<Void> checkSpecForwardConnectorsResolvable(Document document) {
-    return Mono.just(document)
-        .flatMapMany(MONO.liftEffectToFlux(Document::getSpecForwardConnectors))
-        .flatMap(MONO.makeSureAsync(
-            storeWebService::pingBundleId,
-            BadRequestException::new,
-            element -> "Invalid specForwardConnector with id '" + element.getId().toString() + "'. Attribute 'referencedBundleId' is not resolvable"))
-        .flatMap(MONO.makeSureAsync(
-            storeWebService::pingMetaBundleId,
-            BadRequestException::new,
-            element -> "Invalid specForwardConnector with id '" + element.getId().toString() + "'. Attribute 'referencedMetaBundleId' is not resolvable"))
-        .then()
-        .onErrorMap(ApplicationExceptionFactory.handleThrowable(
-            new InternalApplicationException("checkSpecForwardConnectorsResolvable '" + getIdentifier(document) + "'' failed!")));
-
-  }
-
-  @Override
-  public Mono<Void> checkBackwardConnectorsResolvable(Document document) {
-    return Mono.just(document)
-        .flatMapMany(MONO.liftEffectToFlux(Document::getBackwardConnectors))
-        .flatMap(MONO.makeSureAsync(
-            storeWebService::pingBundleId,
-            BadRequestException::new,
-            element -> "Invalid backwardConnector with id '" + element.getId().toString() + "'. Attribute 'referencedBundleId' is not resolvable"))
-        .flatMap(MONO.makeSureAsync(
-            storeWebService::pingMetaBundleId,
-            BadRequestException::new,
-            element -> "Invalid backwardConnector with id '" + element.getId().toString() + "'. Attribute 'referencedMetaBundleId' is not resolvable"))
-        .then()
-        .onErrorMap(ApplicationExceptionFactory.handleThrowable(
-            new InternalApplicationException("checkBackwardConnectorsResolvable '" + getIdentifier(document) + "'' failed!")));
-  }
-
 }

@@ -7,7 +7,7 @@ import java.util.Collections;
 import org.commonprovenance.framework.store.common.utils.Base64Utils;
 import org.commonprovenance.framework.store.common.utils.ProvDocumentUtils;
 import org.commonprovenance.framework.store.common.validation.CPMAttributesValidator;
-import org.commonprovenance.framework.store.config.AppConfig;
+import org.commonprovenance.framework.store.common.validation.CPMChainValidator;
 import org.commonprovenance.framework.store.config.AppConfiguration;
 import org.commonprovenance.framework.store.controller.dto.form.DocumentFormDTO;
 import org.commonprovenance.framework.store.controller.dto.response.DocumentResponseDTO;
@@ -16,15 +16,14 @@ import org.commonprovenance.framework.store.controller.dto.response.factory.Docu
 import org.commonprovenance.framework.store.controller.dto.response.factory.TokenResponseFactory;
 import org.commonprovenance.framework.store.controller.facade.DocumentFacade;
 import org.commonprovenance.framework.store.exceptions.ApplicationException;
-import org.commonprovenance.framework.store.exceptions.InvalidValueException;
 import org.commonprovenance.framework.store.model.Document;
 import org.commonprovenance.framework.store.model.Format;
 import org.commonprovenance.framework.store.model.Organization;
 import org.commonprovenance.framework.store.model.factory.DocumentFactory;
 import org.commonprovenance.framework.store.service.persistence.finalizedProvComponent.DocumentService;
 import org.commonprovenance.framework.store.service.persistence.finalizedProvComponent.OrganizationService;
-import org.commonprovenance.framework.store.service.persistence.finalizedProvComponent.TrustedPartyService;
 import org.commonprovenance.framework.store.service.persistence.metaComponent.MetaProvenanceComponentService;
+import org.commonprovenance.framework.store.service.web.store.StoreWebService;
 import org.commonprovenance.framework.store.service.web.trustedParty.TrustedPartyWebService;
 import org.openprovenance.prov.model.ProvFactory;
 import org.openprovenance.prov.model.interop.Formats;
@@ -40,14 +39,12 @@ import reactor.core.publisher.Mono;
 
 @Component
 public class DocumentFacadeImpl implements DocumentFacade {
-  private final AppConfig appConfig;
   private final String LOG_PREFIX = "DocumentFacade: ";
   private static final Logger LOGGER = LoggerFactory.getLogger(DocumentFacadeImpl.class);
 
   private final DocumentService documentService;
   private final OrganizationService organizationService;
-  private final TrustedPartyService trustedPartyService;
-
+  private final StoreWebService storeWebService;
   private final MetaProvenanceComponentService metaComponentService;
 
   private final TrustedPartyWebService trustedPartyWebService;
@@ -61,17 +58,16 @@ public class DocumentFacadeImpl implements DocumentFacade {
   public DocumentFacadeImpl(
       DocumentService documentService,
       OrganizationService organizationService,
-      TrustedPartyService trustedPartyService,
+      StoreWebService storeWebService,
       TrustedPartyWebService trustedPartyWebService,
       MetaProvenanceComponentService metaComponentService,
       ProvFactory provFactory,
       ICpmFactory cpmFactory,
       ICpmProvFactory cpmProvFactory,
-      AppConfiguration configuration, AppConfig appConfig) {
+      AppConfiguration configuration) {
     this.documentService = documentService;
     this.organizationService = organizationService;
-    this.trustedPartyService = trustedPartyService;
-
+    this.storeWebService = storeWebService;
     this.metaComponentService = metaComponentService;
     this.trustedPartyWebService = trustedPartyWebService;
 
@@ -80,8 +76,6 @@ public class DocumentFacadeImpl implements DocumentFacade {
     this.cpmProvFactory = cpmProvFactory;
 
     this.configuration = configuration;
-    this.appConfig = appConfig;
-
   }
 
   @Override
@@ -97,18 +91,10 @@ public class DocumentFacadeImpl implements DocumentFacade {
         .delayUntil(this.trustedPartyWebService.verifySignature(body.getSignature()))
         .doOnNext(_ -> LOGGER.debug("{} Signature has been verified.", LOG_PREFIX))
         .delayUntil(MONO.liftEffectToMono(CPMAttributesValidator.validate(this.configuration)))
-        .delayUntil(org -> Mono.just(org)
-            .flatMap(MONO.liftOptionalToMono(
-                Organization::getDocument,
-                _ -> new InvalidValueException("Document has not been deserialized yet!")))
-            // check connectors
-            .delayUntil(this.documentService::checkBackwardConnectorsResolvable)
-            .delayUntil(this.documentService::checkSpecForwardConnectorsResolvable)
-
+        .delayUntil(CPMChainValidator.validate(this.storeWebService))
         // TODO: check hashes in connectors
         // TODO: check cpm constraints
         // TODO: check provenance constraints
-        )
         .doOnNext(_ -> LOGGER.debug("Document has been validated and considered as valid."))
         .flatMap(this.trustedPartyWebService.issueGraphToken(body.getSignature()))
         .doOnNext(_ -> LOGGER.debug("Token has been issued by TrustedParty."))
