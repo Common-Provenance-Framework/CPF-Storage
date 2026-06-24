@@ -12,6 +12,7 @@ import java.util.stream.Collectors;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import org.commonprovenance.framework.store.controller.dto.response.TokenResponseDTO;
 import org.commonprovenance.framework.store.exceptions.ApplicationException;
 import org.commonprovenance.framework.store.exceptions.InternalApplicationException;
 import org.openprovenance.prov.vanilla.ProvUtilities;
@@ -118,6 +119,12 @@ public interface HasJwtToken<T extends HasJwtToken<T>> {
             JwtPayloadItems.TOKEN_TIMESTAMP.getLabel() + ": claim is missing in JWT Token!"))
         .flatMap(EITHER.liftEitherChecked(x -> x.getStringClaim(JwtPayloadItems.AUTHORITY_ID.getLabel())));
 
+  }
+
+  default UnaryOperator<TokenResponseDTO> putJwtToDTO() {
+    return (TokenResponseDTO to) -> Optional.ofNullable(getJwt())
+        .map(to::withJwt)
+        .orElse(to);
   }
 
   private Either<ApplicationException, JWTClaimsSet> getJwtClaims() {

@@ -3,6 +3,7 @@ package org.commonprovenance.framework.store.common.dto;
 import java.util.Optional;
 import java.util.function.UnaryOperator;
 
+import org.commonprovenance.framework.store.controller.dto.response.DocumentResponseDTO;
 import org.commonprovenance.framework.store.exceptions.InternalApplicationException;
 
 public interface HasGraph<T extends HasGraph<T>> {
@@ -11,6 +12,12 @@ public interface HasGraph<T extends HasGraph<T>> {
 
   default T withGraph(String graph) {
     throw new InternalApplicationException("withGraph is not supported for read-only type:" + this.getClass().getSimpleName());
+  }
+
+  default UnaryOperator<DocumentResponseDTO> putGraphToDTO() {
+    return (DocumentResponseDTO to) -> Optional.ofNullable(getGraph())
+        .map(to::withGraph)
+        .orElse(to);
   }
 
   static <U extends HasGraph<U>, F extends HasGraph<F>> UnaryOperator<U> addGraph(F from) {

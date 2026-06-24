@@ -5,6 +5,7 @@ import static org.commonprovenance.framework.store.common.utils.EitherUtils.EITH
 import java.util.Optional;
 import java.util.function.UnaryOperator;
 
+import org.commonprovenance.framework.store.controller.dto.response.OrganizationResponseDTO;
 import org.commonprovenance.framework.store.exceptions.InternalApplicationException;
 
 public interface HasIdentifier<T extends HasIdentifier<T>> {
@@ -12,6 +13,12 @@ public interface HasIdentifier<T extends HasIdentifier<T>> {
 
   default T withIdentifier(String identifier) {
     throw new InternalApplicationException("withIdentifier is not supported for read-only type:" + this.getClass().getSimpleName());
+  }
+
+  default UnaryOperator<OrganizationResponseDTO> putIdentifiarToDTO() {
+    return (OrganizationResponseDTO to) -> Optional.ofNullable(getIdentifier())
+        .map(to::withIdentifier)
+        .orElse(to);
   }
 
   static <T extends HasIdentifier<T>, F extends HasIdentifier<F>> UnaryOperator<T> addIdentifier(F from) {

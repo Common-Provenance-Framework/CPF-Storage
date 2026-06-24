@@ -14,9 +14,9 @@ public class OrganizationResponseFactory {
     return (OrganizationResponseDTO response) -> MonoidComposition.compose(
         response,
         List.of(
-            HasIdentifier.addIdentifier(data),
-            HasClientCertificate.addClientCertificate(data),
-            HasIntermediateCertificates.addIntermediateCertificates(data)));
+            data.putIdentifiarToDTO(),
+            data.putClientCertificatToDTO(),
+            data.putIntermediateCertificatesToDTO()));
   }
 
   public static <T extends HasIdentifier<T> & HasClientCertificate<T> & HasIntermediateCertificates<T>> OrganizationResponseDTO build(T data) {

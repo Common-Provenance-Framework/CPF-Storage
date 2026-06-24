@@ -19,8 +19,7 @@ public class TokenResponseFactory {
   private static <T extends HasJwtToken<T>> UnaryOperator<TokenResponseDTO> mapper(T data) {
     return (TokenResponseDTO response) -> MonoidComposition.compose(
         response,
-        List.of(
-            HasJwtToken.addJwt(data)));
+        List.of(data.putJwtToDTO()));
   }
 
   public static <T extends HasJwtToken<T>> TokenResponseDTO build(T data) {

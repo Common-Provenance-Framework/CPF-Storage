@@ -3,17 +3,10 @@ package org.commonprovenance.framework.store.controller.dto.response;
 import java.util.Collections;
 import java.util.List;
 
-import org.commonprovenance.framework.store.common.dto.HasClientCertificate;
-import org.commonprovenance.framework.store.common.dto.HasIdentifier;
-import org.commonprovenance.framework.store.common.dto.HasIntermediateCertificates;
-
 import io.swagger.v3.oas.annotations.media.Schema;
 
 @Schema(name = "OrganizationResponse", description = "Organization details")
-public class OrganizationResponseDTO implements
-    HasIdentifier<OrganizationResponseDTO>,
-    HasClientCertificate<OrganizationResponseDTO>,
-    HasIntermediateCertificates<OrganizationResponseDTO> {
+public class OrganizationResponseDTO {
 
   @Schema(description = "Organization identifier", example = "853226ba-9d56-4129-b51a-3b534f88957d")
   private final String identifier;
@@ -77,7 +70,6 @@ public class OrganizationResponseDTO implements
     this.intermediateCertificates = Collections.emptyList();
   }
 
-  @Override
   public OrganizationResponseDTO withIdentifier(String identifier) {
     return new OrganizationResponseDTO(
         identifier,
@@ -85,7 +77,6 @@ public class OrganizationResponseDTO implements
         this.getIntermediateCertificates());
   }
 
-  @Override
   public OrganizationResponseDTO withClientCertificate(String clientCertificate) {
     return new OrganizationResponseDTO(
         this.getIdentifier(),
@@ -93,7 +84,6 @@ public class OrganizationResponseDTO implements
         this.getIntermediateCertificates());
   }
 
-  @Override
   public OrganizationResponseDTO withIntermediateCertificates(List<String> intermediateCertificates) {
     return new OrganizationResponseDTO(
         this.getIdentifier(),
