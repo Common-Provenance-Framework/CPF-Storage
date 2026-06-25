@@ -1,6 +1,6 @@
 package org.commonprovenance.framework.store.common.dto;
 
-import static org.commonprovenance.framework.store.common.utils.EitherUtils.EITHER;
+import static org.commonprovenance.framework.store.common.composition.EitherUtils.EITHER;
 
 import java.util.List;
 import java.util.Optional;
@@ -24,13 +24,6 @@ public interface HasDocumentOptional<T extends HasDocumentOptional<T>> {
   static <T extends HasDocumentOptional<T>, F extends HasDocumentOptional<F>> UnaryOperator<T> addDocument(F from) {
     return (T to) -> Optional.ofNullable(from)
         .flatMap(F::getDocument)
-        .map(to::withDocument)
-        .orElse(to);
-  }
-
-  static <T extends HasDocumentOptional<T>, F extends HasDocument<F>> UnaryOperator<T> addDocument(F from) {
-    return (T to) -> Optional.ofNullable(from)
-        .map(F::getDocument)
         .map(to::withDocument)
         .orElse(to);
   }

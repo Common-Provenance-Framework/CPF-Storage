@@ -1,4 +1,4 @@
-package org.commonprovenance.framework.store.common.utils;
+package org.commonprovenance.framework.store.common.composition;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -10,7 +10,7 @@ import java.util.function.BiFunction;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-import org.commonprovenance.framework.store.common.validation.ValidatableDTO;
+import org.commonprovenance.framework.store.common.validation.DTOValidator;
 import org.commonprovenance.framework.store.config.AppConfig;
 import org.commonprovenance.framework.store.exceptions.ApplicationException;
 import org.commonprovenance.framework.store.exceptions.ConstraintException;
@@ -30,16 +30,16 @@ import io.vavr.control.Either;
 import io.vavr.control.Try;
 
 public interface EitherUtils {
-  EitherHelper EITHER = EitherHelper.get();
+  EitherComposition EITHER = EitherComposition.get();
 
-  class EitherHelper {
+  class EitherComposition {
     private static class Holder {
-      static EitherHelper instance = new EitherHelper(false);
+      static EitherComposition instance = new EitherComposition(false);
     }
 
     private final boolean verboseMode;
 
-    private EitherHelper(boolean verboseMode) {
+    private EitherComposition(boolean verboseMode) {
       this.verboseMode = verboseMode;
     }
 
@@ -47,10 +47,10 @@ public interface EitherUtils {
      * Initializes the singleton with the configured value. Should be called exactly once during application startup from {@link AppConfig}.
      */
     public static void initialize(boolean verboseMode) {
-      Holder.instance = new EitherHelper(verboseMode);
+      Holder.instance = new EitherComposition(verboseMode);
     }
 
-    static EitherHelper get() {
+    static EitherComposition get() {
       return Holder.instance;
     }
 
@@ -76,19 +76,23 @@ public interface EitherUtils {
     private String callerLocation() {
       return StackWalker.getInstance(StackWalker.Option.RETAIN_CLASS_REFERENCE)
           .walk(frames -> frames
-              .dropWhile(frame -> frame.getClassName().equals(EitherHelper.class.getName()))
+              .dropWhile(frame -> frame.getClassName().equals(EitherComposition.class.getName()))
               .findFirst()
               .map(frame -> frame.getClassName() + "#" + frame.getMethodName() + ":" + frame.getLineNumber())
               .orElse("unknown"));
     }
 
-    public <R extends ValidatableDTO> Either<ApplicationException, R> validateDTO(R value) {
+    public <R extends DTOValidator> Either<ApplicationException, R> validateDTO(R value) {
       Vector<String> result = value.validate();
       return result.isEmpty()
           ? Either.right(value)
           : Either.left(new ConstraintException(
               "Validation of class '" + value.getClass().getSimpleName() + "' faild with message: "
                   + result.stream().reduce("", (acc, i) -> acc.isEmpty() ? i : acc + ", " + i)));
+    }
+
+    public <R, T> Function1<R, Either<ApplicationException, R>> flatPeek(Function1<R, Either<ApplicationException, T>> check) {
+      return (R value) -> check.apply(value).map(_ -> value);
     }
 
     public <R> Either<ApplicationException, R> valueOrException(R value, ApplicationException exception) {
@@ -143,6 +147,12 @@ public interface EitherUtils {
       return maybe.isPresent()
           ? Either.<ApplicationException, R> right(maybe.get())
           : Either.<ApplicationException, R> left(new InternalApplicationException("Optional value is not present!"));
+    }
+
+    public <R> Either<ApplicationException, R> liftEither(Optional<R> maybe, ApplicationException exception) {
+      return maybe.isPresent()
+          ? Either.<ApplicationException, R> right(maybe.get())
+          : Either.<ApplicationException, R> left(exception);
     }
 
     public <I, R> Function1<I, Either<ApplicationException, R>> liftEitherOptional(Function1<I, Optional<R>> maybe) {

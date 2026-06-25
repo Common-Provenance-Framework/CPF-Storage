@@ -1,9 +1,9 @@
 package org.commonprovenance.framework.store.controller.validator;
 
+import org.commonprovenance.framework.store.common.validation.DataValidator;
+
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
-
-import org.commonprovenance.framework.store.common.utils.Validators;
 
 public class IsUUIDValidator implements ConstraintValidator<IsUUID, String> {
 
@@ -13,6 +13,6 @@ public class IsUUIDValidator implements ConstraintValidator<IsUUID, String> {
 
   @Override
   public boolean isValid(String value, ConstraintValidatorContext _context) {
-    return Validators.isUUID(value);
+    return DataValidator.isUUID(value);
   }
 }

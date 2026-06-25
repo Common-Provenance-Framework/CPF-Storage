@@ -11,7 +11,6 @@ import org.commonprovenance.framework.store.model.Format;
 import org.commonprovenance.framework.store.model.Token;
 import org.commonprovenance.framework.store.persistence.finalizedProvComponent.DocumentRepository;
 import org.commonprovenance.framework.store.service.persistence.finalizedProvComponent.impl.DocumentServiceImpl;
-import org.commonprovenance.framework.store.service.web.store.StoreWebService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -31,8 +30,6 @@ class DocumentServiceSpec {
 
   @Mock
   private DocumentRepository documentRepository;
-  @Mock
-  private StoreWebService storeWebService;
 
   @Mock
   private CpmDocument cpmDocument;
@@ -48,7 +45,7 @@ class DocumentServiceSpec {
 
   @BeforeEach
   void setUp() {
-    documentService = new DocumentServiceImpl(documentRepository, storeWebService);
+    documentService = new DocumentServiceImpl(documentRepository);
   }
 
   @Test

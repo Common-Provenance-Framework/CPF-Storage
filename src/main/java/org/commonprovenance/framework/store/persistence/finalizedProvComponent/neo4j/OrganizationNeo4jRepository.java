@@ -1,6 +1,6 @@
 package org.commonprovenance.framework.store.persistence.finalizedProvComponent.neo4j;
 
-import static org.commonprovenance.framework.store.common.publisher.PublisherHelper.MONO;
+import static org.commonprovenance.framework.store.common.composition.Reactor.MONO;
 
 import java.util.NoSuchElementException;
 import java.util.function.Function;
@@ -95,7 +95,8 @@ public class OrganizationNeo4jRepository implements OrganizationRepository {
     return (Document document) -> MONO.combineM(
         MONO.<String> makeSureNotNullWithMessage("Organization identifier can not be 'null'!")
             .apply(identifier),
-        Mono.justOrEmpty(document.getIdentifier())
+        Mono.justOrEmpty(document)
+            .flatMap(MONO.liftEffectToMono(Document::getIdentifier))
             .flatMap(MONO.<String> makeSureNotNullWithMessage("Document identifier can not be 'null'!")),
         client::createOwnsRelationship)
         .then();

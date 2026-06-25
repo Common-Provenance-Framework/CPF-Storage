@@ -1,6 +1,6 @@
 package org.commonprovenance.framework.store.controller.impl;
 
-import static org.commonprovenance.framework.store.common.publisher.PublisherHelper.MONO;
+import static org.commonprovenance.framework.store.common.composition.Reactor.MONO;
 
 import org.commonprovenance.framework.store.controller.MetaDocumentController;
 import org.commonprovenance.framework.store.controller.dto.error.InternalServerErrorDTO;

@@ -1,7 +1,7 @@
 package org.commonprovenance.framework.store.config;
 
-import org.commonprovenance.framework.store.common.publisher.PublisherHelper.MonoHelper;
-import org.commonprovenance.framework.store.common.utils.EitherUtils.EitherHelper;
+import org.commonprovenance.framework.store.common.composition.Reactor.ReactorComposition;
+import org.commonprovenance.framework.store.common.composition.EitherUtils.EitherComposition;
 import org.openprovenance.prov.vanilla.ProvFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -41,8 +41,8 @@ public class AppConfig {
             Boolean.class,
             false));
 
-    EitherHelper.initialize(appConfiguration.isVerboseMode());
-    MonoHelper.initialize(appConfiguration.isVerboseMode());
+    EitherComposition.initialize(appConfiguration.isVerboseMode());
+    ReactorComposition.initialize(appConfiguration.isVerboseMode());
 
     return appConfiguration;
   }

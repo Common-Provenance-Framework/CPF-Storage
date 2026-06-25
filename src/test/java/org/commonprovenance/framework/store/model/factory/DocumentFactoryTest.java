@@ -51,7 +51,7 @@ public class DocumentFactoryTest {
         format);
 
     DocumentFactory.build(entity)
-        .peek((Document document) -> fail("Right side has not been expected! Got: [" + document.getIdentifier().orElse("unknown")))
+        .peek((Document document) -> fail("Right side has not been expected! Got: [" + document.getIdentifier().getOrElse("unknown")))
         .peekLeft(exception -> assertInstanceOf(ApplicationException.class, exception))
         .peekLeft(exception -> assertInstanceOf(ConstraintException.class, exception))
         .peekLeft(exception -> assertNull(exception.getCause()))
@@ -64,7 +64,7 @@ public class DocumentFactoryTest {
   @DisplayName("ErrorPath - should return Mono with InternalApplicationException, if any Exception")
   void should_fail_Exception_InternalApplicationException() {
     DocumentFactory.build((DocumentNode) null)
-        .peek((Document document) -> fail("Right side has not been expected! Got: [" + document.getIdentifier().orElse("unknown")))
+        .peek((Document document) -> fail("Right side has not been expected! Got: [" + document.getIdentifier().getOrElse("unknown")))
         .peekLeft(exception -> assertInstanceOf(ApplicationException.class, exception))
         .peekLeft(exception -> assertInstanceOf(ConstraintException.class, exception))
         .peekLeft(exception -> assertNull(exception.getCause()))

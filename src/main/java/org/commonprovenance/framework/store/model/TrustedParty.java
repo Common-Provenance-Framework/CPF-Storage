@@ -8,9 +8,9 @@ import org.commonprovenance.framework.store.common.dto.HasIsDefault;
 import org.commonprovenance.framework.store.common.dto.HasIsValid;
 import org.commonprovenance.framework.store.common.dto.HasName;
 import org.commonprovenance.framework.store.common.dto.HasUrlOptional;
-import org.commonprovenance.framework.store.common.validation.ValidatableDTO;
+import org.commonprovenance.framework.store.common.validation.DTOValidator;
 
-public class TrustedParty extends ValidatableDTO implements
+public class TrustedParty extends DTOValidator implements
     HasName<TrustedParty>,
     HasClientCertificate<TrustedParty>,
     HasUrlOptional<TrustedParty>,

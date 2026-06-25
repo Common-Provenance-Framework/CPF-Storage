@@ -3,9 +3,9 @@ package org.commonprovenance.framework.store.web.trustedParty.dto.form;
 import org.commonprovenance.framework.store.common.dto.HasDocumentGraph;
 import org.commonprovenance.framework.store.common.dto.HasOrganizationId;
 import org.commonprovenance.framework.store.common.dto.HasSignature;
-import org.commonprovenance.framework.store.common.validation.ValidatableDTO;
+import org.commonprovenance.framework.store.common.validation.DTOValidator;
 
-public class VerifySignatureTPFormDTO extends ValidatableDTO
+public class VerifySignatureTPFormDTO extends DTOValidator
     implements
     HasOrganizationId<VerifySignatureTPFormDTO>,
     HasDocumentGraph<VerifySignatureTPFormDTO>,

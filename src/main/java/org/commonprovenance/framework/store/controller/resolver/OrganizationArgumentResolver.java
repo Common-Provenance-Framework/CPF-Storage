@@ -1,7 +1,7 @@
 package org.commonprovenance.framework.store.controller.resolver;
 
-import static org.commonprovenance.framework.store.common.publisher.PublisherHelper.MONO;
-import static org.commonprovenance.framework.store.common.utils.EitherUtils.EITHER;
+import static org.commonprovenance.framework.store.common.composition.EitherUtils.EITHER;
+import static org.commonprovenance.framework.store.common.composition.Reactor.MONO;
 
 import java.util.Map;
 

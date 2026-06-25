@@ -1,6 +1,6 @@
 package org.commonprovenance.framework.store.controller.validator;
 
-import static org.commonprovenance.framework.store.common.utils.EitherUtils.EITHER;
+import static org.commonprovenance.framework.store.common.composition.EitherUtils.EITHER;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -43,7 +43,7 @@ public class IsJsonBase64ValidatorTest {
   @Test
   @DisplayName("Validator UnitTest - HappyPath")
   public void should_validate_json_happy_path() {
-    Either.<ApplicationException, String>right(this.json_valid)
+    Either.<ApplicationException, String> right(this.json_valid)
         .flatMap(Base64Utils::encodeFromString)
         .peek(result -> assertTrue(jsonValidator.isValid(result, null),
             "should pass if string is valid json string"))
@@ -53,7 +53,7 @@ public class IsJsonBase64ValidatorTest {
   @Test
   @DisplayName("Validator UnitTest - ErrorPath")
   public void should_validate_json_error_path() {
-    Either.<ApplicationException, String>right(this.json_invalid)
+    Either.<ApplicationException, String> right(this.json_invalid)
         .flatMap(Base64Utils::encodeFromString)
         .peek(result -> assertFalse(jsonValidator.isValid(result, null),
             "should fail if string is not valid json string"))
@@ -63,7 +63,7 @@ public class IsJsonBase64ValidatorTest {
   @Test
   @DisplayName("Validator Integration Test - HappyPath")
   public void should_pass_for_valid_value() {
-    Either.<ApplicationException, String>right(this.json_valid)
+    Either.<ApplicationException, String> right(this.json_valid)
         .flatMap(Base64Utils::encodeFromString)
         .map(encoded -> new Bean(encoded))
         .flatMap(EITHER.liftEitherChecked(this.validator::validate))
@@ -74,7 +74,7 @@ public class IsJsonBase64ValidatorTest {
   @Test
   @DisplayName("Validator Integration Test - ErrorPath")
   public void should_fail_for_invalid_value() {
-    Either.<ApplicationException, String>right(this.json_invalid)
+    Either.<ApplicationException, String> right(this.json_invalid)
         .flatMap(Base64Utils::encodeFromString)
         .map(encoded -> new Bean(encoded))
         .flatMap(EITHER.liftEitherChecked(this.validator::validate))

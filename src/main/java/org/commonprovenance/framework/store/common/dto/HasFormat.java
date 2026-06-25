@@ -1,6 +1,6 @@
 package org.commonprovenance.framework.store.common.dto;
 
-import static org.commonprovenance.framework.store.common.utils.EitherUtils.EITHER;
+import static org.commonprovenance.framework.store.common.composition.EitherUtils.EITHER;
 
 import java.util.Optional;
 import java.util.function.Function;

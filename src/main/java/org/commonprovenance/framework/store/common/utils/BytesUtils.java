@@ -1,6 +1,6 @@
 package org.commonprovenance.framework.store.common.utils;
 
-import static org.commonprovenance.framework.store.common.utils.EitherUtils.EITHER;
+import static org.commonprovenance.framework.store.common.composition.EitherUtils.EITHER;
 
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -12,7 +12,7 @@ import io.vavr.control.Either;
 
 public class BytesUtils {
   public static Either<ApplicationException, String> bytesToHex(byte[] bytes) {
-    return Either.<ApplicationException, byte[]>right(bytes)
+    return Either.<ApplicationException, byte[]> right(bytes)
         .flatMap(EITHER::makeSureNotNull)
         .flatMap(EITHER.liftEitherChecked(bs -> {
           StringBuilder hex = new StringBuilder(bytes.length * 2);
@@ -29,7 +29,7 @@ public class BytesUtils {
   }
 
   public static Function1<byte[], Either<ApplicationException, String>> bytesToString(Charset charset) {
-    return (byte[] bytes) -> EITHER.<byte[]>makeSureNotNull(bytes)
+    return (byte[] bytes) -> EITHER.<byte[]> makeSureNotNull(bytes)
         .flatMap(EITHER.liftEither(bs -> new String(bytes, charset)));
   }
 

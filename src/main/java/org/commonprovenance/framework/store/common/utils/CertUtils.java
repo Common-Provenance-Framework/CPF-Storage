@@ -1,6 +1,6 @@
 package org.commonprovenance.framework.store.common.utils;
 
-import static org.commonprovenance.framework.store.common.utils.EitherUtils.EITHER;
+import static org.commonprovenance.framework.store.common.composition.EitherUtils.EITHER;
 
 import java.io.ByteArrayInputStream;
 import java.math.BigInteger;
@@ -49,7 +49,7 @@ public interface CertUtils {
       // Convert to if necessary
       // openssl pkcs8 -topk8 -nocrypt -in ./cpf-utils/src/test/resources/cert/org.key
       // -out ./cpf-utils/src/test/resources/cert/org_pkcs8.key
-      return Either.<ApplicationException, String>right(key)
+      return Either.<ApplicationException, String> right(key)
           .flatMap(EITHER::makeSureNotNull)
           .flatMap(Base64Utils::decode)
           .flatMap(EITHER.liftEither(der -> new PKCS8EncodedKeySpec(der)))
@@ -57,19 +57,19 @@ public interface CertUtils {
     }
 
     public Either<ApplicationException, ECPublicKey> derivePublicKey(ECPrivateKey privateKey) {
-      return Either.<ApplicationException, ECPrivateKey>right(privateKey)
+      return Either.<ApplicationException, ECPrivateKey> right(privateKey)
           .flatMap(EITHER.liftEitherChecked(IMPERATIVE::derivePublicKey));
     }
 
     public Either<ApplicationException, X509Certificate> loadCertificate(String pem) {
-      return Either.<ApplicationException, String>right(pem)
+      return Either.<ApplicationException, String> right(pem)
           .flatMap(EITHER::makeSureNotNull)
           .flatMap(BytesUtils::stringToBytes_UTF8)
           .flatMap(this::loadCertificate);
     }
 
     public Either<ApplicationException, X509Certificate> loadCertificate(byte[] bytes) {
-      return Either.<ApplicationException, byte[]>right(bytes)
+      return Either.<ApplicationException, byte[]> right(bytes)
           .flatMap(EITHER.liftEitherChecked(IMPERATIVE::loadCertificate));
     }
 

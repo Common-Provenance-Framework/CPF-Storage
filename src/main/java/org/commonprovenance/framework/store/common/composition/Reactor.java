@@ -1,18 +1,15 @@
-package org.commonprovenance.framework.store.common.publisher;
+package org.commonprovenance.framework.store.common.composition;
 
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Vector;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
-import org.commonprovenance.framework.store.common.validation.ValidatableDTO;
 import org.commonprovenance.framework.store.config.AppConfig;
 import org.commonprovenance.framework.store.exceptions.ApplicationException;
 import org.commonprovenance.framework.store.exceptions.ConflictException;
-import org.commonprovenance.framework.store.exceptions.ConstraintException;
 import org.commonprovenance.framework.store.exceptions.InternalApplicationException;
 
 import io.vavr.Function1;
@@ -22,18 +19,18 @@ import io.vavr.control.Try;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-public interface PublisherHelper {
-  MonoHelper MONO = MonoHelper.get();
+public interface Reactor {
+  ReactorComposition MONO = ReactorComposition.get();
 
   // Mono implementation
-  class MonoHelper {
+  class ReactorComposition {
     private static class Holder {
-      static MonoHelper instance = new MonoHelper(false);
+      static ReactorComposition instance = new ReactorComposition(false);
     }
 
     private final boolean verboseMode;
 
-    private MonoHelper(boolean verboseMode) {
+    private ReactorComposition(boolean verboseMode) {
       this.verboseMode = verboseMode;
     }
 
@@ -41,10 +38,10 @@ public interface PublisherHelper {
      * Initializes the singleton with the configured value. Should be called exactly once during application startup from {@link AppConfig}.
      */
     public static void initialize(boolean verboseMode) {
-      Holder.instance = new MonoHelper(verboseMode);
+      Holder.instance = new ReactorComposition(verboseMode);
     }
 
-    static MonoHelper get() {
+    static ReactorComposition get() {
       return Holder.instance;
     }
 
@@ -70,19 +67,10 @@ public interface PublisherHelper {
     private String callerLocation() {
       return StackWalker.getInstance(StackWalker.Option.RETAIN_CLASS_REFERENCE)
           .walk(frames -> frames
-              .dropWhile(frame -> frame.getClassName().equals(MonoHelper.class.getName()))
+              .dropWhile(frame -> frame.getClassName().equals(ReactorComposition.class.getName()))
               .findFirst()
               .map(frame -> frame.getClassName() + "#" + frame.getMethodName() + ":" + frame.getLineNumber())
               .orElse("unknown"));
-    }
-
-    public <T extends ValidatableDTO> Mono<T> validateDTO(T value) {
-      Vector<String> result = value.validate();
-      return result.isEmpty()
-          ? Mono.just(value)
-          : Mono.error(new ConstraintException(
-              "Validation of class '" + value.getClass().getSimpleName() + "' faild with message: "
-                  + result.stream().reduce("", (acc, i) -> acc.isEmpty() ? i : acc + ", " + i)));
     }
 
     public <T> Mono<T> makeSureNotNull(T value) {

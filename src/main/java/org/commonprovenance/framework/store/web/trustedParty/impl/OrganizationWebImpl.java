@@ -1,6 +1,6 @@
 package org.commonprovenance.framework.store.web.trustedParty.impl;
 
-import static org.commonprovenance.framework.store.common.publisher.PublisherHelper.MONO;
+import static org.commonprovenance.framework.store.common.composition.Reactor.MONO;
 
 import java.util.Map;
 import java.util.Optional;

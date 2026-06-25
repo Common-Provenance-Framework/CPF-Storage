@@ -3,7 +3,7 @@ package org.commonprovenance.framework.store.common.composition;
 import java.util.List;
 import java.util.function.UnaryOperator;
 
-public class MonoidComposition {
+public class Monoid {
 
   /**
    * Monoid composition for any type T with endomorphism transformations. Identity: UnaryOperator.identity() Binary operation: (f, g) -> f.andThen(g) Applies the composed operators

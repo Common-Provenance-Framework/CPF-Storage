@@ -1,6 +1,6 @@
 package org.commonprovenance.framework.store.common.utils;
 
-import static org.commonprovenance.framework.store.common.utils.EitherUtils.EITHER;
+import static org.commonprovenance.framework.store.common.composition.EitherUtils.EITHER;
 
 import java.util.Map;
 import java.util.Set;
@@ -25,7 +25,7 @@ public interface ProvJsonUtils {
 
     public Function1<String, Either<ApplicationException, String>> preprocessJsonForDeserialization(
         Boolean prettyPrint) {
-      return EITHER.<String, String>liftEither(
+      return EITHER.<String, String> liftEither(
           (String value) -> IMPERATIVE.preprocessJsonForDeserialization(value, prettyPrint),
           this::handleThrowable);
     }
@@ -35,7 +35,7 @@ public interface ProvJsonUtils {
 
     public Function1<String, Either<ApplicationException, String>> preprocessIncompatibleJsonForDeserialization(
         Boolean prettyPrint) {
-      return EITHER.<String, String>liftEither(
+      return EITHER.<String, String> liftEither(
           (String value) -> IMPERATIVE.preprocessIncompatibleJsonForDeserialization(value, prettyPrint),
           this::handleThrowable);
     }
@@ -45,7 +45,7 @@ public interface ProvJsonUtils {
 
     public Function1<String, Either<ApplicationException, String>> postprocessJsonAfterSerialization(
         Boolean prettyPrint) {
-      return EITHER.<String, String>liftEither(
+      return EITHER.<String, String> liftEither(
           (String value) -> IMPERATIVE.postprocessJsonAfterSerialization(value, prettyPrint),
           this::handleThrowable);
     }
@@ -124,8 +124,7 @@ public interface ProvJsonUtils {
     }
 
     /**
-     * Add explicit "@id" property to bundle to comply with provtoolbox
-     * deserialization requirements.
+     * Add explicit "@id" property to bundle to comply with provtoolbox deserialization requirements.
      *
      * @param root the original JSON, possibly without "@id" in bundle
      * @return the modified JSON Node with proper "@id" added to bundle

@@ -1,6 +1,6 @@
 package org.commonprovenance.framework.store.common.utils;
 
-import static org.commonprovenance.framework.store.common.utils.EitherUtils.EITHER;
+import static org.commonprovenance.framework.store.common.composition.EitherUtils.EITHER;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -30,12 +30,12 @@ public class HashUtils {
 
   public static Either<ApplicationException, String> sha256(String data) {
     Function2<byte[], MessageDigest, Either<ApplicationException, String>> combiner = (bytes, digest) -> Either
-        .<ApplicationException, byte[]>right(bytes)
-        .flatMap(EITHER.<byte[], byte[]>liftEither(digest::digest))
+        .<ApplicationException, byte[]> right(bytes)
+        .flatMap(EITHER.<byte[], byte[]> liftEither(digest::digest))
         .flatMap(BytesUtils::bytesToHex);
 
     return EITHER.combineM(
-        Either.<ApplicationException, String>right(data)
+        Either.<ApplicationException, String> right(data)
             .flatMap(EITHER::makeSureNotNull)
             .flatMap(BytesUtils::stringToBytes_UTF8),
         HashUtils.getMessageDigestInstance("SHA-256"),

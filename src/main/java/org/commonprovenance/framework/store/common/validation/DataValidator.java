@@ -1,8 +1,8 @@
-package org.commonprovenance.framework.store.common.utils;
+package org.commonprovenance.framework.store.common.validation;
 
 import java.util.regex.Pattern;
 
-public class Validators {
+public class DataValidator {
   private static final Pattern UUID_PATTERN = Pattern.compile(
       "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$");
 

@@ -1,6 +1,6 @@
 package org.commonprovenance.framework.store.persistence.metaComponent.model.factory;
 
-import static org.commonprovenance.framework.store.common.publisher.PublisherHelper.MONO;
+import static org.commonprovenance.framework.store.common.composition.Reactor.MONO;
 
 import java.util.HashMap;
 import java.util.LinkedHashMap;

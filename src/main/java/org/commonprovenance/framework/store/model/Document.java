@@ -1,22 +1,21 @@
 package org.commonprovenance.framework.store.model;
 
-import static org.commonprovenance.framework.store.common.utils.EitherUtils.EITHER;
+import static org.commonprovenance.framework.store.common.composition.EitherUtils.EITHER;
 
 import java.util.Optional;
 
+import org.commonprovenance.framework.store.common.dto.HasCpmDocument;
 import org.commonprovenance.framework.store.common.dto.HasFormat;
 import org.commonprovenance.framework.store.common.dto.HasGraph;
-import org.commonprovenance.framework.store.common.dto.HasIdentifierOptional;
 import org.commonprovenance.framework.store.common.dto.HasTokenOptional;
 import org.commonprovenance.framework.store.common.utils.Base64Utils;
 import org.commonprovenance.framework.store.common.utils.ProvDocumentUtils;
-import org.commonprovenance.framework.store.common.validation.ValidatableDTO;
+import org.commonprovenance.framework.store.common.validation.DTOValidator;
 import org.commonprovenance.framework.store.exceptions.ApplicationException;
 import org.commonprovenance.framework.store.exceptions.InternalApplicationException;
 import org.commonprovenance.framework.store.exceptions.InvalidValueException;
 import org.commonprovenance.framework.store.exceptions.factory.ApplicationExceptionFactory;
 import org.openprovenance.prov.model.ProvFactory;
-import org.openprovenance.prov.model.QualifiedName;
 import org.openprovenance.prov.model.interop.Formats;
 
 import cz.muni.fi.cpm.model.CpmDocument;
@@ -25,8 +24,8 @@ import cz.muni.fi.cpm.model.ICpmProvFactory;
 import io.vavr.Function1;
 import io.vavr.control.Either;
 
-public class Document extends ValidatableDTO implements
-    HasIdentifierOptional<Document>,
+public class Document extends DTOValidator implements
+    HasCpmDocument<Document>,
     HasGraph<Document>,
     HasFormat<Document>,
     HasTokenOptional<Document> {
@@ -69,7 +68,7 @@ public class Document extends ValidatableDTO implements
     return new Document(
         graph,
         this.getFormat(),
-        this.getCpmDocument().orElse(null),
+        this.cpmDocument.orElse(null),
         this.getToken().orElse(null));
   }
 
@@ -77,7 +76,7 @@ public class Document extends ValidatableDTO implements
     return new Document(
         this.getGraph(),
         format,
-        this.getCpmDocument().orElse(null),
+        this.cpmDocument.orElse(null),
         this.getToken().orElse(null));
   }
 
@@ -106,7 +105,7 @@ public class Document extends ValidatableDTO implements
     return new Document(
         this.getGraph(),
         this.getFormat(),
-        this.getCpmDocument().orElse(null),
+        this.cpmDocument.orElse(null),
         token);
   }
 
@@ -127,18 +126,15 @@ public class Document extends ValidatableDTO implements
     return format;
   }
 
-  public Optional<CpmDocument> getCpmDocument() {
-    return cpmDocument;
+  @Override
+  public Either<ApplicationException, CpmDocument> getCpmDocument() {
+    return EITHER.liftEither(
+        cpmDocument,
+        new InvalidValueException("CpmDocument has not been deserialized yet"));
   }
 
   public Optional<Token> getToken() {
     return token;
-  }
-
-  public Optional<String> getIdentifier() {
-    return getCpmDocument()
-        .map(CpmDocument::getBundleId)
-        .map(QualifiedName::getLocalPart);
   }
 
 }

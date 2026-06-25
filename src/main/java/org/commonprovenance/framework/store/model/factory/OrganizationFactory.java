@@ -1,11 +1,11 @@
 package org.commonprovenance.framework.store.model.factory;
 
-import static org.commonprovenance.framework.store.common.utils.EitherUtils.EITHER;
+import static org.commonprovenance.framework.store.common.composition.EitherUtils.EITHER;
 
 import java.util.List;
 import java.util.function.UnaryOperator;
 
-import org.commonprovenance.framework.store.common.composition.MonoidComposition;
+import org.commonprovenance.framework.store.common.composition.Monoid;
 import org.commonprovenance.framework.store.common.dto.HasClientCertificate;
 import org.commonprovenance.framework.store.common.dto.HasDocumentOptional;
 import org.commonprovenance.framework.store.common.dto.HasIdentifier;
@@ -21,7 +21,7 @@ import io.vavr.control.Either;
 public class OrganizationFactory {
 
   private static <T extends HasIdentifier<T> & HasClientCertificate<T> & HasIntermediateCertificates<T>> UnaryOperator<Organization> mapper(T data) {
-    return (Organization organization) -> MonoidComposition.compose(
+    return (Organization organization) -> Monoid.compose(
         organization,
         List.of(
             HasIdentifier.addIdentifier(data),
@@ -30,7 +30,7 @@ public class OrganizationFactory {
   }
 
   private static <T> UnaryOperator<Organization> mapper(T data) {
-    return (Organization organization) -> MonoidComposition.compose(
+    return (Organization organization) -> Monoid.compose(
         organization,
         List.of(
             HasIdentifier.addIdentifierIfPresent(data),

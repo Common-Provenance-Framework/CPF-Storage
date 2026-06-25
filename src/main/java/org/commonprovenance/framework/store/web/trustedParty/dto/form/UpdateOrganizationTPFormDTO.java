@@ -4,9 +4,9 @@ import java.util.List;
 
 import org.commonprovenance.framework.store.common.dto.HasClientCertificate;
 import org.commonprovenance.framework.store.common.dto.HasIntermediateCertificates;
-import org.commonprovenance.framework.store.common.validation.ValidatableDTO;
+import org.commonprovenance.framework.store.common.validation.DTOValidator;
 
-public class UpdateOrganizationTPFormDTO extends ValidatableDTO implements
+public class UpdateOrganizationTPFormDTO extends DTOValidator implements
     HasClientCertificate<UpdateOrganizationTPFormDTO>,
     HasIntermediateCertificates<UpdateOrganizationTPFormDTO> {
   private final String clientCertificate;

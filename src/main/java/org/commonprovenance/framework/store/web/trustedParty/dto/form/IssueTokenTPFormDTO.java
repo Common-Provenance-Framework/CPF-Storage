@@ -9,11 +9,11 @@ import org.commonprovenance.framework.store.common.dto.HasOrganizationId;
 import org.commonprovenance.framework.store.common.dto.HasSignature;
 import org.commonprovenance.framework.store.common.dto.HasTokenFormat;
 import org.commonprovenance.framework.store.common.dto.HasType;
-import org.commonprovenance.framework.store.common.validation.ValidatableDTO;
+import org.commonprovenance.framework.store.common.validation.DTOValidator;
 import org.commonprovenance.framework.store.model.Format;
 import org.commonprovenance.framework.store.model.GraphType;
 
-public class IssueTokenTPFormDTO extends ValidatableDTO implements
+public class IssueTokenTPFormDTO extends DTOValidator implements
     HasOrganizationId<IssueTokenTPFormDTO>,
     HasDocumentGraph<IssueTokenTPFormDTO>,
     HasFormatSerialized<IssueTokenTPFormDTO>,

@@ -6,8 +6,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
-import java.util.Optional;
-
 import org.commonprovenance.framework.store.exceptions.ApplicationException;
 import org.commonprovenance.framework.store.exceptions.InternalApplicationException;
 import org.commonprovenance.framework.store.exceptions.NotFoundException;
@@ -217,14 +215,14 @@ class DocumentRepositoryTest {
       DocumentNode node_01 = new DocumentNode(TEST_ID_1, TEST_IDENTIFIER_1, BASE64_STRING_GRAPH_1, FORMAT_1.toString(), Collections.emptyListOf(HasToken.class))
           .withToken(new TokenNode(
               "1:20c19b3c-cbf6-4b52-bf56-1b1d4aa6da9a3:11",
-              "eyJhbGciOiJub25lIn0.eyJhdXRob3JpdHlJZCI6IlRydXN0ZWRfUGFydHkiLCJkb2N1bWVudENyZWF0aW9uVGltZXN0YW1wIjoxNzgxMjY5OTcyLCJkb2N1bWVudERpZ2VzdCI6IjAyYjNiZDhiOTVmZWRkNzY3N2U5ZDBkZjZhZWZmYzhmOWM0NmE5YjM1ODcwYmRjNjlhYmY4MmJiNDFjOGIwMmQiLCJvcmlnaW5hdG9ySWQiOiI2ZmIyOTJhYS1lZTM4LTQ4YWUtOTk4Zi0wNzlhZDlkMDFlN2MiLCJ0b2tlblRpbWVzdGFtcCI6MTc4MTI2OTk3Mn0.",
+              "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdXRob3JpdHlJZCI6IlRydXN0ZWRfUGFydHkiLCJkb2N1bWVudENyZWF0aW9uVGltZXN0YW1wIjoxNzgxMjY5OTcyLCJkb2N1bWVudERpZ2VzdCI6IjAyYjNiZDhiOTVmZWRkNzY3N2U5ZDBkZjZhZWZmYzhmOWM0NmE5YjM1ODcwYmRjNjlhYmY4MmJiNDFjOGIwMmQiLCJvcmlnaW5hdG9ySWQiOiI2ZmIyOTJhYS1lZTM4LTQ4YWUtOTk4Zi0wNzlhZDlkMDFlN2MiLCJ0b2tlblRpbWVzdGFtcCI6MTc4MTI2OTk3Mn0.sjgMddsk8XZKPn3kyi3_x4BAx5EgQOa2mG-EQI3xRzI",
               Collections.emptyListOf(WasIssuedBy.class))
               .withTrustedParty(tpNode));
 
       DocumentNode node_02 = new DocumentNode(TEST_ID_2, TEST_IDENTIFIER_2, BASE64_STRING_GRAPH_2, FORMAT_2.toString(), Collections.emptyListOf(HasToken.class))
           .withToken(new TokenNode(
               "1:20c19b3c-cbf6-4b52-bf56-1b1d4aa6da9a3:12",
-              "eyJhbGciOiJub25lIn0.eyJhdXRob3JpdHlJZCI6IlRydXN0ZWRfUGFydHkiLCJkb2N1bWVudENyZWF0aW9uVGltZXN0YW1wIjoxNzgxMjY5OTcyLCJkb2N1bWVudERpZ2VzdCI6IjAyYjNiZDhiOTVmZWRkNzY3N2U5ZDBkZjZhZWZmYzhmOWM0MWE5YjM1ODcwYmRjNjlhYmY4MmJiNDFjOGIwNGQiLCJvcmlnaW5hdG9ySWQiOiI2ZmIyOTJhYS1lZTM4LTQ4YWUtOTk4Zi0wNzlhZDlkMDFlN2MiLCJ0b2tlblRpbWVzdGFtcCI6MTc4MTI2OTk3Mn0.",
+              "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdXRob3JpdHlJZCI6IlRydXN0ZWRfUGFydHkiLCJkb2N1bWVudENyZWF0aW9uVGltZXN0YW1wIjoxNzgxMjY5OTcyLCJkb2N1bWVudERpZ2VzdCI6IjAyYjNiZDhiOTVmZWRkNzY3N2U5ZDBkZjZhZWZmYzhmOWM0MWE5YjM1ODcwYmRjNjlhYmY4MmJiNDFjOGIwNGQiLCJvcmlnaW5hdG9ySWQiOiI2ZmIyOTJhYS1lZTM4LTQ4YWUtOTk4Zi0wNzlhZDlkMDFlN2MiLCJ0b2tlblRpbWVzdGFtcCI6MTc4MTI2OTk3Mn0.UPfGOZdPDzhAKiAGF4ynVDbXuUQTMvp7EZTty_r2RnU",
               Collections.emptyListOf(WasIssuedBy.class))
               .withTrustedParty(tpNode));
       switch (id) {

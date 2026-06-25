@@ -1,12 +1,12 @@
 package org.commonprovenance.framework.store.model.factory;
 
-import static org.commonprovenance.framework.store.common.utils.EitherUtils.EITHER;
+import static org.commonprovenance.framework.store.common.composition.EitherUtils.EITHER;
 
 import java.util.List;
 import java.util.function.Function;
 import java.util.function.UnaryOperator;
 
-import org.commonprovenance.framework.store.common.composition.MonoidComposition;
+import org.commonprovenance.framework.store.common.composition.Monoid;
 import org.commonprovenance.framework.store.common.dto.HasClientCertificate;
 import org.commonprovenance.framework.store.common.dto.HasIsChecked;
 import org.commonprovenance.framework.store.common.dto.HasIsDefault;
@@ -22,7 +22,7 @@ import io.vavr.control.Either;
 
 public class TrustedPartyFactory {
   private static <T extends HasName<T> & HasClientCertificate<T> & HasUrl<T> & HasIsChecked<T> & HasIsValid<T> & HasIsDefault<T>> UnaryOperator<TrustedParty> mapper(T data) {
-    return (TrustedParty trustedParty) -> MonoidComposition.compose(
+    return (TrustedParty trustedParty) -> Monoid.compose(
         trustedParty,
         List.of(
             HasName.addName(data),
@@ -34,7 +34,7 @@ public class TrustedPartyFactory {
   }
 
   private static <T> UnaryOperator<TrustedParty> mapper(T data) {
-    return (TrustedParty trustedParty) -> MonoidComposition.compose(
+    return (TrustedParty trustedParty) -> Monoid.compose(
         trustedParty,
         List.of(
             HasName.addNameIfPresent(data),

@@ -1,7 +1,7 @@
 package org.commonprovenance.framework.store.controller.resolver;
 
-import static org.commonprovenance.framework.store.common.publisher.PublisherHelper.MONO;
-import static org.commonprovenance.framework.store.common.utils.EitherUtils.EITHER;
+import static org.commonprovenance.framework.store.common.composition.EitherUtils.EITHER;
+import static org.commonprovenance.framework.store.common.composition.Reactor.MONO;
 
 import java.util.Map;
 import java.util.function.Function;
@@ -91,7 +91,8 @@ public class OrganizationDocumentArgumentResolver implements HandlerMethodArgume
             .flatMap(MONO.liftEffectToMono(doc -> doc.withCpmDocument(provFactory, cpmProvFactory, cpmFactory))),
         (organization, document) -> Mono.just(document)
             .flatMap(MONO.makeSureAsync(
-                doc -> Mono.justOrEmpty(doc.getIdentifier())
+                doc -> Mono.just(doc)
+                    .flatMap(MONO.liftEffectToMono(Document::getIdentifier))
                     .flatMap(this.documentService::getOrganizationIdentifierByIdentifier)
                     .map(organization.getIdentifier()::equals),
                 _ -> new BadRequestException(

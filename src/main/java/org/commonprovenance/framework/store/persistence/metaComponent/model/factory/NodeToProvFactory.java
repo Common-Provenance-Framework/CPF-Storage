@@ -1,6 +1,6 @@
 package org.commonprovenance.framework.store.persistence.metaComponent.model.factory;
 
-import static org.commonprovenance.framework.store.common.utils.EitherUtils.EITHER;
+import static org.commonprovenance.framework.store.common.composition.EitherUtils.EITHER;
 
 import java.util.List;
 import java.util.Map;

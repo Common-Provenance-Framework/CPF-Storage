@@ -4,7 +4,7 @@ import java.util.Vector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public abstract class ValidatableDTO {
+public abstract class DTOValidator {
 
   public Vector<String> validate() {
     return Stream.of(this.getClass().getDeclaredFields())

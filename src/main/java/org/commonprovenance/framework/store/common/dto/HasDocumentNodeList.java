@@ -1,6 +1,6 @@
 package org.commonprovenance.framework.store.common.dto;
 
-import static org.commonprovenance.framework.store.common.utils.EitherUtils.EITHER;
+import static org.commonprovenance.framework.store.common.composition.EitherUtils.EITHER;
 
 import java.util.List;
 import java.util.function.Function;
@@ -42,26 +42,4 @@ public interface HasDocumentNodeList<T extends HasDocumentNodeList<T>> {
         .map(to::withDocument);
   }
 
-  // ---
-
-  static <T extends HasDocumentNodeList<T>, F extends HasDocument<F>> Function<T, Either<ApplicationException, T>> addDocument(F from) {
-    return (T to) -> EITHER.makeSureNotNull(from)
-        .map(F::getDocument)
-        .map(DocumentNodeFactory::build)
-        .map(to::withDocument);
-  }
-
-  static <T extends HasDocumentNodeList<T>, F extends HasDocument<F>> Function<T, Either<ApplicationException, T>> addDocumentWithRelations(F from) {
-    return (T to) -> EITHER.makeSureNotNull(from)
-        .map(F::getDocument)
-        .map(DocumentNodeFactory::buildWithRelations)
-        .map(to::withDocument);
-  }
-
-  static <T extends HasDocumentNodeList<T>, F extends HasDocument<F>> Function<T, Either<ApplicationException, T>> addDocumentWithFullRelations(F from) {
-    return (T to) -> EITHER.makeSureNotNull(from)
-        .map(F::getDocument)
-        .map(DocumentNodeFactory::buildWithFullRelations)
-        .map(to::withDocument);
-  }
 }

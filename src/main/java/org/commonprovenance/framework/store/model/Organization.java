@@ -9,13 +9,13 @@ import org.commonprovenance.framework.store.common.dto.HasDocumentOptional;
 import org.commonprovenance.framework.store.common.dto.HasIdentifier;
 import org.commonprovenance.framework.store.common.dto.HasIntermediateCertificates;
 import org.commonprovenance.framework.store.common.dto.HasTrustedPartyOptional;
-import org.commonprovenance.framework.store.common.validation.ValidatableDTO;
+import org.commonprovenance.framework.store.common.validation.DTOValidator;
 import org.commonprovenance.framework.store.exceptions.ApplicationException;
 import org.commonprovenance.framework.store.exceptions.InvalidValueException;
 
 import io.vavr.control.Either;
 
-public class Organization extends ValidatableDTO implements
+public class Organization extends DTOValidator implements
     HasIdentifier<Organization>,
     HasClientCertificate<Organization>,
     HasIntermediateCertificates<Organization>,
