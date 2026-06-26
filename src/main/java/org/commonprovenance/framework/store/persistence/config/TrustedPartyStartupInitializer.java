@@ -3,7 +3,7 @@ package org.commonprovenance.framework.store.persistence.config;
 import java.util.Optional;
 
 import org.commonprovenance.framework.store.exceptions.NotFoundException;
-import org.commonprovenance.framework.store.service.persistence.finalizedProvComponent.TrustedPartyService;
+import org.commonprovenance.framework.store.service.persistence.FinalizedProvComponentService;
 import org.commonprovenance.framework.store.web.trustedParty.TrustedPartyWeb;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,14 +23,14 @@ public class TrustedPartyStartupInitializer {
   @Order(Ordered.HIGHEST_PRECEDENCE + 10)
   @Bean
   ApplicationRunner ensureDefaultTrustedParty(
-      TrustedPartyService trustedPartyService,
+      FinalizedProvComponentService finalizedProvComponentService,
       TrustedPartyWeb trustedPartyWeb) {
-    return _ -> trustedPartyService.getDefaultTrustedParty()
+    return _ -> finalizedProvComponentService.getDefaultTrustedParty()
         .doOnSuccess(trustedParty -> log.info("Default TrustedParty '{}' already exists.", trustedParty.getName()))
         .onErrorResume(
             NotFoundException.class,
             _ -> trustedPartyWeb.getTrustedParty(Optional.empty())
-                .delayUntil(trustedPartyService::storeTrustedParty)
+                .delayUntil(finalizedProvComponentService::storeTrustedParty)
                 .doOnSuccess(trustedParty -> log.info("Created default TrustedParty '{}' during startup.", trustedParty.getName())))
         .doOnError(throwable -> log.error("Default TrustedParty initialization failed during startup. Details: {}", throwable.getMessage()))
         .block();

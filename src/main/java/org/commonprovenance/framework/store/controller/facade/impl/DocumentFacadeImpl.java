@@ -20,8 +20,7 @@ import org.commonprovenance.framework.store.model.Document;
 import org.commonprovenance.framework.store.model.Format;
 import org.commonprovenance.framework.store.model.Organization;
 import org.commonprovenance.framework.store.model.factory.DocumentFactory;
-import org.commonprovenance.framework.store.service.persistence.finalizedProvComponent.DocumentService;
-import org.commonprovenance.framework.store.service.persistence.finalizedProvComponent.OrganizationService;
+import org.commonprovenance.framework.store.service.persistence.impl.FinalizedProvComponentServiceImpl;
 import org.commonprovenance.framework.store.service.persistence.metaComponent.MetaProvenanceComponentService;
 import org.commonprovenance.framework.store.service.web.store.StoreWebService;
 import org.commonprovenance.framework.store.service.web.trustedParty.TrustedPartyWebService;
@@ -39,11 +38,10 @@ import reactor.core.publisher.Mono;
 
 @Component
 public class DocumentFacadeImpl implements DocumentFacade {
+  private final FinalizedProvComponentServiceImpl finalizedProvComponentServiceImpl;
   private final String LOG_PREFIX = "DocumentFacade: ";
   private static final Logger LOGGER = LoggerFactory.getLogger(DocumentFacadeImpl.class);
 
-  private final DocumentService documentService;
-  private final OrganizationService organizationService;
   private final StoreWebService storeWebService;
   private final MetaProvenanceComponentService metaComponentService;
 
@@ -56,17 +54,13 @@ public class DocumentFacadeImpl implements DocumentFacade {
   private final AppConfiguration configuration;
 
   public DocumentFacadeImpl(
-      DocumentService documentService,
-      OrganizationService organizationService,
       StoreWebService storeWebService,
       TrustedPartyWebService trustedPartyWebService,
       MetaProvenanceComponentService metaComponentService,
       ProvFactory provFactory,
       ICpmFactory cpmFactory,
       ICpmProvFactory cpmProvFactory,
-      AppConfiguration configuration) {
-    this.documentService = documentService;
-    this.organizationService = organizationService;
+      AppConfiguration configuration, FinalizedProvComponentServiceImpl finalizedProvComponentServiceImpl) {
     this.storeWebService = storeWebService;
     this.metaComponentService = metaComponentService;
     this.trustedPartyWebService = trustedPartyWebService;
@@ -76,6 +70,7 @@ public class DocumentFacadeImpl implements DocumentFacade {
     this.cpmProvFactory = cpmProvFactory;
 
     this.configuration = configuration;
+    this.finalizedProvComponentServiceImpl = finalizedProvComponentServiceImpl;
   }
 
   @Override
@@ -86,7 +81,7 @@ public class DocumentFacadeImpl implements DocumentFacade {
             .flatMap(document -> document.withCpmDocument(this.provFactory, this.cpmProvFactory, this.cpmFactory))
             .map(org::withDocument)))
         .doOnNext(_ -> LOGGER.debug("{} Document has been deserialized and loaded.", LOG_PREFIX))
-        .delayUntil(this.documentService::checkDocumentDoesNotExists)
+        .delayUntil(this.finalizedProvComponentServiceImpl::checkDocumentDoesNotExists)
         .doOnNext(_ -> LOGGER.debug("{} Document does not exists.", LOG_PREFIX))
         .delayUntil(this.trustedPartyWebService.verifySignature(body.getSignature()))
         .doOnNext(_ -> LOGGER.debug("{} Signature has been verified.", LOG_PREFIX))
@@ -98,7 +93,7 @@ public class DocumentFacadeImpl implements DocumentFacade {
         .doOnNext(_ -> LOGGER.debug("Document has been validated and considered as valid."))
         .flatMap(this.trustedPartyWebService.issueGraphToken(body.getSignature()))
         .doOnNext(_ -> LOGGER.debug("Token has been issued by TrustedParty."))
-        .delayUntil(this.organizationService::storeDocument)
+        .delayUntil(this.finalizedProvComponentServiceImpl::storeDocument)
         .doOnNext(_ -> LOGGER.debug("Document has been saved."))
         .delayUntil(this.metaComponentService::createMetaProvenanceComponentIfNotExists)
         .delayUntil(this.metaComponentService::addBundleVersionIntoMetaProvenanceComponent)

@@ -115,10 +115,30 @@ public interface Reactor {
     public <T> Function<T, Mono<T>> makeSureAsync(
         Function<T, Mono<Boolean>> asyncValidator,
         Function<T, ApplicationException> appExceptionBuilderFunction) {
+      return makeSureAsync(asyncValidator, appExceptionBuilderFunction, true);
+    }
+
+    public <T> Function<T, Mono<T>> makeSureNotAsync(
+        Function<T, Mono<Boolean>> asyncValidator,
+        Function<T, ApplicationException> appExceptionBuilderFunction) {
+      return makeSureAsync(asyncValidator, appExceptionBuilderFunction, false);
+    }
+
+    public <T, E extends ApplicationException> Function<T, Mono<T>> makeSureNotAsync(
+        Function<T, Mono<Boolean>> asyncValidator,
+        Function<String, E> factory,
+        Function<T, String> messageBuileder) {
+      return makeSureAsync(asyncValidator, factory, messageBuileder, false);
+    }
+
+    public <T> Function<T, Mono<T>> makeSureAsync(
+        Function<T, Mono<Boolean>> asyncValidator,
+        Function<T, ApplicationException> appExceptionBuilderFunction,
+        Boolean positive) {
       return (T value) -> Mono.justOrEmpty(value)
           .flatMap(v -> asyncValidator.apply(v)
               .defaultIfEmpty(false)
-              .flatMap(isValid -> isValid
+              .flatMap(isValid -> isValid == positive
                   ? Mono.just(v)
                   : Mono.error(appExceptionBuilderFunction.apply(v))));
     }
@@ -127,10 +147,18 @@ public interface Reactor {
         Function<T, Mono<Boolean>> asyncValidator,
         Function<String, E> factory,
         Function<T, String> messageBuileder) {
+      return makeSureAsync(asyncValidator, factory, messageBuileder, true);
+    }
+
+    public <T, E extends ApplicationException> Function<T, Mono<T>> makeSureAsync(
+        Function<T, Mono<Boolean>> asyncValidator,
+        Function<String, E> factory,
+        Function<T, String> messageBuileder,
+        Boolean positive) {
       return (T value) -> Mono.justOrEmpty(value)
           .flatMap(v -> asyncValidator.apply(v)
               .defaultIfEmpty(false)
-              .flatMap(isValid -> isValid
+              .flatMap(isValid -> isValid == positive
                   ? Mono.just(v)
                   : Mono.error(factory.compose(messageBuileder).apply(v))));
     }

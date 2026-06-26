@@ -89,6 +89,25 @@ public class OrganizationNeo4jRepository implements OrganizationRepository {
 
   }
 
+  @Override
+  public Mono<Boolean> existsByIdentifier(String identifier) {
+    return Mono.just(identifier)
+        .flatMap(client::countByIdentifier)
+        .flatMap(MONO.<Integer> makeSure(
+            occurrence -> occurrence == 0 || occurrence == 1,
+            occurrence -> new ConflictException("There is more then one document with identifier '" + identifier + "'!")))
+        .map(occurrence -> occurrence == 1)
+        .doOnSuccess(exists -> {
+          if (exists)
+            LOGGER.trace(LOG_PREFIX + "Document with identifier '" + identifier + "' exists.");
+          else
+            LOGGER.trace(LOG_PREFIX + "Document with identifier '" + identifier + "' not exists.");
+        })
+        .doOnError(throwable -> LOGGER.error(LOG_PREFIX + "Document existence validation with identifier '" + identifier + "' has been failed!\n" + throwable.getMessage()))
+        .onErrorMap(
+            ApplicationExceptionFactory.handleThrowable(new InternalApplicationException("Document existence validation with identifier '" + identifier + "' has been failed!")));
+  }
+
   // TODO: this should be moved into Document
   @Override
   public Function<Document, Mono<Void>> connectOwns(String identifier) {

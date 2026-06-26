@@ -45,4 +45,18 @@ public interface OrganizationNeo4jRepositoryClient extends ReactiveNeo4jReposito
       @Param("organizationIdentifier") String organizationIdentifier,
       @Param("documentIdentifier") String documentIdentifier);
 
+  @Query("""
+      RETURN EXISTS {
+        MATCH (:Organization {identifier: $identifier})
+      } AS exists
+      """)
+  Mono<Boolean> existsByIdentifier(@Param("identifier") String identifier);
+
+  @Query("""
+      MATCH (organization:Organization)
+      WHERE organization.identifier = $identifier
+      RETURN count(organization) as occurence
+      """)
+  Mono<Integer> countByIdentifier(@Param("identifier") String identifier);
+
 }

@@ -10,7 +10,7 @@ import org.commonprovenance.framework.store.exceptions.ApplicationException;
 import org.commonprovenance.framework.store.exceptions.BadRequestException;
 import org.commonprovenance.framework.store.model.Organization;
 import org.commonprovenance.framework.store.model.utils.OrganizationUtils;
-import org.commonprovenance.framework.store.service.persistence.finalizedProvComponent.OrganizationService;
+import org.commonprovenance.framework.store.service.persistence.FinalizedProvComponentService;
 import org.springframework.core.MethodParameter;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.BindingContext;
@@ -23,10 +23,10 @@ import reactor.core.publisher.Mono;
 
 @Component
 public class OrganizationArgumentResolver implements HandlerMethodArgumentResolver {
-  private final OrganizationService organizationService;
+  private final FinalizedProvComponentService finalizedProvComponentService;
 
-  public OrganizationArgumentResolver(OrganizationService organizationService) {
-    this.organizationService = organizationService;
+  public OrganizationArgumentResolver(FinalizedProvComponentService finalizedProvComponentService) {
+    this.finalizedProvComponentService = finalizedProvComponentService;
   }
 
   private Either<ApplicationException, String> getOrganizationIdentifier(MethodParameter parameter, ServerWebExchange exchange) {
@@ -49,7 +49,7 @@ public class OrganizationArgumentResolver implements HandlerMethodArgumentResolv
   @Override
   public Mono<Object> resolveArgument(MethodParameter parameter, BindingContext bindingContext, ServerWebExchange exchange) {
     return MONO.fromEither(this.getOrganizationIdentifier(parameter, exchange))
-        .flatMap(this.organizationService::getOrganizationByIdentifier)
+        .flatMap(this.finalizedProvComponentService::getOrganizationByIdentifier)
         .delayUntil(MONO.liftEffectToMono(OrganizationUtils::validateTrustedParty))
         .cast(Object.class);
   }

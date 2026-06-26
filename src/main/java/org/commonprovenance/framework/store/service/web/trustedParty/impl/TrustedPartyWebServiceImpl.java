@@ -12,9 +12,7 @@ import org.commonprovenance.framework.store.exceptions.InvalidValueException;
 import org.commonprovenance.framework.store.exceptions.NotFoundException;
 import org.commonprovenance.framework.store.model.GraphType;
 import org.commonprovenance.framework.store.model.Organization;
-import org.commonprovenance.framework.store.model.Token;
 import org.commonprovenance.framework.store.model.TrustedParty;
-import org.commonprovenance.framework.store.service.persistence.finalizedProvComponent.TrustedPartyService;
 import org.commonprovenance.framework.store.service.web.trustedParty.TrustedPartyWebService;
 import org.commonprovenance.framework.store.web.trustedParty.CertificateWeb;
 import org.commonprovenance.framework.store.web.trustedParty.OrganizationWeb;
@@ -29,18 +27,14 @@ public class TrustedPartyWebServiceImpl implements TrustedPartyWebService {
   private final CertificateWeb certificateWeb;
   private final TrustedPartyWeb trustedPartyWeb;
 
-  private final TrustedPartyService trustedPartyService;
-
   public TrustedPartyWebServiceImpl(
       OrganizationWeb organizationWeb,
       CertificateWeb certificateWeb,
-      TrustedPartyWeb trustedPartyWeb,
-      TrustedPartyService trustedPartyService) {
+      TrustedPartyWeb trustedPartyWeb) {
     this.organizationWeb = organizationWeb;
     this.certificateWeb = certificateWeb;
     this.trustedPartyWeb = trustedPartyWeb;
 
-    this.trustedPartyService = trustedPartyService;
   }
 
   @Override

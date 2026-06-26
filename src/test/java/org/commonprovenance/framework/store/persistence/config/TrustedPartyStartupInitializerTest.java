@@ -9,7 +9,7 @@ import java.util.Optional;
 
 import org.commonprovenance.framework.store.exceptions.NotFoundException;
 import org.commonprovenance.framework.store.model.TrustedParty;
-import org.commonprovenance.framework.store.service.persistence.finalizedProvComponent.TrustedPartyService;
+import org.commonprovenance.framework.store.service.persistence.FinalizedProvComponentService;
 import org.commonprovenance.framework.store.web.trustedParty.TrustedPartyWeb;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -26,7 +26,7 @@ import reactor.core.publisher.Mono;
 class TrustedPartyStartupInitializerTest {
 
   @Mock
-  private TrustedPartyService trustedPartyService;
+  private FinalizedProvComponentService finalizedProvComponentService;
 
   @Mock
   private TrustedPartyWeb trustedPartyWeb;
@@ -38,7 +38,7 @@ class TrustedPartyStartupInitializerTest {
   @BeforeEach
   void setUp() {
     TrustedPartyStartupInitializer initializer = new TrustedPartyStartupInitializer();
-    runner = initializer.ensureDefaultTrustedParty(trustedPartyService, trustedPartyWeb);
+    runner = initializer.ensureDefaultTrustedParty(finalizedProvComponentService, trustedPartyWeb);
 
     defaultTrustedParty = new TrustedParty(
         "default",
@@ -51,49 +51,49 @@ class TrustedPartyStartupInitializerTest {
 
   @Test
   void should_not_create_default_trusted_party_when_it_already_exists() throws Exception {
-    when(trustedPartyService.getDefaultTrustedParty()).thenReturn(Mono.just(defaultTrustedParty));
+    when(finalizedProvComponentService.getDefaultTrustedParty()).thenReturn(Mono.just(defaultTrustedParty));
 
     runner.run(null);
 
-    verify(trustedPartyService).getDefaultTrustedParty();
+    verify(finalizedProvComponentService).getDefaultTrustedParty();
     verify(trustedPartyWeb, never()).getTrustedParty(Optional.empty());
-    verify(trustedPartyService, never()).storeTrustedParty(defaultTrustedParty);
+    verify(finalizedProvComponentService, never()).storeTrustedParty(defaultTrustedParty);
   }
 
   @Test
   void should_create_default_trusted_party_when_missing() throws Exception {
-    when(trustedPartyService.getDefaultTrustedParty()).thenReturn(Mono.error(new NotFoundException("missing")));
+    when(finalizedProvComponentService.getDefaultTrustedParty()).thenReturn(Mono.error(new NotFoundException("missing")));
     when(trustedPartyWeb.getTrustedParty(Optional.empty())).thenReturn(Mono.just(defaultTrustedParty));
-    when(trustedPartyService.storeTrustedParty(defaultTrustedParty)).thenReturn(Mono.empty());
+    when(finalizedProvComponentService.storeTrustedParty(defaultTrustedParty)).thenReturn(Mono.empty());
 
     runner.run(null);
 
-    verify(trustedPartyService).getDefaultTrustedParty();
+    verify(finalizedProvComponentService).getDefaultTrustedParty();
     verify(trustedPartyWeb).getTrustedParty(Optional.empty());
-    verify(trustedPartyService).storeTrustedParty(defaultTrustedParty);
+    verify(finalizedProvComponentService).storeTrustedParty(defaultTrustedParty);
   }
 
   @Test
   void should_fail_startup_when_default_trusted_party_fetch_fails() {
-    when(trustedPartyService.getDefaultTrustedParty()).thenReturn(Mono.error(new NotFoundException("missing")));
+    when(finalizedProvComponentService.getDefaultTrustedParty()).thenReturn(Mono.error(new NotFoundException("missing")));
     when(trustedPartyWeb.getTrustedParty(Optional.empty())).thenReturn(Mono.error(new IllegalStateException("remote unavailable")));
 
     assertThrows(IllegalStateException.class, () -> runner.run(null));
 
-    verify(trustedPartyService).getDefaultTrustedParty();
+    verify(finalizedProvComponentService).getDefaultTrustedParty();
     verify(trustedPartyWeb).getTrustedParty(Optional.empty());
   }
 
   @Test
   void should_fail_startup_when_default_trusted_party_store_fails() {
-    when(trustedPartyService.getDefaultTrustedParty()).thenReturn(Mono.error(new NotFoundException("missing")));
+    when(finalizedProvComponentService.getDefaultTrustedParty()).thenReturn(Mono.error(new NotFoundException("missing")));
     when(trustedPartyWeb.getTrustedParty(Optional.empty())).thenReturn(Mono.just(defaultTrustedParty));
-    when(trustedPartyService.storeTrustedParty(defaultTrustedParty)).thenReturn(Mono.error(new IllegalStateException("store failed")));
+    when(finalizedProvComponentService.storeTrustedParty(defaultTrustedParty)).thenReturn(Mono.error(new IllegalStateException("store failed")));
 
     assertThrows(IllegalStateException.class, () -> runner.run(null));
 
-    verify(trustedPartyService).getDefaultTrustedParty();
+    verify(finalizedProvComponentService).getDefaultTrustedParty();
     verify(trustedPartyWeb).getTrustedParty(Optional.empty());
-    verify(trustedPartyService).storeTrustedParty(defaultTrustedParty);
+    verify(finalizedProvComponentService).storeTrustedParty(defaultTrustedParty);
   }
 }

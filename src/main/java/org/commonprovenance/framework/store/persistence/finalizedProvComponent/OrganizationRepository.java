@@ -14,6 +14,8 @@ public interface OrganizationRepository {
 
   Mono<Organization> findByIdentifier(String identifier);
 
+  Mono<Boolean> existsByIdentifier(String identifier);
+
   Function<Document, Mono<Void>> connectOwns(String identifier);
 
 }

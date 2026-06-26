@@ -9,7 +9,7 @@ import org.commonprovenance.framework.store.controller.resolver.annotation.LoadD
 import org.commonprovenance.framework.store.exceptions.ApplicationException;
 import org.commonprovenance.framework.store.exceptions.BadRequestException;
 import org.commonprovenance.framework.store.model.Document;
-import org.commonprovenance.framework.store.service.persistence.finalizedProvComponent.DocumentService;
+import org.commonprovenance.framework.store.service.persistence.FinalizedProvComponentService;
 import org.openprovenance.prov.model.ProvFactory;
 import org.springframework.core.MethodParameter;
 import org.springframework.stereotype.Component;
@@ -25,18 +25,18 @@ import reactor.core.publisher.Mono;
 
 @Component
 public class DocumentArgumentResolver implements HandlerMethodArgumentResolver {
-  private final DocumentService ducumentService;
+  private final FinalizedProvComponentService finalizedProvComponentService;
 
   private final ProvFactory provFactory;
   private final ICpmFactory cpmFactory;
   private final ICpmProvFactory cpmProvFactory;
 
   public DocumentArgumentResolver(
-      DocumentService ducumentService,
+      FinalizedProvComponentService finalizedProvComponentService,
       ProvFactory provFactory,
       ICpmFactory cpmFactory,
       ICpmProvFactory cpmProvFactory) {
-    this.ducumentService = ducumentService;
+    this.finalizedProvComponentService = finalizedProvComponentService;
 
     this.provFactory = provFactory;
     this.cpmFactory = cpmFactory;
@@ -63,7 +63,7 @@ public class DocumentArgumentResolver implements HandlerMethodArgumentResolver {
   @Override
   public Mono<Object> resolveArgument(MethodParameter parameter, BindingContext bindingContext, ServerWebExchange exchange) {
     return MONO.fromEither(this.getDocumentIdentifier(parameter, exchange))
-        .flatMap(this.ducumentService::getDocumentByIdentifier)
+        .flatMap(this.finalizedProvComponentService::getDocumentByIdentifier)
         .flatMap(MONO.liftEffectToMono(document -> document.withCpmDocument(this.provFactory, this.cpmProvFactory, this.cpmFactory)))
         .cast(Object.class);
   }

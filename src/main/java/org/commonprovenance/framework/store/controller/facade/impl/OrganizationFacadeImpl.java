@@ -14,8 +14,7 @@ import org.commonprovenance.framework.store.exceptions.InternalApplicationExcept
 import org.commonprovenance.framework.store.model.Organization;
 import org.commonprovenance.framework.store.model.TrustedParty;
 import org.commonprovenance.framework.store.model.factory.OrganizationFactory;
-import org.commonprovenance.framework.store.service.persistence.finalizedProvComponent.OrganizationService;
-import org.commonprovenance.framework.store.service.persistence.finalizedProvComponent.TrustedPartyService;
+import org.commonprovenance.framework.store.service.persistence.FinalizedProvComponentService;
 import org.commonprovenance.framework.store.service.web.trustedParty.TrustedPartyWebService;
 import org.springframework.stereotype.Component;
 
@@ -23,17 +22,14 @@ import reactor.core.publisher.Mono;
 
 @Component
 public class OrganizationFacadeImpl implements OrganizationFacade {
-  private final OrganizationService organizationService;
-  private final TrustedPartyService trustedPartyService;
+  private final FinalizedProvComponentService finalizedProvComponentService;
 
   private final TrustedPartyWebService trustedPartyWebService;
 
   public OrganizationFacadeImpl(
-      OrganizationService organizationService,
-      TrustedPartyService trustedPartyService,
+      FinalizedProvComponentService finalizedProvComponentService,
       TrustedPartyWebService trustedPartyWebService) {
-    this.organizationService = organizationService;
-    this.trustedPartyService = trustedPartyService;
+    this.finalizedProvComponentService = finalizedProvComponentService;
 
     this.trustedPartyWebService = trustedPartyWebService;
   }
@@ -45,12 +41,12 @@ public class OrganizationFacadeImpl implements OrganizationFacade {
         .map(OrganizationFactory::build)
         .flatMap(this.trustedPartyWebService.setTrustedPartyByBaseUrl(body.getUrl()))
         .delayUntil(MONO.makeSureAsync(
-            this.trustedPartyService::isTrustedPartyValid,
+            this.finalizedProvComponentService::isTrustedPartyValid,
             organization -> organization.getTrustedParty().flatMap(TrustedParty::getUrlIfNotDefault)
                 .<ApplicationException> map(baseUrl -> new ConflictException("TrustedParty at '" + baseUrl + "' is not registered in CPF-Store!"))
                 .orElse(new InternalApplicationException("Default TrustedParty is not registered in CPF-Store!"))))
         // TODO: Rollback if Organization registration fail on NRO side.
-        .delayUntil(this.organizationService::storeOrganization)
+        .delayUntil(this.finalizedProvComponentService::storeOrganization)
         .delayUntil(this.trustedPartyWebService::registerOrganization)
         .map(OrganizationResponseFactory::build);
   }
@@ -64,7 +60,7 @@ public class OrganizationFacadeImpl implements OrganizationFacade {
             .withIntermediateCertificates(form.getIntermediateCertificates()))
 
         // TODO: Rollback if Organization update fail on NRO side.
-        .delayUntil(this.organizationService::updateOrganization)
+        .delayUntil(this.finalizedProvComponentService::updateOrganization)
         .delayUntil(this.trustedPartyWebService::updateOrganization)
         .map(OrganizationResponseFactory::build);
   }
