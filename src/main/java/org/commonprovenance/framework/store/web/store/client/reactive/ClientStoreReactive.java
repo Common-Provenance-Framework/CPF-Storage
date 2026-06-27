@@ -3,14 +3,12 @@ package org.commonprovenance.framework.store.web.store.client.reactive;
 import org.commonprovenance.framework.store.exceptions.NotFoundException;
 import org.commonprovenance.framework.store.web.config.WebConfig;
 import org.commonprovenance.framework.store.web.store.client.ClientStore;
-import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import reactor.core.publisher.Mono;
 
 @Component
-@Profile("live & webflux")
 public class ClientStoreReactive implements ClientStore {
   private final WebClient client;
 

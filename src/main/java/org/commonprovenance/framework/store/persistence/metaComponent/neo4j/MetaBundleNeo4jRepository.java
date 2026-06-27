@@ -15,13 +15,11 @@ import org.commonprovenance.framework.store.persistence.metaComponent.model.rela
 import org.commonprovenance.framework.store.persistence.metaComponent.neo4j.client.MetaBundleNeo4jClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
 
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-@Profile("live & neo4j")
 @Repository
 public class MetaBundleNeo4jRepository implements MetaBundleRepository {
   private final String LOG_PREFIX = "MetaBundleNeo4jRepository: ";

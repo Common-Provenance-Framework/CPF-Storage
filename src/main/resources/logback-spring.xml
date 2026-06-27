@@ -49,9 +49,9 @@
   </appender>
 
   <!-- ================================================================== -->
-  <!-- JSON file appender — active only in "live" profile                 -->
+  <!-- JSON file appender — active only in "prod" profile                 -->
   <!-- ================================================================== -->
-  <springProfile name="live">
+  <springProfile name="prod">
     <appender name="JSON_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
       <file>${APP_LOG_FILE}</file>
       <encoder class="net.logstash.logback.encoder.LogstashEncoder">
@@ -85,9 +85,9 @@
   </logger>
 
   <!-- ================================================================== -->
-  <!-- Root logger — used when "live" profile is NOT active               -->
+  <!-- Root logger — used when "prod" profile is NOT active               -->
   <!-- ================================================================== -->
-  <springProfile name="!live">
+  <springProfile name="!prod">
     <root level="INFO">
       <appender-ref ref="CONSOLE" />
     </root>

@@ -13,12 +13,10 @@ import org.commonprovenance.framework.store.persistence.finalizedProvComponent.m
 import org.commonprovenance.framework.store.persistence.finalizedProvComponent.neo4j.client.TrustedPartyNeo4jRepositoryClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
 
 import reactor.core.publisher.Mono;
 
-@Profile("live & neo4j")
 @Repository
 public class TrustedPartyNeo4jRepository implements TrustedPartyRepository {
   private final String LOG_PREFIX = "TrustedPartyNeo4jRepository: ";
