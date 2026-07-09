@@ -1,4 +1,4 @@
-package org.commonprovenance.framework.store.service.persistence.metaComponent;
+package org.commonprovenance.framework.store.service.persistence;
 
 import org.commonprovenance.framework.store.model.Organization;
 
@@ -13,8 +13,6 @@ public interface MetaProvenanceComponentService {
   Mono<Void> addTokenIntoMetaProvenanceComponent(Organization organization);
 
   Mono<Boolean> metaProvenanceComponentExists(String metaBundleIdentifier);
-
-  Mono<Boolean> metaProvenanceComponentNotExists(String metaBundleIdentifier);
 
   Mono<org.openprovenance.prov.model.Document> getMetaProvenanceComponent(String metaBundleIdentifier);
 }

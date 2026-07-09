@@ -1,9 +1,10 @@
-package org.commonprovenance.framework.store.service.persistence.metaComponent.impl;
+package org.commonprovenance.framework.store.service.persistence.impl;
 
 import static org.commonprovenance.framework.store.common.composition.Reactor.MONO;
 
 import org.commonprovenance.framework.store.common.utils.ProvDocumentUtils;
 import org.commonprovenance.framework.store.config.AppConfiguration;
+import org.commonprovenance.framework.store.exceptions.ConflictException;
 import org.commonprovenance.framework.store.exceptions.InternalApplicationException;
 import org.commonprovenance.framework.store.exceptions.InvalidValueException;
 import org.commonprovenance.framework.store.exceptions.factory.ApplicationExceptionFactory;
@@ -12,7 +13,7 @@ import org.commonprovenance.framework.store.model.Organization;
 import org.commonprovenance.framework.store.persistence.metaComponent.EntityRepository;
 import org.commonprovenance.framework.store.persistence.metaComponent.MetaBundleRepository;
 import org.commonprovenance.framework.store.persistence.metaComponent.model.factory.NodeToProvFactory;
-import org.commonprovenance.framework.store.service.persistence.metaComponent.MetaProvenanceComponentService;
+import org.commonprovenance.framework.store.service.persistence.MetaProvenanceComponentService;
 import org.openprovenance.prov.model.QualifiedName;
 import org.springframework.stereotype.Service;
 
@@ -48,8 +49,8 @@ public class MetaProvenanceComponentServiceImpl implements MetaProvenanceCompone
         .flatMap(MONO.makeSureNotNullWithMessage("'referenceMetaBundleId' can not be null!"))
         .map(QualifiedName::getLocalPart)
         .flatMap(MONO.makeSureNotNullWithMessage("'referenceMetaBundleId' local part can not be null!"))
-        .flatMap(MONO.makeSureBefore(
-            this::metaProvenanceComponentNotExists,
+        .flatMap(MONO.makeSureNotBefore(
+            this.metaBundleRepository::existsByIdentifier,
             this.metaBundleRepository::create));
   }
 
@@ -113,12 +114,6 @@ public class MetaProvenanceComponentServiceImpl implements MetaProvenanceCompone
     return MONO.<String> makeSureNotNullWithMessage("")
         .apply(metaBundleIdentifier)
         .flatMap(metaBundleRepository::existsByIdentifier);
-  }
-
-  @Override
-  public Mono<Boolean> metaProvenanceComponentNotExists(String metaBundleIdentifier) {
-    return this.metaProvenanceComponentExists(metaBundleIdentifier)
-        .map(value -> !value);
   }
 
   @Override

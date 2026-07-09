@@ -279,6 +279,15 @@ public interface Reactor {
               ? mapper.apply(value)
               : Mono.empty());
     }
+
+    public <T> Function1<T, Mono<Void>> makeSureNotBefore(
+        Function1<T, Mono<Boolean>> asyncPredicate,
+        Function1<T, Mono<Void>> mapper) {
+      return value -> asyncPredicate.apply(value)
+          .flatMap(trueOrFalse -> trueOrFalse
+              ? Mono.empty()
+              : mapper.apply(value));
+    }
   }
 
 }
