@@ -41,11 +41,9 @@ public class TokenWebImpl implements TokenWeb {
 
   @Override
   public Function<String, Flux<Token>> getAllByOrganization(Optional<String> optTrustedPartyBaseUrl) {
-    Map<String, String> queryParams = Map.of("tokenFormat", "jwt");
-
     return (String organizationIdentifier) -> optTrustedPartyBaseUrl
-        .map(this.client.sendCustomGetManyRequest(getTokensUri(organizationIdentifier), TokenTPResponseDTO.class, queryParams))
-        .orElse(this.client.sendGetManyRequest(getTokensUri(organizationIdentifier), TokenTPResponseDTO.class, queryParams))
+        .map(this.client.sendCustomGetManyRequest(getTokensUri(organizationIdentifier), TokenTPResponseDTO.class, Map.of()))
+        .orElse(this.client.sendGetManyRequest(getTokensUri(organizationIdentifier), TokenTPResponseDTO.class, Map.of()))
         .flatMap(MONO.liftEffectToMono(TokenFactory::build))
         .doOnComplete(() -> LOGGER.trace(LOG_PREFIX + "Tokens for organization with id '" + organizationIdentifier + "' has been fetched."))
         .doOnError(throwable -> LOGGER.error(LOG_PREFIX + "Tokens for organization with id '" + organizationIdentifier + "' has not been fetched!\n" + throwable.getMessage()))
@@ -60,11 +58,10 @@ public class TokenWebImpl implements TokenWeb {
       Format documentFormat,
       Optional<String> optTrustedPartyBaseUrl) {
     String uri = getTokensUri(organizationIdentifier) + "/" + bundleIdentifier.getUri() + "/" + documentFormat.toString();
-    Map<String, String> queryParams = Map.of("tokenFormat", "jwt");
 
     return optTrustedPartyBaseUrl
-        .map(this.client.sendCustomGetOneRequest(uri, TokenTPResponseDTO.class, queryParams))
-        .orElse(client.sendGetOneRequest(uri, TokenTPResponseDTO.class, queryParams))
+        .map(this.client.sendCustomGetOneRequest(uri, TokenTPResponseDTO.class, Map.of()))
+        .orElse(client.sendGetOneRequest(uri, TokenTPResponseDTO.class, Map.of()))
         .flatMap(MONO.liftEffectToMono(TokenFactory::build))
         .doOnSuccess(_ -> LOGGER.trace(
             LOG_PREFIX + "Token has been fetched. Organization identifier is '" + organizationIdentifier + "'. Document identifier is '" + bundleIdentifier.getUri() + "'."))

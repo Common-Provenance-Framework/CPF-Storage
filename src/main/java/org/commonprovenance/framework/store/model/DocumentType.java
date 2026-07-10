@@ -6,26 +6,26 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public enum GraphType {
+public enum DocumentType {
   DOMAIN_SPECIFIC("domain_specific"),
   BACKBONE("backbone"),
   META("meta"),
   GRAPH("graph");
 
   private final Set<String> aliases;
-  private static final Map<String, GraphType> LOOKUP;
+  private static final Map<String, DocumentType> LOOKUP;
 
   static {
     LOOKUP = Arrays.stream(values())
-        .flatMap((GraphType type) -> type.aliases.stream().map((String value) -> Map.entry(value.toLowerCase(), type)))
+        .flatMap((DocumentType type) -> type.aliases.stream().map((String value) -> Map.entry(value.toLowerCase(), type)))
         .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
   }
 
-  GraphType(String... aliases) {
+  DocumentType(String... aliases) {
     this.aliases = Set.of(aliases);
   }
 
-  public static Optional<GraphType> from(String value) {
+  public static Optional<DocumentType> from(String value) {
     if (value == null)
       return Optional.empty();
     return Optional.ofNullable(LOOKUP.get(value.trim().toLowerCase()));

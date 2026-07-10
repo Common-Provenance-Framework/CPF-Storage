@@ -14,6 +14,5 @@ Content-Type: application/json
   "documentFormat": "json",
   "signature": "MEUCIDfqoVjVkULdcAwM9T/hCOW4iSY/PuczQmJJE5fi8VBEAiEAmrakGzjVLed3owz+Q43LFqv8bOA9Abz3WESFgdXLUbU=",
   "createdOn": 1776171597,
-  "type": "graph",
-  "tokenFormat": "jwt"
+  "type": "graph"
 }

@@ -197,6 +197,15 @@ public interface EitherUtils {
                   this.defaultMessage(throwable.getClass().getSimpleName() + ": " + throwable.getMessage()))));
     }
 
+    public <I, R> Function1<I, Either<ApplicationException, R>> liftEitherChecked(
+        CheckedFunction1<I, R> liftChecked,
+        Function1<I, Function1<Throwable, ApplicationException>> exceptionBuilder) {
+      return (I input) -> CheckedFunction1.<I, R> liftTry(liftChecked)
+          .andThen((Try<R> resOrThrowable) -> resOrThrowable.toEither()
+              .mapLeft(exceptionBuilder.apply(input)))
+          .apply(input);
+    }
+
     public <I1, I2, R> Function2<I1, I2, Either<ApplicationException, R>> liftEither(
         CheckedFunction2<I1, I2, R> liftChecked) {
       return CheckedFunction2.<I1, I2, R> liftTry(liftChecked)

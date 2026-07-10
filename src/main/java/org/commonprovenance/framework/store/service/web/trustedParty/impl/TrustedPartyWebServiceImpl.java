@@ -10,7 +10,7 @@ import org.commonprovenance.framework.store.exceptions.BadRequestException;
 import org.commonprovenance.framework.store.exceptions.ConflictException;
 import org.commonprovenance.framework.store.exceptions.InvalidValueException;
 import org.commonprovenance.framework.store.exceptions.NotFoundException;
-import org.commonprovenance.framework.store.model.GraphType;
+import org.commonprovenance.framework.store.model.DocumentType;
 import org.commonprovenance.framework.store.model.Organization;
 import org.commonprovenance.framework.store.model.TrustedParty;
 import org.commonprovenance.framework.store.service.web.trustedParty.TrustedPartyWebService;
@@ -102,7 +102,7 @@ public class TrustedPartyWebServiceImpl implements TrustedPartyWebService {
   @Override
   public Mono<Organization> issueDomainSpecificGraphToken(Organization organization) {
     return Mono.just(organization)
-        .flatMap(this.trustedPartyWeb.issueGraphToken(GraphType.DOMAIN_SPECIFIC))
+        .flatMap(this.trustedPartyWeb.issueGraphToken(DocumentType.DOMAIN_SPECIFIC))
         .flatMap(MONO.liftOptionalToMono(
             token -> organization.getDocument().map(document -> document.withToken(token)),
             _ -> new InvalidValueException("Document has not been deserialized yet!")))
@@ -112,7 +112,7 @@ public class TrustedPartyWebServiceImpl implements TrustedPartyWebService {
   @Override
   public Mono<Organization> issueBackboneGraphToken(Organization organization) {
     return Mono.just(organization)
-        .flatMap(this.trustedPartyWeb.issueGraphToken(GraphType.BACKBONE))
+        .flatMap(this.trustedPartyWeb.issueGraphToken(DocumentType.BACKBONE))
         .flatMap(MONO.liftOptionalToMono(
             token -> organization.getDocument().map(document -> document.withToken(token)),
             _ -> new InvalidValueException("Document has not been deserialized yet!")))

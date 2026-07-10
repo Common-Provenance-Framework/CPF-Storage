@@ -12,9 +12,8 @@ import org.commonprovenance.framework.store.common.dto.HasDocumentOptional;
 import org.commonprovenance.framework.store.common.dto.HasFormatSerialized;
 import org.commonprovenance.framework.store.common.dto.HasIdentifier;
 import org.commonprovenance.framework.store.common.dto.HasOrganizationId;
-import org.commonprovenance.framework.store.common.dto.HasTokenFormat;
 import org.commonprovenance.framework.store.exceptions.ApplicationException;
-import org.commonprovenance.framework.store.model.GraphType;
+import org.commonprovenance.framework.store.model.DocumentType;
 import org.commonprovenance.framework.store.model.Organization;
 import org.commonprovenance.framework.store.web.trustedParty.dto.form.IssueTokenTPFormDTO;
 
@@ -28,19 +27,18 @@ public class IssueTokenFormFactory {
             HasOrganizationId.addOrganizationId(data),
             HasDocumentGraph.addDocument(data.getDocument()),
             HasFormatSerialized.addFormat(data.getDocument()),
-            HasCreatedOn.setCurrentTimeSecond(),
-            HasTokenFormat.setJwtFormat()));
+            HasCreatedOn.setCurrentTimeSecond()));
   }
 
   public static Either<ApplicationException, IssueTokenTPFormDTO> build(Organization organization, String signature) {
     return Either.<ApplicationException, IssueTokenTPFormDTO> right(new IssueTokenTPFormDTO())
         .map(IssueTokenFormFactory.mapper(organization))
         .map(form -> form.withSignature(signature))
-        .map(form -> form.withType(GraphType.GRAPH))
+        .map(form -> form.withType(DocumentType.GRAPH))
         .flatMap(EITHER::validateDTO);
   }
 
-  public static Either<ApplicationException, IssueTokenTPFormDTO> build(Organization organization, GraphType graphType) {
+  public static Either<ApplicationException, IssueTokenTPFormDTO> build(Organization organization, DocumentType graphType) {
     return Either.<ApplicationException, IssueTokenTPFormDTO> right(new IssueTokenTPFormDTO())
         .map(IssueTokenFormFactory.mapper(organization))
         .map(form -> form.withType(graphType))

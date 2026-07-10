@@ -9,7 +9,7 @@ import java.util.function.Function;
 import org.commonprovenance.framework.store.exceptions.InternalApplicationException;
 import org.commonprovenance.framework.store.exceptions.NotFoundException;
 import org.commonprovenance.framework.store.exceptions.factory.ApplicationExceptionFactory;
-import org.commonprovenance.framework.store.model.GraphType;
+import org.commonprovenance.framework.store.model.DocumentType;
 import org.commonprovenance.framework.store.model.Organization;
 import org.commonprovenance.framework.store.model.Token;
 import org.commonprovenance.framework.store.model.TrustedParty;
@@ -76,7 +76,7 @@ public class TrustedPartyWebImpl implements TrustedPartyWeb {
   }
 
   @Override
-  public Function<Organization, Mono<Token>> issueGraphToken(GraphType graphType) {
+  public Function<Organization, Mono<Token>> issueGraphToken(DocumentType graphType) {
     return (Organization organization) -> MONO.fromEither(IssueTokenFormFactory.build(organization, graphType))
         .flatMap(organization.getTrustedParty()
             .flatMap(TrustedParty::getUrl)
