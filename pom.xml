@@ -22,7 +22,6 @@
 
     <openprovenance.version>2.2.3</openprovenance.version>
     <common.provenance.management.version>2.2.0</common.provenance.management.version>
-
     <bouncycastle.version>1.84</bouncycastle.version>
     <logstash.version>8.1</logstash.version>
     <json.schema.validator.version>3.0.4</json.schema.validator.version>
@@ -104,12 +103,6 @@
       <artifactId>prov-model</artifactId>
       <version>${openprovenance.version}</version>
     </dependency>
-    <dependency>
-      <groupId>org.openprovenance.prov</groupId>
-      <artifactId>prov-nf</artifactId>
-      <version>${openprovenance.version}</version>
-    </dependency>
-
     <dependency>
       <groupId>org.bouncycastle</groupId>
       <artifactId>bcprov-jdk18on</artifactId>
