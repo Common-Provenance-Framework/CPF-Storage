@@ -49,7 +49,23 @@ existingSecret:
 
 extraEnv: []
 
-# TODO Introduce Actuator and Set liveness probes
-livenessProbe: {}
-readinessProbe: {}
-startupProbe: {}
+startupProbe:
+  httpGet:
+    path: /actuator/health/readiness
+    port: http
+  periodSeconds: 5
+  failureThreshold: 30
+readinessProbe:
+  httpGet:
+    path: /actuator/health/readiness
+    port: http
+  initialDelaySeconds: 10
+  periodSeconds: 10
+  failureThreshold: 6
+livenessProbe:
+  httpGet:
+    path: /actuator/health/liveness
+    port: http
+  initialDelaySeconds: 10
+  periodSeconds: 10
+  failureThreshold: 6

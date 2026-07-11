@@ -27,6 +27,22 @@ access:
   slow-request-warning-enabled: false
   slow-request-threshold-ms: 1000
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      show-details: never
+  health:
+    livenessstate:
+      enabled: true
+    readinessstate:
+      enabled: true
+
 logging:
   level:
     org.commonprovenance: INFO
