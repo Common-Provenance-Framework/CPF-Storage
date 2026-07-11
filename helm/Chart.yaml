@@ -1,0 +1,15 @@
+apiVersion: v2
+name: cpf-store
+description: Helm chart for the CPF Store service of the Common Provenance Framework.
+type: application
+version: 0.1.0
+appVersion: "0.0.1"
+keywords:
+  - cpf
+  - provenance
+  - cpf-store
+home: https://github.com/Common-Provenance-Framework/CPF-Storage
+sources:
+  - https://github.com/Common-Provenance-Framework/CPF-Storage
+maintainers:
+  - name: Common Provenance Framework
