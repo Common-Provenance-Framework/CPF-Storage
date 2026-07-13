@@ -100,7 +100,7 @@ public class DocumentFacadeImpl implements DocumentFacade {
         .delayUntil(this.metaComponentService::addTokenIntoMetaProvenanceComponent)
 
         .doOnNext(_ -> LOGGER.debug("MetaComponent stored"))
-        .flatMap(MONO.liftEffectToMono(TokenResponseFactory::build))
+        .flatMap(MONO.liftEffectToMono(TokenResponseFactory::buildFromOrganization))
         .doOnNext(_ -> LOGGER.debug("Finito.."));
   }
 

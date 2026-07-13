@@ -1,27 +1,15 @@
 package org.commonprovenance.framework.store.controller.dto.response;
 
+import org.commonprovenance.framework.store.common.dtos.HasJwtToken;
+
 import io.swagger.v3.oas.annotations.media.Schema;
 
 @Schema(name = "TokenResponse", description = "JWT token response for a stored provenance document")
-public class TokenResponseDTO {
+public record TokenResponseDTO(
+    @Schema(description = "JWT token containing all token data and signature", example = "eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NiIsInRydXN0ZWRQYXJ0eVVyaSI6InRydXN0ZWQtcGFydHk6ODAyMCIsIng1YyI6WyJNSUlDTWpDQ0FkaWdBd0lCQWdJVVNMajVZN1BYSVMxM3FQRVBEZGxJTkJuUXpvZ3dDZ1lJS29aSXpqMEVBd0l3YlRFTE1Ba0dBMVVFQmhNQ1JWVXhPakE0QmdOVkJBb01NVVJwYzNSeWFXSjFkR1ZrSUZCeWIzWmxibUZ1WTJVZ1JHVnRieUJEWlhKMGFXWnBZMkYwWlNCQmRYUm9iM0pwZEhreElqQWdCZ05WQkFNTUdVUlFSQ0JEWlhKMGFXWnBZMkYwWlNCQmRYUm9iM0pwZEhrd0hoY05NalF4TVRFMk1ESTFPVFV5V2hjTk16UXhNVEUwTURJMU9UVXlXakJkTVFzd0NRWURWUVFHRXdKRFdqRXlNREFHQTFVRUNnd3BSR2x6ZEhKcFluVjBaV1FnVUhKdmRtVnVZVzVqWlNCRVpXMXZJRlJ5ZFhOMFpXUWdVR0Z5ZEhreEdqQVlCZ05WQkFNTUVVUlFSQ0JVY25WemRHVmtJRkJoY25SNU1Ga3dFd1lIS29aSXpqMENBUVlJS29aSXpqMERBUWNEUWdBRStWOGtUNGprdkVXbVgzMDFLQVM5ZWtsbW5STmk2Z1U5K0tIeHVRcGtTT2hNVHE5NkNCWEZwZm9rUmQ3dDVWZHJSeTB1cVpzeVNOcDVrVzBoblFNSldhTm1NR1F3RWdZRFZSMFRBUUgvQkFnd0JnRUIvd0lCQURBT0JnTlZIUThCQWY4RUJBTUNBWVl3SFFZRFZSME9CQllFRk1DblBSamlYb2tUN3F1d1pSQjE2QUFnejdibk1COEdBMVVkSXdRWU1CYUFGQ3lFS3dpMWp2ZFBxZmlVK05kSC9udmg3UFlaTUFvR0NDcUdTTTQ5QkFNQ0EwZ0FNRVVDSVFDeVpyVVNoVnFyb2hEcWR6ZE9GbUF5RkRwd01BTzhJNmphaHZnMUZSQVpZZ0lnVmg0UzJ0UW4xMlhZZGQ1SVNzQ3BBQnNoNlpyalNpVllydDJUMU8xblFzdz0iXX0.eyJzdWIiOiJodHRwOi8vbG9jYWxob3N0OjgwODAvYXBpL3YxL29yZ2FuaXphdGlvbnMvNmZiMjkyYWEtZWUzOC00OGFlLTk5OGYtMDc5YWQ5ZDAxZTdjL2RvY3VtZW50cy9kYzhlZmVkMC0wMDM1LTQwMjktOTA2NS04YzQ2NjY3MTUxZGIiLCJoYXNoX2FsZyI6IlNIQTI1NiIsImRvY19kaWdlc3QiOiI0MWVhNWY5OWU1YjE5MzA5MWFhMTQ4MGY4ODMxNzdiM2M1MzU1ODM4M2E4NTE2Y2IyZGUxNmE0ZmRjOThiOWQyIiwib3JnX2lkIjoiNmZiMjkyYWEtZWUzOC00OGFlLTk5OGYtMDc5YWQ5ZDAxZTdjIiwiaXNzIjoiVHJ1c3RlZFBhcnR5IiwiaWF0IjoxNzgzNjg2ODIwLCJkb2NfaWF0IjoxNzgzNjc5NjIwfQ.Ovg3nsCJfx_0X7yuBJAqX7qh5iDb5G612AQe19wfydL4zotTYa_y5h0m-gX9kzhLef8HoD1dk9D5kYVZhySF2g")
 
-  @Schema(description = "JWT token containing all token data and signature", example = "eyJhbGciOiJFUzI1NiIs...")
-  private final String jwt;
+    String jwt
 
-  public TokenResponseDTO(String jwt) {
-    this.jwt = jwt;
-  }
-
-  public TokenResponseDTO() {
-    this.jwt = null;
-  }
-
-  public TokenResponseDTO withJwt(String jwt) {
-    return new TokenResponseDTO(jwt);
-  }
-
-  public String getJwt() {
-    return jwt;
-  }
-
+) implements
+    HasJwtToken {
 }

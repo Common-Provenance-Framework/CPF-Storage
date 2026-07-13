@@ -2,42 +2,36 @@ package org.commonprovenance.framework.store.controller.dto.response.factory;
 
 import static org.commonprovenance.framework.store.common.composition.EitherUtils.EITHER;
 
-import java.util.List;
-import java.util.function.UnaryOperator;
-
-import org.commonprovenance.framework.store.common.composition.Monoid;
-import org.commonprovenance.framework.store.common.dto.HasJwtToken;
 import org.commonprovenance.framework.store.controller.dto.response.TokenResponseDTO;
 import org.commonprovenance.framework.store.exceptions.ApplicationException;
 import org.commonprovenance.framework.store.exceptions.InvalidValueException;
 import org.commonprovenance.framework.store.model.Document;
 import org.commonprovenance.framework.store.model.Organization;
+import org.commonprovenance.framework.store.model.Token;
 
 import io.vavr.control.Either;
 
 public class TokenResponseFactory {
-  private static <T extends HasJwtToken<T>> UnaryOperator<TokenResponseDTO> mapper(T data) {
-    return (TokenResponseDTO response) -> Monoid.compose(
-        response,
-        List.of(data.putJwtToDTO()));
+  public static TokenResponseDTO build(Token token) {
+    return new TokenResponseDTO(
+        token.getJwt());
   }
 
-  public static <T extends HasJwtToken<T>> TokenResponseDTO build(T data) {
-    return mapper(data).apply(new TokenResponseDTO());
+  public static Either<ApplicationException, TokenResponseDTO> buildSafe(Token token) {
+    return Either.<ApplicationException, Token> right(token)
+        .flatMap(EITHER.makeSureNotNull(_ -> new InvalidValueException("Can not build Token response, because token is null!")))
+        .map(TokenResponseFactory::build);
+
   }
 
-  public static <T extends HasJwtToken<T>> UnaryOperator<TokenResponseDTO> append(T data) {
-    return (TokenResponseDTO response) -> mapper(data).apply(response);
-  }
-
-  public static Either<ApplicationException, TokenResponseDTO> build(Organization organization) {
+  public static Either<ApplicationException, TokenResponseDTO> buildFromOrganization(Organization organization) {
     return Either.<ApplicationException, Organization> right(organization)
         .flatMap(EITHER.liftEitherOptional(
             Organization::getDocument,
-            _ -> new InvalidValueException("Document is missing!")))
+            _ -> new InvalidValueException("Can not build Token response, because Document is missing in Organization!")))
         .flatMap(EITHER.liftEitherOptional(
             Document::getToken,
-            _ -> new InvalidValueException("Token is missing!")))
-        .map(TokenResponseFactory::build);
+            _ -> new InvalidValueException("Can not build Token response, because Token is missing in Document!")))
+        .flatMap(TokenResponseFactory::buildSafe);
   }
 }
