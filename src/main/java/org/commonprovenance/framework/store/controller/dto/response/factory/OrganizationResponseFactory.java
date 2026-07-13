@@ -1,29 +1,26 @@
 package org.commonprovenance.framework.store.controller.dto.response.factory;
 
-import java.util.List;
-import java.util.function.UnaryOperator;
+import static org.commonprovenance.framework.store.common.composition.EitherUtils.EITHER;
 
-import org.commonprovenance.framework.store.common.composition.Monoid;
-import org.commonprovenance.framework.store.common.dto.HasClientCertificate;
-import org.commonprovenance.framework.store.common.dto.HasIdentifier;
-import org.commonprovenance.framework.store.common.dto.HasIntermediateCertificates;
 import org.commonprovenance.framework.store.controller.dto.response.OrganizationResponseDTO;
+import org.commonprovenance.framework.store.exceptions.ApplicationException;
+import org.commonprovenance.framework.store.exceptions.InvalidValueException;
+import org.commonprovenance.framework.store.model.Organization;
+
+import io.vavr.control.Either;
 
 public class OrganizationResponseFactory {
-  private static <T extends HasIdentifier<T> & HasClientCertificate<T> & HasIntermediateCertificates<T>> UnaryOperator<OrganizationResponseDTO> mapper(T data) {
-    return (OrganizationResponseDTO response) -> Monoid.compose(
-        response,
-        List.of(
-            data.putIdentifiarToDTO(),
-            data.putClientCertificatToDTO(),
-            data.putIntermediateCertificatesToDTO()));
+  public static OrganizationResponseDTO build(Organization organization) {
+    return new OrganizationResponseDTO(
+        organization.getIdentifier(),
+        organization.getClientCertificate(),
+        organization.getIntermediateCertificates());
   }
 
-  public static <T extends HasIdentifier<T> & HasClientCertificate<T> & HasIntermediateCertificates<T>> OrganizationResponseDTO build(T data) {
-    return mapper(data).apply(new OrganizationResponseDTO());
-  }
+  public static Either<ApplicationException, OrganizationResponseDTO> buildSafe(Organization organization) {
+    return Either.<ApplicationException, Organization> right(organization)
+        .flatMap(EITHER.makeSureNotNull(_ -> new InvalidValueException("Can not build Organization response, because organization is null!")))
+        .map(OrganizationResponseFactory::build);
 
-  public static <T extends HasIdentifier<T> & HasClientCertificate<T> & HasIntermediateCertificates<T>> UnaryOperator<OrganizationResponseDTO> append(T data) {
-    return (OrganizationResponseDTO response) -> mapper(data).apply(response);
   }
 }

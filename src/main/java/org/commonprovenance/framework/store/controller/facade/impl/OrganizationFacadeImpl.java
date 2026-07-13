@@ -48,7 +48,7 @@ public class OrganizationFacadeImpl implements OrganizationFacade {
         // TODO: Rollback if Organization registration fail on NRO side.
         .delayUntil(this.finalizedProvComponentService::storeOrganization)
         .delayUntil(this.trustedPartyWebService::registerOrganization)
-        .map(OrganizationResponseFactory::build);
+        .flatMap(MONO.liftEffectToMono(OrganizationResponseFactory::buildSafe));
   }
 
   @Override
@@ -62,13 +62,13 @@ public class OrganizationFacadeImpl implements OrganizationFacade {
         // TODO: Rollback if Organization update fail on NRO side.
         .delayUntil(this.finalizedProvComponentService::updateOrganization)
         .delayUntil(this.trustedPartyWebService::updateOrganization)
-        .map(OrganizationResponseFactory::build);
+        .flatMap(MONO.liftEffectToMono(OrganizationResponseFactory::buildSafe));
   }
 
   @Override
   public Mono<OrganizationResponseDTO> getOrganizationByIdentifier(Organization organization) {
     return Mono.just(organization)
         .delayUntil(MONO.makeSureNotNull(new BadRequestException("Organization can not be null!")))
-        .map(OrganizationResponseFactory::build);
+        .flatMap(MONO.liftEffectToMono(OrganizationResponseFactory::buildSafe));
   }
 }
