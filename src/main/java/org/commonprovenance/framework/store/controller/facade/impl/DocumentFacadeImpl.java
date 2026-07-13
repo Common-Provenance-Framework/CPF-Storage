@@ -108,7 +108,7 @@ public class DocumentFacadeImpl implements DocumentFacade {
   public Mono<DocumentResponseDTO> getProvDocument(Organization organization) {
     return Mono.just(organization)
         .flatMap(MONO.liftOptionalToMono(Organization::getDocument))
-        .map(DocumentResponseFactory::build);
+        .flatMap(MONO.liftEffectToMono(DocumentResponseFactory::buildSafe));
   }
 
   @Override
@@ -132,8 +132,7 @@ public class DocumentFacadeImpl implements DocumentFacade {
         .map(organization::withDocument)
         .flatMap(this.trustedPartyWebService::issueDomainSpecificGraphToken)
         .flatMap(MONO.liftOptionalToMono(Organization::getDocument))
-        .map(DocumentResponseFactory::build);
-
+        .flatMap(MONO.liftEffectToMono(DocumentResponseFactory::buildSafe));
   }
 
   @Override
@@ -157,7 +156,7 @@ public class DocumentFacadeImpl implements DocumentFacade {
         .map(organization::withDocument)
         .flatMap(this.trustedPartyWebService::issueBackboneGraphToken)
         .flatMap(MONO.liftOptionalToMono(Organization::getDocument))
-        .map(DocumentResponseFactory::build);
+        .flatMap(MONO.liftEffectToMono(DocumentResponseFactory::buildSafe));
   }
 
 }

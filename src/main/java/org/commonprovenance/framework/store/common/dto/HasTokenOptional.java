@@ -7,8 +7,6 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.UnaryOperator;
 
-import org.commonprovenance.framework.store.controller.dto.response.DocumentResponseDTO;
-import org.commonprovenance.framework.store.controller.dto.response.factory.TokenResponseFactory;
 import org.commonprovenance.framework.store.exceptions.ApplicationException;
 import org.commonprovenance.framework.store.exceptions.InvalidValueException;
 import org.commonprovenance.framework.store.model.Token;
@@ -22,13 +20,6 @@ public interface HasTokenOptional<T extends HasTokenOptional<T>> {
   Optional<Token> getToken();
 
   T withToken(Token token);
-
-  default UnaryOperator<DocumentResponseDTO> putTokenToDTO() {
-    return (DocumentResponseDTO to) -> getToken()
-        .map(TokenResponseFactory::build)
-        .map(to::withToken)
-        .orElse(to);
-  }
 
   static <T extends HasTokenOptional<T>, F extends HasTokenOptional<F>> UnaryOperator<T> addToken(F from) {
     return (T to) -> Optional.ofNullable(from)

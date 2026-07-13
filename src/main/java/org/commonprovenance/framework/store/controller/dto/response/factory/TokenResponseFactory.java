@@ -24,14 +24,19 @@ public class TokenResponseFactory {
 
   }
 
+  public static Either<ApplicationException, TokenResponseDTO> buildFromDocument(Document document) {
+    return Either.<ApplicationException, Document> right(document)
+        .flatMap(EITHER.liftEitherOptional(
+            Document::getToken,
+            _ -> new InvalidValueException("Can not build Token response, because Token is missing in Document!")))
+        .flatMap(TokenResponseFactory::buildSafe);
+  }
+
   public static Either<ApplicationException, TokenResponseDTO> buildFromOrganization(Organization organization) {
     return Either.<ApplicationException, Organization> right(organization)
         .flatMap(EITHER.liftEitherOptional(
             Organization::getDocument,
             _ -> new InvalidValueException("Can not build Token response, because Document is missing in Organization!")))
-        .flatMap(EITHER.liftEitherOptional(
-            Document::getToken,
-            _ -> new InvalidValueException("Can not build Token response, because Token is missing in Document!")))
-        .flatMap(TokenResponseFactory::buildSafe);
+        .flatMap(TokenResponseFactory::buildFromDocument);
   }
 }

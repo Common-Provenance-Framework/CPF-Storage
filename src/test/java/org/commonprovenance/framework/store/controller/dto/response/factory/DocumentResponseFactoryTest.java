@@ -2,7 +2,6 @@ package org.commonprovenance.framework.store.controller.dto.response.factory;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import org.commonprovenance.framework.store.controller.dto.response.DocumentResponseDTO;
 import org.commonprovenance.framework.store.model.Document;
 import org.commonprovenance.framework.store.model.Format;
 import org.commonprovenance.framework.store.model.Token;
@@ -56,14 +55,13 @@ public class DocumentResponseFactoryTest {
         Format.from(format).get())
         .withToken(token);
 
-    DocumentResponseDTO response = DocumentResponseFactory.build(document);
+    DocumentResponseFactory.buildSafe(document)
+        .peek(response -> {
+          assertEquals(base64StringGraph, response.graph(),
+              "response should have graph field with exact value");
 
-    assertEquals(base64StringGraph, response.getGraph(),
-        "response should have graph field with exact value");
-
-    assertEquals(jwt, response.getToken().getJwt(),
-        "response should have token field with exact jwt");
-
+          assertEquals(jwt, response.token().jwt(),
+              "response should have token field with exact jwt");
+        });
   }
-
 }
