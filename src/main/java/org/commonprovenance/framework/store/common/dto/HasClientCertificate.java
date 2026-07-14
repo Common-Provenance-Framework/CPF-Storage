@@ -42,6 +42,9 @@ public interface HasClientCertificate<T extends HasClientCertificate<T>> {
     if (form instanceof org.commonprovenance.framework.store.persistence.finalizedProvComponent.model.types.HasClientCertificate has)
       return Optional.of(has.getClientCertificate());
 
+    if (form instanceof org.commonprovenance.framework.store.common.dtos.HasClientCertificate has)
+      return Optional.of(has.clientCertificate());
+
     return Optional.empty();
   }
 }

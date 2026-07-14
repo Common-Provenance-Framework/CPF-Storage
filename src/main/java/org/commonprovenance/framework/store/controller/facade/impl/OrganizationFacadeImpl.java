@@ -39,7 +39,7 @@ public class OrganizationFacadeImpl implements OrganizationFacade {
     return Mono.just(body)
         .delayUntil(MONO.makeSureNotNull(new BadRequestException("Request body can not be null or empty!")))
         .map(OrganizationFactory::build)
-        .flatMap(this.trustedPartyWebService.setTrustedPartyByBaseUrl(body.getUrl()))
+        .flatMap(this.trustedPartyWebService.setTrustedPartyByBaseUrl(body.maybeTrustedPartyUri()))
         .delayUntil(MONO.makeSureAsync(
             this.finalizedProvComponentService::isTrustedPartyValid,
             organization -> organization.getTrustedParty().flatMap(TrustedParty::getUrlIfNotDefault)
