@@ -56,8 +56,8 @@ public class OrganizationFacadeImpl implements OrganizationFacade {
     return Mono.just(body)
         .delayUntil(MONO.makeSureNotNull(new BadRequestException("Request body can not be null or empty!")))
         .map(form -> organization
-            .withClientCertificate(form.getClientCertificate())
-            .withIntermediateCertificates(form.getIntermediateCertificates()))
+            .withClientCertificate(form.clientCertificate())
+            .withIntermediateCertificates(form.intermediateCertificates()))
 
         // TODO: Rollback if Organization update fail on NRO side.
         .delayUntil(this.finalizedProvComponentService::updateOrganization)
