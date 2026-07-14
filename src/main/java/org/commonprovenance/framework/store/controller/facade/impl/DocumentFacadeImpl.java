@@ -83,7 +83,7 @@ public class DocumentFacadeImpl implements DocumentFacade {
         .doOnNext(_ -> LOGGER.debug("{} Document has been deserialized and loaded.", LOG_PREFIX))
         .delayUntil(this.finalizedProvComponentServiceImpl::checkDocumentDoesNotExists)
         .doOnNext(_ -> LOGGER.debug("{} Document does not exists.", LOG_PREFIX))
-        .delayUntil(this.trustedPartyWebService.verifySignature(body.getSignature()))
+        .delayUntil(this.trustedPartyWebService.verifySignature(body.signature()))
         .doOnNext(_ -> LOGGER.debug("{} Signature has been verified.", LOG_PREFIX))
         .delayUntil(MONO.liftEffectToMono(CPMAttributesValidator.validate(this.configuration)))
         .delayUntil(CPMChainValidator.validate(this.storeWebService))
@@ -91,7 +91,7 @@ public class DocumentFacadeImpl implements DocumentFacade {
         // TODO: check cpm constraints
         // TODO: check provenance constraints
         .doOnNext(_ -> LOGGER.debug("Document has been validated and considered as valid."))
-        .flatMap(this.trustedPartyWebService.issueGraphToken(body.getSignature()))
+        .flatMap(this.trustedPartyWebService.issueGraphToken(body.signature()))
         .doOnNext(_ -> LOGGER.debug("Token has been issued by TrustedParty."))
         .delayUntil(this.finalizedProvComponentServiceImpl::storeDocument)
         .doOnNext(_ -> LOGGER.debug("Document has been saved."))
