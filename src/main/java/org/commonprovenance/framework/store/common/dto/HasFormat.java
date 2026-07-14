@@ -52,6 +52,9 @@ public interface HasFormat<T extends HasFormat<T>> {
     if (form instanceof org.commonprovenance.framework.store.persistence.finalizedProvComponent.model.types.HasFormat has)
       return Optional.of(has.getFormat()).flatMap(GraphFormat::from);
 
+    if (form instanceof org.commonprovenance.framework.store.common.dtos.HasGraphFormat has)
+      return Optional.of(has.graphFormat());
+
     return Optional.empty();
   }
 

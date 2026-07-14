@@ -41,6 +41,9 @@ public interface HasGraph<T extends HasGraph<T>> {
     if (form instanceof org.commonprovenance.framework.store.persistence.finalizedProvComponent.model.types.HasGraph has)
       return Optional.of(has.getGraph());
 
+    if (form instanceof org.commonprovenance.framework.store.common.dtos.HasGraph has)
+      return Optional.of(has.graph());
+
     return Optional.empty();
   }
 }
