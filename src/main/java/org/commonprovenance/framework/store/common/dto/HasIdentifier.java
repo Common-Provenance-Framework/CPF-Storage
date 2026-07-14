@@ -48,6 +48,9 @@ public interface HasIdentifier<T extends HasIdentifier<T>> {
     if (form instanceof org.commonprovenance.framework.store.persistence.finalizedProvComponent.model.types.HasIdentifier has)
       return Optional.of(has.getIdentifier());
 
+    if (form instanceof org.commonprovenance.framework.store.common.dtos.HasIdentifier has)
+      return Optional.of(has.identifier());
+
     return Optional.empty();
   }
 }
