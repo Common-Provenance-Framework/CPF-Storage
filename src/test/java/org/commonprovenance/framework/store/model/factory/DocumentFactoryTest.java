@@ -12,7 +12,7 @@ import org.commonprovenance.framework.store.controller.dto.form.DocumentFormDTO;
 import org.commonprovenance.framework.store.exceptions.ApplicationException;
 import org.commonprovenance.framework.store.exceptions.ConstraintException;
 import org.commonprovenance.framework.store.model.Document;
-import org.commonprovenance.framework.store.model.Format;
+import org.commonprovenance.framework.store.model.GraphFormat;
 import org.commonprovenance.framework.store.persistence.finalizedProvComponent.model.node.DocumentNode;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -25,7 +25,7 @@ public class DocumentFactoryTest {
   public void should_map_DocumentEntity_to_Document() {
     String testId = UUID.randomUUID().toString();
     String base64StringGraph = "AAAAQQAAAGIAAAByAAAAYQAAAGsAAABhAAAAIAAAAEQAAABhAAAAYgAAAHIAAABhAAAALgAAAC4=";
-    Format format = Format.JSON;
+    GraphFormat format = GraphFormat.JSON;
 
     DocumentNode entity = new DocumentNode(
         testId,
@@ -33,7 +33,7 @@ public class DocumentFactoryTest {
         format.toString());
 
     DocumentFactory.build(entity)
-        .peek((Document document) -> assertEquals(Format.JSON, document.getFormat()))
+        .peek((Document document) -> assertEquals(GraphFormat.JSON, document.getFormat()))
         .peek((Document document) -> assertEquals(base64StringGraph, document.getGraph()))
         .peekLeft(exception -> fail("Left side has not been expected! Got: [" + exception.getClass().getSimpleName() + "]: " + exception.getMessage()));
   }
@@ -78,13 +78,13 @@ public class DocumentFactoryTest {
   void should_map_DocumentFormDTO_to_Document() {
     String signature = "..";
     String base64StringGraph = "AAAAQQAAAGIAAAByAAAAYQAAAGsAAABhAAAAIAAAAEQAAABhAAAAYgAAAHIAAABhAAAALgAAAC4=";
-    Format format = Format.JSON;
+    GraphFormat format = GraphFormat.JSON;
 
     DocumentFormDTO formular = new DocumentFormDTO(base64StringGraph, format, signature);
 
     Document document = DocumentFactory.build(formular);
     assertNotNull(document);
-    assertEquals(Format.JSON, document.getFormat(), "should have exact format");
+    assertEquals(GraphFormat.JSON, document.getFormat(), "should have exact format");
     assertEquals(base64StringGraph, document.getGraph(), "should have exact graph");
   }
 

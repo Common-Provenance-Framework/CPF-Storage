@@ -3,7 +3,7 @@ package org.commonprovenance.framework.store.controller.dto.response.factory;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.commonprovenance.framework.store.model.Document;
-import org.commonprovenance.framework.store.model.Format;
+import org.commonprovenance.framework.store.model.GraphFormat;
 import org.commonprovenance.framework.store.model.Token;
 import org.commonprovenance.framework.store.model.TrustedParty;
 import org.junit.jupiter.api.DisplayName;
@@ -52,7 +52,7 @@ public class DocumentResponseFactoryTest {
 
     Document document = new Document(
         base64StringGraph,
-        Format.from(format).get())
+        GraphFormat.from(format).get())
         .withToken(token);
 
     DocumentResponseFactory.buildSafe(document)

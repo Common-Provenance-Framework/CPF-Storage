@@ -3,7 +3,7 @@ package org.commonprovenance.framework.store.web.trustedParty;
 import java.util.Optional;
 import java.util.function.Function;
 
-import org.commonprovenance.framework.store.model.Format;
+import org.commonprovenance.framework.store.model.GraphFormat;
 import org.commonprovenance.framework.store.model.Token;
 import org.openprovenance.prov.model.QualifiedName;
 
@@ -17,6 +17,6 @@ public interface TokenWeb {
   Mono<Token> getByDocumentId(
       String organizationId,
       QualifiedName bundleIdentifier,
-      Format documentFormat,
+      GraphFormat documentFormat,
       Optional<String> optTrustedPartyBaseUrl);
 }

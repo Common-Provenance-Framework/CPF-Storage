@@ -4,7 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.when;
 
 import org.commonprovenance.framework.store.model.Document;
-import org.commonprovenance.framework.store.model.Format;
+import org.commonprovenance.framework.store.model.GraphFormat;
 import org.commonprovenance.framework.store.model.Token;
 import org.commonprovenance.framework.store.persistence.finalizedProvComponent.model.factory.DocumentNodeFactory;
 import org.commonprovenance.framework.store.persistence.finalizedProvComponent.model.node.DocumentNode;
@@ -32,7 +32,7 @@ class EntityFactoryTest {
   void should_map_Document_to_DocumentEntity() {
     String testId = "6ee9d79b-0615-4cb1-b0f3-2303d10c8cff";
     String base64StringGraph = "AAAAQQAAAGIAAAByAAAAYQAAAGsAAABhAAAAIAAAAEQAAABhAAAAYgAAAHIAAABhAAAALgAAAC4=";
-    Format format = Format.JSON;
+    GraphFormat format = GraphFormat.JSON;
     when(cpmDocument.getBundleId()).thenAnswer(invocation -> {
       return new QualifiedName("http://localhost:8080/api/v1/organizations/6fb292aa-ee38-48ae-998f-079ad9d01e7c/documents/", testId, "storage");
     });
@@ -45,6 +45,6 @@ class EntityFactoryTest {
     DocumentNode node = DocumentNodeFactory.build(document);
     assertEquals(testId, node.getIdentifier());
     assertEquals(base64StringGraph, node.getGraph());
-    assertEquals(format, Format.from(node.getFormat()).get());
+    assertEquals(format, GraphFormat.from(node.getFormat()).get());
   }
 }

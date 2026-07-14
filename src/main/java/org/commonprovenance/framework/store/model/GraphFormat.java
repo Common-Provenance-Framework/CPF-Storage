@@ -12,12 +12,12 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 @Schema(name = "Format", description = "Supported document format")
-public enum Format {
+public enum GraphFormat {
   @Schema(description = "PROV JSON format")
   JSON("json");
 
   private final Set<String> aliases;
-  private static final Map<String, Format> LOOKUP;
+  private static final Map<String, GraphFormat> LOOKUP;
 
   static {
     LOOKUP = Arrays.stream(values())
@@ -25,18 +25,18 @@ public enum Format {
         .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
   }
 
-  Format(String... aliases) {
+  GraphFormat(String... aliases) {
     this.aliases = Set.of(aliases);
   }
 
-  public static Optional<Format> from(String s) {
+  public static Optional<GraphFormat> from(String s) {
     if (s == null)
       return Optional.empty();
     return Optional.ofNullable(LOOKUP.get(s.trim().toLowerCase()));
   }
 
   @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
-  public static Format fromJson(String value) {
+  public static GraphFormat fromJson(String value) {
     return from(value)
         .orElseThrow(() -> new IllegalArgumentException("Unsupported format: " + value));
   }

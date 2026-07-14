@@ -30,14 +30,14 @@ public class Document extends DTOValidator implements
     HasFormat<Document>,
     HasTokenOptional<Document> {
   private final String graph;
-  private final Format format;
+  private final GraphFormat format;
 
   private final Optional<CpmDocument> cpmDocument;
   private final Optional<Token> token;
 
   public Document(
       String graph,
-      Format format) {
+      GraphFormat format) {
     this.graph = graph;
     this.format = format;
     this.cpmDocument = Optional.empty();
@@ -46,7 +46,7 @@ public class Document extends DTOValidator implements
 
   public Document(
       String graph,
-      Format format,
+      GraphFormat format,
       CpmDocument cpmDocument,
       Token token) {
     this.graph = graph;
@@ -72,7 +72,7 @@ public class Document extends DTOValidator implements
         this.getToken().orElse(null));
   }
 
-  public Document withFormat(Format format) {
+  public Document withFormat(GraphFormat format) {
     return new Document(
         this.getGraph(),
         format,
@@ -88,8 +88,8 @@ public class Document extends DTOValidator implements
     return EITHER.combineM(
         Either.<ApplicationException, String> right(this.graph)
             .flatMap(Base64Utils::decodeToString),
-        Either.<ApplicationException, Format> right(this.format)
-            .flatMap(EITHER.<Format, Formats.ProvFormat> liftEither(Format::toProvFormat))
+        Either.<ApplicationException, GraphFormat> right(this.format)
+            .flatMap(EITHER.<GraphFormat, Formats.ProvFormat> liftEither(GraphFormat::toProvFormat))
             .mapLeft(ApplicationExceptionFactory.build(InvalidValueException::new, "Unknown Graph format!")),
         ProvDocumentUtils::deserialize)
         .map(this.cpmFactory(provFactory, cpmProvFactory, cpmFactory))
@@ -122,7 +122,7 @@ public class Document extends DTOValidator implements
     return graph;
   }
 
-  public Format getFormat() {
+  public GraphFormat getFormat() {
     return format;
   }
 

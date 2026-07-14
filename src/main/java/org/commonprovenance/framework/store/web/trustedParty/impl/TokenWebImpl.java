@@ -9,7 +9,7 @@ import java.util.function.Function;
 import org.commonprovenance.framework.store.exceptions.InternalApplicationException;
 import org.commonprovenance.framework.store.exceptions.NotFoundException;
 import org.commonprovenance.framework.store.exceptions.factory.ApplicationExceptionFactory;
-import org.commonprovenance.framework.store.model.Format;
+import org.commonprovenance.framework.store.model.GraphFormat;
 import org.commonprovenance.framework.store.model.Token;
 import org.commonprovenance.framework.store.model.factory.TokenFactory;
 import org.commonprovenance.framework.store.web.trustedParty.TokenWeb;
@@ -55,7 +55,7 @@ public class TokenWebImpl implements TokenWeb {
   public Mono<Token> getByDocumentId(
       String organizationIdentifier,
       QualifiedName bundleIdentifier,
-      Format documentFormat,
+      GraphFormat documentFormat,
       Optional<String> optTrustedPartyBaseUrl) {
     String uri = getTokensUri(organizationIdentifier) + "/" + bundleIdentifier.getUri() + "/" + documentFormat.toString();
 

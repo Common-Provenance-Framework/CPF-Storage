@@ -10,7 +10,7 @@ import org.commonprovenance.framework.store.common.dto.HasOrganizationId;
 import org.commonprovenance.framework.store.common.dto.HasSignature;
 import org.commonprovenance.framework.store.common.validation.DTOValidator;
 import org.commonprovenance.framework.store.model.DocumentType;
-import org.commonprovenance.framework.store.model.Format;
+import org.commonprovenance.framework.store.model.GraphFormat;
 
 public class IssueTokenTPFormDTO extends DTOValidator implements
     HasOrganizationId<IssueTokenTPFormDTO>,
@@ -73,7 +73,7 @@ public class IssueTokenTPFormDTO extends DTOValidator implements
   }
 
   @Override
-  public IssueTokenTPFormDTO withDocumentFormat(Format format) {
+  public IssueTokenTPFormDTO withDocumentFormat(GraphFormat format) {
     return new IssueTokenTPFormDTO(
         this.getOrganizationId(),
         this.getDocument(),

@@ -6,7 +6,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.commonprovenance.framework.store.model.Format;
+import org.commonprovenance.framework.store.model.GraphFormat;
 import org.commonprovenance.framework.store.persistence.finalizedProvComponent.model.relation.HasToken;
 import org.commonprovenance.framework.store.persistence.finalizedProvComponent.model.types.HasFormat;
 import org.commonprovenance.framework.store.persistence.finalizedProvComponent.model.types.HasGraph;
@@ -94,7 +94,7 @@ public class DocumentNode implements
         this.getHasToken());
   }
 
-  public DocumentNode withDocumentFormat(Format format) {
+  public DocumentNode withDocumentFormat(GraphFormat format) {
     return new DocumentNode(
         this.getId(),
         this.getIdentifier(),
