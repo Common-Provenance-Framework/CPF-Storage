@@ -12,7 +12,7 @@ import java.util.Optional;
 import java.util.function.Function;
 
 import org.commonprovenance.framework.store.model.Document;
-import org.commonprovenance.framework.store.model.Format;
+import org.commonprovenance.framework.store.model.GraphFormat;
 import org.commonprovenance.framework.store.model.Organization;
 import org.commonprovenance.framework.store.model.Token;
 import org.commonprovenance.framework.store.model.TrustedParty;
@@ -64,7 +64,7 @@ class FinalizedProvComponentServiceSpec {
 
   private final String UUID_1 = "e3cf8742-b595-47f4-8aae-a1e94b62a856";
   private final String BASE64_STRING_GRAPH_1 = "AAAAQQAAAGIAAAByAAAAYQAAAGsAAABhAAAAIAAAAEQAAABhAAAAYgAAAHIAAABhAAAALgAAAC4=";
-  private final Format FORMAT_1 = Format.JSON;
+  private final GraphFormat FORMAT_1 = GraphFormat.JSON;
 
   private final String TP_NAME = "TrustedParty";
 

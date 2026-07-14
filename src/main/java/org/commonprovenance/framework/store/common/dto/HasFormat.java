@@ -9,14 +9,14 @@ import java.util.function.UnaryOperator;
 import org.commonprovenance.framework.store.exceptions.ApplicationException;
 import org.commonprovenance.framework.store.exceptions.InternalApplicationException;
 import org.commonprovenance.framework.store.exceptions.InvalidValueException;
-import org.commonprovenance.framework.store.model.Format;
+import org.commonprovenance.framework.store.model.GraphFormat;
 
 import io.vavr.control.Either;
 
 public interface HasFormat<T extends HasFormat<T>> {
-  Format getFormat();
+  GraphFormat getFormat();
 
-  default T withFormat(Format format) {
+  default T withFormat(GraphFormat format) {
     throw new InternalApplicationException("withFormat is not supported for read-only type:" + this.getClass().getSimpleName());
   }
 
@@ -31,7 +31,7 @@ public interface HasFormat<T extends HasFormat<T>> {
     return (T to) -> Either.<ApplicationException, F> right(from)
         .flatMap(EITHER.makeSureNotNull(x -> new InvalidValueException("From Object can not be null!")))
         .map(F::getDocumentFormat)
-        .flatMap(EITHER.liftEitherOptional(Format::from))
+        .flatMap(EITHER.liftEitherOptional(GraphFormat::from))
         .map(to::withFormat);
   }
 
@@ -42,15 +42,15 @@ public interface HasFormat<T extends HasFormat<T>> {
         .orElse(to);
   }
 
-  private static <T> Optional<Format> getValue(T form) {
+  private static <T> Optional<GraphFormat> getValue(T form) {
     if (form instanceof HasFormat<?> has)
       return Optional.of(has.getFormat());
 
     if (form instanceof HasFormatSerialized<?> has)
-      return Optional.of(has.getDocumentFormat()).flatMap(Format::from);
+      return Optional.of(has.getDocumentFormat()).flatMap(GraphFormat::from);
 
     if (form instanceof org.commonprovenance.framework.store.persistence.finalizedProvComponent.model.types.HasFormat has)
-      return Optional.of(has.getFormat()).flatMap(Format::from);
+      return Optional.of(has.getFormat()).flatMap(GraphFormat::from);
 
     return Optional.empty();
   }

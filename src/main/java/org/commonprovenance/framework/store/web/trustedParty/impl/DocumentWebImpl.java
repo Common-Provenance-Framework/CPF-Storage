@@ -7,7 +7,7 @@ import org.commonprovenance.framework.store.exceptions.InternalApplicationExcept
 import org.commonprovenance.framework.store.exceptions.NotFoundException;
 import org.commonprovenance.framework.store.exceptions.factory.ApplicationExceptionFactory;
 import org.commonprovenance.framework.store.model.Document;
-import org.commonprovenance.framework.store.model.Format;
+import org.commonprovenance.framework.store.model.GraphFormat;
 import org.commonprovenance.framework.store.model.factory.DocumentFactory;
 import org.commonprovenance.framework.store.web.trustedParty.DocumentWeb;
 import org.commonprovenance.framework.store.web.trustedParty.client.ClientTrustedParty;
@@ -35,7 +35,7 @@ public class DocumentWebImpl implements DocumentWeb {
   public Mono<Document> getById(
       String organizationIdentifer,
       QualifiedName bundleIdentifier,
-      Format documentFormat,
+      GraphFormat documentFormat,
       Optional<String> optTrustedPartyBaseUrl) {
     String uri = "organizations/" + organizationIdentifer + "/documents/" + bundleIdentifier.getUri() + "/" + documentFormat.toString();
     return optTrustedPartyBaseUrl
