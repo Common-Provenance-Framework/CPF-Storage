@@ -93,8 +93,8 @@ public class ProvDocumentUtilsSerializerTest {
             },
             "activity": {
               "ex:activity1": {
-                "prov:startTime": "2025-08-16T12:00:00.000+02:00",
-                "prov:endTime": "2025-08-16T13:00:00.000+02:00",
+                "prov:startTime": "2025-08-16T10:00:00.000Z",
+                "prov:endTime": "2025-08-16T11:00:00.000Z",
                 "ex:host": [
                   "server.example.org"
                 ],
@@ -145,7 +145,7 @@ public class ProvDocumentUtilsSerializerTest {
               "_:n2": {
                 "prov:entity": "entity1",
                 "prov:activity": "ex:activity1",
-                "prov:time": "2025-08-16T13:00:00.000+02:00"
+                "prov:time": "2025-08-16T11:00:00.000Z"
               }
             }
           }

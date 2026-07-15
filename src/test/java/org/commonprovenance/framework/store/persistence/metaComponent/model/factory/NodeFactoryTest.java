@@ -263,8 +263,8 @@ class NodeFactoryTest {
           assertNull(activityNode.getId());
           assertEquals("cpm:tokenGeneration", activityNode.getProvType());
           assertEquals(0, activityNode.getCpm().entrySet().size());
-          assertEquals("2026-03-20T15:22:29.000+01:00", activityNode.getStartTime());
-          assertEquals("2026-03-20T15:22:29.000+01:00", activityNode.getEndTime());
+          assertEquals(timestampVal.toString(), activityNode.getStartTime());
+          assertEquals(timestampVal.toString(), activityNode.getEndTime());
 
           // assertEquals("{}", activities.getFirst().getCpm());
 

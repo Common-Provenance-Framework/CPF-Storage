@@ -103,7 +103,7 @@ public class HasJwtTokenTest {
         .flatMap(Token::getTokenTimestampAsString)
         .peek(result -> assertNotNull(result))
         .peek(result -> assertEquals(
-            "2026-07-09T15:02:55.000+02:00",
+            ProvUtilities.toXMLGregorianCalendar(Date.from(Instant.ofEpochSecond(1783602175L))).toString(),
             result))
         .peekLeft(this::handleLeftNotExpected);
   }
