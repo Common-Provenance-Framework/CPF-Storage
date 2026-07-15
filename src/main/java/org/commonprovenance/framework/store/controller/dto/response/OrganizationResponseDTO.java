@@ -3,16 +3,16 @@ package org.commonprovenance.framework.store.controller.dto.response;
 import java.util.List;
 
 import org.commonprovenance.framework.store.common.dtos.HasClientCertificate;
-import org.commonprovenance.framework.store.common.dtos.HasIdentifier;
+import org.commonprovenance.framework.store.common.dtos.HasId;
 import org.commonprovenance.framework.store.common.dtos.HasIntermediateCertificates;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
 @Schema(name = "OrganizationResponse", description = "Organization details")
 public record OrganizationResponseDTO(
-    @Schema(description = "Organization identifier", example = "853226ba-9d56-4129-b51a-3b534f88957d")
+    @Schema(description = "Organization id", example = "853226ba-9d56-4129-b51a-3b534f88957d")
 
-    String identifier,
+    String id,
     @Schema(description = "PEM encoded client certificate", example = "-----BEGIN CERTIFICATE-----" +
         "MIIB8DCCAZWgAwIBAgIUbbA1CP+STZ240t1UH477j/tNMSQwCgYIKoZIzj0EAwIw" +
         "LjELMAkGA1UEBhMCQ1oxDDAKBgNVBAoMA0NQRjERMA8GA1UEAwwIY3BmLWludDIw" +
@@ -57,7 +57,7 @@ public record OrganizationResponseDTO(
         "\"]")
 
     List<String> intermediateCertificates) implements
-    HasIdentifier,
+    HasId,
     HasClientCertificate,
     HasIntermediateCertificates {
   public OrganizationResponseDTO {
