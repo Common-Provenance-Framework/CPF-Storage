@@ -182,6 +182,7 @@
         <configuration>
           <argLine>
             -javaagent:${settings.localRepository}/org/mockito/mockito-core/${mockito.version}/mockito-core-${mockito.version}.jar
+            -Duser.timezone=UTC
           </argLine>
           <includes>
             <include>**/*Test.java</include>
