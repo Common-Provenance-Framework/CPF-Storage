@@ -6,7 +6,7 @@ import java.util.function.Predicate;
 
 import org.commonprovenance.framework.store.common.dtos.HasClearancePeriod;
 import org.commonprovenance.framework.store.common.dtos.HasClientCertificate;
-import org.commonprovenance.framework.store.common.dtos.HasIdentifier;
+import org.commonprovenance.framework.store.common.dtos.HasId;
 import org.commonprovenance.framework.store.common.dtos.HasIntermediateCertificates;
 import org.commonprovenance.framework.store.common.dtos.HasTrustedPartyUri;
 
@@ -17,13 +17,13 @@ import jakarta.validation.constraints.NotNull;
 
 @Schema(name = "OrganizationForm", description = "Payload used to create or update an organization")
 public record OrganizationRegisterFormDTO(
-    @Schema(description = "Organization identifier", example = "853226ba-9d56-4129-b51a-3b534f88957d", requiredMode = Schema.RequiredMode.REQUIRED)
+    @Schema(description = "Organization id", example = "853226ba-9d56-4129-b51a-3b534f88957d", requiredMode = Schema.RequiredMode.REQUIRED)
 
-    @NotNull(message = "Organization identifier should not be null.")
+    @NotNull(message = "Organization id should not be null.")
 
-    @NotBlank(message = "Organization identifier should not be empty.")
+    @NotBlank(message = "Organization id should not be empty.")
 
-    String identifier,
+    String id,
 
     @Schema(description = "PEM encoded client certificate", requiredMode = Schema.RequiredMode.REQUIRED, example = "-----BEGIN CERTIFICATE-----" +
         "MIIB8DCCAZWgAwIBAgIUbbA1CP+STZ240t1UH477j/tNMSQwCgYIKoZIzj0EAwIw" +
@@ -86,7 +86,7 @@ public record OrganizationRegisterFormDTO(
     @Schema(description = "Clearance period in seconds", example = "3600")
 
     Integer clearancePeriod) implements
-    HasIdentifier,
+    HasId,
     HasClientCertificate,
     HasIntermediateCertificates,
     HasTrustedPartyUri,
