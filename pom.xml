@@ -22,9 +22,9 @@
 
     <openprovenance.version>2.2.3</openprovenance.version>
     <common.provenance.management.version>2.2.0</common.provenance.management.version>
-    <bouncycastle.version>1.84</bouncycastle.version>
-    <logstash.version>8.1</logstash.version>
-    <json.schema.validator.version>3.0.4</json.schema.validator.version>
+    <bouncycastle.version>1.85</bouncycastle.version>
+    <logstash.version>9.0</logstash.version>
+    <json.schema.validator.version>3.0.6</json.schema.validator.version>
     <springdoc.version>3.0.3</springdoc.version>
     <vavr.version>1.0.1</vavr.version>
     <nimbus.version>10.9.1</nimbus.version>
