@@ -3,7 +3,7 @@ package org.commonprovenance.framework.store.support;
 import java.util.Optional;
 import java.util.function.Function;
 
-import org.commonprovenance.framework.store.model.DocumentType;
+import org.commonprovenance.framework.store.model.GraphType;
 import org.commonprovenance.framework.store.model.Organization;
 import org.commonprovenance.framework.store.model.Token;
 import org.commonprovenance.framework.store.model.TrustedParty;
@@ -39,7 +39,7 @@ public class IntegrationTestConfiguration {
       }
 
       @Override
-      public Function<Organization, Mono<Token>> issueGraphToken(DocumentType graphType) {
+      public Function<Organization, Mono<Token>> issueGraphToken(GraphType graphType) {
         return _ -> Mono.empty();
       }
 

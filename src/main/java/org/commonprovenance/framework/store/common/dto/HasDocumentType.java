@@ -3,7 +3,7 @@ package org.commonprovenance.framework.store.common.dto;
 import java.util.Optional;
 import java.util.function.UnaryOperator;
 
-import org.commonprovenance.framework.store.model.DocumentType;
+import org.commonprovenance.framework.store.model.GraphType;
 
 // same as GraphType
 public interface HasDocumentType<T extends HasDocumentType<T>> {
@@ -13,10 +13,10 @@ public interface HasDocumentType<T extends HasDocumentType<T>> {
   T withDocumentType(String type);
 
   public static <T extends HasDocumentType<T>> UnaryOperator<T> setTypeAsGraph() {
-    return (T to) -> to.withDocumentType(DocumentType.GRAPH.toString());
+    return (T to) -> to.withDocumentType(GraphType.GRAPH.toString());
   }
 
-  public static <T extends HasDocumentType<T>> UnaryOperator<T> addType(DocumentType graphType) {
+  public static <T extends HasDocumentType<T>> UnaryOperator<T> addType(GraphType graphType) {
     return (T to) -> Optional.ofNullable(graphType.toString())
         .map(to::withDocumentType)
         .orElse(to);
