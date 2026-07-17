@@ -60,7 +60,7 @@ public class DocumentResponseFactoryTest {
           assertEquals(base64StringGraph, response.graph(),
               "response should have graph field with exact value");
 
-          assertEquals(jwt, response.token().jwt(),
+          assertEquals(jwt, response.jwt(),
               "response should have token field with exact jwt");
         });
   }
