@@ -1,8 +1,8 @@
 replicaCount: 1
 
 image:
-  repository: cpf-store
-  tag: latest # TODO: Setup Dockerhub
+  repository: cerit.io/commonprovenanceframework/cpf-storage
+  tag: latest
   pullPolicy: IfNotPresent
 
 imagePullSecrets: []
