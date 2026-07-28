@@ -10,9 +10,7 @@ import org.commonprovenance.framework.store.common.dtos.Validatable;
 public record RegisterOrganizationFormDTO(
     String id,
     String clientCertificate,
-    List<String> intermediateCertificates
-
-) implements
+    List<String> intermediateCertificates) implements
     HasId,
     HasClientCertificate,
     HasIntermediateCertificates,

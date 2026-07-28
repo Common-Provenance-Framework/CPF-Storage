@@ -212,6 +212,9 @@ public interface HasJwtToken<T extends HasJwtToken<T>> {
     if (form instanceof org.commonprovenance.framework.store.persistence.finalizedProvComponent.model.types.HasJwtToken has)
       return Optional.of(has.getJwt());
 
+    if (form instanceof org.commonprovenance.framework.store.common.dtos.HasJwtToken has)
+      return Optional.of(has.jwt());
+
     return Optional.empty();
   }
 

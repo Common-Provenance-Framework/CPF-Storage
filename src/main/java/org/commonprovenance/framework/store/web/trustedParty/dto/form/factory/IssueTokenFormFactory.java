@@ -3,7 +3,6 @@ package org.commonprovenance.framework.store.web.trustedParty.dto.form.factory;
 import static org.commonprovenance.framework.store.common.composition.EitherUtils.EITHER;
 
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 
 import org.commonprovenance.framework.store.exceptions.ApplicationException;
 import org.commonprovenance.framework.store.exceptions.InvalidValueException;
@@ -22,7 +21,7 @@ public class IssueTokenFormFactory {
         document.getFormat(),
         signature,
         graphType,
-        LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+        LocalDateTime.now().toString());
   }
 
   public static Either<ApplicationException, IssueTokenFormDTO> buildSafe(Organization organization, String signature) {
