@@ -15,7 +15,7 @@ import org.commonprovenance.framework.store.model.factory.OrganizationFactory;
 import org.commonprovenance.framework.store.web.trustedParty.CertificateWeb;
 import org.commonprovenance.framework.store.web.trustedParty.client.ClientTrustedParty;
 import org.commonprovenance.framework.store.web.trustedParty.dto.form.factory.UpdateOrganizationFormFactory;
-import org.commonprovenance.framework.store.web.trustedParty.dto.response.CertificateResponseDTO;
+import org.commonprovenance.framework.store.web.trustedParty.dto.response.OrganizationResponseDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -47,8 +47,8 @@ public class CertificateWebImpl implements CertificateWeb {
   @Override
   public Function<String, Mono<Organization>> getOrganizationCertificate(Optional<String> optTrustedPartyBaseUrl) {
     return (String organizationIdentifier) -> optTrustedPartyBaseUrl
-        .map(this.client.sendCustomGetOneRequest(getUri(organizationIdentifier), CertificateResponseDTO.class, Map.of()))
-        .orElse(this.client.sendGetOneRequest(getUri(organizationIdentifier), CertificateResponseDTO.class, Map.of()))
+        .map(this.client.sendCustomGetOneRequest(getUri(organizationIdentifier), OrganizationResponseDTO.class, Map.of()))
+        .orElse(this.client.sendGetOneRequest(getUri(organizationIdentifier), OrganizationResponseDTO.class, Map.of()))
         .flatMap(MONO.liftEffectToMono(OrganizationFactory::buildUnsafe))
         .doOnSuccess(_ -> LOGGER.trace(LOG_PREFIX + "Certificates for Organization with identifier '" + organizationIdentifier + "' has been fetched."))
         .doOnError(throwable -> {
