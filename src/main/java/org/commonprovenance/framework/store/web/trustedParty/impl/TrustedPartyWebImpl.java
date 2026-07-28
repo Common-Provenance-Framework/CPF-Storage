@@ -20,7 +20,7 @@ import org.commonprovenance.framework.store.web.trustedParty.client.ClientTruste
 import org.commonprovenance.framework.store.web.trustedParty.dto.form.factory.IssueTokenFormFactory;
 import org.commonprovenance.framework.store.web.trustedParty.dto.form.factory.VerifySignatureFormFactory;
 import org.commonprovenance.framework.store.web.trustedParty.dto.response.TokenTPResponseDTO;
-import org.commonprovenance.framework.store.web.trustedParty.dto.response.TrustedPartyTPResponseDTO;
+import org.commonprovenance.framework.store.web.trustedParty.dto.response.TrustedPartyResponseDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -43,8 +43,8 @@ public class TrustedPartyWebImpl implements TrustedPartyWeb {
   @Override
   public Mono<TrustedParty> getTrustedParty(Optional<String> optTrustedPartyBaseUrl) {
     return optTrustedPartyBaseUrl
-        .map(this.client.sendCustomGetOneRequest("/info", TrustedPartyTPResponseDTO.class, Map.of()))
-        .orElse(this.client.sendGetOneRequest("/info", TrustedPartyTPResponseDTO.class, Map.of()))
+        .map(this.client.sendCustomGetOneRequest("/info", TrustedPartyResponseDTO.class, Map.of()))
+        .orElse(this.client.sendGetOneRequest("/info", TrustedPartyResponseDTO.class, Map.of()))
         .flatMap(MONO.liftEffectToMono(TrustedPartyFactory.buildUnsafe(
             this.getTrustedPartyUrl(optTrustedPartyBaseUrl),
             optTrustedPartyBaseUrl.isEmpty())))
