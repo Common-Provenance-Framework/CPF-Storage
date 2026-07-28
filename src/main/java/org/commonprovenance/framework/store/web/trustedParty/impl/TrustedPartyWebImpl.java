@@ -19,7 +19,7 @@ import org.commonprovenance.framework.store.web.trustedParty.TrustedPartyWeb;
 import org.commonprovenance.framework.store.web.trustedParty.client.ClientTrustedParty;
 import org.commonprovenance.framework.store.web.trustedParty.dto.form.factory.IssueTokenFormFactory;
 import org.commonprovenance.framework.store.web.trustedParty.dto.form.factory.VerifySignatureFormFactory;
-import org.commonprovenance.framework.store.web.trustedParty.dto.response.TokenTPResponseDTO;
+import org.commonprovenance.framework.store.web.trustedParty.dto.response.TokenResponseDTO;
 import org.commonprovenance.framework.store.web.trustedParty.dto.response.TrustedPartyResponseDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -65,8 +65,8 @@ public class TrustedPartyWebImpl implements TrustedPartyWeb {
     return (Organization organization) -> MONO.fromEither(IssueTokenFormFactory.buildSafe(organization, signature))
         .flatMap(organization.getTrustedParty()
             .flatMap(TrustedParty::getUrl)
-            .map(this.client.sendCustomPostRequest("/issueToken", TokenTPResponseDTO.class))
-            .orElse(this.client.sendPostRequest("/issueToken", TokenTPResponseDTO.class)))
+            .map(this.client.sendCustomPostRequest("/issueToken", TokenResponseDTO.class))
+            .orElse(this.client.sendPostRequest("/issueToken", TokenResponseDTO.class)))
         .flatMap(MONO.liftEffectToMono(TokenFactory::build))
         .doOnSuccess(_ -> LOGGER.trace(LOG_PREFIX + "Token has been issued by TrustedParty at URL '" + getTrustedPartyUrl(organization) + "'."))
         .doOnError(throwable -> LOGGER.error(
@@ -80,8 +80,8 @@ public class TrustedPartyWebImpl implements TrustedPartyWeb {
     return (Organization organization) -> MONO.fromEither(IssueTokenFormFactory.buildSafe(organization, graphType))
         .flatMap(organization.getTrustedParty()
             .flatMap(TrustedParty::getUrl)
-            .map(this.client.sendCustomPostRequest("/issueToken", TokenTPResponseDTO.class))
-            .orElse(this.client.sendPostRequest("/issueToken", TokenTPResponseDTO.class)))
+            .map(this.client.sendCustomPostRequest("/issueToken", TokenResponseDTO.class))
+            .orElse(this.client.sendPostRequest("/issueToken", TokenResponseDTO.class)))
         .flatMap(MONO.liftEffectToMono(TokenFactory::build))
         .map(token -> token.withTrustedParty(organization.getTrustedParty()))
         .doOnSuccess(_ -> LOGGER.trace(LOG_PREFIX + "Token has been issued by TrustedParty at URL '" + getTrustedPartyUrl(organization) + "'."))
@@ -94,7 +94,7 @@ public class TrustedPartyWebImpl implements TrustedPartyWeb {
   @Override
   public Function<Organization, Mono<Boolean>> verifySignature(String siganture) {
     return (Organization organization) -> Mono.just(organization)
-        .flatMap(MONO.liftEffectToMono(VerifySignatureFormFactory.build(siganture)))
+        .flatMap(MONO.liftEffectToMono(VerifySignatureFormFactory.buildSafe(siganture)))
         .flatMap(organization.getTrustedParty()
             .flatMap(TrustedParty::getUrl)
             .map(this.client.sendCustomPostRequest("/verifySignature", Void.class))
