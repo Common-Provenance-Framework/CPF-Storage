@@ -86,7 +86,7 @@ class FinalizedProvComponentServiceSpec {
     when(organization.getDocument()).thenReturn(Optional.of(document));
     when(organization.getIdentifier()).thenReturn(ORG_ID);
     when(organization.getTrustedParty()).thenReturn(Optional.of(trustedParty));
-    when(trustedParty.getName()).thenReturn(TP_NAME);
+    when(trustedParty.getId()).thenReturn(TP_NAME);
     when(cpmDocument.getBundleId()).thenReturn(new QualifiedName(
         "http://localhost:8080/api/v1/organizations/6fb292aa-ee38-48ae-998f-079ad9d01e7c/documents/",
         UUID_1,
@@ -122,7 +122,7 @@ class FinalizedProvComponentServiceSpec {
       assertTrue(maybeTrustedParty.isPresent(), "should not be empty");
       assertEquals(
           TP_NAME,
-          maybeTrustedParty.get().getName(),
+          maybeTrustedParty.get().getId(),
           "should be called with exact TrusteParty");
 
       return (Function<Document, Mono<Void>>) doc -> {

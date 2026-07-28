@@ -3,21 +3,21 @@ package org.commonprovenance.framework.store.model;
 import java.util.Optional;
 
 import org.commonprovenance.framework.store.common.dto.HasClientCertificate;
+import org.commonprovenance.framework.store.common.dto.HasId;
 import org.commonprovenance.framework.store.common.dto.HasIsChecked;
 import org.commonprovenance.framework.store.common.dto.HasIsDefault;
 import org.commonprovenance.framework.store.common.dto.HasIsValid;
-import org.commonprovenance.framework.store.common.dto.HasName;
 import org.commonprovenance.framework.store.common.dto.HasUrlOptional;
 import org.commonprovenance.framework.store.common.validation.DTOValidator;
 
 public class TrustedParty extends DTOValidator implements
-    HasName<TrustedParty>,
+    HasId<TrustedParty>,
     HasClientCertificate<TrustedParty>,
     HasUrlOptional<TrustedParty>,
     HasIsChecked<TrustedParty>,
     HasIsValid<TrustedParty>,
     HasIsDefault<TrustedParty> {
-  private final String name;
+  private final String id;
   private final String certificate;
   private final Optional<String> url;
   private final Boolean isChecked;
@@ -31,7 +31,7 @@ public class TrustedParty extends DTOValidator implements
       Boolean isChecked,
       Boolean isValid,
       Boolean isDefault) {
-    this.name = name;
+    this.id = name;
     this.certificate = certificate;
     this.url = Optional.ofNullable(url);
     this.isChecked = isChecked;
@@ -44,7 +44,7 @@ public class TrustedParty extends DTOValidator implements
       String certificate,
       String url,
       Boolean isDefault) {
-    this.name = name;
+    this.id = name;
     this.certificate = certificate;
     this.url = Optional.ofNullable(url);
     this.isChecked = false;
@@ -53,7 +53,7 @@ public class TrustedParty extends DTOValidator implements
   }
 
   public TrustedParty(String name, String certificate) {
-    this.name = name;
+    this.id = name;
     this.certificate = certificate;
     this.url = Optional.empty();
     this.isChecked = false;
@@ -62,7 +62,7 @@ public class TrustedParty extends DTOValidator implements
   }
 
   public TrustedParty() {
-    this.name = null;
+    this.id = null;
     this.certificate = null;
     this.url = Optional.empty();
     this.isChecked = false;
@@ -71,9 +71,10 @@ public class TrustedParty extends DTOValidator implements
 
   }
 
-  public TrustedParty withName(String name) {
+  @Override
+  public TrustedParty withId(String id) {
     return new TrustedParty(
-        name,
+        id,
         this.getClientCertificate(),
         this.getUrl().orElse(null),
         this.getIsChecked(),
@@ -81,9 +82,10 @@ public class TrustedParty extends DTOValidator implements
         this.getIsDefault());
   }
 
+  @Override
   public TrustedParty withClientCertificate(String certificate) {
     return new TrustedParty(
-        this.getName(),
+        this.getId(),
         certificate,
         this.getUrl().orElse(null),
         this.getIsChecked(),
@@ -91,9 +93,10 @@ public class TrustedParty extends DTOValidator implements
         this.getIsDefault());
   }
 
+  @Override
   public TrustedParty withUrl(String url) {
     return new TrustedParty(
-        this.getName(),
+        this.getId(),
         this.getClientCertificate(),
         url,
         this.getIsChecked(),
@@ -101,9 +104,10 @@ public class TrustedParty extends DTOValidator implements
         this.getIsDefault());
   }
 
+  @Override
   public TrustedParty withIsChecked(Boolean isChecked) {
     return new TrustedParty(
-        this.getName(),
+        this.getId(),
         this.getClientCertificate(),
         this.getUrl().orElse(null),
         isChecked,
@@ -111,9 +115,10 @@ public class TrustedParty extends DTOValidator implements
         this.getIsDefault());
   }
 
+  @Override
   public TrustedParty withIsValid(Boolean isValid) {
     return new TrustedParty(
-        this.getName(),
+        this.getId(),
         this.getClientCertificate(),
         this.getUrl().orElse(null),
         this.getIsChecked(),
@@ -121,9 +126,10 @@ public class TrustedParty extends DTOValidator implements
         this.getIsDefault());
   }
 
+  @Override
   public TrustedParty withIsDefault(Boolean isDefault) {
     return new TrustedParty(
-        this.getName(),
+        this.getId(),
         this.getClientCertificate(),
         this.getUrl().orElse(null),
         isDefault || this.getIsChecked(),
@@ -131,14 +137,17 @@ public class TrustedParty extends DTOValidator implements
         isDefault);
   }
 
-  public String getName() {
-    return name;
+  @Override
+  public String getId() {
+    return id;
   }
 
+  @Override
   public String getClientCertificate() {
     return certificate;
   }
 
+  @Override
   public Optional<String> getUrl() {
     return url;
   }
@@ -149,21 +158,24 @@ public class TrustedParty extends DTOValidator implements
         : url;
   }
 
+  @Override
   public Boolean getIsChecked() {
     return isChecked;
   }
 
+  @Override
   public Boolean getIsValid() {
     return isValid;
   }
 
+  @Override
   public Boolean getIsDefault() {
     return isDefault;
   }
 
   @Override
   public String toString() {
-    return "TrustedParty [name=" + name + ", certificate=" + certificate + ", url=" + url + ", isChecked=" + isChecked + ", isValid=" + isValid + ", isDefault=" + isDefault + "]";
+    return "TrustedParty [id=" + id + ", certificate=" + certificate + ", url=" + url + ", isChecked=" + isChecked + ", isValid=" + isValid + ", isDefault=" + isDefault + "]";
   }
 
 }

@@ -51,15 +51,15 @@ public class OrganizationNeo4jRepository implements OrganizationRepository {
             .map(Organization::getIdentifier),
         Mono.just(organization)
             .flatMap(MONO.liftOptionalToMono(Organization::getTrustedParty))
-            .map(TrustedParty::getName),
+            .map(TrustedParty::getId),
         client::createTrustsRelationship)
         .then()
         .doOnSuccess(_ -> LOGGER.trace(
             LOG_PREFIX + "Organization with identifier '" + organization.getIdentifier() + "' has been connected to TrustedParty with name '"
-                + organization.getTrustedParty().map(TrustedParty::getName).orElse("unknown") + "'."))
+                + organization.getTrustedParty().map(TrustedParty::getId).orElse("unknown") + "'."))
         .doOnError(throwable -> LOGGER.error(
             LOG_PREFIX + "Organization with identifier '" + organization.getIdentifier() + "' has not been connected to TrustedParty with name'"
-                + organization.getTrustedParty().map(TrustedParty::getName).orElse("unknown") + "'!\n" + throwable.getMessage()))
+                + organization.getTrustedParty().map(TrustedParty::getId).orElse("unknown") + "'!\n" + throwable.getMessage()))
         .onErrorMap(ApplicationExceptionFactory.handleThrowable(
             new InternalApplicationException("Organization has not been connected to TrustedParty!")));
   }

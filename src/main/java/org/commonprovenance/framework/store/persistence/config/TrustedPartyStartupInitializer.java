@@ -24,12 +24,12 @@ public class TrustedPartyStartupInitializer {
       FinalizedProvComponentService finalizedProvComponentService,
       TrustedPartyWeb trustedPartyWeb) {
     return _ -> finalizedProvComponentService.getDefaultTrustedParty()
-        .doOnSuccess(trustedParty -> log.info("Default TrustedParty '{}' already exists.", trustedParty.getName()))
+        .doOnSuccess(trustedParty -> log.info("Default TrustedParty '{}' already exists.", trustedParty.getId()))
         .onErrorResume(
             NotFoundException.class,
             _ -> trustedPartyWeb.getTrustedParty(Optional.empty())
                 .delayUntil(finalizedProvComponentService::storeTrustedParty)
-                .doOnSuccess(trustedParty -> log.info("Created default TrustedParty '{}' during startup.", trustedParty.getName())))
+                .doOnSuccess(trustedParty -> log.info("Created default TrustedParty '{}' during startup.", trustedParty.getId())))
         .doOnError(throwable -> log.error("Default TrustedParty initialization failed during startup. Details: {}", throwable.getMessage()))
         .block();
   }
