@@ -121,7 +121,7 @@ public class FinalizedProvComponentServiceImpl implements FinalizedProvComponent
   public Mono<Boolean> isTrustedPartyValid(Organization organization) {
     return Mono.just(organization)
         .flatMap(MONO.liftOptionalToMono(Organization::getTrustedParty))
-        .map(TrustedParty::getName)
+        .map(TrustedParty::getId)
         .flatMap(this.trustedPartyRepository::findByName)
         .delayUntil(MONO.liftEffectToMono(TrustedPartyUtils::validate))
         .hasElement()

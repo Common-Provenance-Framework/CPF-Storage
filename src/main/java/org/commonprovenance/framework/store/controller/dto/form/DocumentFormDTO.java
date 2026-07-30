@@ -1,66 +1,46 @@
 package org.commonprovenance.framework.store.controller.dto.form;
 
-import org.commonprovenance.framework.store.common.dto.HasFormat;
-import org.commonprovenance.framework.store.common.dto.HasGraph;
-import org.commonprovenance.framework.store.common.dto.HasSignature;
+import org.commonprovenance.framework.store.common.dtos.HasGraph;
+import org.commonprovenance.framework.store.common.dtos.HasGraphFormat;
+import org.commonprovenance.framework.store.common.dtos.HasSignature;
 import org.commonprovenance.framework.store.controller.validator.IsBase64String;
 import org.commonprovenance.framework.store.controller.validator.IsJsonBase64;
 import org.commonprovenance.framework.store.controller.validator.IsProvBase64Json;
-import org.commonprovenance.framework.store.model.Format;
+import org.commonprovenance.framework.store.model.GraphFormat;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
 @Schema(name = "DocumentForm", description = "Payload used to create a provenance document")
-public class DocumentFormDTO implements
-    HasGraph<DocumentFormDTO>,
-    HasFormat<DocumentFormDTO>,
-    HasSignature<DocumentFormDTO> {
+public record DocumentFormDTO(
 
-  // @Schema(description = "Organization identifier owning the document", example = "ORG1", requiredMode = Schema.RequiredMode.REQUIRED)
-  // @NotBlank(message = "OrganizationIdentifier should not be null or empty.")
-  // private final String organizationIdentifier;
+    @Schema(description = "Base64 encoded PROV JSON graph", example = "eyJwcm92On...", requiredMode = Schema.RequiredMode.REQUIRED)
 
-  @Schema(description = "Base64 encoded PROV JSON document", example = "eyJwcm92On...", requiredMode = Schema.RequiredMode.REQUIRED)
-  @NotBlank(message = "Document should not be null or empty.")
-  @IsBase64String(message = "Document should be Base64 string.")
-  @IsJsonBase64(message = "Document should be Base64 json string")
-  @IsProvBase64Json(message = "Document should be a Base64 provenance json string")
-  private final String document;
+    @NotBlank(message = "Graph should not be null or empty.")
 
-  @Schema(description = "Input document format", implementation = Format.class, allowableValues = { "JSON" }, example = "JSON", requiredMode = Schema.RequiredMode.REQUIRED)
-  @NotNull(message = "Format should not be null.")
-  private final Format documentFormat;
+    @IsBase64String(message = "Graph should be Base64 string.")
 
-  @Schema(description = "Digital signature for the encoded document", example = "MEQCIDv...", requiredMode = Schema.RequiredMode.REQUIRED)
-  @NotBlank(message = "Signature should not be null or empty.")
-  private final String signature;
+    @IsJsonBase64(message = "Graph should be Base64 json string")
 
-  // @Schema(description = "Unix timestamp (seconds) when the document was created", example = "1719667200", requiredMode = Schema.RequiredMode.REQUIRED)
-  // @NotNull(message = "CreatedOn should not be null.")
-  // private final Long createdOn;
+    @IsProvBase64Json(message = "Graph should be a Base64 provenance json string")
 
-  public DocumentFormDTO(
-      String document,
-      Format documentFormat,
-      String signature) {
-    this.document = document;
-    this.documentFormat = documentFormat;
-    this.signature = signature;
-  }
+    String graph,
 
-  @Override
-  public String getGraph() {
-    return this.document;
-  }
+    @Schema(description = "Input grpah format", implementation = GraphFormat.class, allowableValues = {
+        "JSON" }, example = "JSON", requiredMode = Schema.RequiredMode.REQUIRED)
 
-  public Format getFormat() {
-    return documentFormat;
-  }
+    @NotNull(message = "Format should not be null.")
 
-  public String getSignature() {
-    return signature;
-  }
+    GraphFormat graphFormat,
+
+    @Schema(description = "Digital signature for the encoded document", example = "MEQCIDv...", requiredMode = Schema.RequiredMode.REQUIRED)
+
+    @NotBlank(message = "Signature should not be null or empty.")
+
+    String signature) implements
+    HasGraph,
+    HasGraphFormat,
+    HasSignature {
 
 }

@@ -56,9 +56,9 @@ public class OrganizationControllerImpl implements OrganizationController {
     return organizationFacade.register(body);
   }
 
-  @PutMapping(path = "/{identifier}", consumes = MediaType.APPLICATION_JSON_VALUE)
+  @PutMapping(path = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE)
   @NotNull
-  @Operation(summary = "Update organization", parameters = { @Parameter(name = "identifier", in = ParameterIn.PATH, required = true, schema = @Schema(type = "string")) })
+  @Operation(summary = "Update organization", parameters = { @Parameter(name = "id", in = ParameterIn.PATH, required = true, schema = @Schema(type = "string")) })
   @ApiResponses({
       @ApiResponse(responseCode = "200", description = "Organization updated"),
       @ApiResponse(responseCode = "400", description = "Bad Request", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = BadRequestDTO.class))),
@@ -66,22 +66,22 @@ public class OrganizationControllerImpl implements OrganizationController {
       @ApiResponse(responseCode = "500", description = "Internal server error", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = InternalServerErrorDTO.class))) })
 
   public Mono<OrganizationResponseDTO> updateOrganization(
-      @Parameter(hidden = true) @LoadOrganization(value = "identifier") Organization organization,
+      @Parameter(hidden = true) @LoadOrganization(value = "id") Organization organization,
       @RequestBody OrganizationUpdateFormDTO body) {
     return organizationFacade.update(organization, body);
   }
 
   @NotNull
-  @GetMapping("/{identifier}")
-  @Operation(summary = "Get organization by identifier", parameters = {
-      @Parameter(name = "identifier", in = ParameterIn.PATH, required = true, schema = @Schema(type = "string")) })
+  @GetMapping("/{id}")
+  @Operation(summary = "Get organization by id", parameters = {
+      @Parameter(name = "id", in = ParameterIn.PATH, required = true, schema = @Schema(type = "string")) })
   @ApiResponses({
       @ApiResponse(responseCode = "200", description = "Organization fetched"),
       @ApiResponse(responseCode = "400", description = "Bad Request", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = BadRequestDTO.class))),
       @ApiResponse(responseCode = "404", description = "Organization not found", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = NotFoundDTO.class))),
       @ApiResponse(responseCode = "500", description = "Internal server error", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = InternalServerErrorDTO.class))) })
   public Mono<OrganizationResponseDTO> getOrganizationByIdentifier(
-      @Parameter(hidden = true) @LoadOrganization(value = "identifier") Organization organization) {
+      @Parameter(hidden = true) @LoadOrganization(value = "id") Organization organization) {
     return organizationFacade.getOrganizationByIdentifier(organization);
   }
 

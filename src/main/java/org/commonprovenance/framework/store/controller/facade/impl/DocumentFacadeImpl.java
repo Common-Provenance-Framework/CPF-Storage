@@ -17,7 +17,7 @@ import org.commonprovenance.framework.store.controller.dto.response.factory.Toke
 import org.commonprovenance.framework.store.controller.facade.DocumentFacade;
 import org.commonprovenance.framework.store.exceptions.ApplicationException;
 import org.commonprovenance.framework.store.model.Document;
-import org.commonprovenance.framework.store.model.Format;
+import org.commonprovenance.framework.store.model.GraphFormat;
 import org.commonprovenance.framework.store.model.Organization;
 import org.commonprovenance.framework.store.model.factory.DocumentFactory;
 import org.commonprovenance.framework.store.service.persistence.MetaProvenanceComponentService;
@@ -83,7 +83,7 @@ public class DocumentFacadeImpl implements DocumentFacade {
         .doOnNext(_ -> LOGGER.debug("{} Document has been deserialized and loaded.", LOG_PREFIX))
         .delayUntil(this.finalizedProvComponentServiceImpl::checkDocumentDoesNotExists)
         .doOnNext(_ -> LOGGER.debug("{} Document does not exists.", LOG_PREFIX))
-        .delayUntil(this.trustedPartyWebService.verifySignature(body.getSignature()))
+        .delayUntil(this.trustedPartyWebService.verifySignature(body.signature()))
         .doOnNext(_ -> LOGGER.debug("{} Signature has been verified.", LOG_PREFIX))
         .delayUntil(MONO.liftEffectToMono(CPMAttributesValidator.validate(this.configuration)))
         .delayUntil(CPMChainValidator.validate(this.storeWebService))
@@ -91,7 +91,7 @@ public class DocumentFacadeImpl implements DocumentFacade {
         // TODO: check cpm constraints
         // TODO: check provenance constraints
         .doOnNext(_ -> LOGGER.debug("Document has been validated and considered as valid."))
-        .flatMap(this.trustedPartyWebService.issueGraphToken(body.getSignature()))
+        .flatMap(this.trustedPartyWebService.issueGraphToken(body.signature()))
         .doOnNext(_ -> LOGGER.debug("Token has been issued by TrustedParty."))
         .delayUntil(this.finalizedProvComponentServiceImpl::storeDocument)
         .doOnNext(_ -> LOGGER.debug("Document has been saved."))
@@ -100,7 +100,7 @@ public class DocumentFacadeImpl implements DocumentFacade {
         .delayUntil(this.metaComponentService::addTokenIntoMetaProvenanceComponent)
 
         .doOnNext(_ -> LOGGER.debug("MetaComponent stored"))
-        .flatMap(MONO.liftEffectToMono(TokenResponseFactory::build))
+        .flatMap(MONO.liftEffectToMono(TokenResponseFactory::buildFromOrganization))
         .doOnNext(_ -> LOGGER.debug("Finito.."));
   }
 
@@ -108,7 +108,7 @@ public class DocumentFacadeImpl implements DocumentFacade {
   public Mono<DocumentResponseDTO> getProvDocument(Organization organization) {
     return Mono.just(organization)
         .flatMap(MONO.liftOptionalToMono(Organization::getDocument))
-        .map(DocumentResponseFactory::build);
+        .flatMap(MONO.liftEffectToMono(DocumentResponseFactory::buildSafe));
   }
 
   @Override
@@ -127,13 +127,12 @@ public class DocumentFacadeImpl implements DocumentFacade {
         .map(CpmDocument::toDocument)
         .flatMap(MONO.liftEffectToMono(ProvDocumentUtils.serialize(Formats.ProvFormat.JSON)))
         .flatMap(MONO.liftEffectToMono(Base64Utils::encodeFromString))
-        .flatMap(MONO.liftEffectToMono(cpmStr -> new Document(cpmStr, Format.JSON)
+        .flatMap(MONO.liftEffectToMono(cpmStr -> new Document(cpmStr, GraphFormat.JSON)
             .withCpmDocument(provFactory, cpmProvFactory, cpmFactory)))
         .map(organization::withDocument)
         .flatMap(this.trustedPartyWebService::issueDomainSpecificGraphToken)
         .flatMap(MONO.liftOptionalToMono(Organization::getDocument))
-        .map(DocumentResponseFactory::build);
-
+        .flatMap(MONO.liftEffectToMono(DocumentResponseFactory::buildSafe));
   }
 
   @Override
@@ -152,12 +151,12 @@ public class DocumentFacadeImpl implements DocumentFacade {
         .map(CpmDocument::toDocument)
         .flatMap(MONO.liftEffectToMono(ProvDocumentUtils.serialize(Formats.ProvFormat.JSON)))
         .flatMap(MONO.liftEffectToMono(Base64Utils::encodeFromString))
-        .flatMap(MONO.liftEffectToMono(cpmStr -> new Document(cpmStr, Format.JSON)
+        .flatMap(MONO.liftEffectToMono(cpmStr -> new Document(cpmStr, GraphFormat.JSON)
             .withCpmDocument(provFactory, cpmProvFactory, cpmFactory)))
         .map(organization::withDocument)
         .flatMap(this.trustedPartyWebService::issueBackboneGraphToken)
         .flatMap(MONO.liftOptionalToMono(Organization::getDocument))
-        .map(DocumentResponseFactory::build);
+        .flatMap(MONO.liftEffectToMono(DocumentResponseFactory::buildSafe));
   }
 
 }

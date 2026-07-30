@@ -9,6 +9,7 @@ import org.commonprovenance.framework.store.common.dto.HasTrustedPartyOptional;
 import org.commonprovenance.framework.store.exceptions.ApplicationException;
 import org.commonprovenance.framework.store.model.Token;
 import org.commonprovenance.framework.store.persistence.finalizedProvComponent.model.node.TokenNode;
+import org.commonprovenance.framework.store.web.trustedParty.dto.response.TokenResponseDTO;
 
 import io.vavr.control.Either;
 
@@ -37,7 +38,7 @@ public class TokenFactory {
         .flatMap(HasTrustedPartyOptional.addTrustedParty(value));
   }
 
-  public static <T extends HasJwtToken<T>> Either<ApplicationException, Token> build(T data) {
+  public static Either<ApplicationException, Token> build(TokenResponseDTO data) {
     return Either.<ApplicationException, Token> right(new Token())
         .flatMap(TokenFactory.mapper(data))
         .flatMap(HasJwtToken::loadCreatedOn);

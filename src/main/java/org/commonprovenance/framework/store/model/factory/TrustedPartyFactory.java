@@ -8,10 +8,10 @@ import java.util.function.UnaryOperator;
 
 import org.commonprovenance.framework.store.common.composition.Monoid;
 import org.commonprovenance.framework.store.common.dto.HasClientCertificate;
+import org.commonprovenance.framework.store.common.dto.HasId;
 import org.commonprovenance.framework.store.common.dto.HasIsChecked;
 import org.commonprovenance.framework.store.common.dto.HasIsDefault;
 import org.commonprovenance.framework.store.common.dto.HasIsValid;
-import org.commonprovenance.framework.store.common.dto.HasName;
 import org.commonprovenance.framework.store.common.dto.HasUrl;
 import org.commonprovenance.framework.store.common.dto.HasUrlOptional;
 import org.commonprovenance.framework.store.exceptions.ApplicationException;
@@ -21,11 +21,11 @@ import org.commonprovenance.framework.store.persistence.finalizedProvComponent.m
 import io.vavr.control.Either;
 
 public class TrustedPartyFactory {
-  private static <T extends HasName<T> & HasClientCertificate<T> & HasUrl<T> & HasIsChecked<T> & HasIsValid<T> & HasIsDefault<T>> UnaryOperator<TrustedParty> mapper(T data) {
+  private static <T extends HasId<T> & HasClientCertificate<T> & HasUrl<T> & HasIsChecked<T> & HasIsValid<T> & HasIsDefault<T>> UnaryOperator<TrustedParty> mapper(T data) {
     return (TrustedParty trustedParty) -> Monoid.compose(
         trustedParty,
         List.of(
-            HasName.addName(data),
+            HasId.addId(data),
             HasClientCertificate.addClientCertificate(data),
             HasUrlOptional.addUrl(data),
             HasIsChecked.addIsChecked(data),
@@ -37,7 +37,7 @@ public class TrustedPartyFactory {
     return (TrustedParty trustedParty) -> Monoid.compose(
         trustedParty,
         List.of(
-            HasName.addNameIfPresent(data),
+            HasId.addIdIfPresent(data),
             HasClientCertificate.addClientCertificateIfPresent(data),
             HasUrlOptional.addUrlIfPresent(data),
             HasIsChecked.addIsCheckedIfPresent(data),

@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.UnaryOperator;
 
-import org.commonprovenance.framework.store.controller.dto.response.OrganizationResponseDTO;
 import org.commonprovenance.framework.store.exceptions.InternalApplicationException;
 
 public interface HasIntermediateCertificates<T extends HasIntermediateCertificates<T>> {
@@ -14,12 +13,6 @@ public interface HasIntermediateCertificates<T extends HasIntermediateCertificat
 
   default T withIntermediateCertificates(List<String> intermediateCertificates) {
     throw new InternalApplicationException("withIntermediateCertificates is not supported for read-only type:" + this.getClass().getSimpleName());
-  }
-
-  default UnaryOperator<OrganizationResponseDTO> putIntermediateCertificatesToDTO() {
-    return (OrganizationResponseDTO to) -> Optional.ofNullable(getIntermediateCertificates())
-        .map(to::withIntermediateCertificates)
-        .orElse(to);
   }
 
   static <U extends HasIntermediateCertificates<U>, F extends HasIntermediateCertificates<F>> UnaryOperator<U> addIntermediateCertificates(F from) {
@@ -43,6 +36,8 @@ public interface HasIntermediateCertificates<T extends HasIntermediateCertificat
     if (form instanceof org.commonprovenance.framework.store.persistence.finalizedProvComponent.model.types.HasIntermediateCertificates has)
       return has.getIntermediateCertificates();
 
+    if (form instanceof org.commonprovenance.framework.store.common.dtos.HasIntermediateCertificates has)
+      return has.intermediateCertificates();
     return Collections.emptyList();
   }
 }

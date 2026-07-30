@@ -39,7 +39,7 @@ public class OrganizationFacadeImpl implements OrganizationFacade {
     return Mono.just(body)
         .delayUntil(MONO.makeSureNotNull(new BadRequestException("Request body can not be null or empty!")))
         .map(OrganizationFactory::build)
-        .flatMap(this.trustedPartyWebService.setTrustedPartyByBaseUrl(body.getUrl()))
+        .flatMap(this.trustedPartyWebService.setTrustedPartyByBaseUrl(body.maybeTrustedPartyUri()))
         .delayUntil(MONO.makeSureAsync(
             this.finalizedProvComponentService::isTrustedPartyValid,
             organization -> organization.getTrustedParty().flatMap(TrustedParty::getUrlIfNotDefault)
@@ -48,7 +48,7 @@ public class OrganizationFacadeImpl implements OrganizationFacade {
         // TODO: Rollback if Organization registration fail on NRO side.
         .delayUntil(this.finalizedProvComponentService::storeOrganization)
         .delayUntil(this.trustedPartyWebService::registerOrganization)
-        .map(OrganizationResponseFactory::build);
+        .flatMap(MONO.liftEffectToMono(OrganizationResponseFactory::buildSafe));
   }
 
   @Override
@@ -56,19 +56,19 @@ public class OrganizationFacadeImpl implements OrganizationFacade {
     return Mono.just(body)
         .delayUntil(MONO.makeSureNotNull(new BadRequestException("Request body can not be null or empty!")))
         .map(form -> organization
-            .withClientCertificate(form.getClientCertificate())
-            .withIntermediateCertificates(form.getIntermediateCertificates()))
+            .withClientCertificate(form.clientCertificate())
+            .withIntermediateCertificates(form.intermediateCertificates()))
 
         // TODO: Rollback if Organization update fail on NRO side.
         .delayUntil(this.finalizedProvComponentService::updateOrganization)
         .delayUntil(this.trustedPartyWebService::updateOrganization)
-        .map(OrganizationResponseFactory::build);
+        .flatMap(MONO.liftEffectToMono(OrganizationResponseFactory::buildSafe));
   }
 
   @Override
   public Mono<OrganizationResponseDTO> getOrganizationByIdentifier(Organization organization) {
     return Mono.just(organization)
         .delayUntil(MONO.makeSureNotNull(new BadRequestException("Organization can not be null!")))
-        .map(OrganizationResponseFactory::build);
+        .flatMap(MONO.liftEffectToMono(OrganizationResponseFactory::buildSafe));
   }
 }

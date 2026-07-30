@@ -10,7 +10,7 @@ import org.commonprovenance.framework.store.exceptions.ApplicationException;
 import org.commonprovenance.framework.store.exceptions.InternalApplicationException;
 import org.commonprovenance.framework.store.exceptions.NotFoundException;
 import org.commonprovenance.framework.store.model.Document;
-import org.commonprovenance.framework.store.model.Format;
+import org.commonprovenance.framework.store.model.GraphFormat;
 import org.commonprovenance.framework.store.model.Token;
 import org.commonprovenance.framework.store.persistence.finalizedProvComponent.DocumentRepository;
 import org.commonprovenance.framework.store.persistence.finalizedProvComponent.model.node.DocumentNode;
@@ -59,12 +59,12 @@ class DocumentRepositoryTest {
   private final String TEST_ID_1 = "1:1b8970fc-3b2f-4159-bd97-a14b23027114:1";
   private final String TEST_IDENTIFIER_1 = "e3cf8742-b595-47f4-8aae-a1e94b62a856";
   private final String BASE64_STRING_GRAPH_1 = "AAAAQQAAAGIAAAByAAAAYQAAAGsAAABhAAAAIAAAAEQAAABhAAAAYgAAAHIAAABhAAAALgAAAC4=";
-  private final Format FORMAT_1 = Format.JSON;
+  private final GraphFormat FORMAT_1 = GraphFormat.JSON;
 
   private final String TEST_ID_2 = "\"1:fc7cacb3-f151-43d3-aec2-46e4df17e04f:2\"";
   private final String TEST_IDENTIFIER_2 = "dc3b1fc8-d01e-4405-8cf8-94320a11ba4c";
   private final String BASE64_STRING_GRAPH_2 = "AAAASAAAAGUAAABsAAAAbAAAAG8AAAAgAAAAVwAAAG8AAAByAAAAbAAAAGQAAAAh";
-  private final Format FORMAT_2 = Format.JSON;
+  private final GraphFormat FORMAT_2 = GraphFormat.JSON;
 
   Document document_01;
   Document document_02;

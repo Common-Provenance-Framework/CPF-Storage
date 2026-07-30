@@ -12,9 +12,9 @@ import org.commonprovenance.framework.store.common.dto.HasTokenOptional;
 import org.commonprovenance.framework.store.controller.dto.form.DocumentFormDTO;
 import org.commonprovenance.framework.store.exceptions.ApplicationException;
 import org.commonprovenance.framework.store.model.Document;
-import org.commonprovenance.framework.store.model.Format;
+import org.commonprovenance.framework.store.model.GraphFormat;
 import org.commonprovenance.framework.store.persistence.finalizedProvComponent.model.node.DocumentNode;
-import org.commonprovenance.framework.store.web.trustedParty.dto.response.DocumentTPResponseDTO;
+import org.commonprovenance.framework.store.web.trustedParty.dto.response.DocumentResponseDTO;
 
 import io.vavr.control.Either;
 
@@ -35,9 +35,9 @@ public class DocumentFactory {
             HasFormat.addFormat(data)));
   }
 
-  public static Document build(DocumentTPResponseDTO data) {
+  public static Document build(DocumentResponseDTO data) {
     return mapper(data).apply(new Document())
-        .withFormat(Format.JSON);
+        .withFormat(GraphFormat.JSON);
   }
 
   public static Document build(DocumentFormDTO form) {
