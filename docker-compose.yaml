@@ -1,7 +1,7 @@
 services:
   cpf-postgres:
     image: postgres:18-alpine
-    container_name: cpf-tp-postgres
+    container_name: cpf-nro-postgres
     networks:
       cpf-net:
         aliases:
@@ -9,7 +9,7 @@ services:
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: dbprov
+      POSTGRES_DB: nrodb
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres -d dbprov -h 127.0.0.1 -p 5432 || exit 1"]
       interval: 10s
@@ -43,13 +43,13 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: cpf-store-app
+    container_name: cpf-store
     networks:
       - cpf-net
     depends_on:
       cpf-neo4j:
         condition: service_healthy
-      cpf-trusted-party:
+      cpf-nro:
         condition: service_healthy
     # healthcheck:
     #   timeout: 5s
@@ -61,15 +61,15 @@ services:
       NEO4J_USERNAME: neo4j
       NEO4J_PASSWORD: cpm_neo4j_pwd
       STORE_URL: ${STORE_URL:?STORE_URL must be set (e.g. http://localhost:8081/api/v1/)}
-      TRUSTED_PARTY_URL: http://cpf-trusted-party:8020/api/v1/
+      TRUSTED_PARTY_URL: http://cpf-nro:8020/api/v1/
     ports:
       - "8081:8080"
 
-  cpf-trusted-party:
+  cpf-nro:
     build:
       context: ./../CPF-Search-API/prov-storage/
       dockerfile: Dockerfile.TrustedParty
-    container_name: cpf-trusted-party
+    container_name: cpf-nro
     networks:
       - cpf-net
     ports:
@@ -78,10 +78,19 @@ services:
       cpf-postgres:
         condition: service_healthy
         restart: true
+    environment:
+      TP_ID: TrustedParty
+      TP_FQDN: trusted-party:8020
+      TP_DB_URL: jdbc:postgresql://cpf-postgres:5432/nrodb
+      TP_DB_USER: postgres
+      TP_DB_PASSWORD: postgres
+      TP_TRUSTED_CERTS_DIR: /certs/trusted_certs
+      TP_PUBLIC_CERT_PATH: /certs/cert-dev/tp.pem
+      TP_PRIVATE_KEY_PATH: /certs/cert-dev/tp.key
     healthcheck:
       timeout: 5s
       retries: 10
-      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider localhost:8020/health/ || exit 1"]
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider localhost:8020/api/v1/info || exit 1"]
 
 volumes:
   postgres_data:
