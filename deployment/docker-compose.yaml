@@ -11,7 +11,7 @@ services:
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: nrodb
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d dbprov -h 127.0.0.1 -p 5432 || exit 1"]
+      test: ["CMD-SHELL", "pg_isready -U postgres -d nrodb -h 127.0.0.1 -p 5432 || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 10
@@ -27,22 +27,20 @@ services:
       - cpf-net
     environment:
       NEO4J_dbms_usage__report_enabled: false
-      NEO4J_AUTH: neo4j/cpm_neo4j_pwd
+      NEO4J_AUTH: neo4j/neo4jneo4j
     ports:
-      - "8082:7474"
-      - "7682:7687"
+      - "7474:7474"
+      - "7687:7687"
     volumes:
       - neo4j_data:/data
     healthcheck:
-      test: ["CMD-SHELL", "cypher-shell -a bolt://localhost:7687 -u neo4j -p cpm_neo4j_pwd 'RETURN 1' || exit 1"]
+      test: ["CMD-SHELL", "cypher-shell -a bolt://localhost:7687 -u neo4j -p neo4jneo4j 'RETURN 1' || exit 1"]
       interval: 10s
       timeout: 10s
       retries: 12
 
   cpf-store:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: cerit.io/commonprovenanceframework/cpf-storage:latest
     container_name: cpf-store
     networks:
       - cpf-net
@@ -59,16 +57,14 @@ services:
       SPRING_PROFILES_ACTIVE: prod
       NEO4J_URI: bolt://cpf-neo4j:7687
       NEO4J_USERNAME: neo4j
-      NEO4J_PASSWORD: cpm_neo4j_pwd
+      NEO4J_PASSWORD: neo4jneo4j
       STORE_URL: ${STORE_URL:?STORE_URL must be set (e.g. http://localhost:8081/api/v1/)}
       TRUSTED_PARTY_URL: http://cpf-nro:8020/api/v1/
     ports:
       - "8081:8080"
 
   cpf-nro:
-    build:
-      context: ./../CPF-Search-API/prov-storage/
-      dockerfile: Dockerfile.TrustedParty
+    image: cerit.io/commonprovenanceframework/nro-service:latest
     container_name: cpf-nro
     networks:
       - cpf-net
@@ -84,9 +80,12 @@ services:
       TP_DB_URL: jdbc:postgresql://cpf-postgres:5432/nrodb
       TP_DB_USER: postgres
       TP_DB_PASSWORD: postgres
-      TP_TRUSTED_CERTS_DIR: /certs/trusted_certs
-      TP_PUBLIC_CERT_PATH: /certs/cert-dev/tp.pem
-      TP_PRIVATE_KEY_PATH: /certs/cert-dev/tp.key
+      TP_TRUSTED_CERTS_DIR: /certs/trusted
+      TP_PUBLIC_CERT_PATH: /certs/nro/nro.pem
+      TP_PRIVATE_KEY_PATH: /certs/nro/nro.key
+    volumes:
+      - ./certs/trusted:/certs/trusted:ro
+      - ./certs/nro:/certs/nro:ro
     healthcheck:
       timeout: 5s
       retries: 10
