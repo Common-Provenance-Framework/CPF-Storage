@@ -15,11 +15,13 @@ import org.commonprovenance.framework.store.web.trustedParty.dto.response.Docume
 import org.openprovenance.prov.model.QualifiedName;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 import reactor.core.publisher.Mono;
 
 @Component
+@ConditionalOnProperty(prefix = "trusted-party", name = "enabled", havingValue = "true", matchIfMissing = true)
 public class DocumentWebImpl implements DocumentWeb {
   private final String LOG_PREFIX = "DocumentWebImpl: ";
   private static final Logger LOGGER = LoggerFactory.getLogger(DocumentWebImpl.class);

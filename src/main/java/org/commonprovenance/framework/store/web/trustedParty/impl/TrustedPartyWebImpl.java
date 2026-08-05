@@ -23,12 +23,14 @@ import org.commonprovenance.framework.store.web.trustedParty.dto.response.TokenR
 import org.commonprovenance.framework.store.web.trustedParty.dto.response.TrustedPartyResponseDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClientResponseException.BadRequest;
 
 import reactor.core.publisher.Mono;
 
 @Component
+@ConditionalOnProperty(prefix = "trusted-party", name = "enabled", havingValue = "true", matchIfMissing = true)
 public class TrustedPartyWebImpl implements TrustedPartyWeb {
   private final String LOG_PREFIX = "TrustedPartyWebImpl: ";
   private static final Logger LOGGER = LoggerFactory.getLogger(TrustedPartyWebImpl.class);

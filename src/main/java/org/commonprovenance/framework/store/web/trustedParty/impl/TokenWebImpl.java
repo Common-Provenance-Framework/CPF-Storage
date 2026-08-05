@@ -18,12 +18,14 @@ import org.commonprovenance.framework.store.web.trustedParty.dto.response.TokenR
 import org.openprovenance.prov.model.QualifiedName;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @Component
+@ConditionalOnProperty(prefix = "trusted-party", name = "enabled", havingValue = "true", matchIfMissing = true)
 public class TokenWebImpl implements TokenWeb {
   private final String LOG_PREFIX = "TokenWebImpl: ";
   private static final Logger LOGGER = LoggerFactory.getLogger(TokenWebImpl.class);
