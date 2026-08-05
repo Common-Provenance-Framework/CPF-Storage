@@ -17,11 +17,13 @@ import org.commonprovenance.framework.store.service.web.trustedParty.TrustedPart
 import org.commonprovenance.framework.store.web.trustedParty.CertificateWeb;
 import org.commonprovenance.framework.store.web.trustedParty.OrganizationWeb;
 import org.commonprovenance.framework.store.web.trustedParty.TrustedPartyWeb;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 
 import reactor.core.publisher.Mono;
 
 @Service
+@ConditionalOnProperty(prefix = "trusted-party", name = "enabled", havingValue = "true", matchIfMissing = true)
 public class TrustedPartyWebServiceImpl implements TrustedPartyWebService {
   private final OrganizationWeb organizationWeb;
   private final CertificateWeb certificateWeb;
