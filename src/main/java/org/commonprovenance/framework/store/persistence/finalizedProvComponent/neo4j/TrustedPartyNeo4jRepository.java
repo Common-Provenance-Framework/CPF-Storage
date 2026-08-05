@@ -13,11 +13,13 @@ import org.commonprovenance.framework.store.persistence.finalizedProvComponent.m
 import org.commonprovenance.framework.store.persistence.finalizedProvComponent.neo4j.client.TrustedPartyNeo4jRepositoryClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Repository;
 
 import reactor.core.publisher.Mono;
 
 @Repository
+@ConditionalOnProperty(prefix = "trusted-party", name = "enabled", havingValue = "true", matchIfMissing = true)
 public class TrustedPartyNeo4jRepository implements TrustedPartyRepository {
   private final String LOG_PREFIX = "TrustedPartyNeo4jRepository: ";
   private static final Logger LOGGER = LoggerFactory.getLogger(TrustedPartyNeo4jRepository.class);
