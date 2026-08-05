@@ -12,6 +12,7 @@ import org.commonprovenance.framework.store.model.Organization;
 import org.commonprovenance.framework.store.model.utils.OrganizationUtils;
 import org.commonprovenance.framework.store.service.persistence.FinalizedProvComponentService;
 import org.springframework.core.MethodParameter;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.BindingContext;
 import org.springframework.web.reactive.HandlerMapping;
@@ -24,9 +25,11 @@ import reactor.core.publisher.Mono;
 @Component
 public class OrganizationArgumentResolver implements HandlerMethodArgumentResolver {
   private final FinalizedProvComponentService finalizedProvComponentService;
+  private final boolean trustedPartyEnabled;
 
-  public OrganizationArgumentResolver(FinalizedProvComponentService finalizedProvComponentService) {
+  public OrganizationArgumentResolver(FinalizedProvComponentService finalizedProvComponentService, Environment environment) {
     this.finalizedProvComponentService = finalizedProvComponentService;
+    this.trustedPartyEnabled = environment.getProperty("trusted-party.enabled", Boolean.class, true);
   }
 
   private Either<ApplicationException, String> getOrganizationIdentifier(MethodParameter parameter, ServerWebExchange exchange) {
@@ -50,7 +53,7 @@ public class OrganizationArgumentResolver implements HandlerMethodArgumentResolv
   public Mono<Object> resolveArgument(MethodParameter parameter, BindingContext bindingContext, ServerWebExchange exchange) {
     return MONO.fromEither(this.getOrganizationIdentifier(parameter, exchange))
         .flatMap(this.finalizedProvComponentService::getOrganizationByIdentifier)
-        .delayUntil(MONO.liftEffectToMono(OrganizationUtils::validateTrustedParty))
+        .delayUntil(MONO.liftEffectToMono(org -> OrganizationUtils.validateTrustedParty(org, this.trustedPartyEnabled)))
         .cast(Object.class);
   }
 }

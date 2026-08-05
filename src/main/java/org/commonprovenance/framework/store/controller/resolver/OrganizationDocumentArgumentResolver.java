@@ -15,6 +15,7 @@ import org.commonprovenance.framework.store.model.utils.OrganizationUtils;
 import org.commonprovenance.framework.store.service.persistence.FinalizedProvComponentService;
 import org.openprovenance.prov.model.ProvFactory;
 import org.springframework.core.MethodParameter;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.BindingContext;
 import org.springframework.web.reactive.HandlerMapping;
@@ -29,6 +30,7 @@ import reactor.core.publisher.Mono;
 @Component
 public class OrganizationDocumentArgumentResolver implements HandlerMethodArgumentResolver {
   private final FinalizedProvComponentService finalizedProvComponentService;
+  private final boolean trustedPartyEnabled;
 
   private final ProvFactory provFactory;
   private final ICpmFactory cpmFactory;
@@ -38,8 +40,10 @@ public class OrganizationDocumentArgumentResolver implements HandlerMethodArgume
       FinalizedProvComponentService finalizedProvComponentService,
       ProvFactory provFactory,
       ICpmFactory cpmFactory,
-      ICpmProvFactory cpmProvFactory) {
+      ICpmProvFactory cpmProvFactory,
+      Environment environment) {
     this.finalizedProvComponentService = finalizedProvComponentService;
+    this.trustedPartyEnabled = environment.getProperty("trusted-party.enabled", Boolean.class, true);
 
     this.provFactory = provFactory;
     this.cpmFactory = cpmFactory;
@@ -80,7 +84,7 @@ public class OrganizationDocumentArgumentResolver implements HandlerMethodArgume
         MONO.fromEither(this.getPathVariables(exchange)
             .flatMap(this.getOrganizationIdentifier(parameter)))
             .flatMap(this.finalizedProvComponentService::getOrganizationByIdentifier)
-            .delayUntil(MONO.liftEffectToMono(OrganizationUtils::validateTrustedParty)),
+            .delayUntil(MONO.liftEffectToMono(org -> OrganizationUtils.validateTrustedParty(org, this.trustedPartyEnabled))),
         MONO.fromEither(this.getPathVariables(exchange)
             .flatMap(this.getDocumentIdentifier(parameter)))
             .flatMap(this.finalizedProvComponentService::getDocumentByIdentifier)

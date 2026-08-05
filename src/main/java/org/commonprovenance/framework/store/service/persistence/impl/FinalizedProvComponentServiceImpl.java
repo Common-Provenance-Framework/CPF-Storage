@@ -2,6 +2,8 @@ package org.commonprovenance.framework.store.service.persistence.impl;
 
 import static org.commonprovenance.framework.store.common.composition.Reactor.MONO;
 
+import java.util.Optional;
+
 import org.commonprovenance.framework.store.exceptions.ConflictException;
 import org.commonprovenance.framework.store.exceptions.InvalidValueException;
 import org.commonprovenance.framework.store.model.Document;
@@ -63,7 +65,10 @@ public class FinalizedProvComponentServiceImpl implements FinalizedProvComponent
             _ -> new InvalidValueException("Document has not been deserialized yet!")))
         .delayUntil(this.documentRepository::save)
         .delayUntil(this.organizationRepository.connectOwns(organization.getIdentifier()))
-        .delayUntil(this.tokenRepository.connectWasIssuedBy(organization.getTrustedParty()))
+        .flatMap(document -> Mono.just(organization)
+            .flatMap(org -> org.getTrustedParty()
+                .map(trustedParty -> this.tokenRepository.connectWasIssuedBy(Optional.of(trustedParty)).apply(document))
+                .orElse(Mono.empty())))
         .then();
 
   }
@@ -120,12 +125,14 @@ public class FinalizedProvComponentServiceImpl implements FinalizedProvComponent
   @Override
   public Mono<Boolean> isTrustedPartyValid(Organization organization) {
     return Mono.just(organization)
-        .flatMap(MONO.liftOptionalToMono(Organization::getTrustedParty))
-        .map(TrustedParty::getId)
-        .flatMap(this.trustedPartyRepository::findByName)
-        .delayUntil(MONO.liftEffectToMono(TrustedPartyUtils::validate))
-        .hasElement()
-        .onErrorReturn(NotFoundException.class, false);
+        .flatMap(org -> org.getTrustedParty()
+            .map(trustedParty -> Mono.just(trustedParty)
+                .map(TrustedParty::getId)
+                .flatMap(this.trustedPartyRepository::findByName)
+                .delayUntil(MONO.liftEffectToMono(TrustedPartyUtils::validate))
+                .hasElement()
+                .onErrorReturn(NotFoundException.class, false))
+            .orElseGet(() -> Mono.just(true)));
   }
 
 }

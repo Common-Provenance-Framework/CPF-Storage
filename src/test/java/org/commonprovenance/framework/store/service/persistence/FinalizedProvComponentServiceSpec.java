@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -153,6 +154,36 @@ class FinalizedProvComponentServiceSpec {
         times(1)
             .description("Repository connectWasIssuedBy method should be invoked once"))
         .connectWasIssuedBy(any());
+  }
+
+  @Test
+  @DisplayName("storeDocument - should skip token relationship wiring when no TrustedParty is present")
+  void storeDocument_should_skip_token_relationship_when_trusted_party_is_missing() {
+    final Document document = new Document(BASE64_STRING_GRAPH_1, FORMAT_1, cpmDocument, token);
+
+    when(organization.getDocument()).thenReturn(Optional.of(document));
+    when(organization.getIdentifier()).thenReturn(ORG_ID);
+    when(organization.getTrustedParty()).thenReturn(Optional.empty());
+
+    when(documentRepository.save(any(Document.class))).thenReturn(Mono.empty());
+    when(organizationRepository.connectOwns(any(String.class))).thenAnswer(invocation -> (Function<Document, Mono<Void>>) doc -> Mono.empty());
+
+    StepVerifier.create(finalizedProvComponentServiceImpl.storeDocument(organization))
+        .verifyComplete();
+
+    verify(tokenRepository, never()).connectWasIssuedBy(any());
+  }
+
+  @Test
+  @DisplayName("isTrustedPartyValid - should return true when no TrustedParty is attached")
+  void isTrustedPartyValid_should_return_true_when_trusted_party_is_missing() {
+    when(organization.getTrustedParty()).thenReturn(Optional.empty());
+
+    StepVerifier.create(finalizedProvComponentServiceImpl.isTrustedPartyValid(organization))
+        .expectNext(true)
+        .verifyComplete();
+
+    verify(trustedPartyRepository, never()).findByName(anyString());
   }
 
   @Test

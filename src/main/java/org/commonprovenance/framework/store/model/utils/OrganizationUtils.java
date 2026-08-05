@@ -10,6 +10,14 @@ import io.vavr.control.Either;
 
 public final class OrganizationUtils {
   public static Either<ApplicationException, Void> validateTrustedParty(Organization organization) {
+    return validateTrustedParty(organization, true);
+  }
+
+  public static Either<ApplicationException, Void> validateTrustedParty(Organization organization, boolean trustedPartyEnabled) {
+    if (!trustedPartyEnabled) {
+      return Either.right(null);
+    }
+
     return Either.<ApplicationException, Organization> right(organization)
         .flatMap(EITHER.liftEitherOptional(
             Organization::getTrustedParty,
