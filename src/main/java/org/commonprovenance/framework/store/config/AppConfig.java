@@ -39,7 +39,11 @@ public class AppConfig {
         env.getProperty(
             "store.mode.verbose",
             Boolean.class,
-            false));
+            false),
+        env.getProperty(
+            "trusted-party.enabled",
+            Boolean.class,
+            true));
 
     EitherComposition.initialize(appConfiguration.isVerboseMode());
     ReactorComposition.initialize(appConfiguration.isVerboseMode());
