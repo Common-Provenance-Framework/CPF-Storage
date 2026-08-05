@@ -25,7 +25,7 @@
     <bouncycastle.version>1.85</bouncycastle.version>
     <logstash.version>9.0</logstash.version>
     <json.schema.validator.version>3.0.6</json.schema.validator.version>
-    <springdoc.version>3.0.3</springdoc.version>
+    <springdoc.version>3.1.0</springdoc.version>
     <vavr.version>1.0.1</vavr.version>
     <nimbus.version>10.9.1</nimbus.version>
   </properties>
