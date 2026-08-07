@@ -1,7 +1,5 @@
 package org.commonprovenance.framework.store.persistence.metaComponent.model.factory;
 
-import static org.commonprovenance.framework.store.common.composition.EitherUtils.EITHER;
-
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -10,146 +8,27 @@ import java.util.stream.Stream;
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 
-import org.commonprovenance.framework.store.common.utils.ProvDocumentUtils;
 import org.commonprovenance.framework.store.config.AppConfiguration;
-import org.commonprovenance.framework.store.exceptions.ApplicationException;
-import org.commonprovenance.framework.store.exceptions.InvalidValueException;
 import org.commonprovenance.framework.store.persistence.metaComponent.model.node.ActivityNode;
-import org.commonprovenance.framework.store.persistence.metaComponent.model.node.AgentNode;
 import org.commonprovenance.framework.store.persistence.metaComponent.model.node.BaseProvClassNode;
 import org.commonprovenance.framework.store.persistence.metaComponent.model.node.BundleNode;
 import org.commonprovenance.framework.store.persistence.metaComponent.model.node.EntityNode;
 import org.openprovenance.prov.model.Activity;
-import org.openprovenance.prov.model.Agent;
-import org.openprovenance.prov.model.Attribute;
 import org.openprovenance.prov.model.Bundle;
 import org.openprovenance.prov.model.Document;
 import org.openprovenance.prov.model.Element;
-import org.openprovenance.prov.model.Entity;
 import org.openprovenance.prov.model.Namespace;
 import org.openprovenance.prov.model.Other;
 import org.openprovenance.prov.model.ProvFactory;
 import org.openprovenance.prov.model.QualifiedName;
 import org.openprovenance.prov.model.Statement;
 import org.openprovenance.prov.model.Type;
-import org.openprovenance.prov.model.ValueConverter;
 
 import cz.muni.fi.cpm.constants.CpmNamespaceConstants;
-import io.vavr.control.Either;
 import reactor.core.publisher.Mono;
 
 public class NodeToProvFactory {
   private static final ProvFactory provFactory = new org.openprovenance.prov.vanilla.ProvFactory();
-
-  public static Function<EntityNode, Either<ApplicationException, Entity>> entityToProv(AppConfiguration config) {
-    // Namespace namespace = provFactory.newNamespace();
-    // namespace.addKnownNamespaces();
-    // namespace.register(CpmNamespaceConstants.CPM_PREFIX, CpmNamespaceConstants.CPM_NS);
-    // namespace.register("pav", "http://purl.org/pav/");
-    // namespace.register("meta", config.getFqdn() + "documents/meta/");
-    // namespace.register("storage", config.getFqdn() + "documents/");
-
-    return (EntityNode entityNode) -> Either.<ApplicationException, EntityNode> right(entityNode)
-        .map(NodeToProvFactory.getIdentifier(config))
-        .map(NodeToProvFactory.provFactory::newEntity)
-        .flatMap(NodeToProvFactory.setTypeAttribute(entityNode))
-        .map(NodeToProvFactory.setPavAttributes(entityNode))
-        .map(NodeToProvFactory.setCpmAttributes(entityNode))
-        .flatMap(EITHER.makeSure(
-            Entity.class::isInstance,
-            element -> new InvalidValueException("Element with id '" + element.getId().getLocalPart() + "' is not Entity element!")))
-        .map(Entity.class::cast);
-
-  }
-
-  public static Function<AgentNode, Either<ApplicationException, Agent>> agentToProv(AppConfiguration config) {
-    return (AgentNode agentNode) -> Either.<ApplicationException, AgentNode> right(agentNode)
-        .map(NodeToProvFactory.getIdentifier(config))
-        .map(NodeToProvFactory.provFactory::newAgent)
-        .flatMap(NodeToProvFactory.setTypeAttribute(agentNode))
-        .map(NodeToProvFactory.setCpmAttributes(agentNode))
-        .flatMap(EITHER.makeSure(
-            Agent.class::isInstance,
-            element -> new InvalidValueException("Element with id '" + element.getId().getLocalPart() + "' is not Agent element!")))
-        .map(Agent.class::cast);
-
-  }
-
-  public static Function<ActivityNode, Either<ApplicationException, Activity>> activityToProv(AppConfiguration config) {
-    return (ActivityNode activityNode) -> Either.<ApplicationException, ActivityNode> right(activityNode)
-        .map(NodeToProvFactory.getIdentifier(config))
-        .map(NodeToProvFactory.provFactory::newActivity)
-        .flatMap(NodeToProvFactory.setTime(activityNode))
-        .flatMap(NodeToProvFactory.setTypeAttribute(activityNode))
-        .flatMap(EITHER.makeSure(
-            Activity.class::isInstance,
-            element -> new InvalidValueException("Element with id '" + element.getId().getLocalPart() + "' is not Activity element!")))
-        .map(Activity.class::cast);
-
-  }
-
-  private static Function<BaseProvClassNode, QualifiedName> getIdentifier(AppConfiguration config) {
-    return node -> NodeToProvFactory.provFactory.newQualifiedName(
-        config.getFqdn() + "documents/",
-        node.getIdentifier(),
-        "storage");
-  }
-
-  private static Function<Element, Either<ApplicationException, Element>> setTypeAttribute(BaseProvClassNode node) {
-    return element -> {
-
-      return ProvDocumentUtils.getTypeAsQN(node.getProvType())
-          .map(elementType -> {
-            element.getType().add(provFactory.newType(elementType, provFactory.getName().PROV_QUALIFIED_NAME));
-            return element;
-          });
-    };
-  }
-
-  private static Function<Element, Element> setPavAttributes(EntityNode node) {
-    return element -> {
-      ValueConverter converter = new ValueConverter(NodeToProvFactory.provFactory);
-
-      node.getPav().entrySet().stream()
-          .map(entry -> provFactory.newOther(
-              provFactory.newQualifiedName("http://purl.org/pav/", entry.getKey(), "pav"),
-              entry.getValue(),
-              converter.getXsdType(entry.getValue())))
-          .forEach(element.getOther()::add);
-
-      return element;
-    };
-  }
-
-  private static Function<Element, Element> setCpmAttributes(BaseProvClassNode node) {
-    return element -> {
-      ValueConverter converter = new ValueConverter(NodeToProvFactory.provFactory);
-
-      node.getCpm().entrySet().stream()
-          .map(entry -> provFactory.newOther(
-              provFactory.newQualifiedName(CpmNamespaceConstants.CPM_NS, entry.getKey(), CpmNamespaceConstants.CPM_PREFIX),
-              entry.getValue(),
-              converter.getXsdType(entry.getValue())))
-          .forEach(element.getOther()::add);
-
-      return element;
-    };
-  }
-
-  private static Function<Activity, Either<ApplicationException, Activity>> setTime(ActivityNode node) {
-    return activity -> {
-      return EITHER.combine(
-          ProvDocumentUtils.toXMLGregorianCalendar(node.getStartTime()),
-          ProvDocumentUtils.toXMLGregorianCalendar(node.getEndTime()),
-          (startTime, endTime) -> {
-            activity.setStartTime(startTime);
-            activity.setEndTime(endTime);
-            return activity;
-          });
-    };
-  }
-
-  // ---
 
   public static Function<BundleNode, Mono<Document>> bundleToProv(AppConfiguration config) {
     return (BundleNode node) -> {
@@ -163,7 +42,7 @@ public class NodeToProvFactory {
       QualifiedName bundleId = NodeToProvFactory.provFactory.newQualifiedName(
           provDocument.getNamespace().getPrefixes().get("meta"),
           node.getIdentifier(),
-          "mata");
+          "meta");
 
       Stream<Statement> provNodeStatements = node.getAllNodes().stream()
           .map(NodeToProvFactory.toProvenance(provDocument.getNamespace()));
@@ -171,7 +50,6 @@ public class NodeToProvFactory {
       Stream<Statement> provRelatioStatements = node.getAllNodes().stream()
           .flatMap(n -> {
             if (n instanceof ActivityNode activityNode) {
-              // Stream<Statement> activityStream = Stream.of(NodeToProvFactory.activityToProv(config).apply(activityNode));
               Stream<Statement> usedStream = activityNode.getUsed().stream()
                   .map(used -> (Statement) provFactory.newUsed(
                       NodeToProvFactory.getStorageQN(activityNode.getIdentifier(), provDocument.getNamespace()),
@@ -282,9 +160,23 @@ public class NodeToProvFactory {
       Namespace ns) {
 
     node.getCpm().entrySet().stream()
-        .forEach(entry -> element.getOther().add(((Other) guessAttribute(
+        .forEach(entry -> element.getOther().add(((Other) NodeToProvFactory.provFactory.newAttribute(
             NodeToProvFactory.getCpmQN(entry.getKey(), ns),
-            entry.getValue()))));
+            NodeToProvFactory.asPlainString(entry.getValue()),
+            NodeToProvFactory.provFactory.getName().XSD_STRING))));
+  }
+
+  private static String asPlainString(Object value) {
+    if (value == null) {
+      return "";
+    }
+
+    String stringValue = value.toString();
+    if (stringValue.length() >= 2 && stringValue.startsWith("\"") && stringValue.endsWith("\"")) {
+      return stringValue.substring(1, stringValue.length() - 1);
+    }
+
+    return stringValue;
   }
 
   private static void applyPavAttributesToElement(
@@ -293,37 +185,25 @@ public class NodeToProvFactory {
       Namespace ns) {
 
     node.getPav().entrySet().stream()
-        .forEach(entry -> element.getOther().add(((Other) guessAttribute(
+        .forEach(entry -> element.getOther().add(((Other) NodeToProvFactory.provFactory.newAttribute(
             NodeToProvFactory.getPavQN(entry.getKey(), ns),
-            entry.getValue()))));
+            entry.getValue().toString(),
+            NodeToProvFactory.provFactory.getName().XSD_INTEGER))));
   }
 
   private static Type getTypeFromString(String value, Namespace ns) {
     String[] partsQN = value.split(":", 2);
-    String[] partsLS = value.split("@", 2);
     Map<String, String> prefixes = ns.getPrefixes();
 
     if (partsQN.length == 2 && prefixes.containsKey(partsQN[0]))
       return NodeToProvFactory.provFactory.newType(
           NodeToProvFactory.provFactory.newQualifiedName(prefixes.get(partsQN[0]), partsQN[1], partsQN[0]),
           NodeToProvFactory.provFactory.getName().PROV_QUALIFIED_NAME);
-    else if (partsLS.length == 2)
-      return NodeToProvFactory.provFactory.newType(
-          NodeToProvFactory.provFactory.newInternationalizedString(partsLS[0], partsLS[1]),
-          NodeToProvFactory.provFactory.getName().PROV_LANG_STRING);
-    else if (partsQN.length == 2)
-      return NodeToProvFactory.provFactory.newType(
-          value,
-          NodeToProvFactory.provFactory.getName().XSD_STRING);
     else
-      return ((Type) NodeToProvFactory.guessAttribute(
-          NodeToProvFactory.provFactory.newQualifiedName(prefixes.get("prov"), "type", "prov"),
-          value));
-  }
+      return NodeToProvFactory.provFactory.newType(
+          value.toString(),
+          NodeToProvFactory.provFactory.getName().XSD_STRING);
 
-  private static Attribute guessAttribute(QualifiedName elementName, Object value) {
-    ValueConverter converter = new ValueConverter(NodeToProvFactory.provFactory);
-    return NodeToProvFactory.provFactory.newAttribute(elementName, value, converter.getXsdType(value));
   }
 
 }
