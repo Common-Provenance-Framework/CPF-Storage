@@ -1,3 +1,5 @@
+server:
+  port: ${CPF_STORE_PORT:8080}
 spring:
   application:
     name: cpf-store
