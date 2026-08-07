@@ -2,11 +2,15 @@ package org.commonprovenance.framework.store.controller.impl;
 
 import static org.commonprovenance.framework.store.common.composition.Reactor.MONO;
 
+import org.commonprovenance.framework.store.common.utils.Base64Utils;
+import org.commonprovenance.framework.store.common.utils.ProvDocumentUtils;
 import org.commonprovenance.framework.store.controller.MetaDocumentController;
 import org.commonprovenance.framework.store.controller.dto.error.InternalServerErrorDTO;
 import org.commonprovenance.framework.store.controller.dto.error.NotFoundDTO;
+import org.commonprovenance.framework.store.controller.dto.response.DocumentResponseDTO;
 import org.commonprovenance.framework.store.exceptions.NotFoundException;
 import org.commonprovenance.framework.store.service.persistence.MetaProvenanceComponentService;
+import org.openprovenance.prov.model.interop.Formats;
 import org.springframework.http.MediaType;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -50,5 +54,25 @@ public class MetaDocumentControllerImpl implements MetaDocumentController {
             this.metaComponentService::metaProvenanceComponentExists,
             id -> new NotFoundException("Meta Component with id '" + id + " does not exists! ")))
         .then();
+  }
+
+  @Override
+  @NotNull
+  @RequestMapping(path = "/{uuid}", method = RequestMethod.GET)
+  @Operation(summary = "Get meta document if exists")
+  @ApiResponses({
+      @ApiResponse(responseCode = "200", description = "Meta document"),
+      @ApiResponse(responseCode = "404", description = "Meta document not found", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = NotFoundDTO.class))),
+      @ApiResponse(responseCode = "500", description = "Internal server error", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = InternalServerErrorDTO.class)))
+  })
+  public Mono<DocumentResponseDTO> getMetaDocument(@PathVariable String uuid) {
+    return Mono.justOrEmpty(uuid)
+        .flatMap(MONO.makeSureAsync(
+            this.metaComponentService::metaProvenanceComponentExists,
+            id -> new NotFoundException("Meta Component with id '" + id + " does not exists! ")))
+        .flatMap(this.metaComponentService::getMetaProvenanceComponent)
+        .flatMap(MONO.liftEffectToMono(ProvDocumentUtils.serialize(Formats.ProvFormat.JSON)))
+        .flatMap(MONO.liftEffectToMono(Base64Utils::encodeFromString))
+        .map(enc -> new DocumentResponseDTO(enc, ""));
   }
 }

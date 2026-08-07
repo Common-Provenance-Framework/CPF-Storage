@@ -44,10 +44,21 @@ class ProvenanceFactoryTest {
     AppConfiguration config = mock(AppConfiguration.class);
     when(config.getFqdn()).thenReturn("http://localhost:8080/api/v1/");
 
-    EntityNode e2 = new EntityNode("e2", "cpm:token", Map.of("originatorId", "ORG1", "authorityId", "Trusted_Party"),
+    EntityNode e2 = new EntityNode(
+        "e2",
+        "cpm:token",
+        Map.of("originatorId", "ORG1", "authorityId", "Trusted_Party"),
         Map.of());
-    AgentNode ag1 = new AgentNode("ag1", "cpm:trustedParty", Map.of("trustedPartyUri", "trusted-party:8020"));
-    EntityNode e1 = new EntityNode("e1", "prov:Bundle", Map.of(), Map.of("version", 1))
+
+    AgentNode ag1 = new AgentNode(
+        "ag1",
+        "cpm:trustedParty",
+        Map.of("trustedPartyUri", "trusted-party:8020"));
+    EntityNode e1 = new EntityNode(
+        "e1",
+        "prov:Bundle",
+        Map.of(),
+        Map.of("version", 1))
         .withRevisionOfEntity(e2)
         .withWasAttributedToAgent(ag1);
     ActivityNode act1 = new ActivityNode("act1", "cpm:tokenGeneration", "2024-01-01T10:15:30Z", "2024-01-01T10:16:30Z",
@@ -274,8 +285,6 @@ class ProvenanceFactoryTest {
         Map.of(
             "originatorId", "ORG1",
             "authorityId", "Trusted_Party",
-            "tokenTimestamp", 1771176308,
-            "documentCreationTimestamp", 1771176307,
             "documentDigest", "7c102e3408bedfcd572fa4576fcac02f30fe601ca215c02a0705723432023492",
             "bundle", "http://prov-storage-1:8000/api/v1/organizations/ORG1/documents/SamplingBundle_V1",
             "hashFunction", "SHA256",
