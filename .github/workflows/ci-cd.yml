@@ -11,8 +11,6 @@ env:
   HARBOR_PROJECT: commonprovenanceframework
   IMAGE_NAME: cpf-storage
   JAVA_VERSION: '25'
-  CHART_NAME: cpf-store
-  MANIFEST_NAME: cpf-storage-manifests
 
 jobs:
   build-test:
@@ -92,14 +90,11 @@ jobs:
             ${{ env.HARBOR_REGISTRY }}/${{ env.HARBOR_PROJECT }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
           cache-from: type=gha
 
-  publish-gitops:
-    name: 4. Publish Chart & Flux Manifests
+  publish-chart:
+    name: 4. Publish Chart to Harbor
     runs-on: ubuntu-latest
     needs: publish-docker
     if: github.event_name == 'push' && github.ref_name == 'main'
-    concurrency:
-      group: publish-gitops
-      cancel-in-progress: false
 
     steps:
       - name: Checkout Code
@@ -108,38 +103,11 @@ jobs:
       - name: Set up Helm
         uses: azure/setup-helm@v4
 
-      - name: Set up Flux CLI
-        uses: fluxcd/flux2/action@main
-
-      - name: Package Helm Chart
-        run: |
-          install -d "$RUNNER_TEMP/chart"
-          cp -R helm/. "$RUNNER_TEMP/chart/"
-          yq eval-all 'select(fileIndex == 0) * select(fileIndex == 1)' helm/values.yaml values/qa.yaml > "$RUNNER_TEMP/chart/values.yaml"
-          helm package "$RUNNER_TEMP/chart" --destination "$RUNNER_TEMP"
-
-      - name: Push Helm Chart to Harbor
+      - name: Package and Push Helm Chart
         env:
           DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
           DOCKERHUB_PASSWORD: ${{ secrets.DOCKERHUB_PASSWORD }}
         run: |
+          helm package helm --destination "$RUNNER_TEMP"
           echo "$DOCKERHUB_PASSWORD" | helm registry login "$HARBOR_REGISTRY" -u "$DOCKERHUB_USERNAME" --password-stdin
-          helm push "$RUNNER_TEMP"/"$CHART_NAME"-*.tgz "oci://$HARBOR_REGISTRY/$HARBOR_PROJECT"
-
-      - name: Push Flux Manifests to Harbor
-        env:
-          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
-          DOCKERHUB_PASSWORD: ${{ secrets.DOCKERHUB_PASSWORD }}
-        run: |
-          install -d "$RUNNER_TEMP/manifests"
-          cp flux/qa/*.yaml "$RUNNER_TEMP/manifests/"
-          sed -i "s|__GIT_SHA__|$GITHUB_SHA|g" "$RUNNER_TEMP/manifests"/*.yaml
-          if grep -rq '__GIT_SHA__' "$RUNNER_TEMP/manifests"; then
-            echo "revision placeholder was not substituted" >&2
-            exit 1
-          fi
-          flux push artifact "oci://$HARBOR_REGISTRY/$HARBOR_PROJECT/$MANIFEST_NAME:latest" \
-            --path="$RUNNER_TEMP/manifests" \
-            --source="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY" \
-            --revision="$GITHUB_SHA" \
-            --creds "$DOCKERHUB_USERNAME:$DOCKERHUB_PASSWORD"
+          helm push "$RUNNER_TEMP"/*.tgz "oci://$HARBOR_REGISTRY/$HARBOR_PROJECT"
