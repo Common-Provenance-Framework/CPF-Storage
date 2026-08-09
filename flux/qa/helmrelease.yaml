@@ -1,0 +1,36 @@
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: OCIRepository
+metadata:
+  name: cpf-store-chart
+  namespace: cpf
+spec:
+  interval: 5m
+  url: oci://cerit.io/commonprovenanceframework/cpf-store
+  ref:
+    tag: 0.1.0
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: cpf-storage
+  namespace: cpf
+spec:
+  interval: 10m
+  releaseName: cpf-storage
+  chartRef:
+    kind: OCIRepository
+    name: cpf-store-chart
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    remediation:
+      retries: 3
+  values:
+    fullnameOverride: cpf-store
+    image:
+      repository: cerit.io/commonprovenanceframework/cpf-storage
+      tag: latest
+      pullPolicy: Always
+    podAnnotations:
+      cpf.commonprovenance.org/revision: "__GIT_SHA__"
