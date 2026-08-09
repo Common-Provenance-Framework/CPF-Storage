@@ -14,17 +14,16 @@ import java.util.stream.Collectors;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import org.commonprovenance.framework.store.controller.dto.response.TokenResponseDTO;
 import org.commonprovenance.framework.store.exceptions.ApplicationException;
 import org.commonprovenance.framework.store.exceptions.InternalApplicationException;
 import org.commonprovenance.framework.store.exceptions.InvalidValueException;
 import org.commonprovenance.framework.store.model.HashFunction;
 import org.openprovenance.prov.vanilla.ProvUtilities;
 
-import com.nimbusds.jwt.JWTClaimsSet;
-import com.nimbusds.jwt.SignedJWT;
 import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jose.util.Base64;
+import com.nimbusds.jwt.JWTClaimsSet;
+import com.nimbusds.jwt.SignedJWT;
 
 import io.vavr.control.Either;
 
@@ -181,12 +180,6 @@ public interface HasJwtToken<T extends HasJwtToken<T>> {
         .flatMap(EITHER.makeSureNotNull(_ -> new InvalidValueException("Issuer is not specified in JWT Token payload!")));
   }
 
-  default UnaryOperator<TokenResponseDTO> putJwtToDTO() {
-    return (TokenResponseDTO to) -> Optional.ofNullable(getJwt())
-        .map(to::withJwt)
-        .orElse(to);
-  }
-
   private Either<ApplicationException, SignedJWT> parseJwt() {
     return Either.<ApplicationException, String> right(this.getJwt())
         .flatMap(EITHER.makeSureNotNull(_ -> new InvalidValueException("JWT Token can not be null!")))
@@ -218,6 +211,9 @@ public interface HasJwtToken<T extends HasJwtToken<T>> {
 
     if (form instanceof org.commonprovenance.framework.store.persistence.finalizedProvComponent.model.types.HasJwtToken has)
       return Optional.of(has.getJwt());
+
+    if (form instanceof org.commonprovenance.framework.store.common.dtos.HasJwtToken has)
+      return Optional.of(has.jwt());
 
     return Optional.empty();
   }

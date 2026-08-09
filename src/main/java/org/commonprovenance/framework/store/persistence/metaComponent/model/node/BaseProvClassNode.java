@@ -3,14 +3,13 @@ package org.commonprovenance.framework.store.persistence.metaComponent.model.nod
 import java.util.Map;
 import java.util.Optional;
 
-import org.commonprovenance.framework.store.common.dto.HasId;
 import org.springframework.data.annotation.PersistenceCreator;
 import org.springframework.data.neo4j.core.schema.CompositeProperty;
 import org.springframework.data.neo4j.core.schema.GeneratedValue;
 import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.data.neo4j.core.schema.Property;
 
-public class BaseProvClassNode implements HasId {
+public class BaseProvClassNode {
   @Id
   @GeneratedValue
   private final String id;

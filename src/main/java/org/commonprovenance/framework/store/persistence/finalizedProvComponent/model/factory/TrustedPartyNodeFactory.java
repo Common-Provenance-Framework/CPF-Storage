@@ -7,7 +7,7 @@ public class TrustedPartyNodeFactory {
 
   public static TrustedPartyNode build(TrustedParty trustedParty) {
     return new TrustedPartyNode(
-        trustedParty.getName(),
+        trustedParty.getId(),
         trustedParty.getClientCertificate(),
         trustedParty.getIsChecked(),
         trustedParty.getIsValid(),

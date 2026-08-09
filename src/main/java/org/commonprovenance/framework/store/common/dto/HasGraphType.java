@@ -3,19 +3,19 @@ package org.commonprovenance.framework.store.common.dto;
 import java.util.Optional;
 import java.util.function.UnaryOperator;
 
-import org.commonprovenance.framework.store.model.DocumentType;
+import org.commonprovenance.framework.store.model.GraphType;
 
 public interface HasGraphType<T extends HasGraphType<T>> {
 
   String getGraphType();
 
-  T withGraphType(DocumentType graphType);
+  T withGraphType(GraphType graphType);
 
   public static <T extends HasGraphType<T>> UnaryOperator<T> setTypeAsGraph() {
-    return (T to) -> to.withGraphType(DocumentType.GRAPH);
+    return (T to) -> to.withGraphType(GraphType.GRAPH);
   }
 
-  public static <T extends HasGraphType<T>> UnaryOperator<T> addGraphType(DocumentType graphType) {
+  public static <T extends HasGraphType<T>> UnaryOperator<T> addGraphType(GraphType graphType) {
     return (T to) -> Optional.ofNullable(graphType)
         .map(to::withGraphType)
         .orElse(to);

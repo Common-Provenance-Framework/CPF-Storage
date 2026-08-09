@@ -41,4 +41,11 @@ build/
 application.properties
 application-*.properties
 .env
+
+### DEVELOPMENT ###
 sandbox_data
+deployment/certs
+deployment/scripts
+
+
+

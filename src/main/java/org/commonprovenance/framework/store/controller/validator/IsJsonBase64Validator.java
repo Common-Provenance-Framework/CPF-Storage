@@ -14,10 +14,15 @@ public class IsJsonBase64Validator implements ConstraintValidator<IsJsonBase64, 
 
   @Override
   public boolean isValid(String value, ConstraintValidatorContext context) {
+    if (value == null)
+      return false;
+
     try {
       new ObjectMapper().readTree(Base64.getDecoder().decode(value));
       return true;
-    } catch (JacksonException e) {
+    } catch (IllegalArgumentException _) {
+      return false;
+    } catch (JacksonException _) {
       return false;
     }
   }

@@ -9,7 +9,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import org.commonprovenance.framework.store.model.Document;
-import org.commonprovenance.framework.store.model.Format;
+import org.commonprovenance.framework.store.model.GraphFormat;
 import org.commonprovenance.framework.store.model.Token;
 import org.commonprovenance.framework.store.persistence.finalizedProvComponent.model.node.DocumentNode;
 import org.commonprovenance.framework.store.persistence.finalizedProvComponent.neo4j.DocumentNeo4jRepository;
@@ -44,7 +44,7 @@ class DocumentRepositorySpec {
 
   private final String TEST_ID_1 = "e3cf8742-b595-47f4-8aae-a1e94b62a856";
   private final String BASE64_STRING_GRAPH_1 = "AAAAQQAAAGIAAAByAAAAYQAAAGsAAABhAAAAIAAAAEQAAABhAAAAYgAAAHIAAABhAAAALgAAAC4=";
-  private final Format FORMAT_1 = Format.JSON;
+  private final GraphFormat FORMAT_1 = GraphFormat.JSON;
 
   @BeforeEach
   void setUp() {

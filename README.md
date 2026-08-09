@@ -6,18 +6,15 @@ Store service of the Common Provenance Framework.
 This repository contains a `docker-compose.yaml` that runs:
 - CPF Store (`cpf-store`)
 - Neo4j (`cpf-neo4j`)
-- Trusted Party (`cpf-trusted-party`)
-- PostgreSQL for Trusted Party (`cpf-postgres`)
 
 ### Prerequisites
 
-1. Docker Engine + Docker Compose installed on the machine where you run the stack.
-2. Both repositories cloned next to each other (sibling folders), because Trusted Party is built from `../CPF-Search-API/prov-storage/`.
+1. Docker Engine + Docker Compose installed on the machine where you run the stack. Follow [this](https://docs.docker.com/get-started/get-docker/) instructions.
+2. NRO-Service up and running. Follow [this](https://github.com/Common-Provenance-Framework/NRO-Service/blob/main/README.md) instructions.
 
-Example:
+### Clone this repository
 
 ```bash
-git clone git@github.com:Common-Provenance-Framework/CPF-Search-API.git
 git clone git@github.com:Common-Provenance-Framework/CPF-Storage.git
 ```
 
@@ -34,7 +31,9 @@ Examples:
 
 ```bash
 cd CPF-Storage
-export STORE_URL=http://localhost:8081/api/v1/
+export STORE_HOST=localhost
+export STORE_PORT=8081
+export STORE_URL=http://$STORE_HOST:$STORE_PORT/api/v1/
 docker compose up --build --detach
 ```
 
@@ -57,8 +56,8 @@ docker compose logs -f cpf-store
 >
 > ```json
 > {
->   "code": "InternalError",
->   "message": "*** Unhandled Server Error ***"
+>   "code": "BadRequest",
+>   "message": "Endpoint '/health/' was not found."
 > }
 > ```
 
@@ -68,7 +67,7 @@ docker compose logs -f cpf-store
 docker compose down
 ```
 
-### Remove all data volumes (Neo4j + PostgreSQL)
+### Remove all data volumes (Neo4j)
 
 ```bash
 docker compose down -v
@@ -78,7 +77,7 @@ docker compose down -v
 
 This section provides a standalone end-to-end example for calling the CPF-Store API directly:
 
-1. Register organization with id `ORG_ID` (default: `myorg_01`).
+1. Register organization with id `ORG_ID` (default: `6fb292aa-ee38-48ae-998f-079ad9d01e7c`).
 2. Sign a JSON document with the organization private key (SHA-256).
 3. Base64-encode the document and signature.
 4. Upload the new document.
@@ -88,81 +87,61 @@ For steps 1-4 below, run commands from the `sandbox` directory unless a step say
 ### 1) Generate certificates (sandbox/demo)
 
 Run from the repository root. This creates the files expected by the API examples and scripts:
-- `sandbox/certificates/$ORG_ID.pem`
-- `sandbox/certificates/$ORG_ID.key`
-- `sandbox/certificates/int1.pem`
-- `sandbox/certificates/int2.pem`
+- `sandbox/certs/$ORG_ID.pem`
+- `sandbox/certs/$ORG_ID.key`
+- `sandbox/certs/int1.pem`
+- `sandbox/certs/int2.pem`
 
 #### Prepare sandbox directory
 ```bash
-mkdir -p sandbox && cd sandbox
-ORG_ID="myorg_01"
-CPF_SEARCH_API_PATH="../../CPF-Search-API"
-mkdir -p certificates
-```
-
-#### Generate or copy root CA
-Generate root CA only if necessary.
-
-```bash
-# Root CA (local demo only, EC key)
-openssl ecparam -name prime256v1 -genkey -noout -out certificates/root_ca.key
-openssl req -x509 -new -key certificates/root_ca.key -sha256 -days 3650 \
-   -subj "/C=CZ/O=CPF/CN=cpf-root-ca" \
-   -out certificates/root_ca.pem
-```
-
-If you run Trusted Party from Docker, prefer its CA:
-
-```bash
-# Copy Root CA (TrustedParty)
-cp "$CPF_SEARCH_API_PATH/prov-storage/trusted_party/config/certificates/trusted_certs/ca.pem" certificates/root_ca.pem
-cp "$CPF_SEARCH_API_PATH/prov-storage/trusted_party/config/certificates/trusted_keys/ca.key" certificates/root_ca.key
+mkdir -p sandbox/certs && cd sandbox
+export ORG_ID="6fb292aa-ee38-48ae-998f-079ad9d01e7c"
+export NRO_SERVICE_DIR="../../NRO-Service/"
 ```
 
 #### Generate intermediate certificates (EC)
 
 ```bash
 # Intermediate 1
-cat > certificates/v3_int1.ext <<'EOF'
+cat > certs/v3_int1.ext <<'EOF'
 basicConstraints=critical,CA:TRUE,pathlen:1
 keyUsage=critical,keyCertSign,cRLSign
 subjectKeyIdentifier=hash
 authorityKeyIdentifier=keyid,issuer
 EOF
 
-openssl ecparam -name prime256v1 -genkey -noout -out certificates/int1.key
-openssl req -new -key certificates/int1.key \
+openssl ecparam -name prime256v1 -genkey -noout -out certs/int1.key
+openssl req -new -key certs/int1.key \
    -subj "/C=CZ/O=CPF/CN=cpf-int1" \
-   -out certificates/int1.csr
-openssl x509 -req -in certificates/int1.csr \
-   -CA certificates/root_ca.pem -CAkey certificates/root_ca.key -CAcreateserial \
-   -out certificates/int1.pem -days 1825 -sha256 \
-   -extfile certificates/v3_int1.ext
+   -out certs/int1.csr
+openssl x509 -req -in certs/int1.csr \
+   -CA "$NRO_SERVICE_DIR/certs/trusted/ca.pem" -CAkey "$NRO_SERVICE_DIR/certs/ca.key" -CAcreateserial \
+   -out certs/int1.pem -days 1825 -sha256 \
+   -extfile certs/v3_int1.ext
 ```
 
 ```bash
 # Intermediate 2
-cat > certificates/v3_int2.ext <<'EOF'
+cat > certs/v3_int2.ext <<'EOF'
 basicConstraints=critical,CA:TRUE,pathlen:0
 keyUsage=critical,keyCertSign,cRLSign
 subjectKeyIdentifier=hash
 authorityKeyIdentifier=keyid,issuer
 EOF
 
-openssl ecparam -name prime256v1 -genkey -noout -out certificates/int2.key
-openssl req -new -key certificates/int2.key \
+openssl ecparam -name prime256v1 -genkey -noout -out certs/int2.key
+openssl req -new -key certs/int2.key \
    -subj "/C=CZ/O=CPF/CN=cpf-int2" \
-   -out certificates/int2.csr
-openssl x509 -req -in certificates/int2.csr \
-   -CA certificates/int1.pem -CAkey certificates/int1.key -CAcreateserial \
-   -out certificates/int2.pem -days 1825 -sha256 \
-   -extfile certificates/v3_int2.ext
+   -out certs/int2.csr
+openssl x509 -req -in certs/int2.csr \
+   -CA certs/int1.pem -CAkey certs/int1.key -CAcreateserial \
+   -out certs/int2.pem -days 1825 -sha256 \
+   -extfile certs/v3_int2.ext
 ```
 
 #### Generate organization certificate (EC)
 ```bash
-cat > certificates/v3_client.ext <<'EOF'
+cat > certs/v3_client.ext <<'EOF'
 basicConstraints=critical,CA:FALSE
 keyUsage=critical,digitalSignature
 extendedKeyUsage=clientAuth
@@ -170,56 +149,61 @@ subjectKeyIdentifier=hash
 authorityKeyIdentifier=keyid,issuer
 EOF
 
-openssl ecparam -name prime256v1 -genkey -noout -out "certificates/$ORG_ID.key"
-openssl req -new -key "certificates/$ORG_ID.key" \
+openssl ecparam -name prime256v1 -genkey -noout -out "certs/$ORG_ID.key"
+openssl req -new -key "certs/$ORG_ID.key" \
    -subj "/C=CZ/O=CPF/CN=$ORG_ID" \
-   -out "certificates/$ORG_ID.csr"
-openssl x509 -req -in "certificates/$ORG_ID.csr" \
-   -CA certificates/int2.pem -CAkey certificates/int2.key -CAcreateserial \
-   -out "certificates/$ORG_ID.pem" -days 825 -sha256 \
-   -extfile certificates/v3_client.ext
+   -out "certs/$ORG_ID.csr"
+openssl x509 -req -in "certs/$ORG_ID.csr" \
+   -CA certs/int2.pem -CAkey certs/int2.key -CAcreateserial \
+   -out "certs/$ORG_ID.pem" -days 825 -sha256 \
+   -extfile certs/v3_client.ext
 ```
 
 #### Check your certificates
 Optional sanity checks:
 
 ```bash
-openssl x509 -in "certificates/$ORG_ID.pem" -noout -subject -issuer
-openssl x509 -in "certificates/$ORG_ID.pem" -noout -text | grep "Public Key Algorithm"
-openssl verify -CAfile certificates/root_ca.pem \
-   -untrusted <(cat certificates/int1.pem certificates/int2.pem) \
-   "certificates/$ORG_ID.pem"
+openssl x509 -in "certs/$ORG_ID.pem" -noout -subject -issuer
+openssl x509 -in "certs/$ORG_ID.pem" -noout -text | grep "Public Key Algorithm"
+openssl verify -CAfile "$NRO_SERVICE_DIR/certs/trusted/ca.pem" \
+   -untrusted <(cat certs/int1.pem certs/int2.pem) \
+   "certs/$ORG_ID.pem"
 ```
 
 #### Clean certificates directory
 Cleanup temporary files (CSRs, extension configs, serial files):
 
 ```bash
-rm -f certificates/*.csr \
-      certificates/*.ext \
-      certificates/*.srl
+rm -f certs/*.csr \
+      certs/*.ext \
+      certs/*.srl
 ```
 
 ### 2) Register Organization
 
-If you run with Docker Compose, use port `8081` instead of `8080`.
+
 This step registers `$ORG_ID` and uploads its client certificate + intermediate chain.
 
-
-
+#### Prepare your environment
 ```bash
-curl --location "http://localhost:8080/api/v1/organizations" \
+export STORE_HOST=localhost
+export STORE_PORT=8081
+```
+
+#### Send http request
+```bash
+curl --location "http://$STORE_HOST:$STORE_PORT/api/v1/organizations" \
   --header "Content-Type: application/json" \
   --data "$(jq -n \
-    --arg identifier "$ORG_ID" \
-    --arg clientCertificate "$(tr -d '\r' < "./certificates/$ORG_ID.pem")" \
-    --arg int1 "$(tr -d '\r' < ./certificates/int1.pem)" \
-    --arg int2 "$(tr -d '\r' < ./certificates/int2.pem)" \
+    --arg id "$ORG_ID" \
+    --arg clientCertificate "$(tr -d '\r' < "./certs/$ORG_ID.pem")" \
+    --arg int1 "$(tr -d '\r' < ./certs/int1.pem)" \
+    --arg int2 "$(tr -d '\r' < ./certs/int2.pem)" \
     --argjson clearancePeriod 30 \
     '{
-      identifier: $identifier,
+      id: $id,
       clientCertificate: $clientCertificate,
-      intermediateCertificates: [$int1, $int2],
+      intermediateCertificates: [$int2, $int1],
       clearancePeriod: $clearancePeriod
     }' \
   )" | jq
@@ -231,30 +215,30 @@ Set `DOC_PATH` to your own valid PROV JSON file before uploading the document.
 Working examples of finalized provenance documents are available in the [CPF-Toolbox](https://github.com/Common-Provenance-Framework/CPF-Toolbox/tree/main/cpm-template/src/test/resources) project.
 
 ```bash
-DOC_PATH="./documents/prov.json"
+export DOC_PATH="./documents/prov.json"
 [ -f "$DOC_PATH" ] || { echo "File not found: $DOC_PATH"; exit 1; }
 
 ```
 
 ### 4) Upload New Document
 
-This command uses `ORG_ID` and `DOC_PATH`, then generates base64 document content, signature, and timestamp inline.
+This command uses `STORE_HOST`, `STORE_PORT`, `ORG_ID` and `DOC_PATH`, then generates base64 document content, signature, and timestamp inline.
 
 ```bash
-curl --location "http://localhost:8080/api/v1/documents" \
+curl --location "http://$STORE_HOST:$STORE_PORT/api/v1/organizations/$ORG_ID/documents" \
   --header 'Accept: application/json' \
   --header 'Content-Type: application/json' \
   --data "$(jq -n \
     --arg organizationIdentifier "$ORG_ID" \
-    --arg document "$(openssl base64 -A -in "$DOC_PATH")" \
-    --arg documentFormat "json" \
-    --arg signature "$(openssl dgst -sha256 -sign "./certificates/$ORG_ID.key" "$DOC_PATH" | openssl base64 -A)" \
+    --arg graph "$(openssl base64 -A -in "$DOC_PATH")" \
+    --arg graphFormat "json" \
+    --arg signature "$(openssl dgst -sha256 -sign "./certs/$ORG_ID.key" "$DOC_PATH" | openssl base64 -A)" \
     --arg createdOn $(date +%s) \
     --argjson clearancePeriod 30 \
     '{
       organizationIdentifier: $organizationIdentifier,
-      document: $document,
-      documentFormat: $documentFormat,
+      graph: $graph,
+      graphFormat: $graphFormat,
       signature: $signature,
       createdOn: $createdOn,
       clearancePeriod: $clearancePeriod

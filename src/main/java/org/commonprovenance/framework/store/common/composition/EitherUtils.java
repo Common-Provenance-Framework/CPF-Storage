@@ -10,6 +10,7 @@ import java.util.function.BiFunction;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import org.commonprovenance.framework.store.common.dtos.Validatable;
 import org.commonprovenance.framework.store.common.validation.DTOValidator;
 import org.commonprovenance.framework.store.config.AppConfig;
 import org.commonprovenance.framework.store.exceptions.ApplicationException;
@@ -83,6 +84,15 @@ public interface EitherUtils {
     }
 
     public <R extends DTOValidator> Either<ApplicationException, R> validateDTO(R value) {
+      Vector<String> result = value.validate();
+      return result.isEmpty()
+          ? Either.right(value)
+          : Either.left(new ConstraintException(
+              "Validation of class '" + value.getClass().getSimpleName() + "' faild with message: "
+                  + result.stream().reduce("", (acc, i) -> acc.isEmpty() ? i : acc + ", " + i)));
+    }
+
+    public <R extends Validatable> Either<ApplicationException, R> validateDTO(R value) {
       Vector<String> result = value.validate();
       return result.isEmpty()
           ? Either.right(value)

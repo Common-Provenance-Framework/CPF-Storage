@@ -7,11 +7,11 @@ import org.commonprovenance.framework.store.exceptions.InternalApplicationExcept
 import org.commonprovenance.framework.store.exceptions.NotFoundException;
 import org.commonprovenance.framework.store.exceptions.factory.ApplicationExceptionFactory;
 import org.commonprovenance.framework.store.model.Document;
-import org.commonprovenance.framework.store.model.Format;
+import org.commonprovenance.framework.store.model.GraphFormat;
 import org.commonprovenance.framework.store.model.factory.DocumentFactory;
 import org.commonprovenance.framework.store.web.trustedParty.DocumentWeb;
 import org.commonprovenance.framework.store.web.trustedParty.client.ClientTrustedParty;
-import org.commonprovenance.framework.store.web.trustedParty.dto.response.DocumentTPResponseDTO;
+import org.commonprovenance.framework.store.web.trustedParty.dto.response.DocumentResponseDTO;
 import org.openprovenance.prov.model.QualifiedName;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,12 +35,12 @@ public class DocumentWebImpl implements DocumentWeb {
   public Mono<Document> getById(
       String organizationIdentifer,
       QualifiedName bundleIdentifier,
-      Format documentFormat,
+      GraphFormat documentFormat,
       Optional<String> optTrustedPartyBaseUrl) {
     String uri = "organizations/" + organizationIdentifer + "/documents/" + bundleIdentifier.getUri() + "/" + documentFormat.toString();
     return optTrustedPartyBaseUrl
-        .map(this.client.sendCustomGetOneRequest(uri, DocumentTPResponseDTO.class, Map.of()))
-        .orElse(this.client.sendGetOneRequest(uri, DocumentTPResponseDTO.class, Map.of()))
+        .map(this.client.sendCustomGetOneRequest(uri, DocumentResponseDTO.class, Map.of()))
+        .orElse(this.client.sendGetOneRequest(uri, DocumentResponseDTO.class, Map.of()))
         .map(DocumentFactory::build)
         .doOnSuccess(_ -> LOGGER.trace(LOG_PREFIX + "Document with identifier '" + bundleIdentifier.getUri() + "' has been fetched."))
         .doOnError(throwable -> {
