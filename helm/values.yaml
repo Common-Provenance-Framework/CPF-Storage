@@ -36,8 +36,8 @@ affinity: {}
 springProfilesActive: prod
 
 config:
-  NEO4J_URI: bolt://neo4j:7687
-  STORE_URL: http://localhost:8080/api/v1/
+  NEO4J_URI: bolt://cpf-neo4j:7687
+  STORE_URL: http://cpf-store:8080/api/v1/
   TRUSTED_PARTY_URL: http://nro-service:8020/api/v1/
   CPF_STORE_VERBOSE_MODE: "false"
 
