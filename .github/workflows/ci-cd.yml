@@ -108,6 +108,6 @@ jobs:
           DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
           DOCKERHUB_PASSWORD: ${{ secrets.DOCKERHUB_PASSWORD }}
         run: |
-          helm package helm --destination "$RUNNER_TEMP"
+          helm package helm --app-version "$GITHUB_SHA" --destination "$RUNNER_TEMP"
           echo "$DOCKERHUB_PASSWORD" | helm registry login "$HARBOR_REGISTRY" -u "$DOCKERHUB_USERNAME" --password-stdin
           helm push "$RUNNER_TEMP"/*.tgz "oci://$HARBOR_REGISTRY/$HARBOR_PROJECT"
