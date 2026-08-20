@@ -6,6 +6,7 @@ import org.commonprovenance.framework.store.controller.dto.response.DocumentResp
 import org.commonprovenance.framework.store.exceptions.ApplicationException;
 import org.commonprovenance.framework.store.exceptions.InvalidValueException;
 import org.commonprovenance.framework.store.model.Document;
+import org.commonprovenance.framework.store.model.MetaDocument;
 import org.commonprovenance.framework.store.model.Token;
 
 import io.vavr.control.Either;
@@ -26,6 +27,22 @@ public class DocumentResponseFactory {
         .map(jwt -> DocumentResponseFactory.build(
             document.getGraph(),
             jwt));
+  }
+
+  public static Either<ApplicationException, DocumentResponseDTO> buildSafe(MetaDocument metaDocument) {
+    return Either.<ApplicationException, MetaDocument> right(metaDocument)
+        .flatMap(EITHER.makeSureNotNull(_ -> new InvalidValueException("Can not build Document response, because document is null!")))
+        .flatMap(meta -> EITHER.<String, String, DocumentResponseDTO> combine(
+            Either.<ApplicationException, MetaDocument> right(meta)
+                .flatMap(MetaDocument::getB64Graph),
+            Either.<ApplicationException, MetaDocument> right(meta)
+                .flatMap(EITHER.<MetaDocument, Token> liftEitherOptional(
+                    MetaDocument::getToken,
+                    _ -> new InvalidValueException("Can not build Token response, because Token is missing in Document!")))
+                .map(Token::getJwt),
+            DocumentResponseFactory::build))
+        .map(x -> x);
+
   }
 
 }
