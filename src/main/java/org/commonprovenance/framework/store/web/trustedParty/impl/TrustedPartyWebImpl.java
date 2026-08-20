@@ -10,6 +10,7 @@ import org.commonprovenance.framework.store.exceptions.InternalApplicationExcept
 import org.commonprovenance.framework.store.exceptions.NotFoundException;
 import org.commonprovenance.framework.store.exceptions.factory.ApplicationExceptionFactory;
 import org.commonprovenance.framework.store.model.GraphType;
+import org.commonprovenance.framework.store.model.MetaDocument;
 import org.commonprovenance.framework.store.model.Organization;
 import org.commonprovenance.framework.store.model.Token;
 import org.commonprovenance.framework.store.model.TrustedParty;
@@ -89,6 +90,18 @@ public class TrustedPartyWebImpl implements TrustedPartyWeb {
             LOG_PREFIX + "Token has not been issued by TrustedParty at URL '" + getTrustedPartyUrl(organization) + "'!\n" + throwable.getMessage()))
         .onErrorMap(ApplicationExceptionFactory.handleThrowable(
             new InternalApplicationException("Token has not been issued by TrustedParty at URL '" + getTrustedPartyUrl(organization) + "'!")));
+  }
+
+  @Override
+  public Mono<Token> issueGraphToken(MetaDocument metaDocument) {
+    return Mono.justOrEmpty(metaDocument)
+        .flatMap(MONO.liftEffectToMono(IssueTokenFormFactory::buildSafe))
+        .flatMap(Optional.ofNullable(metaDocument.getTrustedParty(client.getDefaultTrustedPartyUrl()))
+            .flatMap(TrustedParty::getUrl)
+            .map(url -> url.startsWith("http") ? url : "http://" + url + "/api/v1/")
+            .map(this.client.sendCustomPostRequest("/issueToken", TokenResponseDTO.class))
+            .orElse(this.client.sendPostRequest("/issueToken", TokenResponseDTO.class)))
+        .flatMap(MONO.liftEffectToMono(TokenFactory::build));
   }
 
   @Override

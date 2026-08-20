@@ -4,6 +4,7 @@ import java.util.Optional;
 import java.util.function.Function;
 
 import org.commonprovenance.framework.store.model.GraphType;
+import org.commonprovenance.framework.store.model.MetaDocument;
 import org.commonprovenance.framework.store.model.Organization;
 import org.commonprovenance.framework.store.model.Token;
 import org.commonprovenance.framework.store.model.TrustedParty;
@@ -16,6 +17,8 @@ public interface TrustedPartyWeb {
   Function<Organization, Mono<Token>> issueGraphToken(String signature);
 
   Function<Organization, Mono<Token>> issueGraphToken(GraphType graphType);
+
+  Mono<Token> issueGraphToken(MetaDocument metaDocument);
 
   Function<Organization, Mono<Boolean>> verifySignature(String singature);
 }

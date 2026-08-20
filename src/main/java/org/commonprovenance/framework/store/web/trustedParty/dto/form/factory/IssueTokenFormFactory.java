@@ -7,7 +7,9 @@ import java.time.LocalDateTime;
 import org.commonprovenance.framework.store.exceptions.ApplicationException;
 import org.commonprovenance.framework.store.exceptions.InvalidValueException;
 import org.commonprovenance.framework.store.model.Document;
+import org.commonprovenance.framework.store.model.GraphFormat;
 import org.commonprovenance.framework.store.model.GraphType;
+import org.commonprovenance.framework.store.model.MetaDocument;
 import org.commonprovenance.framework.store.model.Organization;
 import org.commonprovenance.framework.store.web.trustedParty.dto.form.IssueTokenFormDTO;
 
@@ -22,6 +24,19 @@ public class IssueTokenFormFactory {
         signature,
         graphType,
         LocalDateTime.now().toString());
+  }
+
+  public static Either<ApplicationException, IssueTokenFormDTO> build(MetaDocument metaDocument) {
+    return EITHER.<String, String, IssueTokenFormDTO> combine(
+        metaDocument.getOrganizationIdentifier(),
+        metaDocument.getB64Graph(),
+        (organizationIdentifier, b64Graph) -> new IssueTokenFormDTO(
+            organizationIdentifier,
+            b64Graph,
+            GraphFormat.JSON,
+            null,
+            GraphType.META,
+            LocalDateTime.now().toString()));
   }
 
   public static Either<ApplicationException, IssueTokenFormDTO> buildSafe(Organization organization, String signature) {
@@ -41,6 +56,13 @@ public class IssueTokenFormFactory {
             Organization::getDocument,
             _ -> new InvalidValueException("Can not build IssueToken form, because Document is empty!")))
         .map(document -> IssueTokenFormFactory.build(organization, document, graphType, null))
+        .flatMap(EITHER::validateDTO);
+  }
+
+  public static Either<ApplicationException, IssueTokenFormDTO> buildSafe(MetaDocument metaDocument) {
+    return Either.<ApplicationException, MetaDocument> right(metaDocument)
+        .flatMap(EITHER.makeSureNotNull(_ -> new InvalidValueException("Can not build IssueToken form, because metaDocument is null!")))
+        .flatMap(IssueTokenFormFactory::build)
         .flatMap(EITHER::validateDTO);
   }
 }
