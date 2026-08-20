@@ -160,10 +160,13 @@ public class NodeToProvFactory {
       Namespace ns) {
 
     node.getCpm().entrySet().stream()
-        .forEach(entry -> element.getOther().add(((Other) NodeToProvFactory.provFactory.newAttribute(
+        .map(entry -> (NodeToProvFactory.provFactory.newAttribute(
             NodeToProvFactory.getCpmQN(entry.getKey(), ns),
             NodeToProvFactory.asPlainString(entry.getValue()),
-            NodeToProvFactory.provFactory.getName().XSD_STRING))));
+            NodeToProvFactory.provFactory.getName().XSD_STRING)))
+        .map(Other.class::cast)
+        .forEach(element.getOther()::add);
+
   }
 
   private static String asPlainString(Object value) {
