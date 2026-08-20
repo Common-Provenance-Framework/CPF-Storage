@@ -1,5 +1,6 @@
 package org.commonprovenance.framework.store.service.persistence;
 
+import org.commonprovenance.framework.store.model.MetaDocument;
 import org.commonprovenance.framework.store.model.Organization;
 
 import reactor.core.publisher.Mono;
@@ -14,5 +15,5 @@ public interface MetaProvenanceComponentService {
 
   Mono<Boolean> metaProvenanceComponentExists(String metaBundleIdentifier);
 
-  Mono<org.openprovenance.prov.model.Document> getMetaProvenanceComponent(String metaBundleIdentifier);
+  Mono<MetaDocument> getMetaProvenanceComponent(String metaBundleIdentifier);
 }
