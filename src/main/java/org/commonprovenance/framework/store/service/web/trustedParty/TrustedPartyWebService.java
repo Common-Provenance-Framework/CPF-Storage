@@ -3,6 +3,7 @@ package org.commonprovenance.framework.store.service.web.trustedParty;
 import java.util.Optional;
 import java.util.function.Function;
 
+import org.commonprovenance.framework.store.model.MetaDocument;
 import org.commonprovenance.framework.store.model.Organization;
 
 import reactor.core.publisher.Mono;
@@ -25,4 +26,6 @@ public interface TrustedPartyWebService {
   Mono<Organization> issueDomainSpecificGraphToken(Organization organization);
 
   Mono<Organization> issueBackboneGraphToken(Organization organization);
+
+  Mono<MetaDocument> issueMetaToken(MetaDocument metaDocument);
 }
