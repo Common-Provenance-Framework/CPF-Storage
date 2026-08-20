@@ -11,6 +11,7 @@ import org.commonprovenance.framework.store.exceptions.ConflictException;
 import org.commonprovenance.framework.store.exceptions.InvalidValueException;
 import org.commonprovenance.framework.store.exceptions.NotFoundException;
 import org.commonprovenance.framework.store.model.GraphType;
+import org.commonprovenance.framework.store.model.MetaDocument;
 import org.commonprovenance.framework.store.model.Organization;
 import org.commonprovenance.framework.store.model.TrustedParty;
 import org.commonprovenance.framework.store.service.web.trustedParty.TrustedPartyWebService;
@@ -117,6 +118,13 @@ public class TrustedPartyWebServiceImpl implements TrustedPartyWebService {
             token -> organization.getDocument().map(document -> document.withToken(token)),
             _ -> new InvalidValueException("Document has not been deserialized yet!")))
         .map(organization::withDocument);
+  }
+
+  @Override
+  public Mono<MetaDocument> issueMetaToken(MetaDocument metaDocument) {
+    return Mono.just(metaDocument)
+        .flatMap(this.trustedPartyWeb::issueGraphToken)
+        .map(metaDocument::withToken);
   }
 
 }
