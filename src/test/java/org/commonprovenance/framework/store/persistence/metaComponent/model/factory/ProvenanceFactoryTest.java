@@ -102,7 +102,7 @@ class ProvenanceFactoryTest {
     assertTrue(entity1.get().getOther().contains(provFactory.newOther(
         provFactory.newQualifiedName("http://purl.org/pav/", "version", "pav"),
         1,
-        provFactory.getName().XSD_INT)));
+        provFactory.getName().XSD_INTEGER)));
     assertEquals(0, entity1.get().getLabel().size());
     assertEquals(0, entity1.get().getLocation().size());
     assertNull(entity1.get().getValue());
@@ -139,6 +139,12 @@ class ProvenanceFactoryTest {
         .filter(a -> a.getId().getLocalPart().equals(ag1.getIdentifier()))
         .findFirst();
     assertTrue(agent1.isPresent());
+
+    Object value = agent1.get().getOther().getFirst().getValue();
+
+    assertInstanceOf(String.class, value);
+    assertEquals("trusted-party:8020", ((String) value));
+
     assertEquals(1, agent1.get().getType().size());
     assertTrue(agent1.get().getType().contains(provFactory.newType(
         provFactory.newQualifiedName(CpmNamespaceConstants.CPM_NS, "trustedParty", CpmNamespaceConstants.CPM_PREFIX),
@@ -369,6 +375,7 @@ class ProvenanceFactoryTest {
             assertEquals(CpmNamespaceConstants.CPM_NS, elementName.getNamespaceURI());
 
             QualifiedName attrType = assertInstanceOf(QualifiedName.class, other.getType());
+
             assertEquals(NamespacePrefixMapper.XSD_PREFIX, attrType.getPrefix());
             assertEquals(NamespacePrefixMapper.XSD_NS, attrType.getNamespaceURI());
             assertEquals("string", attrType.getLocalPart());
