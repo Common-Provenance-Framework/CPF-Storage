@@ -24,6 +24,7 @@ import org.openprovenance.prov.model.Bundle;
 import org.openprovenance.prov.model.Document;
 import org.openprovenance.prov.model.Element;
 import org.openprovenance.prov.model.Entity;
+import org.openprovenance.prov.model.LangString;
 import org.openprovenance.prov.model.QualifiedName;
 import org.openprovenance.prov.model.SpecializationOf;
 import org.openprovenance.prov.model.Statement;
@@ -32,10 +33,12 @@ import org.openprovenance.prov.model.WasAssociatedWith;
 import org.openprovenance.prov.model.WasAttributedTo;
 import org.openprovenance.prov.model.WasDerivedFrom;
 import org.openprovenance.prov.model.WasGeneratedBy;
+import org.openprovenance.prov.vanilla.ProvFactory;
 
 import reactor.core.publisher.Mono;
 
 public class ProvToNodeFactory {
+  private static final ProvFactory provFactory = new org.openprovenance.prov.vanilla.ProvFactory();
 
   public static EntityNode toEntity(Entity entity) {
     return new EntityNode(
@@ -195,20 +198,20 @@ public class ProvToNodeFactory {
   private static Map<String, Object> getCpmAttributes(Element element) {
     return element.getOther().stream()
         .filter(attr -> attr.getElementName().getPrefix().equals("cpm"))
-        .map(ProvToNodeFactory::cpmAttributeToMapEntry)
+        .map(ProvToNodeFactory::attributeToMapEntry)
         .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
   }
 
   private static Map<String, Object> getPavAttributes(Element element) {
     return element.getOther().stream()
         .filter(attr -> attr.getElementName().getPrefix().equals("pav"))
-        .map(ProvToNodeFactory::pavAttributeToMapEntry)
+        .map(ProvToNodeFactory::attributeToMapEntry)
         .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
   }
 
   private static String getType(Element element) {
     Map<String, List<Object>> types = element.getType().stream()
-        .map(ProvToNodeFactory::typeAttributeToMapEntry)
+        .map(ProvToNodeFactory::attributeToMapEntry)
         .collect(Collectors.groupingBy(
             Map.Entry::getKey,
             LinkedHashMap::new,
@@ -222,25 +225,37 @@ public class ProvToNodeFactory {
 
   }
 
-  private static Map.Entry<String, Object> cpmAttributeToMapEntry(Attribute attr) {
-    return Map.entry(
-        attr.getElementName().getLocalPart(),
-        attr.getConvertedValue().toString());
+  private static Map.Entry<String, Object> attributeToMapEntry(Attribute attr) {
+    String name = attr.getElementName().getLocalPart();
+    Object value = attr.getValue();
+
+    if (value instanceof LangString ls)
+      return Map.entry(name, ProvToNodeFactory.getLangStringValue(ls));
+    else if (value instanceof QualifiedName qn)
+      return Map.entry(name, ProvToNodeFactory.getQualifiedNameValue(qn));
+    else
+      return Map.entry(name, ProvToNodeFactory.getAttributeValue(attr));
   };
 
-  private static Map.Entry<String, Object> pavAttributeToMapEntry(Attribute attr) {
-    return Map.entry(
-        attr.getElementName().getLocalPart(),
-        Integer.parseInt(attr.getValue().toString()));
-  };
+  private static Object getLangStringValue(LangString ls) {
+    return ls.getValue() + (ls.getLang() == null ? "" : "@" + ls.getLang());
+  }
 
-  private static Map.Entry<String, Object> typeAttributeToMapEntry(Attribute attr) {
-    return Map.entry(
-        attr.getElementName().getLocalPart(),
-        ProvToNodeFactory.getQualifiedNameValue(((QualifiedName) attr.getValue())));
-  };
-
-  private static String getQualifiedNameValue(QualifiedName qn) {
+  private static Object getQualifiedNameValue(QualifiedName qn) {
     return qn.getPrefix() + ":" + qn.getLocalPart();
+  }
+
+  private static Object getAttributeValue(Attribute attr) {
+    if (attr.getType().equals(provFactory.getName().XSD_INT)
+        || attr.getType().equals(provFactory.getName().XSD_INTEGER))
+      return Integer.parseInt(attr.getValue().toString());
+    else if (attr.getType().equals(provFactory.getName().XSD_LONG))
+      return Long.parseLong(attr.getValue().toString());
+    else if (attr.getType().equals(provFactory.getName().XSD_BOOLEAN))
+      return Boolean.parseBoolean(attr.getValue().toString());
+    else if (attr.getType().equals(provFactory.getName().XSD_DOUBLE))
+      return Double.parseDouble(attr.getValue().toString());
+    else
+      return attr.getValue().toString();
   }
 }
