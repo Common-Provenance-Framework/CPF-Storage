@@ -23,7 +23,6 @@ import org.openprovenance.prov.model.Agent;
 import org.openprovenance.prov.model.Bundle;
 import org.openprovenance.prov.model.Document;
 import org.openprovenance.prov.model.Entity;
-import org.openprovenance.prov.model.LangString;
 import org.openprovenance.prov.model.NamespacePrefixMapper;
 import org.openprovenance.prov.model.ProvFactory;
 import org.openprovenance.prov.model.QualifiedName;
@@ -316,34 +315,29 @@ class ProvenanceFactoryTest {
             assertEquals(CpmNamespaceConstants.CPM_PREFIX, elementName.getPrefix());
             assertEquals(CpmNamespaceConstants.CPM_NS, elementName.getNamespaceURI());
 
-            QualifiedName attrType = assertInstanceOf(QualifiedName.class,
-                other.getType());
+            QualifiedName attrType = assertInstanceOf(QualifiedName.class, other.getType());
             assertEquals(NamespacePrefixMapper.XSD_PREFIX, attrType.getPrefix());
             assertEquals(NamespacePrefixMapper.XSD_NS, attrType.getNamespaceURI());
             assertEquals("string", attrType.getLocalPart());
 
-            LangString value = assertInstanceOf(LangString.class, other.getValue());
-            assertEquals("ORG1", value.getValue());
-            assertNull(value.getLang());
+            String value = assertInstanceOf(String.class, other.getValue());
+            assertEquals("ORG1", value);
           } else if (elementName.getLocalPart().equals("authorityId")) {
             assertEquals(CpmNamespaceConstants.CPM_PREFIX, elementName.getPrefix());
             assertEquals(CpmNamespaceConstants.CPM_NS, elementName.getNamespaceURI());
 
-            QualifiedName attrType = assertInstanceOf(QualifiedName.class,
-                other.getType());
+            QualifiedName attrType = assertInstanceOf(QualifiedName.class, other.getType());
             assertEquals(NamespacePrefixMapper.XSD_PREFIX, attrType.getPrefix());
             assertEquals(NamespacePrefixMapper.XSD_NS, attrType.getNamespaceURI());
             assertEquals("string", attrType.getLocalPart());
 
-            LangString value = assertInstanceOf(LangString.class, other.getValue());
-            assertEquals("Trusted_Party", value.getValue());
-            assertNull(value.getLang());
+            String value = assertInstanceOf(String.class, other.getValue());
+            assertEquals("Trusted_Party", value);
           } else if (elementName.getLocalPart().equals("tokenTimestamp")) {
             assertEquals(CpmNamespaceConstants.CPM_PREFIX, elementName.getPrefix());
             assertEquals(CpmNamespaceConstants.CPM_NS, elementName.getNamespaceURI());
 
-            QualifiedName attrType = assertInstanceOf(QualifiedName.class,
-                other.getType());
+            QualifiedName attrType = assertInstanceOf(QualifiedName.class, other.getType());
             assertEquals(NamespacePrefixMapper.XSD_PREFIX, attrType.getPrefix());
             assertEquals(NamespacePrefixMapper.XSD_NS, attrType.getNamespaceURI());
             assertEquals("int", attrType.getLocalPart());
@@ -354,8 +348,7 @@ class ProvenanceFactoryTest {
             assertEquals(CpmNamespaceConstants.CPM_PREFIX, elementName.getPrefix());
             assertEquals(CpmNamespaceConstants.CPM_NS, elementName.getNamespaceURI());
 
-            QualifiedName attrType = assertInstanceOf(QualifiedName.class,
-                other.getType());
+            QualifiedName attrType = assertInstanceOf(QualifiedName.class, other.getType());
             assertEquals(NamespacePrefixMapper.XSD_PREFIX, attrType.getPrefix());
             assertEquals(NamespacePrefixMapper.XSD_NS, attrType.getNamespaceURI());
             assertEquals("int", attrType.getLocalPart());
@@ -366,86 +359,70 @@ class ProvenanceFactoryTest {
             assertEquals(CpmNamespaceConstants.CPM_PREFIX, elementName.getPrefix());
             assertEquals(CpmNamespaceConstants.CPM_NS, elementName.getNamespaceURI());
 
-            QualifiedName attrType = assertInstanceOf(QualifiedName.class,
-                other.getType());
+            QualifiedName attrType = assertInstanceOf(QualifiedName.class, other.getType());
             assertEquals(NamespacePrefixMapper.XSD_PREFIX, attrType.getPrefix());
             assertEquals(NamespacePrefixMapper.XSD_NS, attrType.getNamespaceURI());
             assertEquals("string", attrType.getLocalPart());
 
-            LangString value = assertInstanceOf(LangString.class, other.getValue());
-            assertEquals("7c102e3408bedfcd572fa4576fcac02f30fe601ca215c02a0705723432023492",
-                value.getValue());
-            assertNull(value.getLang());
+            String value = assertInstanceOf(String.class, other.getValue());
+            assertEquals("7c102e3408bedfcd572fa4576fcac02f30fe601ca215c02a0705723432023492", value);
           } else if (elementName.getLocalPart().equals("bundle")) {
             assertEquals(CpmNamespaceConstants.CPM_PREFIX, elementName.getPrefix());
             assertEquals(CpmNamespaceConstants.CPM_NS, elementName.getNamespaceURI());
 
-            QualifiedName attrType = assertInstanceOf(QualifiedName.class,
-                other.getType());
+            QualifiedName attrType = assertInstanceOf(QualifiedName.class, other.getType());
             assertEquals(NamespacePrefixMapper.XSD_PREFIX, attrType.getPrefix());
             assertEquals(NamespacePrefixMapper.XSD_NS, attrType.getNamespaceURI());
             assertEquals("string", attrType.getLocalPart());
 
-            LangString value = assertInstanceOf(LangString.class, other.getValue());
-            assertEquals("http://prov-storage-1:8000/api/v1/organizations/ORG1/documents/SamplingBundle_V1",
-                value.getValue());
-            assertNull(value.getLang());
+            String value = assertInstanceOf(String.class, other.getValue());
+            assertEquals("http://prov-storage-1:8000/api/v1/organizations/ORG1/documents/SamplingBundle_V1", value);
           } else if (elementName.getLocalPart().equals("hashFunction")) {
             assertEquals(CpmNamespaceConstants.CPM_PREFIX, elementName.getPrefix());
             assertEquals(CpmNamespaceConstants.CPM_NS, elementName.getNamespaceURI());
 
-            QualifiedName attrType = assertInstanceOf(QualifiedName.class,
-                other.getType());
+            QualifiedName attrType = assertInstanceOf(QualifiedName.class, other.getType());
             assertEquals(NamespacePrefixMapper.XSD_PREFIX, attrType.getPrefix());
             assertEquals(NamespacePrefixMapper.XSD_NS, attrType.getNamespaceURI());
             assertEquals("string", attrType.getLocalPart());
 
-            LangString value = assertInstanceOf(LangString.class, other.getValue());
-            assertEquals("SHA256",
-                value.getValue());
-            assertNull(value.getLang());
+            String value = assertInstanceOf(String.class, other.getValue());
+            assertEquals("SHA256", value);
           } else if (elementName.getLocalPart().equals("trustedPartyUri")) {
             assertEquals(CpmNamespaceConstants.CPM_PREFIX, elementName.getPrefix());
             assertEquals(CpmNamespaceConstants.CPM_NS, elementName.getNamespaceURI());
 
-            QualifiedName attrType = assertInstanceOf(QualifiedName.class,
-                other.getType());
+            QualifiedName attrType = assertInstanceOf(QualifiedName.class, other.getType());
             assertEquals(NamespacePrefixMapper.XSD_PREFIX, attrType.getPrefix());
             assertEquals(NamespacePrefixMapper.XSD_NS, attrType.getNamespaceURI());
             assertEquals("string", attrType.getLocalPart());
 
-            LangString value = assertInstanceOf(LangString.class, other.getValue());
-            assertEquals("trusted-party:8020",
-                value.getValue());
-            assertNull(value.getLang());
+            String value = assertInstanceOf(String.class, other.getValue());
+            assertEquals("trusted-party:8020", value);
           } else if (elementName.getLocalPart().equals("trustedPartyCertificate")) {
             assertEquals(CpmNamespaceConstants.CPM_PREFIX, elementName.getPrefix());
             assertEquals(CpmNamespaceConstants.CPM_NS, elementName.getNamespaceURI());
 
-            QualifiedName attrType = assertInstanceOf(QualifiedName.class,
-                other.getType());
+            QualifiedName attrType = assertInstanceOf(QualifiedName.class, other.getType());
             assertEquals(NamespacePrefixMapper.XSD_PREFIX, attrType.getPrefix());
             assertEquals(NamespacePrefixMapper.XSD_NS, attrType.getNamespaceURI());
             assertEquals("string", attrType.getLocalPart());
 
-            LangString value = assertInstanceOf(LangString.class, other.getValue());
-            assertEquals(cert, value.getValue());
-            assertNull(value.getLang());
+            String value = assertInstanceOf(String.class, other.getValue());
+            assertEquals(cert, value);
           } else if (elementName.getLocalPart().equals("signature")) {
             assertEquals(CpmNamespaceConstants.CPM_PREFIX, elementName.getPrefix());
             assertEquals(CpmNamespaceConstants.CPM_NS, elementName.getNamespaceURI());
 
-            QualifiedName attrType = assertInstanceOf(QualifiedName.class,
-                other.getType());
+            QualifiedName attrType = assertInstanceOf(QualifiedName.class, other.getType());
             assertEquals(NamespacePrefixMapper.XSD_PREFIX, attrType.getPrefix());
             assertEquals(NamespacePrefixMapper.XSD_NS, attrType.getNamespaceURI());
             assertEquals("string", attrType.getLocalPart());
 
-            LangString value = assertInstanceOf(LangString.class, other.getValue());
+            String value = assertInstanceOf(String.class, other.getValue());
             assertEquals(
                 "MEYCIQCZGVGDTGLmSdp9IZcXfEbs/iJq2wKC11Oabtne8Yo4zQIhAI3rrCE8+++KDmJTg4Ol5QsPLZiVMunm1oFIGr4bb7S7",
-                value.getValue());
-            assertNull(value.getLang());
+                value);
           }
         });
 
