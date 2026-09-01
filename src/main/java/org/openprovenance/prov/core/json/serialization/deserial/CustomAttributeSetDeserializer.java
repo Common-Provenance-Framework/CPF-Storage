@@ -1,21 +1,18 @@
 package org.openprovenance.prov.core.json.serialization.deserial;
 
+import java.io.IOException;
+import java.util.HashSet;
+import java.util.Set;
+
+import org.openprovenance.prov.model.Attribute;
+import org.openprovenance.prov.vanilla.ProvFactory;
+
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
-import org.openprovenance.prov.vanilla.ProvFactory;
-import org.openprovenance.prov.model.Attribute;
-import org.openprovenance.prov.model.QualifiedName;
-
-import java.io.IOException;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Set;
-
-import static org.openprovenance.prov.core.json.serialization.deserial.CustomKeyDeserializer.PROV_ATTRIBUTE_CONTEXT_KEY;
 
 public class CustomAttributeSetDeserializer extends StdDeserializer<Set<Attribute>> {
 
@@ -30,35 +27,19 @@ public class CustomAttributeSetDeserializer extends StdDeserializer<Set<Attribut
 
     JsonNode node = jp.getCodec().readTree(jp);
 
-    QualifiedName context = (QualifiedName) deserializationContext.getAttribute(PROV_ATTRIBUTE_CONTEXT_KEY);
+    // QualifiedName context = (QualifiedName) deserializationContext.getAttribute(PROV_ATTRIBUTE_CONTEXT_KEY);
 
-    Iterator<JsonNode> elements = node.elements();
     Set<Attribute> set = new HashSet<>();
     // *
     // fixed issue attributes has to be array
     // *
     if (node.isArray()) {
-      // iterate only if node is array
-      while (elements.hasNext()) {
-        JsonNode next = elements.next();
-
-        Attribute attr;
-        if (next.isObject()) {
-          attr = new CustomAttributeDeserializerWithRootName().deserialize(context, next, deserializationContext);
-        } else {
-          attr = new CustomAttributeDeserializerWithRootName().deserialize(context, next.textValue(), deserializationContext);
-        }
-        set.add(attr);
-
+      for (JsonNode element : node) {
+        set.add(new CustomAttributeDeserializerWithRootName().deserialize(element, deserializationContext));
       }
-    } else if (node.isTextual()) {
-      // deserialize attribute if String as xsd:string
-      set.add(new CustomAttributeDeserializerWithRootName().deserialize(context, node.textValue(), deserializationContext));
-    } else if (node.isObject()) {
-      // deserialize attribute if Object as specific type
-      set.add(new CustomAttributeDeserializerWithRootName().deserialize(context, node, deserializationContext));
+    } else {
+      set.add(new CustomAttributeDeserializerWithRootName().deserialize(node, deserializationContext));
     }
-
     return set;
   }
 

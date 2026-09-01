@@ -59,17 +59,12 @@ public class ProvDocumentUtilsDeserializerTest {
         },
         "bundle": {
           "ex:bundleA": {
-            "prefix": {
-              "ex": "https://www.example.com/"
-            },
             "entity": {
               "entity1": {
-                "prov:value": [
-                  {
-                    "type": "xsd:int",
-                    "$": "42"
-                  }
-                ],
+                "prov:value": {
+                  "type": "xsd:int",
+                  "$": "42"
+                },
                 "ex:version": [
                   {
                     "type": "xsd:int",
@@ -97,15 +92,17 @@ public class ProvDocumentUtilsDeserializerTest {
                     "$": "Y29udGVudCBoZXJl"
                   }
                 ],
+                "ex:desc": {
+                  "$": "something",
+                  "lang": "en"
+                },
                 "prov:type": [
                   "Document"
                 ],
-                "prov:label": [
-                  {
-                    "$": "Entity Label",
-                    "lang": "en"
-                  }
-                ]
+                "prov:label": {
+                  "$": "Entity Label",
+                  "lang": "en"
+                }
               }
             },
             "activity": {
@@ -147,9 +144,7 @@ public class ProvDocumentUtilsDeserializerTest {
                 "prov:activity": "ex:activity1",
                 "prov:agent": "ex:agent1",
                 "prov:plan": "ex:rec-advance",
-                "prov:role": [
-                  "editor"
-                ]
+                "prov:role": "editor"
               }
             },
             "wasAttributedTo": {
@@ -257,34 +252,14 @@ public class ProvDocumentUtilsDeserializerTest {
   }
 
   @Test
-  @DisplayName("should have exat 2 namespaces - Bundle - Deserializer")
+  @DisplayName("should have exact 0 namespaces - Bundle - Deserializer")
   public void should_have_2_namespaces_bundle() {
     this.testInit();
 
     Bundle bundle = (Bundle) provDoc.getStatementOrBundle().getFirst();
     Map<String, String> bundleNsPrefixes = bundle.getNamespace().getPrefixes();
 
-    assertEquals(2, bundleNsPrefixes.size(), "should have exac two namespaces");
-
-    // extra blank namespace has been added by deserializer implicitly
-    assertTrue(
-        bundleNsPrefixes.containsKey("_"),
-        "should have namespace with prefix '_'");
-    assertEquals(
-        "https://openprovenance.org/blank#",
-        bundleNsPrefixes.get("_"),
-        "should have exact value");
-
-    // ex namespac has to by in bundle prefixes, otherwise bundle id will be parsed
-    // as 'ex:{{null}}bundleA'
-    // instead of 'ex:{{www.example.com/}}bundleA'
-    assertTrue(
-        bundleNsPrefixes.containsKey("ex"),
-        "should have namespace with prefix 'ex'");
-    assertEquals(
-        "https://www.example.com/",
-        bundleNsPrefixes.get("ex"),
-        "should have exact value");
+    assertEquals(0, bundleNsPrefixes.size(), "should have exac two namespaces");
   }
 
   @Test
@@ -348,9 +323,6 @@ public class ProvDocumentUtilsDeserializerTest {
     this.testInit();
     Bundle bundle = (Bundle) provDoc.getStatementOrBundle().getFirst();
 
-    // namespace '"ex": "https://www.example.com/"' has to be in bundle
-    // namespaces!!!
-    // otherwise bundle id will be deserialized as 'ex:{{null}}bundleA'
     assertEquals(provFactory.newQualifiedName(
         "https://www.example.com/", "bundleA", "ex"),
         bundle.getId(),
@@ -446,16 +418,11 @@ public class ProvDocumentUtilsDeserializerTest {
 
     Location location = entity.getLocation().getFirst();
 
-    assertInstanceOf(LangString.class, entity.getLocation().getFirst().getValue(),
+    assertInstanceOf(String.class, entity.getLocation().getFirst().getValue(),
         "should by LangString - value of Location");
 
-    LangString value = (LangString) location.getValue();
-
-    assertEquals("Entity Location", value.getValue(),
+    assertEquals("Entity Location", location.getValue(),
         "should have exact value");
-
-    assertNull(value.getLang(),
-        "should be null - lang has not been specified");
 
     assertNull(location.getConvertedValue(),
         "should be null - ???");
@@ -490,15 +457,11 @@ public class ProvDocumentUtilsDeserializerTest {
 
     Type type = entity.getType().getFirst();
 
-    assertInstanceOf(LangString.class, type.getValue(),
+    assertInstanceOf(String.class, type.getValue(),
         "should by LangString - value of Type");
 
-    LangString value = (LangString) type.getValue();
-    assertEquals("Document", value.getValue(),
+    assertEquals("Document", type.getValue(),
         "should have exact value");
-
-    assertNull(value.getLang(),
-        "should be null - lang has not been specified");
 
     assertNull(type.getConvertedValue(),
         "should be null - ???");
@@ -524,7 +487,7 @@ public class ProvDocumentUtilsDeserializerTest {
     Bundle bundle = (Bundle) provDoc.getStatementOrBundle().getFirst();
     Entity entity = this.provUtilities.getEntity(bundle).getFirst();
 
-    // Check value: '"prov:value": [{"$": "42","type": "xsd:int"}]'
+    // Check value: '"prov:value": {"$": "42","type": "xsd:int"}'
     assertInstanceOf(Value.class, entity.getValue(),
         "should by deserialized as Value");
 
@@ -554,14 +517,14 @@ public class ProvDocumentUtilsDeserializerTest {
   }
 
   @Test
-  @DisplayName("should have exat 4 attributes - Entity - Deserializer")
-  public void should_have_4_attributes_Entity() {
+  @DisplayName("should have exat 5 attributes - Entity - Deserializer")
+  public void should_have_5_attributes_Entity() {
     this.testInit();
 
     Bundle bundle = (Bundle) provDoc.getStatementOrBundle().getFirst();
     Entity entity = this.provUtilities.getEntity(bundle).getFirst();
 
-    assertEquals(4, entity.getOther().size(), "should have exact 4 Other attributes");
+    assertEquals(5, entity.getOther().size(), "should have exact 5 Other attributes");
   }
 
   @Test
@@ -739,6 +702,55 @@ public class ProvDocumentUtilsDeserializerTest {
         "should be string");
   }
 
+  @Test
+  @DisplayName("should have desc attribute - Entity - Deserializer")
+  public void should_have_desc_attribute_Entity() {
+    this.testInit();
+
+    Bundle bundle = (Bundle) provDoc.getStatementOrBundle().getFirst();
+    Entity entity = this.provUtilities.getEntity(bundle).getFirst();
+
+    // Check value:
+    // '"ex:desc": {"$": "something","lang": "en"}'
+
+    List<Other> contents = entity.getOther().stream()
+        .filter(
+            o -> o.getElementName()
+                .equals(this.provFactory.newQualifiedName("https://www.example.com/", "desc", "ex")))
+        .collect(Collectors.toList());
+
+    assertEquals(1, contents.size(),
+        "should have exact one value");
+
+    Other content = contents.getFirst();
+
+    assertInstanceOf(LangString.class, content.getValue(),
+        "should by LangString - value of content");
+
+    LangString valueOfContent = (LangString) content.getValue();
+
+    assertEquals("something", valueOfContent.getValue(),
+        "should have exact value");
+
+    assertEquals("en", valueOfContent.getLang(),
+        "should have exact lang code");
+
+    assertNull(content.getConvertedValue(),
+        "should be null - ???");
+
+    assertEquals(this.provFactory.newQualifiedName("https://www.example.com/", "desc", "ex"),
+        content.getElementName(),
+        "should be exact qualified name");
+
+    assertEquals(AttributeKind.OTHER,
+        content.getKind(),
+        "should have exact kind");
+
+    assertEquals(this.provFactory.newQualifiedName("http://www.w3.org/ns/prov#", "InternationalizedString", "xsd"),
+        content.getType(),
+        "should be string");
+  }
+
   // ---
 
   @Test
@@ -855,15 +867,11 @@ public class ProvDocumentUtilsDeserializerTest {
 
     Other host = hosts.getFirst();
 
-    assertInstanceOf(LangString.class, host.getValue(),
+    assertInstanceOf(String.class, host.getValue(),
         "should by String - value of version");
 
-    LangString valueOfHost = (LangString) host.getValue();
-
-    assertEquals("server.example.org", valueOfHost.getValue(),
+    assertEquals("server.example.org", host.getValue(),
         "should have exact value");
-    assertEquals(null, valueOfHost.getLang(),
-        "should not have lang");
 
     assertNull(host.getConvertedValue(),
         "should be null - ???");
@@ -1071,15 +1079,11 @@ public class ProvDocumentUtilsDeserializerTest {
 
     Other name = names.getFirst();
 
-    assertInstanceOf(LangString.class, name.getValue(),
+    assertInstanceOf(String.class, name.getValue(),
         "should by LangString - value of version");
 
-    LangString valueOfName = (LangString) name.getValue();
-
-    assertEquals("Alice", valueOfName.getValue(),
+    assertEquals("Alice", name.getValue(),
         "should have exact value");
-    assertEquals(null, valueOfName.getLang(),
-        "should not have lang value");
 
     assertNull(name.getConvertedValue(),
         "should be null - ???");
@@ -1221,14 +1225,11 @@ public class ProvDocumentUtilsDeserializerTest {
     // since the value is equal to "prov:Person" I expected QualifiedName
     // but is String
     assertInstanceOf(
-        LangString.class, role.getValue(),
+        String.class, role.getValue(),
         "should by LangString - value of Role");
 
-    LangString value = (LangString) role.getValue();
-    assertEquals("editor", value.getValue(),
+    assertEquals("editor", role.getValue(),
         "should have exact value");
-    assertNull(value.getLang(),
-        "should not have lang value");
 
     assertNull(role.getConvertedValue(),
         "should be null - ???");
