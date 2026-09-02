@@ -43,86 +43,64 @@ public class ProvDocumentUtilsSerializerTest {
         "bundle": {
           "ex:bundleA": {
             "prefix": {
+              "_": "https://openprovenance.org/blank#",
               "ex": "https://www.example.com/"
             },
             "entity": {
               "entity1": {
-                "prov:value": [
-                  {
-                    "type": "xsd:int",
-                    "$": "42"
-                  }
-                ],
-                "ex:version": [
-                  {
-                    "type": "xsd:int",
-                    "$": "2"
-                  }
-                ],
-                "ex:byteSize": [
-                  {
-                    "type": "xsd:positiveInteger",
-                    "$": "1034"
-                  }
-                ],
+                "prov:value": {
+                  "type": "xsd:int",
+                  "$": "42"
+                },
+                "ex:version": {
+                  "type": "xsd:int",
+                  "$": "2"
+                },
+                "ex:byteSize": {
+                  "type": "xsd:positiveInteger",
+                  "$": "1034"
+                },
                 "ex:compression": [
                   {
                     "type": "xsd:double",
                     "$": "0.825"
-                  }
+                  },
+                  5
                 ],
-                "prov:location": [
-                  "Entity Location"
-                ],
-                "ex:content": [
-                  {
-                    "type": "xsd:base64Binary",
-                    "$": "Y29udGVudCBoZXJl"
-                  }
-                ],
-                "prov:type": [
-                  "Document"
-                ],
-                "prov:label": [
-                  {
-                    "$": "Entity Label",
-                    "lang": "en"
-                  }
-                ]
+                "prov:location": "Entity Location",
+                "ex:content": {
+                  "type": "xsd:base64Binary",
+                  "$": "Y29udGVudCBoZXJl"
+                },
+                "prov:type": "Document",
+                "prov:label": {
+                  "$": "Entity Label",
+                  "lang": "en"
+                }
               }
             },
             "activity": {
               "ex:activity1": {
                 "prov:startTime": "2025-08-16T10:00:00.000Z",
                 "prov:endTime": "2025-08-16T11:00:00.000Z",
-                "ex:host": [
-                  "server.example.org"
-                ],
-                "prov:type": [
-                  {
-                    "type": "xsd:QName",
-                    "$": "ex:edit"
-                  }
-                ]
+                "ex:host": "server.example.org",
+                "prov:type": {
+                  "type": "xsd:QName",
+                  "$": "ex:edit"
+                }
               }
             },
             "agent": {
               "ex:agent1": {
-                "ex:employee": [
-                  {
-                    "type": "xsd:int",
-                    "$": "1234"
-                  }
-                ],
-                "ex:name": [
-                  "Alice"
-                ],
-                "prov:type": [
-                  {
-                    "type": "xsd:QName",
-                    "$": "prov:Person"
-                  }
-                ]
+                "ex:employee": {
+                  "type": "xsd:int",
+                  "$": "1234"
+                },
+                "ex:name": "Alice",
+                "prov:type": {
+                  "type": "xsd:QName",
+                  "$": "prov:Person"
+                }
               }
             },
             "wasAssociatedWith": {
@@ -130,9 +108,7 @@ public class ProvDocumentUtilsSerializerTest {
                 "prov:activity": "ex:activity1",
                 "prov:agent": "ex:agent1",
                 "prov:plan": "ex:rec-advance",
-                "prov:role": [
-                  "editor"
-                ]
+                "prov:role": "editor"
               }
             },
             "wasAttributedTo": {
@@ -150,8 +126,7 @@ public class ProvDocumentUtilsSerializerTest {
             }
           }
         }
-      }
-       """;
+      }       """;
 
   private Document getTestDocument() {
     Namespace nsDocument = provFactory.newNamespace();
@@ -162,6 +137,7 @@ public class ProvDocumentUtilsSerializerTest {
 
     Namespace nsBundle = provFactory.newNamespace();
     nsBundle.register("ex", "https://www.example.com/");
+    nsBundle.register("_", "https://openprovenance.org/blank#");
 
     QualifiedName entityId = provFactory.newQualifiedName(nsDocument.getDefaultNamespace(), "entity1", null);
     Entity entity = provFactory.newEntity(entityId);
@@ -187,6 +163,10 @@ public class ProvDocumentUtilsSerializerTest {
         this.provFactory.newQualifiedName("https://www.example.com/", "compression", "ex"),
         0.825,
         this.provFactory.getName().XSD_DOUBLE));
+    entity.getOther().add(this.provFactory.newOther(
+        this.provFactory.newQualifiedName("https://www.example.com/", "compression", "ex"),
+        5,
+        this.provFactory.getName().XSD_INTEGER));
     entity.getOther().add(this.provFactory.newOther(
         this.provFactory.newQualifiedName("https://www.example.com/", "content", "ex"),
         "Y29udGVudCBoZXJl",
