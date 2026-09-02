@@ -29,19 +29,25 @@ public class CustomTypedValueSerializer extends StdSerializer<TypedValue> implem
 
   @Override
   public void serialize(TypedValue attr, JsonGenerator jsonGenerator, SerializerProvider serializerProvider) throws IOException {
-    String s = null;
-    if ((attr.getValue() instanceof LangString) &&
-        ((LangString) attr.getValue()).getLang() == null &&
-        (QUALIFIED_NAME_XSD_STRING.equals(attr.getType()))) {
+    if ((attr.getValue() instanceof LangString)
+        && ((LangString) attr.getValue()).getLang() == null
+        && (QUALIFIED_NAME_XSD_STRING.equals(attr.getType())))
       jsonGenerator.writeString(((LangString) attr.getValue()).getValue().toString());
-    } else if ((attr.getValue() instanceof String) &&
-        (QUALIFIED_NAME_XSD_STRING.equals(attr.getType()))) {
-      throw new UnsupportedOperationException("should never be here");
-      // jsonGenerator.writeString((String)attr.getValue());
-    } else if (attr.getValue() instanceof LangString) {
+    else if (attr.getValue() instanceof LangString)
       jsonGenerator.writeObject(attr.getValue());
-      return;
-    } else {
+
+    else if (QUALIFIED_NAME_XSD_STRING.equals(attr.getType()))
+      jsonGenerator.writeString((String) attr.getValue());
+    else if (QUALIFIED_NAME_XSD_BOOLEAN.equals(attr.getType()))
+      jsonGenerator.writeBoolean(Boolean.valueOf(((String) attr.getValue())));
+    else if (QUALIFIED_NAME_XSD_INTEGER.equals(attr.getType()))
+      jsonGenerator.writeNumber(Integer.valueOf(((String) attr.getValue())));
+    // Maybe better to keep as typedLiteral
+    // else if (QUALIFIED_NAME_XSD_FLOAT.equals(attr.getType()))
+    // jsonGenerator.writeNumber(Float.valueOf(((String) attr.getValue())));
+    // else if (QUALIFIED_NAME_XSD_DOUBLE.equals(attr.getType()))
+    // jsonGenerator.writeNumber(Double.valueOf(((String) attr.getValue())));
+    else {
       jsonGenerator.writeStartObject();
       jsonGenerator.writeStringField(PROPERTY_AT_TYPE, prnt(attr.getType()));
       serializeValue(PROPERTY_AT_VALUE, attr.getValue(), jsonGenerator, serializerProvider);
@@ -50,20 +56,12 @@ public class CustomTypedValueSerializer extends StdSerializer<TypedValue> implem
   }
 
   private void serializeValue(String fieldName, Object value, JsonGenerator jsonGenerator, SerializerProvider serializerProvider) throws IOException {
-    if (value instanceof String) {
+    if (value instanceof String)
       jsonGenerator.writeStringField(fieldName, (String) value);
-      return;
-    }
-    if (value instanceof QualifiedName) {
+    else if (value instanceof QualifiedName)
       jsonGenerator.writeStringField(fieldName, prnt((QualifiedName) value));
-      return;
-    }
-    if (value instanceof LangString) {
-      jsonGenerator.writeFieldName(fieldName);
-      jsonGenerator.writeObject(value);
-      return;
-    }
-    throw new UnsupportedOperationException("unknown value type " + value);
+    else
+      throw new UnsupportedOperationException("unknown value type " + value);
   }
 
   private String prnt(QualifiedName qn) {
