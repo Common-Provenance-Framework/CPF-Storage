@@ -79,9 +79,6 @@ public final class ProvDocumentUtils {
     };
 
     return (String document) -> Either.<ApplicationException, String> right(document)
-        .flatMap(EITHER.makeSureBefore(
-            format == Formats.ProvFormat.JSON,
-            ProvJsonUtils.FUNCTIONAL.preprocessJsonForDeserialization))
         .flatMap(stringToProv.apply(format));
 
   }
