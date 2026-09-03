@@ -46,7 +46,11 @@ public interface JSON_SortedBundle {
   @JsonDeserialize(using = CustomNamespacePrefixDeserializer.class)
   Map<String, String> getPrefix();
 
-  @JsonProperty("@id")
+  // @JsonIgnore
+  // @JsonIgnore works
+  // But I would not choose that solution for a library change: it removes compatibility with existing documents containing @id. WRITE_ONLY gives standards/schema-compatible output
+  // while still accepting historical OpenProvenance output.
+  @JsonProperty(value = "@id", access = JsonProperty.Access.WRITE_ONLY)
   @JsonDeserialize(using = CustomDeferredQualifiedNameDeserializer.class)
   QualifiedName getId();
 
