@@ -56,10 +56,7 @@ public final class ProvDocumentUtils {
 
     return (Document document) -> Either.<ApplicationException, Formats.ProvFormat> right(format)
         .flatMap(ProvDocumentUtils::provFormatToIntermediaType)
-        .flatMap(provToString.apply(document))
-        .flatMap(EITHER.makeSureBefore(
-            format == Formats.ProvFormat.JSON,
-            ProvJsonUtils.FUNCTIONAL.postprocessJsonAfterSerialization));
+        .flatMap(provToString.apply(document));
 
   }
 
