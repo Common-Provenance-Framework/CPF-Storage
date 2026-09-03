@@ -6,6 +6,15 @@
   "additionalProperties": false,
   "required": ["bundle"],
   "properties": {
+    "prefix": {
+      "type": "object",
+      "patternProperties": {
+        "^[a-zA-Z0-9_\\-]+$": {
+          "type": "string",
+          "format": "uri"
+        }
+      }
+    },
     "bundle": {
       "type": "object",
       "minProperties": 1,
@@ -19,32 +28,6 @@
     "typedLiteral": {
       "title": "PROV-JSON Typed Literal",
       "type": "object",
-      "additionalProperties": false,
-      "required": [
-        "$"
-      ],
-      "oneOf": [
-        {
-          "required": [
-            "type"
-          ],
-          "not": {
-            "required": [
-              "lang"
-            ]
-          }
-        },
-        {
-          "required": [
-            "lang"
-          ],
-          "not": {
-            "required": [
-              "type"
-            ]
-          }
-        }
-      ],
       "properties": {
         "$": {
           "type": "string"
@@ -55,10 +38,20 @@
         "lang": {
           "type": "string"
         }
-      }
+      },
+      "required": [
+        "$"
+      ],
+      "additionalProperties": false
     },
     "stringLiteral": {
       "type": "string"
+    },
+    "numberLiteral": {
+      "type": "number"
+    },
+    "booleanLiteral": {
+      "type": "boolean"
     },
     "literalArray": {
       "type": "array",
@@ -69,6 +62,12 @@
             "$ref": "#/definitions/stringLiteral"
           },
           {
+            "$ref": "#/definitions/numberLiteral"
+          },
+          {
+            "$ref": "#/definitions/booleanLiteral"
+          },
+          {
             "$ref": "#/definitions/typedLiteral"
           }
         ]
@@ -76,6 +75,18 @@
     },
     "attributeValues": {
       "anyOf": [
+        {
+          "$ref": "#/definitions/stringLiteral"
+        },
+        {
+          "$ref": "#/definitions/numberLiteral"
+        },
+        {
+          "$ref": "#/definitions/booleanLiteral"
+        },
+        {
+          "$ref": "#/definitions/typedLiteral"
+        },
         {
           "$ref": "#/definitions/literalArray"
         }
