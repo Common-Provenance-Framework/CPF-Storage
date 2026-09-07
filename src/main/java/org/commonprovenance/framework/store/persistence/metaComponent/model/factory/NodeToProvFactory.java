@@ -85,7 +85,7 @@ public class NodeToProvFactory {
                       NodeToProvFactory.getStorageQN(wat.getAgent().getIdentifier(), provDocument.getNamespace())));
 
               Stream<Statement> wgbStream = entityNode.getWasGeneratedBy().stream()
-                  .map(wgb -> (Statement) provFactory.newWasAttributedTo(
+                  .map(wgb -> (Statement) provFactory.newWasGeneratedBy(
                       null,
                       NodeToProvFactory.getStorageQN(entityNode.getIdentifier(), provDocument.getNamespace()),
                       NodeToProvFactory.getStorageQN(wgb.getActivity().getIdentifier(), provDocument.getNamespace())));
