@@ -75,7 +75,7 @@ public class IsProvBase64JsonValidatorTest {
         .peek(violations -> assertEquals(1, violations.size(), "sould have exact one violation"))
         .map(violations -> violations.iterator().next())
         .peek(violation -> assertEquals(
-            "JSON validation error: string found, array expected; string found, array expected; string found, array expected; object found, array expected; object found, array expected; string found, array expected; string found, array expected; property '@id' is not defined in the schema and the schema does not allow additional properties",
+            "JSON validation error: property '@id' is not defined in the schema and the schema does not allow additional properties",
             violation.getMessage(),
             "should have correct violation message"));
   }
