@@ -23,7 +23,6 @@ import org.openprovenance.prov.model.Agent;
 import org.openprovenance.prov.model.Bundle;
 import org.openprovenance.prov.model.Document;
 import org.openprovenance.prov.model.Entity;
-import org.openprovenance.prov.model.NamespacePrefixMapper;
 import org.openprovenance.prov.model.ProvFactory;
 import org.openprovenance.prov.model.QualifiedName;
 import org.openprovenance.prov.model.SpecializationOf;
@@ -38,6 +37,7 @@ import cz.muni.fi.cpm.constants.CpmNamespaceConstants;
 
 class ProvenanceFactoryTest {
   private final ProvFactory provFactory = new org.openprovenance.prov.vanilla.ProvFactory();
+  private final String JWT = "eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NiIsInRydXN0ZWRQYXJ0eVVyaSI6ImxvY2FsaG9zdDo4MDIwIiwieDVjIjpbIk1JSUNNakNDQWRpZ0F3SUJBZ0lVU0xqNVk3UFhJUzEzcVBFUERkbElOQm5Rem9nd0NnWUlLb1pJemowRUF3SXdiVEVMTUFrR0ExVUVCaE1DUlZVeE9qQTRCZ05WQkFvTU1VUnBjM1J5YVdKMWRHVmtJRkJ5YjNabGJtRnVZMlVnUkdWdGJ5QkRaWEowYVdacFkyRjBaU0JCZFhSb2IzSnBkSGt4SWpBZ0JnTlZCQU1NR1VSUVJDQkRaWEowYVdacFkyRjBaU0JCZFhSb2IzSnBkSGt3SGhjTk1qUXhNVEUyTURJMU9UVXlXaGNOTXpReE1URTBNREkxT1RVeVdqQmRNUXN3Q1FZRFZRUUdFd0pEV2pFeU1EQUdBMVVFQ2d3cFJHbHpkSEpwWW5WMFpXUWdVSEp2ZG1WdVlXNWpaU0JFWlcxdklGUnlkWE4wWldRZ1VHRnlkSGt4R2pBWUJnTlZCQU1NRVVSUVJDQlVjblZ6ZEdWa0lGQmhjblI1TUZrd0V3WUhLb1pJemowQ0FRWUlLb1pJemowREFRY0RRZ0FFK1Y4a1Q0amt2RVdtWDMwMUtBUzlla2xtblJOaTZnVTkrS0h4dVFwa1NPaE1UcTk2Q0JYRnBmb2tSZDd0NVZkclJ5MHVxWnN5U05wNWtXMGhuUU1KV2FObU1HUXdFZ1lEVlIwVEFRSC9CQWd3QmdFQi93SUJBREFPQmdOVkhROEJBZjhFQkFNQ0FZWXdIUVlEVlIwT0JCWUVGTUNuUFJqaVhva1Q3cXV3WlJCMTZBQWd6N2JuTUI4R0ExVWRJd1FZTUJhQUZDeUVLd2kxanZkUHFmaVUrTmRIL252aDdQWVpNQW9HQ0NxR1NNNDlCQU1DQTBnQU1FVUNJUUN5WnJVU2hWcXJvaERxZHpkT0ZtQXlGRHB3TUFPOEk2amFodmcxRlJBWllnSWdWaDRTMnRRbjEyWFlkZDVJU3NDcEFCc2g2WnJqU2lWWXJ0MlQxTzFuUXN3PSJdfQ.eyJzdWIiOiJodHRwOi8vbG9jYWxob3N0OjgwODAvYXBpL3YxL2RvY3VtZW50cy9tZXRhLzM3MTU2OWVjLWY4NWMtNGNhNS04NmY1LWY2OGRiYTUzZDVkNyIsImhhc2hfYWxnIjoiU0hBMjU2IiwiZG9jX2RpZ2VzdCI6ImYzODA3MDBlM2EzN2ZlN2ZkNzNiYzg4YjllNjZhZmQ0OWM3NzYxNjkyYTkwZmM0NzdmYmQ0NzEzNWE1YTE1ZWIiLCJvcmdfaWQiOiI2ZmIyOTJhYS1lZTM4LTQ4YWUtOTk4Zi0wNzlhZDlkMDFlN2MiLCJpc3MiOiJUcnVzdGVkUGFydHkiLCJpYXQiOjE3ODg5NzI2MzUsImRvY19pYXQiOjE3ODg5NzI2MzV9.Gv9BtPBIMQmQ2kj17n_6Az-MGn8zCb6pMRibx5SlqTRBo99uwNOTZdzGuuXCA00xGP7M3Olhq7uIYJYgj-Cr7A";
 
   @Test
   void toProv_shouldCreateBundleWithNodesAndRelations() {
@@ -47,7 +47,7 @@ class ProvenanceFactoryTest {
     EntityNode e2 = new EntityNode(
         "e2",
         "cpm:token",
-        Map.of("originatorId", "ORG1", "authorityId", "Trusted_Party"),
+        Map.of("jwt", this.JWT),
         Map.of());
 
     AgentNode ag1 = new AgentNode(
@@ -116,14 +116,10 @@ class ProvenanceFactoryTest {
     assertTrue(entity2.get().getType().contains(provFactory.newType(
         provFactory.newQualifiedName(CpmNamespaceConstants.CPM_NS, "token", CpmNamespaceConstants.CPM_PREFIX),
         provFactory.getName().PROV_QUALIFIED_NAME)));
-    assertEquals(2, entity2.get().getOther().size());
+    assertEquals(1, entity2.get().getOther().size());
     assertTrue(entity2.get().getOther().contains(provFactory.newOther(
-        provFactory.newQualifiedName(CpmNamespaceConstants.CPM_NS, "originatorId", CpmNamespaceConstants.CPM_PREFIX),
-        "ORG1",
-        provFactory.getName().XSD_STRING)));
-    assertTrue(entity2.get().getOther().contains(provFactory.newOther(
-        provFactory.newQualifiedName(CpmNamespaceConstants.CPM_NS, "authorityId", CpmNamespaceConstants.CPM_PREFIX),
-        "Trusted_Party",
+        provFactory.newQualifiedName(CpmNamespaceConstants.CPM_NS, "jwt", CpmNamespaceConstants.CPM_PREFIX),
+        this.JWT,
         provFactory.getName().XSD_STRING)));
     assertEquals(0, entity2.get().getLabel().size());
     assertEquals(0, entity2.get().getLocation().size());
@@ -239,9 +235,14 @@ class ProvenanceFactoryTest {
     EntityNode e2 = new EntityNode("e2", "prov:Bundle", Map.of(), Map.of());
     EntityNode e1 = new EntityNode("e1", "prov:Bundle", Map.of(), Map.of("version", 1))
         .withRevisionOfEntity(e2);
+    EntityNode e3 = new EntityNode(
+        "e3",
+        "cpm:token",
+        Map.of("jwt", this.JWT),
+        Map.of());
 
     BundleNode bundleNode = new BundleNode("bundle-1")
-        .withEntities(List.of(e1, e2));
+        .withEntities(List.of(e1, e2, e3));
 
     Document document = NodeToProvFactory.bundleToProv(config).apply(bundleNode).block();
     assertNotNull(document);
@@ -261,187 +262,6 @@ class ProvenanceFactoryTest {
         .anyMatch(qn -> qn.equals(new org.openprovenance.prov.vanilla.ProvFactory().getName().PROV_REVISION));
 
     assertTrue(hasProvRevisionType);
-  }
-
-  @Test
-  void toProv_shouldParseProvidedCpmAttributesJsonCorrectly() {
-    AppConfiguration config = mock(AppConfiguration.class);
-    when(config.getFqdn()).thenReturn("http://localhost:8080/api/v1/");
-
-    String cert = """
-        -----BEGIN CERTIFICATE-----
-        MIICMjCCAdigAwIBAgIUSLj5Y7PXIS13qPEPDdlINBnQzogwCgYIKoZIzj0EAwIw
-        bTELMAkGA1UEBhMCRVUxOjA4BgNVBAoMMURpc3RyaWJ1dGVkIFByb3ZlbmFuY2Ug
-        RGVtbyBDZXJ0aWZpY2F0ZSBBdXRob3JpdHkxIjAgBgNVBAMMGURQRCBDZXJ0aWZp
-        Y2F0ZSBBdXRob3JpdHkwHhcNMjQxMTE2MDI1OTUyWhcNMzQxMTE0MDI1OTUyWjBd
-        MQswCQYDVQQGEwJDWjEyMDAGA1UECgwpRGlzdHJpYnV0ZWQgUHJvdmVuYW5jZSBE
-        ZW1vIFRydXN0ZWQgUGFydHkxGjAYBgNVBAMMEURQRCBUcnVzdGVkIFBhcnR5MFkw
-        EwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE+V8kT4jkvEWmX301KAS9eklmnRNi6gU9
-        +KHxuQpkSOhMTq96CBXFpfokRd7t5VdrRy0uqZsySNp5kW0hnQMJWaNmMGQwEgYD
-        VR0TAQH/BAgwBgEB/wIBADAOBgNVHQ8BAf8EBAMCAYYwHQYDVR0OBBYEFMCnPRji
-        XokT7quwZRB16AAgz7bnMB8GA1UdIwQYMBaAFCyEKwi1jvdPqfiU+NdH/nvh7PYZ
-        MAoGCCqGSM49BAMCA0gAMEUCIQCyZrUShVqrohDqdzdOFmAyFDpwMAO8I6jahvg1
-        FRAZYgIgVh4S2tQn12XYdd5ISsCpABsh6ZrjSiVYrt2T1O1nQsw=
-        -----END CERTIFICATE-----
-          """;
-
-    EntityNode entityNode = new EntityNode(
-        "entity-1",
-        "cpm:token",
-        Map.of(
-            "originatorId", "ORG1",
-            "authorityId", "Trusted_Party",
-            "documentDigest", "7c102e3408bedfcd572fa4576fcac02f30fe601ca215c02a0705723432023492",
-            "bundle", "http://prov-storage-1:8000/api/v1/organizations/ORG1/documents/SamplingBundle_V1",
-            "hashFunction", "SHA256",
-            "trustedPartyUri", "trusted-party:8020",
-            "trustedPartyCertificate", cert,
-            "signature",
-            "MEYCIQCZGVGDTGLmSdp9IZcXfEbs/iJq2wKC11Oabtne8Yo4zQIhAI3rrCE8+++KDmJTg4Ol5QsPLZiVMunm1oFIGr4bb7S7"),
-        Map.of()
-
-    );
-    BundleNode bundleNode = new BundleNode("bundle-1")
-        .withEntities(List.of(entityNode));
-
-    Document document = NodeToProvFactory.bundleToProv(config).apply(bundleNode).block();
-    assertNotNull(document);
-
-    Bundle bundle = assertInstanceOf(Bundle.class,
-        document.getStatementOrBundle().getFirst());
-    org.openprovenance.prov.model.Entity entity = bundle.getStatement().stream()
-        .filter(org.openprovenance.prov.model.Entity.class::isInstance)
-        .map(org.openprovenance.prov.model.Entity.class::cast)
-        .findFirst()
-        .orElseThrow();
-
-    // Check Type
-    assertEquals(1, entity.getType().size());
-    QualifiedName type = assertInstanceOf(QualifiedName.class,
-        entity.getType().getFirst().getValue());
-    assertEquals(CpmNamespaceConstants.CPM_PREFIX, type.getPrefix());
-    assertEquals("token", type.getLocalPart());
-    assertEquals(CpmNamespaceConstants.CPM_NS, type.getNamespaceURI());
-
-    entity.getOther().stream()
-        .forEach(other -> {
-          QualifiedName elementName = other.getElementName();
-          if (elementName.getLocalPart().equals("originatorId")) {
-            assertEquals(CpmNamespaceConstants.CPM_PREFIX, elementName.getPrefix());
-            assertEquals(CpmNamespaceConstants.CPM_NS, elementName.getNamespaceURI());
-
-            QualifiedName attrType = assertInstanceOf(QualifiedName.class, other.getType());
-            assertEquals(NamespacePrefixMapper.XSD_PREFIX, attrType.getPrefix());
-            assertEquals(NamespacePrefixMapper.XSD_NS, attrType.getNamespaceURI());
-            assertEquals("string", attrType.getLocalPart());
-
-            String value = assertInstanceOf(String.class, other.getValue());
-            assertEquals("ORG1", value);
-          } else if (elementName.getLocalPart().equals("authorityId")) {
-            assertEquals(CpmNamespaceConstants.CPM_PREFIX, elementName.getPrefix());
-            assertEquals(CpmNamespaceConstants.CPM_NS, elementName.getNamespaceURI());
-
-            QualifiedName attrType = assertInstanceOf(QualifiedName.class, other.getType());
-            assertEquals(NamespacePrefixMapper.XSD_PREFIX, attrType.getPrefix());
-            assertEquals(NamespacePrefixMapper.XSD_NS, attrType.getNamespaceURI());
-            assertEquals("string", attrType.getLocalPart());
-
-            String value = assertInstanceOf(String.class, other.getValue());
-            assertEquals("Trusted_Party", value);
-          } else if (elementName.getLocalPart().equals("tokenTimestamp")) {
-            assertEquals(CpmNamespaceConstants.CPM_PREFIX, elementName.getPrefix());
-            assertEquals(CpmNamespaceConstants.CPM_NS, elementName.getNamespaceURI());
-
-            QualifiedName attrType = assertInstanceOf(QualifiedName.class, other.getType());
-            assertEquals(NamespacePrefixMapper.XSD_PREFIX, attrType.getPrefix());
-            assertEquals(NamespacePrefixMapper.XSD_NS, attrType.getNamespaceURI());
-            assertEquals("int", attrType.getLocalPart());
-
-            String value = assertInstanceOf(String.class, other.getValue());
-            assertEquals("1771176308", value);
-          } else if (elementName.getLocalPart().equals("documentCreationTimestamp")) {
-            assertEquals(CpmNamespaceConstants.CPM_PREFIX, elementName.getPrefix());
-            assertEquals(CpmNamespaceConstants.CPM_NS, elementName.getNamespaceURI());
-
-            QualifiedName attrType = assertInstanceOf(QualifiedName.class, other.getType());
-            assertEquals(NamespacePrefixMapper.XSD_PREFIX, attrType.getPrefix());
-            assertEquals(NamespacePrefixMapper.XSD_NS, attrType.getNamespaceURI());
-            assertEquals("int", attrType.getLocalPart());
-
-            String value = assertInstanceOf(String.class, other.getValue());
-            assertEquals("1771176307", value);
-          } else if (elementName.getLocalPart().equals("documentDigest")) {
-            assertEquals(CpmNamespaceConstants.CPM_PREFIX, elementName.getPrefix());
-            assertEquals(CpmNamespaceConstants.CPM_NS, elementName.getNamespaceURI());
-
-            QualifiedName attrType = assertInstanceOf(QualifiedName.class, other.getType());
-
-            assertEquals(NamespacePrefixMapper.XSD_PREFIX, attrType.getPrefix());
-            assertEquals(NamespacePrefixMapper.XSD_NS, attrType.getNamespaceURI());
-            assertEquals("string", attrType.getLocalPart());
-
-            String value = assertInstanceOf(String.class, other.getValue());
-            assertEquals("7c102e3408bedfcd572fa4576fcac02f30fe601ca215c02a0705723432023492", value);
-          } else if (elementName.getLocalPart().equals("bundle")) {
-            assertEquals(CpmNamespaceConstants.CPM_PREFIX, elementName.getPrefix());
-            assertEquals(CpmNamespaceConstants.CPM_NS, elementName.getNamespaceURI());
-
-            QualifiedName attrType = assertInstanceOf(QualifiedName.class, other.getType());
-            assertEquals(NamespacePrefixMapper.XSD_PREFIX, attrType.getPrefix());
-            assertEquals(NamespacePrefixMapper.XSD_NS, attrType.getNamespaceURI());
-            assertEquals("string", attrType.getLocalPart());
-
-            String value = assertInstanceOf(String.class, other.getValue());
-            assertEquals("http://prov-storage-1:8000/api/v1/organizations/ORG1/documents/SamplingBundle_V1", value);
-          } else if (elementName.getLocalPart().equals("hashFunction")) {
-            assertEquals(CpmNamespaceConstants.CPM_PREFIX, elementName.getPrefix());
-            assertEquals(CpmNamespaceConstants.CPM_NS, elementName.getNamespaceURI());
-
-            QualifiedName attrType = assertInstanceOf(QualifiedName.class, other.getType());
-            assertEquals(NamespacePrefixMapper.XSD_PREFIX, attrType.getPrefix());
-            assertEquals(NamespacePrefixMapper.XSD_NS, attrType.getNamespaceURI());
-            assertEquals("string", attrType.getLocalPart());
-
-            String value = assertInstanceOf(String.class, other.getValue());
-            assertEquals("SHA256", value);
-          } else if (elementName.getLocalPart().equals("trustedPartyUri")) {
-            assertEquals(CpmNamespaceConstants.CPM_PREFIX, elementName.getPrefix());
-            assertEquals(CpmNamespaceConstants.CPM_NS, elementName.getNamespaceURI());
-
-            QualifiedName attrType = assertInstanceOf(QualifiedName.class, other.getType());
-            assertEquals(NamespacePrefixMapper.XSD_PREFIX, attrType.getPrefix());
-            assertEquals(NamespacePrefixMapper.XSD_NS, attrType.getNamespaceURI());
-            assertEquals("string", attrType.getLocalPart());
-
-            String value = assertInstanceOf(String.class, other.getValue());
-            assertEquals("trusted-party:8020", value);
-          } else if (elementName.getLocalPart().equals("trustedPartyCertificate")) {
-            assertEquals(CpmNamespaceConstants.CPM_PREFIX, elementName.getPrefix());
-            assertEquals(CpmNamespaceConstants.CPM_NS, elementName.getNamespaceURI());
-
-            QualifiedName attrType = assertInstanceOf(QualifiedName.class, other.getType());
-            assertEquals(NamespacePrefixMapper.XSD_PREFIX, attrType.getPrefix());
-            assertEquals(NamespacePrefixMapper.XSD_NS, attrType.getNamespaceURI());
-            assertEquals("string", attrType.getLocalPart());
-
-            String value = assertInstanceOf(String.class, other.getValue());
-            assertEquals(cert, value);
-          } else if (elementName.getLocalPart().equals("signature")) {
-            assertEquals(CpmNamespaceConstants.CPM_PREFIX, elementName.getPrefix());
-            assertEquals(CpmNamespaceConstants.CPM_NS, elementName.getNamespaceURI());
-
-            QualifiedName attrType = assertInstanceOf(QualifiedName.class, other.getType());
-            assertEquals(NamespacePrefixMapper.XSD_PREFIX, attrType.getPrefix());
-            assertEquals(NamespacePrefixMapper.XSD_NS, attrType.getNamespaceURI());
-            assertEquals("string", attrType.getLocalPart());
-
-            String value = assertInstanceOf(String.class, other.getValue());
-            assertEquals(
-                "MEYCIQCZGVGDTGLmSdp9IZcXfEbs/iJq2wKC11Oabtne8Yo4zQIhAI3rrCE8+++KDmJTg4Ol5QsPLZiVMunm1oFIGr4bb7S7",
-                value);
-          }
-        });
-
   }
 
 }
