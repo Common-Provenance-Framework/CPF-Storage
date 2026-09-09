@@ -4,12 +4,13 @@ import static org.commonprovenance.framework.store.common.composition.Reactor.MO
 
 import org.commonprovenance.framework.store.common.utils.ProvDocumentUtils;
 import org.commonprovenance.framework.store.config.AppConfiguration;
-import org.commonprovenance.framework.store.exceptions.ConflictException;
 import org.commonprovenance.framework.store.exceptions.InternalApplicationException;
 import org.commonprovenance.framework.store.exceptions.InvalidValueException;
 import org.commonprovenance.framework.store.exceptions.factory.ApplicationExceptionFactory;
 import org.commonprovenance.framework.store.model.Document;
+import org.commonprovenance.framework.store.model.MetaDocument;
 import org.commonprovenance.framework.store.model.Organization;
+import org.commonprovenance.framework.store.model.factory.MetaDocumentFactory;
 import org.commonprovenance.framework.store.persistence.metaComponent.EntityRepository;
 import org.commonprovenance.framework.store.persistence.metaComponent.MetaBundleRepository;
 import org.commonprovenance.framework.store.persistence.metaComponent.model.factory.NodeToProvFactory;
@@ -117,11 +118,12 @@ public class MetaProvenanceComponentServiceImpl implements MetaProvenanceCompone
   }
 
   @Override
-  public Mono<org.openprovenance.prov.model.Document> getMetaProvenanceComponent(String metaBundleIdentifier) {
+  public Mono<MetaDocument> getMetaProvenanceComponent(String metaBundleIdentifier) {
     return Mono.just(metaBundleIdentifier)
         .flatMap(MONO.makeSureNotNullWithMessage("Meta provenance component identifier can not be null!"))
         .flatMap(metaBundleRepository::findByIdentifier)
-        .flatMap(NodeToProvFactory.bundleToProv(configuration));
+        .flatMap(NodeToProvFactory.bundleToProv(configuration))
+        .map(MetaDocumentFactory::build);
   }
 
 }

@@ -150,7 +150,7 @@ public interface HasJwtToken<T extends HasJwtToken<T>> {
         .map(Object::toString);
   }
 
-  default Either<ApplicationException, List<String>> getCertChain() {
+  default Either<ApplicationException, List<String>> getCertChainPem() {
     Function<String, String> base64ToPem = (String base64Der) -> {
       String body = base64Der.replaceAll("\\s+", "");
       String wrapped = body.replaceAll("(.{64})", "$1\n");
@@ -161,7 +161,13 @@ public interface HasJwtToken<T extends HasJwtToken<T>> {
           + wrapped
           + "-----END CERTIFICATE-----\n";
     };
+    return getCertChain()
+        .map(chain -> chain.stream()
+            .map(base64ToPem)
+            .collect(Collectors.toList()));
+  }
 
+  default Either<ApplicationException, List<String>> getCertChain() {
     return parseJwt()
         .map(SignedJWT::getHeader)
         .map(JWSHeader::getX509CertChain)
@@ -169,7 +175,6 @@ public interface HasJwtToken<T extends HasJwtToken<T>> {
         .map(chain -> chain.stream()
             .map(Base64::decode)
             .map(java.util.Base64.getEncoder()::encodeToString)
-            .map(base64ToPem)
             .collect(Collectors.toList()));
   }
 
