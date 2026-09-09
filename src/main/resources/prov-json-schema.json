@@ -4,7 +4,9 @@
   "description": "Schema for a PROV-JSON document",
   "type": "object",
   "additionalProperties": false,
-  "required": ["bundle"],
+  "required": [
+    "bundle"
+  ],
   "properties": {
     "prefix": {
       "type": "object",
@@ -365,7 +367,23 @@
           "type": "string"
         },
         "prov:entity": {
-          "type": "string"
+          "anyOf": [
+            {
+              "$ref": "#/definitions/stringLiteral"
+            },
+            {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 1,
+              "items": {
+                "anyOf": [
+                  {
+                    "$ref": "#/definitions/stringLiteral"
+                  }
+                ]
+              }
+            }
+          ]
         }
       },
       "required": [
