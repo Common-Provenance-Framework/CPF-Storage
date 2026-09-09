@@ -37,13 +37,10 @@ public class NodeToProvFactory {
       provDocument.getNamespace().register(CpmNamespaceConstants.CPM_PREFIX, CpmNamespaceConstants.CPM_NS);
       provDocument.getNamespace().register("pav", "http://purl.org/pav/");
       provDocument.getNamespace().register("meta", config.getFqdn() + "documents/meta/");
-      provDocument.getNamespace().register("storage", config.getFqdn() + "documents/");
 
-      QualifiedName bundleId = NodeToProvFactory.provFactory.newQualifiedName(
-          provDocument.getNamespace().getPrefixes().get("meta"),
+      QualifiedName bundleId = NodeToProvFactory.getMetaQN(
           node.getIdentifier(),
-          "meta");
-
+          provDocument.getNamespace());
       Stream<Statement> provNodeStatements = node.getAllNodes().stream()
           .map(NodeToProvFactory.toProvenance(provDocument.getNamespace()));
 
@@ -52,20 +49,20 @@ public class NodeToProvFactory {
             if (n instanceof ActivityNode activityNode) {
               Stream<Statement> usedStream = activityNode.getUsed().stream()
                   .map(used -> (Statement) provFactory.newUsed(
-                      NodeToProvFactory.getStorageQN(activityNode.getIdentifier(), provDocument.getNamespace()),
-                      NodeToProvFactory.getStorageQN(used.getEntity().getIdentifier(), provDocument.getNamespace())));
+                      NodeToProvFactory.getMetaQN(activityNode.getIdentifier(), provDocument.getNamespace()),
+                      NodeToProvFactory.getMetaQN(used.getEntity().getIdentifier(), provDocument.getNamespace())));
 
               Stream<Statement> wasAssociatedWithStream = activityNode.getWasAssociatedWith().stream()
                   .map(waw -> (Statement) provFactory.newWasAssociatedWith(
                       null,
-                      NodeToProvFactory.getStorageQN(activityNode.getIdentifier(), provDocument.getNamespace()),
-                      NodeToProvFactory.getStorageQN(waw.getAgent().getIdentifier(), provDocument.getNamespace())));
+                      NodeToProvFactory.getMetaQN(activityNode.getIdentifier(), provDocument.getNamespace()),
+                      NodeToProvFactory.getMetaQN(waw.getAgent().getIdentifier(), provDocument.getNamespace())));
               return Stream.concat(usedStream, wasAssociatedWithStream);
             } else if (n instanceof EntityNode entityNode) {
               Stream<Statement> wdfStream = entityNode.getRevisionOf().stream()
                   .map(rev -> provFactory.newWasDerivedFrom(
-                      NodeToProvFactory.getStorageQN(entityNode.getIdentifier(), provDocument.getNamespace()),
-                      NodeToProvFactory.getStorageQN(rev.getEntity().getIdentifier(), provDocument.getNamespace())))
+                      NodeToProvFactory.getMetaQN(entityNode.getIdentifier(), provDocument.getNamespace()),
+                      NodeToProvFactory.getMetaQN(rev.getEntity().getIdentifier(), provDocument.getNamespace())))
                   .map(wdf -> {
                     wdf.getType().add(provFactory.newType(
                         provFactory.getName().PROV_REVISION,
@@ -75,20 +72,20 @@ public class NodeToProvFactory {
 
               Stream<Statement> soStream = entityNode.getSpecializationOf().stream()
                   .map(so -> (Statement) provFactory.newSpecializationOf(
-                      NodeToProvFactory.getStorageQN(entityNode.getIdentifier(), provDocument.getNamespace()),
-                      NodeToProvFactory.getStorageQN(so.getEntity().getIdentifier(), provDocument.getNamespace())));
+                      NodeToProvFactory.getMetaQN(entityNode.getIdentifier(), provDocument.getNamespace()),
+                      NodeToProvFactory.getMetaQN(so.getEntity().getIdentifier(), provDocument.getNamespace())));
 
               Stream<Statement> watStream = entityNode.getWasAttributedTo().stream()
                   .map(wat -> (Statement) provFactory.newWasAttributedTo(
                       null,
-                      NodeToProvFactory.getStorageQN(entityNode.getIdentifier(), provDocument.getNamespace()),
-                      NodeToProvFactory.getStorageQN(wat.getAgent().getIdentifier(), provDocument.getNamespace())));
+                      NodeToProvFactory.getMetaQN(entityNode.getIdentifier(), provDocument.getNamespace()),
+                      NodeToProvFactory.getMetaQN(wat.getAgent().getIdentifier(), provDocument.getNamespace())));
 
               Stream<Statement> wgbStream = entityNode.getWasGeneratedBy().stream()
                   .map(wgb -> (Statement) provFactory.newWasGeneratedBy(
                       null,
-                      NodeToProvFactory.getStorageQN(entityNode.getIdentifier(), provDocument.getNamespace()),
-                      NodeToProvFactory.getStorageQN(wgb.getActivity().getIdentifier(), provDocument.getNamespace())));
+                      NodeToProvFactory.getMetaQN(entityNode.getIdentifier(), provDocument.getNamespace()),
+                      NodeToProvFactory.getMetaQN(wgb.getActivity().getIdentifier(), provDocument.getNamespace())));
 
               return Stream.of(wdfStream, soStream, watStream, wgbStream)
                   .flatMap(Function.identity());
@@ -107,7 +104,7 @@ public class NodeToProvFactory {
 
   private static Function<BaseProvClassNode, Statement> toProvenance(Namespace ns) {
     return (BaseProvClassNode node) -> {
-      QualifiedName elementIdentifier = NodeToProvFactory.getStorageQN(node.getIdentifier(), ns);
+      QualifiedName elementIdentifier = NodeToProvFactory.getMetaQN(node.getIdentifier(), ns);
 
       Element element;
       if (node instanceof EntityNode e) {
@@ -133,11 +130,11 @@ public class NodeToProvFactory {
     };
   }
 
-  private static QualifiedName getStorageQN(String localPart, Namespace ns) {
+  private static QualifiedName getMetaQN(String localPart, Namespace ns) {
     return NodeToProvFactory.provFactory.newQualifiedName(
-        ns.getPrefixes().get("storage"),
+        ns.getPrefixes().get("meta"),
         localPart,
-        "storage");
+        "meta");
   }
 
   private static QualifiedName getPavQN(String localPart, Namespace ns) {
@@ -160,10 +157,10 @@ public class NodeToProvFactory {
       Namespace ns) {
 
     node.getCpm().entrySet().stream()
-        .map(entry -> (NodeToProvFactory.provFactory.newAttribute(
+        .map(entry -> NodeToProvFactory.provFactory.newAttribute(
             NodeToProvFactory.getCpmQN(entry.getKey(), ns),
             NodeToProvFactory.asPlainString(entry.getValue()),
-            NodeToProvFactory.provFactory.getName().XSD_STRING)))
+            NodeToProvFactory.provFactory.getName().XSD_STRING))
         .map(Other.class::cast)
         .forEach(element.getOther()::add);
 
