@@ -76,7 +76,7 @@ services:
         restart: true
     environment:
       TP_ID: TrustedParty
-      TP_FQDN: trusted-party:8020
+      TP_FQDN: http://cpf-nro:8020/api/v1/
       TP_DB_URL: jdbc:postgresql://cpf-postgres:5432/nrodb
       TP_DB_USER: postgres
       TP_DB_PASSWORD: postgres
