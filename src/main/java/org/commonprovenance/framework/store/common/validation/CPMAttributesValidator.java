@@ -48,9 +48,7 @@ public final class CPMAttributesValidator {
 
   private static Boolean isValidForwardConnector(HasOther connector) {
     return (connector instanceof Entity entity)
-        && CpmUtilities.hasCpmType(entity, CpmType.FORWARD_CONNECTOR)
-        && entity.getOther().isEmpty();
-
+        && CpmUtilities.hasCpmType(entity, CpmType.FORWARD_CONNECTOR);
   }
 
   private static Function1<Organization, Either<ApplicationException, Void>> checkBundleId(AppConfiguration configuration) {
