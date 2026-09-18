@@ -12,17 +12,17 @@ COPY src/ src/
 
 RUN chmod +x mvnw
 RUN ./mvnw -B org.apache.maven.plugins:maven-install-plugin:3.1.4:install-file \
-    -Dfile=src/main/resources/CPF-Toolbox/cpm-core-2.4.0.jar \
+    -Dfile=src/main/resources/CPF-Toolbox/cpm-core-2.5.0.jar \
     -DgroupId=cz.muni.fi.cpm \
     -DartifactId=cpm-core \
-    -Dversion=2.4.0 \
+    -Dversion=2.5.0 \
     -Dpackaging=jar \
     -DgeneratePom=true
 RUN ./mvnw -B org.apache.maven.plugins:maven-install-plugin:3.1.4:install-file \
-    -Dfile=src/main/resources/CPF-Toolbox/cpm-template-2.4.0.jar \
+    -Dfile=src/main/resources/CPF-Toolbox/cpm-template-2.5.0.jar \
     -DgroupId=cz.muni.fi.cpm \
     -DartifactId=cpm-template \
-    -Dversion=2.4.0 \
+    -Dversion=2.5.0 \
     -Dpackaging=jar \
     -DgeneratePom=true
 RUN ./mvnw -B package -DskipTests

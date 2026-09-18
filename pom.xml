@@ -21,7 +21,7 @@
     <java.version>25</java.version>
 
     <openprovenance.version>2.2.4</openprovenance.version>
-    <common.provenance.management.version>2.4.0</common.provenance.management.version>
+    <common.provenance.management.version>2.5.0</common.provenance.management.version>
     <bouncycastle.version>1.85.2</bouncycastle.version>
     <logstash.version>9.0</logstash.version>
     <json.schema.validator.version>3.0.7</json.schema.validator.version>
@@ -85,7 +85,7 @@
       <artifactId>cpm-core</artifactId>
       <version>${common.provenance.management.version}</version>
       <scope>system</scope>
-      <systemPath>${project.basedir}/src/main/resources/CPF-Toolbox/cpm-core-2.4.0.jar</systemPath>
+      <systemPath>${project.basedir}/src/main/resources/CPF-Toolbox/cpm-core-2.5.0.jar</systemPath>
     </dependency>
 
     <dependency>
@@ -93,7 +93,7 @@
       <artifactId>cpm-template</artifactId>
       <version>${common.provenance.management.version}</version>
       <scope>system</scope>
-      <systemPath>${project.basedir}/src/main/resources/CPF-Toolbox/cpm-template-2.4.0.jar</systemPath>
+      <systemPath>${project.basedir}/src/main/resources/CPF-Toolbox/cpm-template-2.5.0.jar</systemPath>
     </dependency>
 
     <!-- Open provenance -->
