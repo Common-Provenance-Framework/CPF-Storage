@@ -17,6 +17,7 @@ import org.commonprovenance.framework.store.model.factory.OrganizationFactory;
 import org.commonprovenance.framework.store.service.persistence.FinalizedProvComponentService;
 import org.commonprovenance.framework.store.service.web.trustedParty.TrustedPartyWebService;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import reactor.core.publisher.Mono;
 
@@ -34,9 +35,10 @@ public class OrganizationFacadeImpl implements OrganizationFacade {
     this.trustedPartyWebService = trustedPartyWebService;
   }
 
+  @Transactional
   @Override
   public Mono<OrganizationResponseDTO> register(OrganizationRegisterFormDTO body) {
-    return Mono.just(body)
+    return Mono.defer(() -> Mono.just(body)
         .delayUntil(MONO.makeSureNotNull(new BadRequestException("Request body can not be null or empty!")))
         .map(OrganizationFactory::build)
         .flatMap(this.trustedPartyWebService.setTrustedPartyByBaseUrl(body.maybeTrustedPartyUri()))
@@ -45,15 +47,15 @@ public class OrganizationFacadeImpl implements OrganizationFacade {
             organization -> organization.getTrustedParty().flatMap(TrustedParty::getUrlIfNotDefault)
                 .<ApplicationException> map(baseUrl -> new ConflictException("TrustedParty at '" + baseUrl + "' is not registered in CPF-Store!"))
                 .orElse(new InternalApplicationException("Default TrustedParty is not registered in CPF-Store!"))))
-        // TODO: Rollback if Organization registration fail on NRO side.
         .delayUntil(this.finalizedProvComponentService::storeOrganization)
         .delayUntil(this.trustedPartyWebService::registerOrganization)
-        .flatMap(MONO.liftEffectToMono(OrganizationResponseFactory::buildSafe));
+        .flatMap(MONO.liftEffectToMono(OrganizationResponseFactory::buildSafe)));
   }
 
+  @Transactional
   @Override
   public Mono<OrganizationResponseDTO> update(Organization organization, OrganizationUpdateFormDTO body) {
-    return Mono.just(body)
+    return Mono.defer(() -> Mono.just(body)
         .delayUntil(MONO.makeSureNotNull(new BadRequestException("Request body can not be null or empty!")))
         .map(form -> organization
             .withClientCertificate(form.clientCertificate())
@@ -62,7 +64,7 @@ public class OrganizationFacadeImpl implements OrganizationFacade {
         // TODO: Rollback if Organization update fail on NRO side.
         .delayUntil(this.finalizedProvComponentService::updateOrganization)
         .delayUntil(this.trustedPartyWebService::updateOrganization)
-        .flatMap(MONO.liftEffectToMono(OrganizationResponseFactory::buildSafe));
+        .flatMap(MONO.liftEffectToMono(OrganizationResponseFactory::buildSafe)));
   }
 
   @Override
