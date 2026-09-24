@@ -29,6 +29,7 @@ import org.openprovenance.prov.model.interop.Formats;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import cz.muni.fi.cpm.model.CpmDocument;
 import cz.muni.fi.cpm.model.ICpmFactory;
@@ -73,9 +74,10 @@ public class DocumentFacadeImpl implements DocumentFacade {
     this.finalizedProvComponentServiceImpl = finalizedProvComponentServiceImpl;
   }
 
+  @Transactional
   @Override
   public Mono<TokenResponseDTO> createProvDocument(Organization organization, DocumentFormDTO body) {
-    return Mono.just(organization)
+    return Mono.defer(() -> Mono.just(organization)
         .flatMap(MONO.liftEffectToMono(org -> Either.<ApplicationException, DocumentFormDTO> right(body)
             .map(DocumentFactory::build)
             .flatMap(document -> document.withCpmDocument(this.provFactory, this.cpmProvFactory, this.cpmFactory))
@@ -101,7 +103,7 @@ public class DocumentFacadeImpl implements DocumentFacade {
 
         .doOnNext(_ -> LOGGER.debug("MetaComponent stored"))
         .flatMap(MONO.liftEffectToMono(TokenResponseFactory::buildFromOrganization))
-        .doOnNext(_ -> LOGGER.debug("Finito.."));
+        .doOnNext(_ -> LOGGER.debug("Finito..")));
   }
 
   @Override
