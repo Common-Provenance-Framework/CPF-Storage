@@ -10,6 +10,7 @@ import org.commonprovenance.framework.store.exceptions.InternalApplicationExcept
 import org.commonprovenance.framework.store.exceptions.InvalidValueException;
 import org.commonprovenance.framework.store.model.Document;
 import org.commonprovenance.framework.store.model.Organization;
+import org.openprovenance.prov.model.Activity;
 import org.openprovenance.prov.model.Entity;
 import org.openprovenance.prov.model.HasOther;
 import org.openprovenance.prov.model.QualifiedName;
@@ -29,8 +30,8 @@ public final class CPMAttributesValidator {
         && CpmUtilities.hasCpmType((Statement) entity, CpmType.BACKWARD_CONNECTOR)
         && CpmUtilities.containsCpmAttribute(entity, CpmAttribute.REFERENCED_BUNDLE_ID)
         && CpmUtilities.containsCpmAttribute(entity, CpmAttribute.REFERENCED_META_BUNDLE_ID)
-        // TODO: referencedBundleSpecV
-        // TODO: referencedMetaBundleSpecV
+        && CpmUtilities.containsCpmAttribute(entity, CpmAttribute.REFERENCED_BUNDLE_SPECV)
+        && CpmUtilities.containsCpmAttribute(entity, CpmAttribute.REFERENCED_META_BUNDLE_SPECV)
         && CpmUtilities.containsCpmAttribute(entity, CpmAttribute.REFERENCED_BUNDLE_HASH_VALUE)
         && CpmUtilities.containsCpmAttribute(entity, CpmAttribute.HASH_ALG);
   }
@@ -40,8 +41,8 @@ public final class CPMAttributesValidator {
         && CpmUtilities.hasCpmType(entity, CpmType.SPEC_FORWARD_CONNECTOR)
         && CpmUtilities.containsCpmAttribute(entity, CpmAttribute.REFERENCED_BUNDLE_ID)
         && CpmUtilities.containsCpmAttribute(entity, CpmAttribute.REFERENCED_META_BUNDLE_ID)
-        // TODO: referencedBundleSpecV
-        // TODO: referencedMetaBundleSpecV
+        && CpmUtilities.containsCpmAttribute(entity, CpmAttribute.REFERENCED_BUNDLE_SPECV)
+        && CpmUtilities.containsCpmAttribute(entity, CpmAttribute.REFERENCED_META_BUNDLE_SPECV)
         && CpmUtilities.containsCpmAttribute(entity, CpmAttribute.REFERENCED_BUNDLE_HASH_VALUE)
         && CpmUtilities.containsCpmAttribute(entity, CpmAttribute.HASH_ALG);
   }
@@ -49,6 +50,10 @@ public final class CPMAttributesValidator {
   private static Boolean isValidForwardConnector(HasOther connector) {
     return (connector instanceof Entity entity)
         && CpmUtilities.hasCpmType(entity, CpmType.FORWARD_CONNECTOR);
+  }
+
+  private static Boolean isValidMainActivity(Activity activity) {
+    return CpmUtilities.containsCpmAttribute(activity, CpmAttribute.REFERENCED_META_BUNDLE_SPECV);
   }
 
   private static Function1<Organization, Either<ApplicationException, Void>> checkBundleId(AppConfiguration configuration) {
@@ -96,6 +101,16 @@ public final class CPMAttributesValidator {
         .mapToVoid();
   }
 
+  private static Either<ApplicationException, Void> checkMainActivityAttrs(Document document) {
+    return Either.<ApplicationException, Document> right(document)
+        .flatMap(Document::getMainActivity)
+        .flatMap(EITHER.<Activity> makeSure(
+            CPMAttributesValidator::isValidMainActivity,
+            InvalidValueException::new,
+            element -> "Activity '" + element.getId() + "' is not valid main activity"))
+        .mapToVoid();
+  }
+
   private static Either<ApplicationException, Void> checkDocument(Organization organization) {
     return Either.<ApplicationException, Organization> right(organization)
         .flatMap(EITHER.liftEitherOptional(
@@ -113,6 +128,7 @@ public final class CPMAttributesValidator {
         .flatMap(EITHER.flatPeek(CPMAttributesValidator::checkSpecForwardConnetorsAttrs))
         .flatMap(EITHER.flatPeek(CPMAttributesValidator::checkBackwardConnetorsAttrs))
         .flatMap(EITHER.flatPeek(CPMAttributesValidator::checkForwardConnetorsAttrs))
+        .flatMap(EITHER.flatPeek(CPMAttributesValidator::checkMainActivityAttrs))
         .mapToVoid();
   }
 }
