@@ -1,5 +1,6 @@
 package org.commonprovenance.framework.store.service.web.store;
 
+import org.commonprovenance.framework.store.model.Token;
 import org.openprovenance.prov.model.Entity;
 import org.openprovenance.prov.model.QualifiedName;
 
@@ -11,6 +12,8 @@ public interface StoreWebService {
   Mono<Boolean> pingQualifiedName(QualifiedName qn);
 
   Mono<Boolean> pingBundleId(Entity connector);
+
+  Mono<Token> getBundleToken(Entity connector);
 
   Mono<Boolean> pingMetaBundleId(Entity connector);
 }
