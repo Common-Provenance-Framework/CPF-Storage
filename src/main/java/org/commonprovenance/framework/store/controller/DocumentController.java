@@ -25,6 +25,9 @@ public interface DocumentController {
   Mono<DocumentResponseDTO> getBackboneProvDocumentByIdentifier(
       @NotNull @LoadOrganizationDocument Organization organization);
 
+  Mono<TokenResponseDTO> getToken(
+      @NotNull @LoadOrganizationDocument Organization organization);
+
   Mono<Void> exists(
       @NotNull @LoadOrganizationDocument Organization organization);
 }
