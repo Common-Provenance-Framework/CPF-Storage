@@ -38,7 +38,7 @@ public class OrganizationFacadeImpl implements OrganizationFacade {
   @Transactional
   @Override
   public Mono<OrganizationResponseDTO> register(OrganizationRegisterFormDTO body) {
-    return Mono.defer(() -> Mono.just(body)
+    return Mono.just(body)
         .delayUntil(MONO.makeSureNotNull(new BadRequestException("Request body can not be null or empty!")))
         .map(OrganizationFactory::build)
         .flatMap(this.trustedPartyWebService.setTrustedPartyByBaseUrl(body.maybeTrustedPartyUri()))
@@ -49,7 +49,7 @@ public class OrganizationFacadeImpl implements OrganizationFacade {
                 .orElse(new InternalApplicationException("Default TrustedParty is not registered in CPF-Store!"))))
         .delayUntil(this.finalizedProvComponentService::storeOrganization)
         .delayUntil(this.trustedPartyWebService::registerOrganization)
-        .flatMap(MONO.liftEffectToMono(OrganizationResponseFactory::buildSafe)));
+        .flatMap(MONO.liftEffectToMono(OrganizationResponseFactory::buildSafe));
   }
 
   @Transactional
