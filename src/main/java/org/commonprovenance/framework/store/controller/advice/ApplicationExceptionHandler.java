@@ -10,6 +10,7 @@ import org.commonprovenance.framework.store.controller.dto.error.NotFoundDTO;
 import org.commonprovenance.framework.store.exceptions.BadRequestException;
 import org.commonprovenance.framework.store.exceptions.ConflictException;
 import org.commonprovenance.framework.store.exceptions.InternalApplicationException;
+import org.commonprovenance.framework.store.exceptions.InvalidValueException;
 import org.commonprovenance.framework.store.exceptions.NotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,6 +36,12 @@ public class ApplicationExceptionHandler {
   public ResponseEntity<ErrorDTO> handleBadRequest(BadRequestException badRequest) {
     LOGGER.warn("Bad Request: {}", AdviceUtils.buildMessage(badRequest));
     return ResponseEntity.badRequest().body(new BadRequestDTO(List.of(badRequest.getMessage())));
+  }
+
+  @ExceptionHandler(InvalidValueException.class)
+  public ResponseEntity<ErrorDTO> handleInvalidValue(InvalidValueException invalidValue) {
+    LOGGER.warn("Bad Request: {}", AdviceUtils.buildMessage(invalidValue));
+    return ResponseEntity.badRequest().body(new BadRequestDTO(List.of(invalidValue.getMessage())));
   }
 
   @ExceptionHandler(ConflictException.class)
