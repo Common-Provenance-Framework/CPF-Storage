@@ -16,6 +16,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import org.commonprovenance.framework.store.exceptions.ApplicationException;
 import org.commonprovenance.framework.store.exceptions.InternalApplicationException;
 import org.commonprovenance.framework.store.exceptions.InvalidValueException;
+import org.commonprovenance.framework.store.model.HashFunction;
 import org.openprovenance.prov.interop.InteropFramework;
 import org.openprovenance.prov.model.Document;
 import org.openprovenance.prov.model.HasOther;
@@ -105,12 +106,30 @@ public final class ProvDocumentUtils {
 
   public static Either<ApplicationException, QualifiedName> getCpmReferencedMetaBundleId(HasOther hasOther) {
     return Either.<ApplicationException, HasOther> right(hasOther)
-        .flatMap(ProvDocumentUtils.getCpmAttributeValue(CpmAttribute.REFERENCED_META_BUNDLE_ID));
+        .flatMap(ProvDocumentUtils.getCpmAttributeValueQN(CpmAttribute.REFERENCED_META_BUNDLE_ID));
   }
 
   public static Either<ApplicationException, QualifiedName> getCpmReferencedBundleId(HasOther hasOther) {
     return Either.<ApplicationException, HasOther> right(hasOther)
-        .flatMap(ProvDocumentUtils.getCpmAttributeValue(CpmAttribute.REFERENCED_BUNDLE_ID));
+        .flatMap(ProvDocumentUtils.getCpmAttributeValueQN(CpmAttribute.REFERENCED_BUNDLE_ID));
+  }
+
+  public static Either<ApplicationException, String> getCpmHashAlgAsString(HasOther hasOther) {
+    return Either.<ApplicationException, HasOther> right(hasOther)
+        .flatMap(ProvDocumentUtils.getCpmAttributeValueString(CpmAttribute.HASH_ALG));
+  }
+
+  public static Either<ApplicationException, HashFunction> getCpmHashAlg(HasOther hasOther) {
+    return Either.<ApplicationException, HasOther> right(hasOther)
+        .flatMap(ProvDocumentUtils.getCpmAttributeValueString(CpmAttribute.HASH_ALG))
+        .flatMap(EITHER.liftEitherOptional(
+            HashFunction::from,
+            hashFunction -> new InvalidValueException("Unknown hash function: '" + hashFunction)));
+  }
+
+  public static Either<ApplicationException, String> getCpmReferencedBundleHashValue(HasOther hasOther) {
+    return Either.<ApplicationException, HasOther> right(hasOther)
+        .flatMap(ProvDocumentUtils.getCpmAttributeValueString(CpmAttribute.HASH_VALUE));
   }
 
   private static Either<ApplicationException, String> provFormatToIntermediaType(Formats.ProvFormat format) {
@@ -126,14 +145,27 @@ public final class ProvDocumentUtils {
     };
   }
 
-  private static Function<HasOther, Either<ApplicationException, QualifiedName>> getCpmAttributeValue(CpmAttribute attribute) {
-    return (HasOther hasOther) -> Either.<ApplicationException, HasOther> right(hasOther)
-        .flatMap(EITHER.<HasOther> makeSureNotNullWithMessage("Statement can not be null!"))
-        .map(statement -> CpmUtilities.getCpmAttributeValue(statement, attribute))
-        .flatMap(EITHER.makeSureNotNullWithMessage("Statement does not have '" + attribute.toString() + "' attribute, or its value is null!"))
+  private static Function<HasOther, Either<ApplicationException, QualifiedName>> getCpmAttributeValueQN(CpmAttribute attribute) {
+    return (HasOther hasOther) -> ProvDocumentUtils.getCpmAttributeValue(hasOther, attribute)
         .flatMap(EITHER.makeSure(
             QualifiedName.class::isInstance,
             attribute.toString() + " value is not instance of QualifiedName!"))
         .map(QualifiedName.class::cast);
   }
+
+  private static Function<HasOther, Either<ApplicationException, String>> getCpmAttributeValueString(CpmAttribute attribute) {
+    return (HasOther hasOther) -> ProvDocumentUtils.getCpmAttributeValue(hasOther, attribute)
+        .flatMap(EITHER.makeSure(
+            String.class::isInstance,
+            attribute.toString() + " value is not instance of String!"))
+        .map(String.class::cast);
+  }
+
+  private static Either<ApplicationException, Object> getCpmAttributeValue(HasOther hasOther, CpmAttribute attribute) {
+    return Either.<ApplicationException, HasOther> right(hasOther)
+        .flatMap(EITHER.<HasOther> makeSureNotNullWithMessage("Statement can not be null!"))
+        .map(statement -> CpmUtilities.getCpmAttributeValue(statement, attribute))
+        .flatMap(EITHER.makeSureNotNullWithMessage("Statement does not have '" + attribute.toString() + "' attribute, or its value is null!"));
+  }
+
 }
