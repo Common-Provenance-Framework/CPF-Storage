@@ -91,7 +91,7 @@ public final class ProvDocumentUtils {
 
   public static Either<ApplicationException, String> getCpmReferencedBundleHashValue(HasOther hasOther) {
     return Either.<ApplicationException, HasOther> right(hasOther)
-        .flatMap(ProvDocumentUtils.getCpmAttributeValueString(CpmAttribute.HASH_VALUE));
+        .flatMap(ProvDocumentUtils.getCpmAttributeValueString(CpmAttribute.REFERENCED_BUNDLE_HASH_VALUE));
   }
 
   private static Either<ApplicationException, String> provFormatToIntermediaType(Formats.ProvFormat format) {

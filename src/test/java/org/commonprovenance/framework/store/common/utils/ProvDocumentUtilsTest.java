@@ -86,7 +86,7 @@ class ProvDocumentUtilsTest {
     Element element = mock(Element.class, withSettings().extraInterfaces(HasOther.class));
 
     Other hashValue = provFactory.newOther(
-        cpmAttributeName(CpmAttribute.HASH_VALUE),
+        cpmAttributeName(CpmAttribute.REFERENCED_BUNDLE_HASH_VALUE),
         value,
         provFactory.getName().XSD_STRING);
     when(element.getOther()).thenReturn(List.of(hashValue));
