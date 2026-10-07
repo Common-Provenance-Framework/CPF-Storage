@@ -1,4 +1,4 @@
-FROM eclipse-temurin:25-jdk@sha256:119a3d18f160a3e7655a66034d0f43beee31cd7b3b9142d57a5de29772011de6 AS build
+FROM eclipse-temurin:25-jdk@sha256:8c0a84ea11c8f6ed52600fc19f1040121f2a162998e9f50a5faebbbad9172dcc AS build
 
 WORKDIR /workspace
 
@@ -27,7 +27,7 @@ RUN ./mvnw -B org.apache.maven.plugins:maven-install-plugin:3.1.4:install-file \
     -DgeneratePom=true
 RUN ./mvnw -B package -DskipTests
 
-FROM eclipse-temurin:26-jre-alpine-3.24@sha256:9eedff2367194d11eddd6f14101b444945a708c986270cd5716b934596ba3a31 AS runtime
+FROM eclipse-temurin:27-jre-alpine-3.24@sha256:9d76de111573e77ac415d8344271a2e57dd19bd59c48725fa3bac38c101bd0ba AS runtime
 
 WORKDIR /app
 
