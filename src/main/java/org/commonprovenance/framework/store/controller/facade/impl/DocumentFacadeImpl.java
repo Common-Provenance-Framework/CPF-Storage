@@ -77,7 +77,7 @@ public class DocumentFacadeImpl implements DocumentFacade {
   @Transactional
   @Override
   public Mono<TokenResponseDTO> createProvDocument(Organization organization, DocumentFormDTO body) {
-    return Mono.defer(() -> Mono.just(organization)
+    return Mono.just(organization)
         .flatMap(MONO.liftEffectToMono(org -> Either.<ApplicationException, DocumentFormDTO> right(body)
             .map(DocumentFactory::build)
             .flatMap(document -> document.withCpmDocument(this.provFactory, this.cpmProvFactory, this.cpmFactory))
@@ -103,7 +103,7 @@ public class DocumentFacadeImpl implements DocumentFacade {
 
         .doOnNext(_ -> LOGGER.debug("MetaComponent stored"))
         .flatMap(MONO.liftEffectToMono(TokenResponseFactory::buildFromOrganization))
-        .doOnNext(_ -> LOGGER.debug("Finito..")));
+        .doOnNext(_ -> LOGGER.debug("Finito.."));
   }
 
   @Override
@@ -111,6 +111,12 @@ public class DocumentFacadeImpl implements DocumentFacade {
     return Mono.just(organization)
         .flatMap(MONO.liftOptionalToMono(Organization::getDocument))
         .flatMap(MONO.liftEffectToMono(DocumentResponseFactory::buildSafe));
+  }
+
+  @Override
+  public Mono<TokenResponseDTO> getProvDocumentToken(Organization organization) {
+    return Mono.just(organization)
+        .flatMap(MONO.liftEffectToMono(TokenResponseFactory::buildFromOrganization));
   }
 
   @Override

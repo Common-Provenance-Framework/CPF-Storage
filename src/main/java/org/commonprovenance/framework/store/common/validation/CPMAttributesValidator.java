@@ -52,8 +52,10 @@ public final class CPMAttributesValidator {
         && CpmUtilities.hasCpmType(entity, CpmType.FORWARD_CONNECTOR);
   }
 
-  private static Boolean isValidMainActivity(Activity activity) {
-    return CpmUtilities.containsCpmAttribute(activity, CpmAttribute.REFERENCED_META_BUNDLE_SPECV);
+  private static Boolean isValidMainActivity(Activity mainActivity) {
+    return (mainActivity instanceof Activity activity)
+        && CpmUtilities.containsCpmAttribute(activity, CpmAttribute.REFERENCED_META_BUNDLE_SPECV)
+        && CpmUtilities.containsCpmAttribute(activity, CpmAttribute.REFERENCED_META_BUNDLE_ID);
   }
 
   private static Function1<Organization, Either<ApplicationException, Void>> checkBundleId(AppConfiguration configuration) {

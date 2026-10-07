@@ -12,6 +12,8 @@ public interface DocumentFacade {
 
   Mono<DocumentResponseDTO> getProvDocument(Organization organization);
 
+  Mono<TokenResponseDTO> getProvDocumentToken(Organization organization);
+
   Mono<DocumentResponseDTO> getDomainProvDocument(Organization organization);
 
   Mono<DocumentResponseDTO> getBackboneProvDocument(Organization organization);

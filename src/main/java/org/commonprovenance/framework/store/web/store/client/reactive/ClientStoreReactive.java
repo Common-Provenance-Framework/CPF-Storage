@@ -1,5 +1,7 @@
 package org.commonprovenance.framework.store.web.store.client.reactive;
 
+import java.util.function.Function;
+
 import org.commonprovenance.framework.store.exceptions.NotFoundException;
 import org.commonprovenance.framework.store.web.config.WebConfig;
 import org.commonprovenance.framework.store.web.store.client.ClientStore;
@@ -17,13 +19,24 @@ public class ClientStoreReactive implements ClientStore {
   }
 
   @Override
-  public Mono<Void> sendHeadRequest(String resourcePath) {
+  public Mono<Void> sendHeadRequest(String uri) {
     return this.client.head()
-        .uri(resourcePath)
+        .uri(uri)
         .retrieve()
         .onStatus(
             status -> status.value() == 404,
             response -> Mono.error(() -> new NotFoundException("Resource not found at: " + response.request().getURI())))
         .bodyToMono(Void.class);
+  }
+
+  @Override
+  public <T> Function<String, Mono<T>> sendGetOneRequest(Class<T> responseType) {
+    return (String uri) -> this.client.get()
+        .uri(uri)
+        .retrieve()
+        .onStatus(
+            status -> status.value() == 404,
+            response -> Mono.error(new NotFoundException("Resource not found at: " + response.request().getURI())))
+        .bodyToMono(responseType);
   }
 }

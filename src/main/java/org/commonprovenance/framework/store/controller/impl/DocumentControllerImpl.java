@@ -102,6 +102,7 @@ public class DocumentControllerImpl implements DocumentController {
         .flatMap(this.documentFacade::getDomainProvDocument);
   }
 
+  @ResponseStatus(HttpStatus.OK)
   @NotNull
   @GetMapping("/{identifier}/backbone")
   @Operation(summary = "Get backbone provenance document by identifier", parameters = {
@@ -118,6 +119,25 @@ public class DocumentControllerImpl implements DocumentController {
       @Parameter(hidden = true) @LoadOrganizationDocument() Organization organization) {
     return Mono.just(organization)
         .flatMap(this.documentFacade::getBackboneProvDocument);
+  }
+
+  @ResponseStatus(HttpStatus.OK)
+  @GetMapping(path = "/{identifier}/token")
+  @NotNull
+  @Operation(summary = "Get provenance document token by identifier", parameters = {
+      @Parameter(name = "organizationIdentifier", description = "Organization identifier.", in = ParameterIn.PATH, required = true, schema = @Schema(type = "string")),
+      @Parameter(name = "identifier", description = "Document identifier", in = ParameterIn.PATH, required = true, schema = @Schema(type = "string"))
+  })
+  @ApiResponses({
+      @ApiResponse(responseCode = "200", description = "Token fetched"),
+      @ApiResponse(responseCode = "404", description = "Document does not exist"),
+      @ApiResponse(responseCode = "500", description = "Internal server error")
+  })
+  @Override
+  public Mono<TokenResponseDTO> getToken(
+      @Parameter(hidden = true) @LoadOrganizationDocument(organizationIdentifier = "organizationIdentifier", documentIdentifier = "identifier") Organization organization) {
+    return Mono.just(organization)
+        .flatMap(this.documentFacade::getProvDocumentToken);
   }
 
   @NotNull
