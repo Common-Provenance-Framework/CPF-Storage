@@ -36,7 +36,7 @@ jobs:
         if: always()
         with:
           name: Maven Test Results
-          path: '**/target/surefire-reports/*.xml'
+          path: '**/target/surefire-reports/*.xml,**/target/failsafe-reports/TEST-*.xml'
           reporter: java-junit
 
   docker-build:
