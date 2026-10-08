@@ -1,0 +1,25 @@
+{
+  "prefix": {
+    "storage": "${documentsUrl}",
+    "meta": "${metaBundlesUrl}",
+    "cpm": "https://www.commonprovenancemodel.org/cpm-namespace-v1-0/",
+    "ex": "https://example.org/"
+  },
+  "bundle": {
+    "storage:${bundleId}": {
+      "activity": {
+        "ex:mainActivity": {
+          "prov:type": [
+            { "type": "prov:QUALIFIED_NAME", "$": "cpm:mainActivity" }
+          ],
+          "cpm:referencedMetaBundleId": [
+            { "type": "prov:QUALIFIED_NAME", "$": "meta:${metaBundleId}" }
+          ],
+          "cpm:referencedMetaBundleSpecV": [
+            { "type": "xsd:string", "$": "1.0" }
+          ]
+        }
+      }
+    }
+  }
+}
