@@ -8,6 +8,7 @@ import org.commonprovenance.framework.store.model.MetaDocument;
 import org.commonprovenance.framework.store.model.Organization;
 import org.commonprovenance.framework.store.model.Token;
 import org.commonprovenance.framework.store.model.TrustedParty;
+import org.commonprovenance.framework.store.support.fixture.TrustedPartyFixture;
 import org.commonprovenance.framework.store.web.trustedParty.TrustedPartyWeb;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
@@ -25,13 +26,7 @@ public class IntegrationTestConfiguration {
 
       @Override
       public Mono<TrustedParty> getTrustedParty(Optional<String> optTrustedPartyBaseUrl) {
-        return Mono.just(new TrustedParty(
-            "default",
-            "certificate",
-            "http://localhost:8093/api/v1",
-            true,
-            true,
-            true));
+        return Mono.just(TrustedPartyFixture.defaultTrustedParty());
       }
 
       @Override

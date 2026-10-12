@@ -221,9 +221,10 @@
         <configuration>
           <skip>${skipUnitTests}</skip>
           <argLine>${test.argLine}</argLine>
-          <excludes>
-            <exclude>**/*IT.java</exclude>
-          </excludes>
+          <includes>
+            <include>**/*Test.java</include>
+            <include>**/*Spec.java</include>
+          </includes>
         </configuration>
       </plugin>
 
