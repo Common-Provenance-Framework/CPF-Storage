@@ -103,6 +103,11 @@ public class NodeToProvFactory {
                     return (Statement) wdf;
                   });
 
+              Stream<Statement> derivedStream = entityNode.getWasDerivedFrom().stream()
+                  .map(wdf -> (Statement) provFactory.newWasDerivedFrom(
+                      NodeToProvFactory.getStoreQN(entityNode.getIdentifier(), provDocument.getNamespace()),
+                      NodeToProvFactory.getStoreQN(wdf.getEntity().getIdentifier(), provDocument.getNamespace())));
+
               Stream<Statement> soStream = entityNode.getSpecializationOf().stream()
                   .map(so -> (Statement) provFactory.newSpecializationOf(
                       NodeToProvFactory.getStoreQN(entityNode.getIdentifier(), provDocument.getNamespace()),
@@ -120,7 +125,7 @@ public class NodeToProvFactory {
                       NodeToProvFactory.getStoreQN(entityNode.getIdentifier(), provDocument.getNamespace()),
                       NodeToProvFactory.getStoreQN(wgb.getActivity().getIdentifier(), provDocument.getNamespace())));
 
-              return Stream.of(wdfStream, soStream, watStream, wgbStream)
+              return Stream.of(wdfStream, derivedStream, soStream, watStream, wgbStream)
                   .flatMap(Function.identity());
             }
             return List.<Statement> of().stream();
