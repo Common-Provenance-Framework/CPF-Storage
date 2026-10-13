@@ -1,6 +1,19 @@
 # CPF-Store
 Store service of the Common Provenance Framework.
 
+## RabbitMQ
+
+The application includes Spring Boot AMQP support. It can use the auto-configured
+`RabbitTemplate` for publishing and `@RabbitListener` for consuming once a
+message flow is implemented. The application does not declare queues or start
+listeners by default.
+
+Configure the RabbitMQ connection with `RABBITMQ_HOST`, `RABBITMQ_PORT`,
+`RABBITMQ_USERNAME`, `RABBITMQ_PASSWORD`, and `RABBITMQ_VIRTUAL_HOST`. Defaults
+target a local broker using the local-development `guest` credentials. Override
+the credentials for any broker that is not local. The Docker Compose stack in
+this repository does not include RabbitMQ, so provide a broker separately.
+
 ## Run with Docker Compose
 
 This repository contains a `docker-compose.yaml` that runs:
