@@ -89,7 +89,6 @@ public class DocumentFacadeImpl implements DocumentFacade {
         .doOnNext(_ -> LOGGER.debug("{} Signature has been verified.", LOG_PREFIX))
         .delayUntil(MONO.liftEffectToMono(CPMAttributesValidator.validate(this.configuration)))
         .delayUntil(CPMChainValidator.validate(this.storeWebService))
-        // TODO: check hashes in connectors
         // TODO: check cpm constraints
         // TODO: check provenance constraints
         .doOnNext(_ -> LOGGER.debug("Document has been validated and considered as valid."))
@@ -102,8 +101,7 @@ public class DocumentFacadeImpl implements DocumentFacade {
         .delayUntil(this.metaComponentService::addTokenIntoMetaProvenanceComponent)
 
         .doOnNext(_ -> LOGGER.debug("MetaComponent stored"))
-        .flatMap(MONO.liftEffectToMono(TokenResponseFactory::buildFromOrganization))
-        .doOnNext(_ -> LOGGER.debug("Finito.."));
+        .flatMap(MONO.liftEffectToMono(TokenResponseFactory::buildFromOrganization));
   }
 
   @Override
