@@ -83,15 +83,12 @@ public class TrustedPartyWebImpl implements TrustedPartyWeb {
         .flatMap(MONO.liftEffectToMono(TokenFactory::build))
         .onErrorResume(error -> error instanceof Unauthorized
             || error instanceof BadRequest
-            || error instanceof NotFound,
+            || error instanceof NotFound
+            || error instanceof Conflict,
             error -> {
               ErrorResponseDTO response = ((WebClientResponseException) error).getResponseBodyAs(ErrorResponseDTO.class);
               return Mono.error(() -> new BadRequestException("TrustedParty responded with status '" + response.status() + "' and message '" + response.message() + "'!"));
             })
-        .onErrorResume(Conflict.class, conflict -> {
-          ErrorResponseDTO response = conflict.getResponseBodyAs(ErrorResponseDTO.class);
-          return Mono.error(() -> new ConflictException("TrustedParty responded with status '" + response.status() + "' and message '" + response.message() + "'!"));
-        })
         .doOnSuccess(_ -> LOGGER.trace(LOG_PREFIX + "Token has been issued by TrustedParty at URL '" + getTrustedPartyUrl(organization) + "'."))
         .doOnError(throwable -> LOGGER.error(
             LOG_PREFIX + "Token has not been issued by TrustedParty at URL '" + getTrustedPartyUrl(organization) + "'!\n" + throwable.getMessage()))
@@ -110,15 +107,12 @@ public class TrustedPartyWebImpl implements TrustedPartyWeb {
         .map(token -> token.withTrustedParty(organization.getTrustedParty()))
         .onErrorResume(error -> error instanceof Unauthorized
             || error instanceof BadRequest
-            || error instanceof NotFound,
+            || error instanceof NotFound
+            || error instanceof Conflict,
             error -> {
               ErrorResponseDTO response = ((WebClientResponseException) error).getResponseBodyAs(ErrorResponseDTO.class);
               return Mono.error(() -> new BadRequestException("TrustedParty responded with status '" + response.status() + "' and message '" + response.message() + "'!"));
             })
-        .onErrorResume(Conflict.class, conflict -> {
-          ErrorResponseDTO response = conflict.getResponseBodyAs(ErrorResponseDTO.class);
-          return Mono.error(() -> new ConflictException("TrustedParty responded with status '" + response.status() + "' and message '" + response.message() + "'!"));
-        })
         .doOnSuccess(_ -> LOGGER.trace(LOG_PREFIX + "Token has been issued by TrustedParty at URL '" + getTrustedPartyUrl(organization) + "'."))
         .doOnError(throwable -> LOGGER.error(
             LOG_PREFIX + "Token has not been issued by TrustedParty at URL '" + getTrustedPartyUrl(organization) + "'!\n" + throwable.getMessage()))
@@ -138,15 +132,12 @@ public class TrustedPartyWebImpl implements TrustedPartyWeb {
         .flatMap(MONO.liftEffectToMono(TokenFactory::build))
         .onErrorResume(error -> error instanceof Unauthorized
             || error instanceof BadRequest
-            || error instanceof NotFound,
+            || error instanceof NotFound
+            || error instanceof Conflict,
             error -> {
               ErrorResponseDTO response = ((WebClientResponseException) error).getResponseBodyAs(ErrorResponseDTO.class);
               return Mono.error(() -> new BadRequestException("TrustedParty responded with status '" + response.status() + "' and message '" + response.message() + "'!"));
             })
-        .onErrorResume(Conflict.class, conflict -> {
-          ErrorResponseDTO response = conflict.getResponseBodyAs(ErrorResponseDTO.class);
-          return Mono.error(() -> new ConflictException("TrustedParty responded with status '" + response.status() + "' and message '" + response.message() + "'!"));
-        })
         .doOnSuccess(_ -> LOGGER.trace(LOG_PREFIX + "Token has been issued by TrustedParty."))
         .doOnError(throwable -> LOGGER.error(
             LOG_PREFIX + "Token has not been issued by TrustedParty!\n" + throwable.getMessage()))
