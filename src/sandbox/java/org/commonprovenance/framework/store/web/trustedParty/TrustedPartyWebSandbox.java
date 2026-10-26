@@ -31,7 +31,7 @@ class TrustedPartyWebSandbox {
   @Autowired
   private TrustedPartyWeb trustedPartyWeb;
 
-  @Value("${sandbox.trusted-party.url}")
+  @Value("${trusted-party.url}")
   private String trustedPartyUrl;
 
   @Value("${sandbox.organization-id}")
