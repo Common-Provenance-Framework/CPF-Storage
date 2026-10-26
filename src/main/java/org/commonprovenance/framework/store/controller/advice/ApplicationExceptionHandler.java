@@ -45,13 +45,13 @@ public class ApplicationExceptionHandler {
   }
 
   @ExceptionHandler(ConflictException.class)
-  public ResponseEntity<ErrorDTO> handleBadRequest(ConflictException conflict) {
+  public ResponseEntity<ErrorDTO> handleConflictException(ConflictException conflict) {
     LOGGER.warn("Conflict: {}", AdviceUtils.buildMessage(conflict));
     return ResponseEntity.status(HttpStatus.CONFLICT).body(new BadRequestDTO(List.of(conflict.getMessage())));
   }
 
   @ExceptionHandler(NotFoundException.class)
-  public ResponseEntity<ErrorDTO> handleBadRequest(NotFoundException notFound) {
+  public ResponseEntity<ErrorDTO> handleNotFoundException(NotFoundException notFound) {
     LOGGER.warn("Not Found: {}", AdviceUtils.buildMessage(notFound));
     return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new NotFoundDTO(notFound.getMessage()));
   }
