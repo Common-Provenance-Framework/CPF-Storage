@@ -85,8 +85,6 @@ public class DocumentFacadeImpl implements DocumentFacade {
         .doOnNext(_ -> LOGGER.debug("{} Document has been deserialized and loaded.", LOG_PREFIX))
         .delayUntil(this.finalizedProvComponentServiceImpl::checkDocumentDoesNotExists)
         .doOnNext(_ -> LOGGER.debug("{} Document does not exists.", LOG_PREFIX))
-        .delayUntil(this.trustedPartyWebService.verifySignature(body.signature()))
-        .doOnNext(_ -> LOGGER.debug("{} Signature has been verified.", LOG_PREFIX))
         .delayUntil(MONO.liftEffectToMono(CPMAttributesValidator.validate(this.configuration)))
         .delayUntil(CPMChainValidator.validate(this.storeWebService))
         // TODO: check cpm constraints
