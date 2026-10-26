@@ -195,6 +195,7 @@
             <configuration>
               <sources>
                 <source>src/integration-test/java</source>
+                <source>src/sandbox/java</source>
               </sources>
             </configuration>
           </execution>
@@ -208,6 +209,9 @@
               <resources>
                 <resource>
                   <directory>src/integration-test/resources</directory>
+                </resource>
+                <resource>
+                  <directory>src/sandbox/resources</directory>
                 </resource>
               </resources>
             </configuration>
@@ -240,5 +244,25 @@
       </plugin>
     </plugins>
   </build>
+
+  <profiles>
+    <profile>
+      <id>macos-arm-netty-dns</id>
+      <activation>
+        <os>
+          <family>mac</family>
+          <arch>aarch64</arch>
+        </os>
+      </activation>
+      <dependencies>
+        <dependency>
+          <groupId>io.netty</groupId>
+          <artifactId>netty-resolver-dns-native-macos</artifactId>
+          <classifier>osx-aarch_64</classifier>
+          <scope>runtime</scope>
+        </dependency>
+      </dependencies>
+    </profile>
+  </profiles>
 
 </project>
