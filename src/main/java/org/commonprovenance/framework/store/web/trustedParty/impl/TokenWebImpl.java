@@ -13,7 +13,7 @@ import org.commonprovenance.framework.store.model.GraphFormat;
 import org.commonprovenance.framework.store.model.Token;
 import org.commonprovenance.framework.store.model.factory.TokenFactory;
 import org.commonprovenance.framework.store.web.trustedParty.TokenWeb;
-import org.commonprovenance.framework.store.web.trustedParty.client.ClientTrustedParty;
+import org.commonprovenance.framework.store.web.client.Client;
 import org.commonprovenance.framework.store.web.trustedParty.dto.response.TokenResponseDTO;
 import org.openprovenance.prov.model.QualifiedName;
 import org.slf4j.Logger;
@@ -28,10 +28,10 @@ public class TokenWebImpl implements TokenWeb {
   private final String LOG_PREFIX = "TokenWebImpl: ";
   private static final Logger LOGGER = LoggerFactory.getLogger(TokenWebImpl.class);
 
-  private final ClientTrustedParty client;
+  private final Client client;
 
   public TokenWebImpl(
-      ClientTrustedParty client) {
+      Client client) {
     this.client = client;
   }
 
@@ -41,9 +41,8 @@ public class TokenWebImpl implements TokenWeb {
 
   @Override
   public Function<String, Flux<Token>> getAllByOrganization(Optional<String> optTrustedPartyBaseUrl) {
-    return (String organizationIdentifier) -> optTrustedPartyBaseUrl
-        .map(this.client.sendCustomGetManyRequest(getTokensUri(organizationIdentifier), TokenResponseDTO.class, Map.of()))
-        .orElse(this.client.sendGetManyRequest(getTokensUri(organizationIdentifier), TokenResponseDTO.class, Map.of()))
+    return (String organizationIdentifier) -> this.client
+        .sendGetManyRequest(this.client.trustedParty(optTrustedPartyBaseUrl), getTokensUri(organizationIdentifier), TokenResponseDTO.class, Map.of())
         .flatMap(MONO.liftEffectToMono(TokenFactory::build))
         .doOnComplete(() -> LOGGER.trace(LOG_PREFIX + "Tokens for organization with id '" + organizationIdentifier + "' has been fetched."))
         .doOnError(throwable -> LOGGER.error(LOG_PREFIX + "Tokens for organization with id '" + organizationIdentifier + "' has not been fetched!\n" + throwable.getMessage()))
@@ -59,9 +58,8 @@ public class TokenWebImpl implements TokenWeb {
       Optional<String> optTrustedPartyBaseUrl) {
     String uri = getTokensUri(organizationIdentifier) + "/" + bundleIdentifier.getUri() + "/" + documentFormat.toString();
 
-    return optTrustedPartyBaseUrl
-        .map(this.client.sendCustomGetOneRequest(uri, TokenResponseDTO.class, Map.of()))
-        .orElse(client.sendGetOneRequest(uri, TokenResponseDTO.class, Map.of()))
+    return this.client
+        .sendGetOneRequest(this.client.trustedParty(optTrustedPartyBaseUrl), uri, TokenResponseDTO.class, Map.of())
         .flatMap(MONO.liftEffectToMono(TokenFactory::build))
         .doOnSuccess(_ -> LOGGER.trace(
             LOG_PREFIX + "Token has been fetched. Organization identifier is '" + organizationIdentifier + "'. Document identifier is '" + bundleIdentifier.getUri() + "'."))
