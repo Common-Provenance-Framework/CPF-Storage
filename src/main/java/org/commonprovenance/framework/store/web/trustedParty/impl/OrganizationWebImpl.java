@@ -10,7 +10,7 @@ import org.commonprovenance.framework.store.exceptions.factory.ApplicationExcept
 import org.commonprovenance.framework.store.model.Organization;
 import org.commonprovenance.framework.store.model.factory.OrganizationFactory;
 import org.commonprovenance.framework.store.web.trustedParty.OrganizationWeb;
-import org.commonprovenance.framework.store.web.trustedParty.client.ClientTrustedParty;
+import org.commonprovenance.framework.store.web.client.Client;
 import org.commonprovenance.framework.store.web.trustedParty.dto.form.factory.RegisterOrganizationFormFactory;
 import org.commonprovenance.framework.store.web.trustedParty.dto.response.OrganizationResponseDTO;
 import org.slf4j.Logger;
@@ -25,10 +25,10 @@ public class OrganizationWebImpl implements OrganizationWeb {
   private final String LOG_PREFIX = "OrganizationWebImpl: ";
   private static final Logger LOGGER = LoggerFactory.getLogger(OrganizationWebImpl.class);
 
-  private final ClientTrustedParty client;
+  private final Client client;
 
   public OrganizationWebImpl(
-      ClientTrustedParty client) {
+      Client client) {
     this.client = client;
   }
 
@@ -40,9 +40,8 @@ public class OrganizationWebImpl implements OrganizationWeb {
         Mono.just(organization)
             .flatMap(MONO.liftEffectToMono(RegisterOrganizationFormFactory::buildSafe)),
         (optTrustedPartyBaseUrl, form) -> Mono.just(form)
-            .flatMap(optTrustedPartyBaseUrl
-                .map(this.client.sendCustomPostRequest("/organizations/" + organization.getIdentifier(), Void.class))
-                .orElse(this.client.sendPostRequest("/organizations/" + organization.getIdentifier(), Void.class))))
+            .flatMap(this.client.sendPostRequest(
+                this.client.trustedParty(optTrustedPartyBaseUrl), "/organizations/" + organization.getIdentifier(), Void.class, Map.of())))
         .doOnSuccess(_ -> LOGGER.trace(LOG_PREFIX + "New organization with identifier '" + organization.getIdentifier() + "' has been registered."))
         .doOnError(throwable -> LOGGER.error(
             LOG_PREFIX + "New organization with identifier '" + organization.getIdentifier() + "' has not been registered!\n" + throwable.getMessage()))
@@ -52,9 +51,8 @@ public class OrganizationWebImpl implements OrganizationWeb {
 
   @Override
   public Flux<Organization> getAll(Optional<String> optTrustedPartyBaseUrl) {
-    return optTrustedPartyBaseUrl
-        .map(this.client.sendCustomGetManyRequest("/organizations", OrganizationResponseDTO.class, Map.of()))
-        .orElse(this.client.sendGetManyRequest("/organizations", OrganizationResponseDTO.class, Map.of()))
+    return this.client
+        .sendGetManyRequest(this.client.trustedParty(optTrustedPartyBaseUrl), "/organizations", OrganizationResponseDTO.class, Map.of())
         .flatMap(MONO.liftEffectToMono(OrganizationFactory::buildUnsafe))
         .doOnComplete(() -> LOGGER.trace(LOG_PREFIX + "Organizations has been fetched."))
         .doOnError(throwable -> LOGGER.error(LOG_PREFIX + "Organizations has not been fetched!\n" + throwable.getMessage()))
@@ -66,9 +64,8 @@ public class OrganizationWebImpl implements OrganizationWeb {
     return MONO.combineM(
         MONO.fromEitherOptional(organization.getTrustedPartyBaseUrl()),
         Mono.just(organization).map(Organization::getIdentifier),
-        (optTrustedPartyBaseUrl, organizationIdentifier) -> optTrustedPartyBaseUrl
-            .map(this.client.sendCustomGetOneRequest("/organizations/" + organizationIdentifier, OrganizationResponseDTO.class, Map.of()))
-            .orElse(this.client.sendGetOneRequest("/organizations/" + organizationIdentifier, OrganizationResponseDTO.class, Map.of())))
+        (optTrustedPartyBaseUrl, organizationIdentifier) -> this.client.sendGetOneRequest(
+            this.client.trustedParty(optTrustedPartyBaseUrl), "/organizations/" + organizationIdentifier, OrganizationResponseDTO.class, Map.of()))
         .flatMap(MONO.liftEffectToMono(OrganizationFactory::buildUnsafe))
         .doOnSuccess(_ -> LOGGER.trace(LOG_PREFIX + "Organization with identifier '" + organization.getIdentifier() + "' has been fetched."))
         .doOnError(throwable -> LOGGER.error(LOG_PREFIX + "Organization with identifier '" + organization.getIdentifier() + "' has not been fetched!\n" + throwable.getMessage()))
