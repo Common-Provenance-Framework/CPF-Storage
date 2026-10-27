@@ -13,7 +13,7 @@ import org.commonprovenance.framework.store.filter.AccessLogFilter;
 import org.commonprovenance.framework.store.model.Organization;
 import org.commonprovenance.framework.store.model.factory.OrganizationFactory;
 import org.commonprovenance.framework.store.web.trustedParty.CertificateWeb;
-import org.commonprovenance.framework.store.web.trustedParty.client.ClientTrustedParty;
+import org.commonprovenance.framework.store.web.client.Client;
 import org.commonprovenance.framework.store.web.trustedParty.dto.form.factory.UpdateOrganizationFormFactory;
 import org.commonprovenance.framework.store.web.trustedParty.dto.response.OrganizationResponseDTO;
 import org.slf4j.Logger;
@@ -28,10 +28,10 @@ public class CertificateWebImpl implements CertificateWeb {
   private final String LOG_PREFIX = "CertificateWebImpl: ";
   private static final Logger LOGGER = LoggerFactory.getLogger(CertificateWebImpl.class);
 
-  private final ClientTrustedParty client;
+  private final Client client;
 
   public CertificateWebImpl(
-      ClientTrustedParty client, AccessLogFilter accessLogFilter) {
+      Client client, AccessLogFilter accessLogFilter) {
     this.client = client;
     this.accessLogFilter = accessLogFilter;
   }
@@ -46,9 +46,8 @@ public class CertificateWebImpl implements CertificateWeb {
 
   @Override
   public Function<String, Mono<Organization>> getOrganizationCertificate(Optional<String> optTrustedPartyBaseUrl) {
-    return (String organizationIdentifier) -> optTrustedPartyBaseUrl
-        .map(this.client.sendCustomGetOneRequest(getUri(organizationIdentifier), OrganizationResponseDTO.class, Map.of()))
-        .orElse(this.client.sendGetOneRequest(getUri(organizationIdentifier), OrganizationResponseDTO.class, Map.of()))
+    return (String organizationIdentifier) -> this.client
+        .sendGetOneRequest(this.client.trustedParty(optTrustedPartyBaseUrl), getUri(organizationIdentifier), OrganizationResponseDTO.class, Map.of())
         .flatMap(MONO.liftEffectToMono(OrganizationFactory::buildUnsafe))
         .doOnSuccess(_ -> LOGGER.trace(LOG_PREFIX + "Certificates for Organization with identifier '" + organizationIdentifier + "' has been fetched."))
         .doOnError(throwable -> {
@@ -67,9 +66,7 @@ public class CertificateWebImpl implements CertificateWeb {
         MONO.fromEitherOptional(organization.getTrustedPartyBaseUrl()),
         Mono.just(organization).flatMap(MONO.liftEffectToMono(UpdateOrganizationFormFactory::buildSafe)),
         (optTrustedPartyBaseUrl, form) -> Mono.just(form)
-            .flatMap(optTrustedPartyBaseUrl
-                .map(this.client.sendCustomPutRequest(getUri(organization), Void.class))
-                .orElse(this.client.sendPutRequest(getUri(organization), Void.class))))
+            .flatMap(this.client.sendPutRequest(this.client.trustedParty(optTrustedPartyBaseUrl), getUri(organization), Void.class, Map.of())))
         .doOnSuccess(_ -> LOGGER.trace(LOG_PREFIX + "Certificates for organization with identifier '" + organization.getIdentifier() + "' has been updated."))
         .doOnError(throwable -> LOGGER.error(
             LOG_PREFIX + "Certificates for organization with identifier '" + organization.getIdentifier() + "' has not been updated!\n" + throwable.getMessage()))
