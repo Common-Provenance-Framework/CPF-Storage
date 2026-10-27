@@ -41,6 +41,7 @@ build/
 application.properties
 application-*.properties
 .env
+.env.sandbox
 
 ### DEVELOPMENT ###
 sandbox_data

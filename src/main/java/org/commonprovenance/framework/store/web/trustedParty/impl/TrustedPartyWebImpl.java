@@ -6,6 +6,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 
+import org.commonprovenance.framework.store.exceptions.BadRequestException;
+import org.commonprovenance.framework.store.exceptions.ConflictException;
 import org.commonprovenance.framework.store.exceptions.InternalApplicationException;
 import org.commonprovenance.framework.store.exceptions.NotFoundException;
 import org.commonprovenance.framework.store.exceptions.factory.ApplicationExceptionFactory;
@@ -20,12 +22,17 @@ import org.commonprovenance.framework.store.web.trustedParty.TrustedPartyWeb;
 import org.commonprovenance.framework.store.web.trustedParty.client.ClientTrustedParty;
 import org.commonprovenance.framework.store.web.trustedParty.dto.form.factory.IssueTokenFormFactory;
 import org.commonprovenance.framework.store.web.trustedParty.dto.form.factory.VerifySignatureFormFactory;
+import org.commonprovenance.framework.store.web.trustedParty.dto.response.ErrorResponseDTO;
 import org.commonprovenance.framework.store.web.trustedParty.dto.response.TokenResponseDTO;
 import org.commonprovenance.framework.store.web.trustedParty.dto.response.TrustedPartyResponseDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 import org.springframework.web.reactive.function.client.WebClientResponseException.BadRequest;
+import org.springframework.web.reactive.function.client.WebClientResponseException.Conflict;
+import org.springframework.web.reactive.function.client.WebClientResponseException.NotFound;
+import org.springframework.web.reactive.function.client.WebClientResponseException.Unauthorized;
 
 import reactor.core.publisher.Mono;
 
@@ -49,6 +56,11 @@ public class TrustedPartyWebImpl implements TrustedPartyWeb {
         .flatMap(MONO.liftEffectToMono(TrustedPartyFactory.buildUnsafe(
             this.getTrustedPartyUrl(optTrustedPartyBaseUrl),
             optTrustedPartyBaseUrl.isEmpty())))
+        .onErrorResume(NotFound.class, notFound -> {
+          ErrorResponseDTO response = notFound.getResponseBodyAs(ErrorResponseDTO.class);
+          return Mono.error(
+              () -> new NotFoundException("Resource not found! TrustedParty responded with status '" + response.status() + "' and message '" + response.message() + "'!"));
+        })
         .doOnSuccess(_ -> LOGGER.trace(LOG_PREFIX + "Trusted Party info object has been fetched from url: '" + this.getTrustedPartyUrl(optTrustedPartyBaseUrl) + "'."))
         .doOnError(throwable -> {
           if (throwable instanceof NotFoundException notFound)
@@ -69,6 +81,14 @@ public class TrustedPartyWebImpl implements TrustedPartyWeb {
             .map(this.client.sendCustomPostRequest("/issueToken", TokenResponseDTO.class))
             .orElse(this.client.sendPostRequest("/issueToken", TokenResponseDTO.class)))
         .flatMap(MONO.liftEffectToMono(TokenFactory::build))
+        .onErrorResume(error -> error instanceof Unauthorized
+            || error instanceof BadRequest
+            || error instanceof NotFound
+            || error instanceof Conflict,
+            error -> {
+              ErrorResponseDTO response = ((WebClientResponseException) error).getResponseBodyAs(ErrorResponseDTO.class);
+              return Mono.error(() -> new BadRequestException("TrustedParty responded with status '" + response.status() + "' and message '" + response.message() + "'!"));
+            })
         .doOnSuccess(_ -> LOGGER.trace(LOG_PREFIX + "Token has been issued by TrustedParty at URL '" + getTrustedPartyUrl(organization) + "'."))
         .doOnError(throwable -> LOGGER.error(
             LOG_PREFIX + "Token has not been issued by TrustedParty at URL '" + getTrustedPartyUrl(organization) + "'!\n" + throwable.getMessage()))
@@ -85,6 +105,14 @@ public class TrustedPartyWebImpl implements TrustedPartyWeb {
             .orElse(this.client.sendPostRequest("/issueToken", TokenResponseDTO.class)))
         .flatMap(MONO.liftEffectToMono(TokenFactory::build))
         .map(token -> token.withTrustedParty(organization.getTrustedParty()))
+        .onErrorResume(error -> error instanceof Unauthorized
+            || error instanceof BadRequest
+            || error instanceof NotFound
+            || error instanceof Conflict,
+            error -> {
+              ErrorResponseDTO response = ((WebClientResponseException) error).getResponseBodyAs(ErrorResponseDTO.class);
+              return Mono.error(() -> new BadRequestException("TrustedParty responded with status '" + response.status() + "' and message '" + response.message() + "'!"));
+            })
         .doOnSuccess(_ -> LOGGER.trace(LOG_PREFIX + "Token has been issued by TrustedParty at URL '" + getTrustedPartyUrl(organization) + "'."))
         .doOnError(throwable -> LOGGER.error(
             LOG_PREFIX + "Token has not been issued by TrustedParty at URL '" + getTrustedPartyUrl(organization) + "'!\n" + throwable.getMessage()))
@@ -101,7 +129,21 @@ public class TrustedPartyWebImpl implements TrustedPartyWeb {
             .map(url -> url.startsWith("http") ? url : "http://" + url + "/api/v1/")
             .map(this.client.sendCustomPostRequest("/issueToken", TokenResponseDTO.class))
             .orElse(this.client.sendPostRequest("/issueToken", TokenResponseDTO.class)))
-        .flatMap(MONO.liftEffectToMono(TokenFactory::build));
+        .flatMap(MONO.liftEffectToMono(TokenFactory::build))
+        .onErrorResume(error -> error instanceof Unauthorized
+            || error instanceof BadRequest
+            || error instanceof NotFound
+            || error instanceof Conflict,
+            error -> {
+              ErrorResponseDTO response = ((WebClientResponseException) error).getResponseBodyAs(ErrorResponseDTO.class);
+              return Mono.error(() -> new BadRequestException("TrustedParty responded with status '" + response.status() + "' and message '" + response.message() + "'!"));
+            })
+        .doOnSuccess(_ -> LOGGER.trace(LOG_PREFIX + "Token has been issued by TrustedParty."))
+        .doOnError(throwable -> LOGGER.error(
+            LOG_PREFIX + "Token has not been issued by TrustedParty!\n" + throwable.getMessage()))
+        .onErrorMap(ApplicationExceptionFactory.handleThrowable(
+            new InternalApplicationException("Token has not been issued by TrustedParty!")));
+
   }
 
   @Override
@@ -110,10 +152,20 @@ public class TrustedPartyWebImpl implements TrustedPartyWeb {
         .flatMap(MONO.liftEffectToMono(VerifySignatureFormFactory.buildSafe(siganture)))
         .flatMap(organization.getTrustedParty()
             .flatMap(TrustedParty::getUrl)
-            .map(this.client.sendCustomPostRequest("/verifySignature", Void.class))
-            .orElse(this.client.sendPostRequest("/verifySignature", Void.class)))
+            .map(this.client.sendCustomPostRequest("/verifySignature", Boolean.class))
+            .orElse(this.client.sendPostRequest("/verifySignature", Boolean.class)))
         .thenReturn(true)
-        .onErrorResume(BadRequest.class, _ -> Mono.just(false))
+        .onErrorResume(BadRequest.class, badRequest -> {
+          ErrorResponseDTO response = badRequest.getResponseBodyAs(ErrorResponseDTO.class);
+          return Mono.error(() -> new BadRequestException("TrustedParty responded with status '" + response.status() + "' and message '" + response.message() + "'!"));
+        })
+        .onErrorResume(NotFound.class, notFound -> {
+          ErrorResponseDTO response = notFound.getResponseBodyAs(ErrorResponseDTO.class);
+          return Mono.error(() -> new BadRequestException("TrustedParty responded with status '" + response.status() + "' and message '" + response.message() + "'!"));
+        })
+        .onErrorResume(Unauthorized.class, unauthorized -> {
+          return Mono.just(false);
+        })
         .doOnSuccess(valid -> {
           if (valid)
             LOGGER.trace(LOG_PREFIX + "Signature has been verified by TrustedParty at URL '" + getTrustedPartyUrl(organization) + "' and is valid.");

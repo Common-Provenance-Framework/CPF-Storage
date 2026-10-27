@@ -144,7 +144,7 @@ openssl x509 -req -in certs/int2.csr \
 cat > certs/v3_client.ext <<'EOF'
 basicConstraints=critical,CA:FALSE
 keyUsage=critical,digitalSignature
-extendedKeyUsage=clientAuth
+extendedKeyUsage=emailProtection,codeSigning
 subjectKeyIdentifier=hash
 authorityKeyIdentifier=keyid,issuer
 EOF

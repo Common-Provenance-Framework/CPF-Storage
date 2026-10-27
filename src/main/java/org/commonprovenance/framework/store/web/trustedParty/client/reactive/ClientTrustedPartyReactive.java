@@ -3,12 +3,10 @@ package org.commonprovenance.framework.store.web.trustedParty.client.reactive;
 import java.util.Map;
 import java.util.function.Function;
 
-import org.commonprovenance.framework.store.exceptions.NotFoundException;
 import org.commonprovenance.framework.store.web.config.WebConfig;
 import org.commonprovenance.framework.store.web.trustedParty.client.ClientTrustedParty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
@@ -44,9 +42,12 @@ public class ClientTrustedPartyReactive implements ClientTrustedParty {
         .get()
         .uri(buildUriWithParams(uri, queryParams))
         .retrieve()
-        .onStatus(status -> status.value() == 404,
-            response -> Mono.error(new NotFoundException("Resource not found at: " + response.request().getURI())))
-        .bodyToMono(responseType);
+        .bodyToMono(responseType)
+        .doOnNext(data -> LOGGER.trace(LOG_PREFIX + data))
+        .doOnError(throwable -> LOGGER.error(LOG_PREFIX + throwable.getMessage()))
+        .doOnError(
+            WebClientResponseException.class,
+            response -> LOGGER.debug(LOG_PREFIX + response.getResponseBodyAsString()));
   }
 
   @Override
@@ -54,9 +55,12 @@ public class ClientTrustedPartyReactive implements ClientTrustedParty {
     return this.client.get()
         .uri(buildUriWithParams(uri, queryParams))
         .retrieve()
-        .onStatus(status -> status.value() == 404,
-            response -> Mono.error(new NotFoundException("Resource not found at: " + response.request().getURI())))
-        .bodyToMono(responseType);
+        .bodyToMono(responseType)
+        .doOnNext(data -> LOGGER.trace(LOG_PREFIX + data))
+        .doOnError(throwable -> LOGGER.error(LOG_PREFIX + throwable.getMessage()))
+        .doOnError(
+            WebClientResponseException.class,
+            response -> LOGGER.debug(LOG_PREFIX + response.getResponseBodyAsString()));
   }
 
   @Override
@@ -64,7 +68,12 @@ public class ClientTrustedPartyReactive implements ClientTrustedParty {
     return this.client.get()
         .uri(buildUriWithParams(uri, queryParams))
         .retrieve()
-        .bodyToFlux(responseType);
+        .bodyToFlux(responseType)
+        .doOnNext(data -> LOGGER.trace(LOG_PREFIX + data))
+        .doOnError(throwable -> LOGGER.error(LOG_PREFIX + throwable.getMessage()))
+        .doOnError(
+            WebClientResponseException.class,
+            response -> LOGGER.debug(LOG_PREFIX + response.getResponseBodyAsString()));
   }
 
   @Override
@@ -76,7 +85,12 @@ public class ClientTrustedPartyReactive implements ClientTrustedParty {
         .get()
         .uri(buildUriWithParams(uri, queryParams))
         .retrieve()
-        .bodyToFlux(responseType);
+        .bodyToFlux(responseType)
+        .doOnNext(data -> LOGGER.trace(LOG_PREFIX + data))
+        .doOnError(throwable -> LOGGER.error(LOG_PREFIX + throwable.getMessage()))
+        .doOnError(
+            WebClientResponseException.class,
+            response -> LOGGER.debug(LOG_PREFIX + response.getResponseBodyAsString()));
   }
 
   @Override
@@ -85,15 +99,12 @@ public class ClientTrustedPartyReactive implements ClientTrustedParty {
         .uri(uri)
         .bodyValue(body)
         .retrieve()
-        // TODO: Test and finish
-        .onStatus(HttpStatusCode::isError, response -> response.bodyToMono(String.class).defaultIfEmpty("")
-            .flatMap(errorBody -> {
-              LOGGER.warn(LOG_PREFIX + "HTTP " + response.statusCode().value() + " body: " + errorBody);
-              return Mono.error(new RuntimeException(
-                  "Request failed: " + response.statusCode().value() + ", body=" + errorBody));
-            }))
         .bodyToMono(responseType)
-        .doOnError(WebClientResponseException.class, ex -> System.err.println("Response body from exception: " + ex.getResponseBodyAsString()));
+        .doOnNext(data -> LOGGER.trace(LOG_PREFIX + data))
+        .doOnError(throwable -> LOGGER.error(LOG_PREFIX + throwable.getMessage()))
+        .doOnError(
+            WebClientResponseException.class,
+            response -> LOGGER.debug(LOG_PREFIX + response.getResponseBodyAsString()));
   }
 
   @Override
@@ -103,15 +114,12 @@ public class ClientTrustedPartyReactive implements ClientTrustedParty {
         .uri(uri)
         .bodyValue(body)
         .retrieve()
-        // TODO: Test and finish
-        .onStatus(HttpStatusCode::isError, response -> response.bodyToMono(String.class).defaultIfEmpty("")
-            .flatMap(errorBody -> {
-              LOGGER.warn(LOG_PREFIX + "HTTP " + response.statusCode().value() + " body: " + errorBody);
-              return Mono.error(new RuntimeException(
-                  "Request failed: " + response.statusCode().value() + ", body=" + errorBody));
-            }))
         .bodyToMono(responseType)
-        .doOnError(WebClientResponseException.class, ex -> System.err.println("Response body from exception: " + ex.getResponseBodyAsString()));
+        .doOnNext(data -> LOGGER.trace(LOG_PREFIX + data))
+        .doOnError(throwable -> LOGGER.error(LOG_PREFIX + throwable.getMessage()))
+        .doOnError(
+            WebClientResponseException.class,
+            response -> LOGGER.debug(LOG_PREFIX + response.getResponseBodyAsString()));
   }
 
   @Override
@@ -120,7 +128,11 @@ public class ClientTrustedPartyReactive implements ClientTrustedParty {
         .uri(uri)
         .bodyValue(body)
         .retrieve()
-        .bodyToMono(responseType);
+        .bodyToMono(responseType)
+        .doOnError(throwable -> LOGGER.error(LOG_PREFIX + throwable.getMessage()))
+        .doOnError(
+            WebClientResponseException.class,
+            response -> LOGGER.debug(LOG_PREFIX + response.getResponseBodyAsString()));
   }
 
   @Override
@@ -130,7 +142,11 @@ public class ClientTrustedPartyReactive implements ClientTrustedParty {
         .uri(uri)
         .bodyValue(body)
         .retrieve()
-        .bodyToMono(responseType);
+        .bodyToMono(responseType)
+        .doOnError(throwable -> LOGGER.error(LOG_PREFIX + throwable.getMessage()))
+        .doOnError(
+            WebClientResponseException.class,
+            response -> LOGGER.debug(LOG_PREFIX + response.getResponseBodyAsString()));
   }
 
   @Override
@@ -138,7 +154,11 @@ public class ClientTrustedPartyReactive implements ClientTrustedParty {
     return this.client.delete()
         .uri(uri)
         .retrieve()
-        .bodyToMono(responseType);
+        .bodyToMono(responseType)
+        .doOnError(throwable -> LOGGER.error(LOG_PREFIX + throwable.getMessage()))
+        .doOnError(
+            WebClientResponseException.class,
+            response -> LOGGER.debug(LOG_PREFIX + response.getResponseBodyAsString()));
   }
 
   @Override
@@ -147,7 +167,11 @@ public class ClientTrustedPartyReactive implements ClientTrustedParty {
         .delete()
         .uri(uri)
         .retrieve()
-        .bodyToMono(responseType);
+        .bodyToMono(responseType)
+        .doOnError(throwable -> LOGGER.error(LOG_PREFIX + throwable.getMessage()))
+        .doOnError(
+            WebClientResponseException.class,
+            response -> LOGGER.debug(LOG_PREFIX + response.getResponseBodyAsString()));
   }
 
   private Function<UriBuilder, java.net.URI> buildUriWithParams(String uri, Map<String, String> queryParams) {
