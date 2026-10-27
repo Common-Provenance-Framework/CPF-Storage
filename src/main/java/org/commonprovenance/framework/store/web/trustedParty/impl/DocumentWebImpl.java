@@ -10,7 +10,7 @@ import org.commonprovenance.framework.store.model.Document;
 import org.commonprovenance.framework.store.model.GraphFormat;
 import org.commonprovenance.framework.store.model.factory.DocumentFactory;
 import org.commonprovenance.framework.store.web.trustedParty.DocumentWeb;
-import org.commonprovenance.framework.store.web.trustedParty.client.ClientTrustedParty;
+import org.commonprovenance.framework.store.web.client.Client;
 import org.commonprovenance.framework.store.web.trustedParty.dto.response.DocumentResponseDTO;
 import org.openprovenance.prov.model.QualifiedName;
 import org.slf4j.Logger;
@@ -24,10 +24,10 @@ public class DocumentWebImpl implements DocumentWeb {
   private final String LOG_PREFIX = "DocumentWebImpl: ";
   private static final Logger LOGGER = LoggerFactory.getLogger(DocumentWebImpl.class);
 
-  private final ClientTrustedParty client;
+  private final Client client;
 
   public DocumentWebImpl(
-      ClientTrustedParty client) {
+      Client client) {
     this.client = client;
   }
 
@@ -38,9 +38,8 @@ public class DocumentWebImpl implements DocumentWeb {
       GraphFormat documentFormat,
       Optional<String> optTrustedPartyBaseUrl) {
     String uri = "organizations/" + organizationIdentifer + "/documents/" + bundleIdentifier.getUri() + "/" + documentFormat.toString();
-    return optTrustedPartyBaseUrl
-        .map(this.client.sendCustomGetOneRequest(uri, DocumentResponseDTO.class, Map.of()))
-        .orElse(this.client.sendGetOneRequest(uri, DocumentResponseDTO.class, Map.of()))
+    return this.client
+        .sendGetOneRequest(this.client.trustedParty(optTrustedPartyBaseUrl), uri, DocumentResponseDTO.class, Map.of())
         .map(DocumentFactory::build)
         .doOnSuccess(_ -> LOGGER.trace(LOG_PREFIX + "Document with identifier '" + bundleIdentifier.getUri() + "' has been fetched."))
         .doOnError(throwable -> {
