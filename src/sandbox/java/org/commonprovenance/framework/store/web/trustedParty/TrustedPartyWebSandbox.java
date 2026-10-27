@@ -9,7 +9,7 @@ import org.commonprovenance.framework.store.model.GraphFormat;
 import org.commonprovenance.framework.store.model.Organization;
 import org.commonprovenance.framework.store.model.TrustedParty;
 import org.commonprovenance.framework.store.web.config.WebConfig;
-import org.commonprovenance.framework.store.web.trustedParty.client.reactive.ClientTrustedPartyReactive;
+import org.commonprovenance.framework.store.web.client.reactive.ClientReactive;
 import org.commonprovenance.framework.store.web.trustedParty.impl.TrustedPartyWebImpl;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -24,7 +24,7 @@ import org.springframework.test.context.TestPropertySource;
 // Run from CLI:  ./mvnw test -Dtest=TrustedPartyWebSandbox   (-Dtest overrides the includes)
 // Or run it from the IDE like any JUnit test. Uses the real TrustedPartyWebImpl, no mocks.
 @ExtendWith(MockitoExtension.class)
-@SpringBootTest(classes = { WebConfig.class, ClientTrustedPartyReactive.class, TrustedPartyWebImpl.class })
+@SpringBootTest(classes = { WebConfig.class, ClientReactive.class, TrustedPartyWebImpl.class })
 @TestPropertySource(locations = "classpath:sandbox.properties")
 class TrustedPartyWebSandbox {
 
