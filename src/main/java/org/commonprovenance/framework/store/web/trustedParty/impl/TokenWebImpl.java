@@ -13,25 +13,27 @@ import org.commonprovenance.framework.store.model.GraphFormat;
 import org.commonprovenance.framework.store.model.Token;
 import org.commonprovenance.framework.store.model.factory.TokenFactory;
 import org.commonprovenance.framework.store.web.trustedParty.TokenWeb;
-import org.commonprovenance.framework.store.web.trustedParty.client.ClientTrustedParty;
+import org.commonprovenance.framework.store.web.client.Client;
+import org.commonprovenance.framework.store.web.trustedParty.dto.response.ErrorResponseDTO;
 import org.commonprovenance.framework.store.web.trustedParty.dto.response.TokenResponseDTO;
 import org.openprovenance.prov.model.QualifiedName;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
+import org.springframework.web.reactive.function.client.WebClientResponseException.NotFound;
 
 import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
 
 @Component
 public class TokenWebImpl implements TokenWeb {
   private final String LOG_PREFIX = "TokenWebImpl: ";
   private static final Logger LOGGER = LoggerFactory.getLogger(TokenWebImpl.class);
 
-  private final ClientTrustedParty client;
+  private final Client client;
 
   public TokenWebImpl(
-      ClientTrustedParty client) {
+      Client client) {
     this.client = client;
   }
 
@@ -41,37 +43,60 @@ public class TokenWebImpl implements TokenWeb {
 
   @Override
   public Function<String, Flux<Token>> getAllByOrganization(Optional<String> optTrustedPartyBaseUrl) {
-    return (String organizationIdentifier) -> optTrustedPartyBaseUrl
-        .map(this.client.sendCustomGetManyRequest(getTokensUri(organizationIdentifier), TokenResponseDTO.class, Map.of()))
-        .orElse(this.client.sendGetManyRequest(getTokensUri(organizationIdentifier), TokenResponseDTO.class, Map.of()))
+    return (String organizationIdentifier) -> this.client
+        .sendGetManyRequest(this.client.trustedParty(optTrustedPartyBaseUrl), getTokensUri(organizationIdentifier), TokenResponseDTO.class, Map.of())
         .flatMap(MONO.liftEffectToMono(TokenFactory::build))
-        .doOnComplete(() -> LOGGER.trace(LOG_PREFIX + "Tokens for organization with id '" + organizationIdentifier + "' has been fetched."))
-        .doOnError(throwable -> LOGGER.error(LOG_PREFIX + "Tokens for organization with id '" + organizationIdentifier + "' has not been fetched!\n" + throwable.getMessage()))
+        .doOnComplete(() -> LOGGER.trace(LOG_PREFIX
+            + "Tokens has been fetched from TrustedParty at URL '"
+            + getTrustedPartyUrlOrDefault(optTrustedPartyBaseUrl)
+            + "'."))
+        .doOnError(throwable -> {
+          LOGGER.error(LOG_PREFIX
+              + "Tokens has not been fetched from TrustedParty at URL '"
+              + getTrustedPartyUrlOrDefault(optTrustedPartyBaseUrl) + "'!\n"
+              + throwable.getMessage());
+          if (throwable instanceof WebClientResponseException wcrException)
+            LOGGER.trace(LOG_PREFIX + wcrException.getResponseBodyAsString());
+        })
+        .onErrorMap(NotFound.class, notFound -> {
+          ErrorResponseDTO response = notFound.getResponseBodyAs(ErrorResponseDTO.class);
+          return new NotFoundException("TrustedParty responded with status '" + response.status() + "' and message '" + response.message() + "'!");
+        })
         .onErrorMap(ApplicationExceptionFactory.handleThrowable(
             new InternalApplicationException("Tokens for organization with id '" + organizationIdentifier + "' has not been fetched!")));
   }
 
   @Override
-  public Mono<Token> getByDocumentId(
+  public Flux<Token> getByDocumentId(
       String organizationIdentifier,
       QualifiedName bundleIdentifier,
-      GraphFormat documentFormat,
+      GraphFormat graphFormat,
       Optional<String> optTrustedPartyBaseUrl) {
-    String uri = getTokensUri(organizationIdentifier) + "/" + bundleIdentifier.getUri() + "/" + documentFormat.toString();
+    String uri = getTokensUri(organizationIdentifier) + "/" + bundleIdentifier.getLocalPart() + "/" + graphFormat.toString();
 
-    return optTrustedPartyBaseUrl
-        .map(this.client.sendCustomGetOneRequest(uri, TokenResponseDTO.class, Map.of()))
-        .orElse(client.sendGetOneRequest(uri, TokenResponseDTO.class, Map.of()))
+    return this.client
+        .sendGetManyRequest(this.client.trustedParty(optTrustedPartyBaseUrl), uri, TokenResponseDTO.class, Map.of())
         .flatMap(MONO.liftEffectToMono(TokenFactory::build))
-        .doOnSuccess(_ -> LOGGER.trace(
-            LOG_PREFIX + "Token has been fetched. Organization identifier is '" + organizationIdentifier + "'. Document identifier is '" + bundleIdentifier.getUri() + "'."))
+        .doOnComplete(() -> LOGGER.trace(LOG_PREFIX
+            + "Token has been fetched from TrustedParty at URL '"
+            + getTrustedPartyUrlOrDefault(optTrustedPartyBaseUrl)
+            + "'."))
         .doOnError(throwable -> {
-          if (throwable instanceof NotFoundException notFound)
-            LOGGER.trace(LOG_PREFIX + notFound.getMessage());
-          else
-            LOGGER.error(LOG_PREFIX + "Token has not been fetched. Organization identifier is '" + organizationIdentifier
-                + "'. Document identifier is '" + bundleIdentifier.getUri() + "'!\n" + throwable.getMessage());
+          LOGGER.error(LOG_PREFIX
+              + "Token has not been fetched from TrustedParty at URL '"
+              + getTrustedPartyUrlOrDefault(optTrustedPartyBaseUrl) + "'!\n"
+              + throwable.getMessage());
+          if (throwable instanceof WebClientResponseException wcrException)
+            LOGGER.trace(LOG_PREFIX + wcrException.getResponseBodyAsString());
+        })
+        .onErrorMap(NotFound.class, notFound -> {
+          ErrorResponseDTO response = notFound.getResponseBodyAs(ErrorResponseDTO.class);
+          return new NotFoundException("TrustedParty responded with status '" + response.status() + "' and message '" + response.message() + "'!");
         })
         .onErrorMap(ApplicationExceptionFactory.handleThrowable(new InternalApplicationException("Token has not been fetched!")));
+  }
+
+  private String getTrustedPartyUrlOrDefault(Optional<String> optTrustedPartyBaseUrl) {
+    return optTrustedPartyBaseUrl.orElse(this.client.getDefaultTrustedPartyUrl());
   }
 }
