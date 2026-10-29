@@ -73,4 +73,9 @@ public class Token implements
     return createdOn;
   }
 
+  @Override
+  public String toString() {
+    return "Token [jwt=" + jwt + ", trustedParty=" + trustedParty + ", createdOn=" + createdOn + "]";
+  }
+
 }
