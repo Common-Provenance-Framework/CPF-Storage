@@ -34,7 +34,7 @@ public class StoreWebImpl implements StoreWeb {
   public Mono<Void> pingByResourcePath(String resourcePath) {
 
     return (resourcePath.startsWith(this.client.getStoreUrl())
-        ? this.client.sendHeadRequest(this.client.store(), resourcePath.substring(this.client.getStoreUrl().length()), Map.of())
+        ? this.client.sendHeadRequest(this.client.store(), this.buildUriPartFromResourcePath(resourcePath), Map.of())
         : this.client.sendHeadRequest(this.client.custom(resourcePath), "", Map.of()))
         .onErrorResume(NotFound.class, notFound -> {
           return Mono.error(
@@ -55,7 +55,7 @@ public class StoreWebImpl implements StoreWeb {
     return (resourcePath.startsWith(this.client.getStoreUrl())
         ? this.client.sendGetOneRequest(
             this.client.store(),
-            resourcePath.substring(this.client.getStoreUrl().length()) + "/token",
+            this.buildUriPartFromResourcePath(resourcePath, "token"),
             TokenResponseDTO.class,
             Map.of())
         : this.client.sendGetOneRequest(
@@ -76,6 +76,14 @@ public class StoreWebImpl implements StoreWeb {
             LOGGER.error(LOG_PREFIX + "Token for document at path '" + resourcePath + "' has not been fetched!\n" + throwable.getMessage());
         })
         .onErrorMap(ApplicationExceptionFactory.handleThrowable(new InternalApplicationException("Token for document at path '" + resourcePath + "' has not been fetched!")));
+  }
+
+  private String buildUriPartFromResourcePath(String resourcePath) {
+    return buildUriPartFromResourcePath(resourcePath, "");
+  }
+
+  private String buildUriPartFromResourcePath(String resourcePath, String suffix) {
+    return resourcePath.substring(this.client.getStoreUrl().length()) + (suffix.isBlank() ? "" : "/" + suffix);
   }
 
 }
