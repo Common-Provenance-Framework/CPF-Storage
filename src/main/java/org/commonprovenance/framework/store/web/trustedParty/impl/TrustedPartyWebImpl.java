@@ -6,9 +6,9 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 
+import org.commonprovenance.framework.store.exceptions.ApplicationException;
 import org.commonprovenance.framework.store.exceptions.BadRequestException;
 import org.commonprovenance.framework.store.exceptions.InternalApplicationException;
-import org.commonprovenance.framework.store.exceptions.NotFoundException;
 import org.commonprovenance.framework.store.exceptions.factory.ApplicationExceptionFactory;
 import org.commonprovenance.framework.store.model.GraphType;
 import org.commonprovenance.framework.store.model.MetaDocument;
@@ -54,20 +54,12 @@ public class TrustedPartyWebImpl implements TrustedPartyWeb {
         .flatMap(MONO.liftEffectToMono(TrustedPartyFactory.buildUnsafe(
             this.getTrustedPartyUrlOrDefault(optTrustedPartyBaseUrl),
             optTrustedPartyBaseUrl.isEmpty())))
-        .onErrorResume(NotFound.class, notFound -> {
-          ErrorResponseDTO response = notFound.getResponseBodyAs(ErrorResponseDTO.class);
-          return Mono.error(
-              () -> new NotFoundException("Resource not found! TrustedParty responded with status '" + response.status() + "' and message '" + response.message() + "'!"));
-        })
         .doOnSuccess(_ -> LOGGER.trace(LOG_PREFIX + "Trusted Party info object has been fetched from url: '" + this.getTrustedPartyUrlOrDefault(optTrustedPartyBaseUrl) + "'."))
-        .doOnError(throwable -> {
-          if (throwable instanceof NotFoundException notFound)
-            LOGGER.trace(LOG_PREFIX + notFound.getMessage());
-          else
-            LOGGER.error(
-                LOG_PREFIX + "Trusted Party info object has not been fetched from url: '" + this.getTrustedPartyUrlOrDefault(optTrustedPartyBaseUrl) + "'!\n"
-                    + throwable.getMessage());
-        })
+        .doOnError(throwable -> LOGGER.error(LOG_PREFIX
+            + "Trusted Party info object has not been fetched from url: '"
+            + this.getTrustedPartyUrlOrDefault(optTrustedPartyBaseUrl) + "'!\n"
+            + throwable.getMessage() + "\n"
+            + ((WebClientResponseException) throwable).getResponseBodyAsString()))
         .onErrorMap(ApplicationExceptionFactory.handleThrowable(
             new InternalApplicationException("Trusted Party info object has not been fetched from url: '" + this.getTrustedPartyUrlOrDefault(optTrustedPartyBaseUrl) + "'!")));
   }
@@ -87,8 +79,17 @@ public class TrustedPartyWebImpl implements TrustedPartyWeb {
               return Mono.error(() -> new BadRequestException("TrustedParty responded with status '" + response.status() + "' and message '" + response.message() + "'!"));
             })
         .doOnSuccess(_ -> LOGGER.trace(LOG_PREFIX + "Token has been issued by TrustedParty at URL '" + getTrustedPartyUrlOrDefault(organization) + "'."))
-        .doOnError(throwable -> LOGGER.error(
-            LOG_PREFIX + "Token has not been issued by TrustedParty at URL '" + getTrustedPartyUrlOrDefault(organization) + "'!\n" + throwable.getMessage()))
+        .doOnError(throwable -> {
+          if (throwable instanceof ApplicationException notFound)
+            LOGGER.trace(LOG_PREFIX + notFound.getMessage());
+          else
+            LOGGER.error(LOG_PREFIX
+                + "Token has not been issued by TrustedParty at URL '"
+                + getTrustedPartyUrlOrDefault(organization) + "'!\n"
+                + "' has been failed!\n"
+                + throwable.getMessage() + "\n"
+                + ((WebClientResponseException) throwable).getResponseBodyAsString());
+        })
         .onErrorMap(ApplicationExceptionFactory.handleThrowable(
             new InternalApplicationException("Token has not been issued by TrustedParty at URL '" + getTrustedPartyUrlOrDefault(organization) + "'!")));
   }
@@ -99,7 +100,6 @@ public class TrustedPartyWebImpl implements TrustedPartyWeb {
         .flatMap(this.client.sendPostRequest(
             this.client.trustedParty(getTrustedPartyUrl(organization)), "/issueToken", TokenResponseDTO.class, Map.of()))
         .flatMap(MONO.liftEffectToMono(TokenFactory::build))
-        .map(token -> token.withTrustedParty(organization.getTrustedParty()))
         .onErrorResume(error -> error instanceof Unauthorized
             || error instanceof BadRequest
             || error instanceof NotFound
