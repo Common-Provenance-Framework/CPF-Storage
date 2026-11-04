@@ -131,4 +131,10 @@ public class Organization extends DTOValidator implements
             new InvalidValueException("TrustedParty for organization with identifier '" + getIdentifier() + "' is not yet hydrated into the model.!")))
         .map(TrustedParty::getUrlIfNotDefault);
   }
+
+  @Override
+  public String toString() {
+    return "Organization [identifier=" + identifier + ", clientCertificate=" + clientCertificate + ", intermediateCertificates=" + intermediateCertificates + "]";
+  }
+
 }
