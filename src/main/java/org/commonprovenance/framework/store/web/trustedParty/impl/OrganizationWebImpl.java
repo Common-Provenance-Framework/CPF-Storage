@@ -11,8 +11,8 @@ import org.commonprovenance.framework.store.exceptions.NotFoundException;
 import org.commonprovenance.framework.store.exceptions.factory.ApplicationExceptionFactory;
 import org.commonprovenance.framework.store.model.Organization;
 import org.commonprovenance.framework.store.model.factory.OrganizationFactory;
-import org.commonprovenance.framework.store.web.trustedParty.OrganizationWeb;
 import org.commonprovenance.framework.store.web.client.Client;
+import org.commonprovenance.framework.store.web.trustedParty.OrganizationWeb;
 import org.commonprovenance.framework.store.web.trustedParty.dto.form.factory.RegisterOrganizationFormFactory;
 import org.commonprovenance.framework.store.web.trustedParty.dto.response.ErrorResponseDTO;
 import org.commonprovenance.framework.store.web.trustedParty.dto.response.OrganizationResponseDTO;
@@ -22,8 +22,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 import org.springframework.web.reactive.function.client.WebClientResponseException.BadRequest;
 import org.springframework.web.reactive.function.client.WebClientResponseException.Conflict;
-import org.springframework.web.reactive.function.client.WebClientResponseException.Unauthorized;
 import org.springframework.web.reactive.function.client.WebClientResponseException.NotFound;
+import org.springframework.web.reactive.function.client.WebClientResponseException.Unauthorized;
 
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -142,6 +142,5 @@ public class OrganizationWebImpl implements OrganizationWeb {
 
   private String getTrustedPartyUrlOrDefault(Optional<String> maybyUrl) {
     return maybyUrl.orElse(this.client.getDefaultTrustedPartyUrl());
-
   }
 }

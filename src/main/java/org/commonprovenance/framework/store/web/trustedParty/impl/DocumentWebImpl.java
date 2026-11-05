@@ -9,13 +9,16 @@ import org.commonprovenance.framework.store.exceptions.factory.ApplicationExcept
 import org.commonprovenance.framework.store.model.Document;
 import org.commonprovenance.framework.store.model.GraphFormat;
 import org.commonprovenance.framework.store.model.factory.DocumentFactory;
-import org.commonprovenance.framework.store.web.trustedParty.DocumentWeb;
 import org.commonprovenance.framework.store.web.client.Client;
+import org.commonprovenance.framework.store.web.trustedParty.DocumentWeb;
 import org.commonprovenance.framework.store.web.trustedParty.dto.response.DocumentResponseDTO;
+import org.commonprovenance.framework.store.web.trustedParty.dto.response.ErrorResponseDTO;
 import org.openprovenance.prov.model.QualifiedName;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
+import org.springframework.web.reactive.function.client.WebClientResponseException.NotFound;
 
 import reactor.core.publisher.Mono;
 
@@ -37,19 +40,36 @@ public class DocumentWebImpl implements DocumentWeb {
       QualifiedName bundleIdentifier,
       GraphFormat documentFormat,
       Optional<String> optTrustedPartyBaseUrl) {
-    String uri = "organizations/" + organizationIdentifer + "/documents/" + bundleIdentifier.getUri() + "/" + documentFormat.toString();
+    String uri = "organizations/" + organizationIdentifer + "/documents/" + bundleIdentifier.getLocalPart() + "/" + documentFormat.toString();
     return this.client
         .sendGetOneRequest(this.client.trustedParty(optTrustedPartyBaseUrl), uri, DocumentResponseDTO.class, Map.of())
         .map(DocumentFactory::build)
-        .doOnSuccess(_ -> LOGGER.trace(LOG_PREFIX + "Document with identifier '" + bundleIdentifier.getUri() + "' has been fetched."))
+        .doOnSuccess(_ -> LOGGER.trace(LOG_PREFIX
+            + "Document with identifier '"
+            + bundleIdentifier.getUri()
+            + "' has been fetched from Trusted Party at url '"
+            + this.getTrustedPartyUrlOrDefault(optTrustedPartyBaseUrl)
+            + "'."))
         .doOnError(throwable -> {
-          if (throwable instanceof NotFoundException notFound)
-            LOGGER.trace(LOG_PREFIX + notFound.getMessage());
-          else
-            LOGGER.error(LOG_PREFIX + "Document with identifier '" + bundleIdentifier.getUri() + "' has not been fetched!\n" + throwable.getMessage());
+          LOGGER.error(LOG_PREFIX
+              + "Document with identifier '"
+              + bundleIdentifier.getUri()
+              + "' has not been fetched from Trusted Party at url '"
+              + this.getTrustedPartyUrlOrDefault(optTrustedPartyBaseUrl)
+              + "'!\n"
+              + throwable.getMessage());
+          if (throwable instanceof WebClientResponseException wcrException)
+            LOGGER.trace(LOG_PREFIX + wcrException.getResponseBodyAsString());
+        })
+        .onErrorMap(NotFound.class, notFound -> {
+          ErrorResponseDTO response = notFound.getResponseBodyAs(ErrorResponseDTO.class);
+          return new NotFoundException("TrustedParty responded with status '" + response.status() + "' and message '" + response.message() + "'!");
         })
         .onErrorMap(ApplicationExceptionFactory.handleThrowable(
             new InternalApplicationException("Document with identifier '" + bundleIdentifier.getUri() + "' has been fetched!")));
   }
 
+  private String getTrustedPartyUrlOrDefault(Optional<String> maybyUrl) {
+    return maybyUrl.orElse(this.client.getDefaultTrustedPartyUrl());
+  }
 }
