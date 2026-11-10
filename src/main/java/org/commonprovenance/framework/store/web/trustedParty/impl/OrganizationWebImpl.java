@@ -4,6 +4,7 @@ import static org.commonprovenance.framework.store.common.composition.Reactor.MO
 
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
 
 import org.commonprovenance.framework.store.exceptions.BadRequestException;
 import org.commonprovenance.framework.store.exceptions.InternalApplicationException;
@@ -14,6 +15,7 @@ import org.commonprovenance.framework.store.model.factory.OrganizationFactory;
 import org.commonprovenance.framework.store.web.client.Client;
 import org.commonprovenance.framework.store.web.trustedParty.OrganizationWeb;
 import org.commonprovenance.framework.store.web.trustedParty.dto.form.factory.RegisterOrganizationFormFactory;
+import org.commonprovenance.framework.store.web.trustedParty.dto.form.factory.UpdateOrganizationFormFactory;
 import org.commonprovenance.framework.store.web.trustedParty.dto.response.ErrorResponseDTO;
 import org.commonprovenance.framework.store.web.trustedParty.dto.response.OrganizationResponseDTO;
 import org.slf4j.Logger;
@@ -41,13 +43,15 @@ public class OrganizationWebImpl implements OrganizationWeb {
 
   @Override
   public Mono<Void> create(Organization organization) {
+    Function<Organization, String> getUri = org -> "/organizations/" + organization.getIdentifier();
+
     return MONO.combineM(
         Mono.just(organization)
             .flatMap(MONO.liftEffectToMono(Organization::getTrustedPartyBaseUrl)),
         Mono.just(organization)
             .flatMap(MONO.liftEffectToMono(RegisterOrganizationFormFactory::buildSafe)),
         (optUrl, form) -> Mono.just(form)
-            .flatMap(this.client.sendPostRequest(this.client.trustedParty(optUrl), "/organizations/" + organization.getIdentifier(), Void.class, Map.of())))
+            .flatMap(this.client.sendPostRequest(this.client.trustedParty(optUrl), getUri.apply(organization), Void.class, Map.of())))
         .doOnSuccess(_ -> LOGGER.trace(LOG_PREFIX
             + "New organization with identifier '"
             + organization.getIdentifier()
@@ -79,12 +83,27 @@ public class OrganizationWebImpl implements OrganizationWeb {
   }
 
   @Override
-  public Mono<Organization> getById(Organization organization) {
+  public Mono<Void> updateOrganizationCertificate(Organization organization) {
+    Function<Organization, String> getUri = org -> "/organizations/" + organization.getIdentifier() + "/certs";
+
     return MONO.combineM(
         MONO.fromEitherOptional(organization.getTrustedPartyBaseUrl()),
-        Mono.just(organization).map(Organization::getIdentifier),
-        (optTrustedPartyBaseUrl, organizationIdentifier) -> this.client.sendGetOneRequest(
-            this.client.trustedParty(optTrustedPartyBaseUrl), "/organizations/" + organizationIdentifier, OrganizationResponseDTO.class, Map.of()))
+        Mono.just(organization).flatMap(MONO.liftEffectToMono(UpdateOrganizationFormFactory::buildSafe)),
+        (optUrl, form) -> Mono.just(form)
+            .flatMap(this.client.sendPutRequest(this.client.trustedParty(optUrl), getUri.apply(organization), Void.class, Map.of())))
+        .doOnSuccess(_ -> LOGGER.trace(LOG_PREFIX + "Certificates for organization with identifier '" + organization.getIdentifier() + "' has been updated."))
+        .doOnError(throwable -> LOGGER.error(
+            LOG_PREFIX + "Certificates for organization with identifier '" + organization.getIdentifier() + "' has not been updated!\n" + throwable.getMessage()))
+        .onErrorMap(ApplicationExceptionFactory.handleThrowable(
+            new InternalApplicationException("Certificates for organization with identifier '" + organization.getIdentifier() + "' has not been updated!")));
+  }
+
+  @Override
+  public Mono<Organization> getById(Organization organization) {
+    Function<Organization, String> getUri = org -> "/organizations/" + organization.getIdentifier();
+
+    return MONO.fromEitherOptional(organization.getTrustedPartyBaseUrl())
+        .flatMap(optUrl -> this.client.sendGetOneRequest(this.client.trustedParty(optUrl), getUri.apply(organization), OrganizationResponseDTO.class, Map.of()))
         .flatMap(MONO.liftEffectToMono(OrganizationFactory::buildUnsafe))
         .doOnSuccess(_ -> LOGGER.trace(LOG_PREFIX
             + "Organization with identifier '"

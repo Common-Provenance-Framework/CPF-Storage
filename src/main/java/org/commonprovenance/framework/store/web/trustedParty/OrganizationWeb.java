@@ -8,5 +8,7 @@ public interface OrganizationWeb {
 
   Mono<Void> create(Organization organization);
 
+  Mono<Void> updateOrganizationCertificate(Organization organization);
+
   Mono<Organization> getById(Organization organization);
 }
