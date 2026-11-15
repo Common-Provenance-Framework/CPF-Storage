@@ -1,0 +1,119 @@
+{
+  "prefix": {
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "cpm": "https://www.commonprovenancemodel.org/cpm-namespace-v1-0/",
+    "store": "${documentsUrl}",
+    "pav": "http://purl.org/pav/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "meta": "${metaBundlesUrl}"
+  },
+  "bundle": {
+    "meta:${metaBundleId}": {
+      "entity": {
+        "store:general-version": {
+          "prov:type": { "type": "prov:QUALIFIED_NAME", "$": "prov:Bundle" }
+        },
+        "store:${bundleId1}": {
+          "pav:version": 1,
+          "prov:type": { "type": "prov:QUALIFIED_NAME", "$": "prov:Bundle" }
+        },
+        "store:${bundleId2}": {
+          "pav:version": 2,
+          "prov:type": { "type": "prov:QUALIFIED_NAME", "$": "prov:Bundle" }
+        },
+        "store:token-of-version-1": {
+          "cpm:jwt": "${token1}",
+          "prov:type": { "type": "prov:QUALIFIED_NAME", "$": "cpm:Token" }
+        },
+        "store:token-of-version-2": {
+          "cpm:jwt": "${token2}",
+          "prov:type": { "type": "prov:QUALIFIED_NAME", "$": "cpm:Token" }
+        }
+      },
+      "activity": {
+        "store:token-generation-of-version-1": {
+          "prov:startTime": "${tokenIssuedAt1}",
+          "prov:endTime": "${tokenIssuedAt1}",
+          "prov:type": { "type": "prov:QUALIFIED_NAME", "$": "cpm:TokenGeneration" }
+        },
+        "store:token-generation-of-version-2": {
+          "prov:startTime": "${tokenIssuedAt2}",
+          "prov:endTime": "${tokenIssuedAt2}",
+          "prov:type": { "type": "prov:QUALIFIED_NAME", "$": "cpm:TokenGeneration" }
+        }
+      },
+      "agent": {
+        "store:TrustedParty": {
+          "cpm:trustedPartyUri": "${trustedPartyUrl}",
+          "prov:type": { "type": "prov:QUALIFIED_NAME", "$": "cpm:TrustedParty" },
+          "cpm:trustedPartyCertificate": "${trustedPartyCertificate}"
+        }
+      },
+      "qualifiedSpecializationOf": {
+        "_:version1": {
+          "prov:specificEntity": "store:${bundleId1}",
+          "prov:generalEntity": "store:general-version"
+        },
+        "_:version2": {
+          "prov:specificEntity": "store:${bundleId2}",
+          "prov:generalEntity": "store:general-version"
+        }
+      },
+      "used": {
+        "_:version1": {
+          "prov:activity": "store:token-generation-of-version-1",
+          "prov:entity": "store:${bundleId1}"
+        },
+        "_:version2": {
+          "prov:activity": "store:token-generation-of-version-2",
+          "prov:entity": "store:${bundleId2}"
+        }
+      },
+      "wasGeneratedBy": {
+        "_:token1": {
+          "prov:entity": "store:token-of-version-1",
+          "prov:activity": "store:token-generation-of-version-1"
+        },
+        "_:token2": {
+          "prov:entity": "store:token-of-version-2",
+          "prov:activity": "store:token-generation-of-version-2"
+        }
+      },
+      "wasDerivedFrom": {
+        "_:token1": {
+          "prov:generatedEntity": "store:token-of-version-1",
+          "prov:usedEntity": "store:${bundleId1}"
+        },
+        "_:token2": {
+          "prov:generatedEntity": "store:token-of-version-2",
+          "prov:usedEntity": "store:${bundleId2}"
+        },
+        "_:version2IsRevisionOfVersion1": {
+          "prov:generatedEntity": "store:${bundleId2}",
+          "prov:usedEntity": "store:${bundleId1}",
+          "prov:type": { "type": "prov:QUALIFIED_NAME", "$": "prov:Revision" }
+        }
+      },
+      "wasAssociatedWith": {
+        "_:tokenGeneration1": {
+          "prov:activity": "store:token-generation-of-version-1",
+          "prov:agent": "store:TrustedParty"
+        },
+        "_:tokenGeneration2": {
+          "prov:activity": "store:token-generation-of-version-2",
+          "prov:agent": "store:TrustedParty"
+        }
+      },
+      "wasAttributedTo": {
+        "_:token1": {
+          "prov:entity": "store:token-of-version-1",
+          "prov:agent": "store:TrustedParty"
+        },
+        "_:token2": {
+          "prov:entity": "store:token-of-version-2",
+          "prov:agent": "store:TrustedParty"
+        }
+      }
+    }
+  }
+}

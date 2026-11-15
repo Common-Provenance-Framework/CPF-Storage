@@ -1,0 +1,30 @@
+{
+  "prefix": {
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "cpm": "https://www.commonprovenancemodel.org/cpm-namespace-v1-0/",
+    "ex": "https://example.org/",
+    "storage": "${documentsUrl}",
+    "dct": "http://purl.org/dc/terms/",
+    "prov": "http://www.w3.org/ns/prov#"
+  },
+  "bundle": {
+    "storage:${bundleId}": {
+      "entity": {
+        "ex:sample": {
+          "ex:weight": "42 g"
+        }
+      },
+      "activity": {
+        "ex:weighing": {
+          "ex:instrument": "laboratory scale"
+        }
+      },
+      "used": {
+        "_:sampleUsage": {
+          "prov:activity": "ex:weighing",
+          "prov:entity": "ex:sample"
+        }
+      }
+    }
+  }
+}
