@@ -45,6 +45,18 @@ public class OrganizationNeo4jRepository implements OrganizationRepository {
   }
 
   @Override
+  public Mono<Void> update(Organization organization) {
+    return client.updateCertificates(
+        organization.getIdentifier(),
+        organization.getClientCertificate(),
+        organization.getIntermediateCertificates())
+        .then()
+        .doOnSuccess(_ -> LOGGER.trace(LOG_PREFIX + "Organization has been updated in DB."))
+        .doOnError(throwable -> LOGGER.error(LOG_PREFIX + "Organization has not been updated in DB!\n" + throwable.getMessage()))
+        .onErrorMap(ApplicationExceptionFactory.handleThrowable(new InternalApplicationException("Organization has not been updated in DB!")));
+  }
+
+  @Override
   public Mono<Void> connectTrusts(Organization organization) {
     return MONO.combineM(
         Mono.just(organization)
