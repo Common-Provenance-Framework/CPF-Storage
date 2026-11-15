@@ -10,6 +10,8 @@ import reactor.core.publisher.Mono;
 public interface OrganizationRepository {
   Mono<Void> save(Organization organization);
 
+  Mono<Void> update(Organization organization);
+
   Mono<Void> connectTrusts(Organization organization);
 
   Mono<Organization> findByIdentifier(String identifier);
