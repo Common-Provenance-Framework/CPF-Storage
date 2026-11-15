@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.Optional;
 
 import org.commonprovenance.framework.store.exceptions.InternalApplicationException;
+import org.commonprovenance.framework.store.exceptions.NotFoundException;
 import org.commonprovenance.framework.store.exceptions.factory.ApplicationExceptionFactory;
 import org.commonprovenance.framework.store.model.Organization;
 import org.commonprovenance.framework.store.model.factory.OrganizationFactory;
@@ -16,6 +17,7 @@ import org.commonprovenance.framework.store.web.trustedParty.dto.response.Organi
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
+import org.springframework.web.reactive.function.client.WebClientResponseException.NotFound;
 
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -70,6 +72,7 @@ public class OrganizationWebImpl implements OrganizationWeb {
             .map(this.client.sendCustomGetOneRequest("/organizations/" + organizationIdentifier, OrganizationResponseDTO.class, Map.of()))
             .orElse(this.client.sendGetOneRequest("/organizations/" + organizationIdentifier, OrganizationResponseDTO.class, Map.of())))
         .flatMap(MONO.liftEffectToMono(OrganizationFactory::buildUnsafe))
+        .onErrorMap(NotFound.class, _ -> new NotFoundException("Organization with identifier '" + organization.getIdentifier() + "' has not been found in TrustedParty!"))
         .doOnSuccess(_ -> LOGGER.trace(LOG_PREFIX + "Organization with identifier '" + organization.getIdentifier() + "' has been fetched."))
         .doOnError(throwable -> LOGGER.error(LOG_PREFIX + "Organization with identifier '" + organization.getIdentifier() + "' has not been fetched!\n" + throwable.getMessage()))
         .onErrorMap(ApplicationExceptionFactory.handleThrowable(

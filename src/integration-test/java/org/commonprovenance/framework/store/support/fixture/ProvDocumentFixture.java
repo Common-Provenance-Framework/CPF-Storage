@@ -1,21 +1,21 @@
 package org.commonprovenance.framework.store.support.fixture;
 
-import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
 import java.util.HashMap;
+import java.util.HexFormat;
 import java.util.Map;
 import java.util.UUID;
 
-import org.commonprovenance.framework.store.controller.dto.form.DocumentFormDTO;
-import org.commonprovenance.framework.store.model.GraphFormat;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.util.PropertyPlaceholderHelper;
-
 public record ProvDocumentFixture(String templatePath, Map<String, String> values) {
 
-  private static final PropertyPlaceholderHelper PLACEHOLDERS = new PropertyPlaceholderHelper("${", "}", null, null, false);
+  public static final String MAIN_ACTIVITY_ONLY = "fixtures/documents/main-activity-only.json";
+  public static final String WITH_DOMAIN_SPECIFIC_PART = "fixtures/documents/with-domain-specific-part.json";
+  public static final String CONNECTED_TO_REFERENCED_BUNDLE = "fixtures/documents/connected-to-referenced-bundle.json";
+
+  private static final String SIGNATURE = "document-signature";
 
   public static ProvDocumentFixture of(String templatePath, String storeUrl, String organizationId) {
     return new ProvDocumentFixture(templatePath, Map.of(
@@ -29,6 +29,19 @@ public record ProvDocumentFixture(String templatePath, Map<String, String> value
     Map<String, String> values = new HashMap<>(this.values);
     values.put(placeholder, value);
     return new ProvDocumentFixture(templatePath, Map.copyOf(values));
+  }
+
+  public ProvDocumentFixture nextVersion() {
+    return with("bundleId", UUID.randomUUID().toString());
+  }
+
+  public ProvDocumentFixture connectedTo(ProvDocumentFixture referenced) {
+    return new ProvDocumentFixture(CONNECTED_TO_REFERENCED_BUNDLE, values)
+        .with("referencedDocumentsUrl", referenced.documentsUrl())
+        .with("referencedMetaBundlesUrl", referenced.metaBundlesUrl())
+        .with("referencedBundleId", referenced.bundleId())
+        .with("referencedMetaBundleId", referenced.metaBundleId())
+        .with("referencedBundleHashValue", referenced.digest());
   }
 
   public String value(String placeholder) {
@@ -47,6 +60,10 @@ public record ProvDocumentFixture(String templatePath, Map<String, String> value
     return value("metaBundleId");
   }
 
+  public String signature() {
+    return SIGNATURE;
+  }
+
   public String documentsUrl() {
     return value("storeUrl") + "organizations/" + organizationId() + "/documents/";
   }
@@ -59,26 +76,38 @@ public record ProvDocumentFixture(String templatePath, Map<String, String> value
     return documentsUrl() + bundleId();
   }
 
+  public String metaBundleUrl() {
+    return metaBundlesUrl() + metaBundleId();
+  }
+
   public String json() {
+    return render(templatePath);
+  }
+
+  public String domainSpecificView() {
+    return render(templatePath.replace(".json", ".domain-specific.json"));
+  }
+
+  public String backboneView() {
+    return render(templatePath.replace(".json", ".backbone.json"));
+  }
+
+  private String render(String path) {
     Map<String, String> placeholders = new HashMap<>(values);
     placeholders.putIfAbsent("documentsUrl", documentsUrl());
     placeholders.putIfAbsent("metaBundlesUrl", metaBundlesUrl());
-    return PLACEHOLDERS.replacePlaceholders(readTemplate(), placeholders::get);
+    return Template.render(path, placeholders);
   }
 
   public String base64() {
     return Base64.getEncoder().encodeToString(json().getBytes(StandardCharsets.UTF_8));
   }
 
-  public DocumentFormDTO toForm(String signature) {
-    return new DocumentFormDTO(base64(), GraphFormat.JSON, signature);
-  }
-
-  private String readTemplate() {
+  public String digest() {
     try {
-      return new ClassPathResource(templatePath).getContentAsString(StandardCharsets.UTF_8);
-    } catch (IOException e) {
-      throw new UncheckedIOException("Can not read PROV document template '" + templatePath + "'", e);
+      return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(json().getBytes(StandardCharsets.UTF_8)));
+    } catch (NoSuchAlgorithmException e) {
+      throw new IllegalStateException(e);
     }
   }
 }
