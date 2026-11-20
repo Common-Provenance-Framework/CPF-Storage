@@ -433,7 +433,6 @@ class OrganizationWebImplTest {
             organizationWeb.getById(organization),
             StepVerifierOptions.create().scenarioName("should update existing Organization"))
             .assertNext((Organization orgModel) -> {
-              System.out.println(orgModel);
               assertEquals(ORGANIZATION_ID, orgModel.getIdentifier(), "should have exact id");
               assertEquals(ORGANIZATION_CERT, orgModel.getClientCertificate(), "should have exact client certificate");
             })

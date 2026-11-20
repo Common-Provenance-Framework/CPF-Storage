@@ -215,7 +215,6 @@ public class IssueTokenFormFactoryTest {
         when(organization.getDocument()).thenReturn(Optional.of(document));
 
         IssueTokenFormFactory.buildSafe(organization, GraphType.BACKBONE)
-            .peek(System.out::println)
             .peek(_ -> fail("Right side has not been expected!"))
             .peekLeft(e -> {
               assertInstanceOf(ApplicationException.class, e, "Should be ApplicationException");
@@ -313,7 +312,6 @@ public class IssueTokenFormFactoryTest {
         when(metaDocument.getB64Graph()).thenReturn(Either.right(null));
 
         IssueTokenFormFactory.buildSafe(metaDocument)
-            .peek(System.out::println)
             .peek(_ -> fail("Right side has not been expected!"))
             .peekLeft(e -> {
               assertInstanceOf(ApplicationException.class, e, "Should be ApplicationException");
