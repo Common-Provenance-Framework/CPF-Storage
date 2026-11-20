@@ -3,7 +3,6 @@ package org.commonprovenance.framework.store.web.trustedParty;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
-import java.util.Optional;
 
 import org.commonprovenance.framework.store.model.Document;
 import org.commonprovenance.framework.store.model.Organization;
@@ -21,8 +20,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
-
-import io.vavr.control.Either;
 
 // The name does not match surefire (*Test, *Spec) or failsafe (*IT) patterns, so no build runs it.
 // Run from CLI:  ./mvnw test -Dtest=OrganizationWebSandbox   (-Dtest overrides the includes)
