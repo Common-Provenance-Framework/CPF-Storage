@@ -9,7 +9,7 @@ import org.commonprovenance.framework.store.model.GraphFormat;
 import org.commonprovenance.framework.store.model.Organization;
 import org.commonprovenance.framework.store.model.TrustedParty;
 import org.commonprovenance.framework.store.web.config.WebConfig;
-import org.commonprovenance.framework.store.web.trustedParty.client.reactive.ClientTrustedPartyReactive;
+import org.commonprovenance.framework.store.web.client.reactive.ClientReactive;
 import org.commonprovenance.framework.store.web.trustedParty.impl.TrustedPartyWebImpl;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -24,7 +24,7 @@ import org.springframework.test.context.TestPropertySource;
 // Run from CLI:  ./mvnw test -Dtest=TrustedPartyWebSandbox   (-Dtest overrides the includes)
 // Or run it from the IDE like any JUnit test. Uses the real TrustedPartyWebImpl, no mocks.
 @ExtendWith(MockitoExtension.class)
-@SpringBootTest(classes = { WebConfig.class, ClientTrustedPartyReactive.class, TrustedPartyWebImpl.class })
+@SpringBootTest(classes = { WebConfig.class, ClientReactive.class, TrustedPartyWebImpl.class })
 @TestPropertySource(locations = "classpath:sandbox.properties")
 class TrustedPartyWebSandbox {
 
@@ -78,8 +78,6 @@ class TrustedPartyWebSandbox {
     when(document.getGraph()).thenReturn(graph);
     when(document.getFormat()).thenReturn(GraphFormat.JSON);
 
-    when(trustedParty.getUrl()).thenReturn(Optional.of(trustedPartyUrl));
-
     when(organization.getDocument()).thenReturn(Optional.of(document));
     when(organization.getTrustedParty()).thenReturn(Optional.of(trustedParty));
     when(organization.getIdentifier()).thenReturn(organizationId);
@@ -87,7 +85,7 @@ class TrustedPartyWebSandbox {
     trustedPartyWeb.issueGraphToken(validSignature).apply(organization)
         .doOnNext(data -> {
           System.err.println("..........................");
-          System.err.println("Signature valid: " + data);
+          System.err.println(data);
           System.err.println("..........................");
         })
         .doOnError(throwable -> {
@@ -103,8 +101,6 @@ class TrustedPartyWebSandbox {
   @Test
   void verifySignature() {
     when(document.getGraph()).thenReturn(graph);
-
-    when(trustedParty.getUrl()).thenReturn(Optional.of(trustedPartyUrl));
 
     when(organization.getDocument()).thenReturn(Optional.of(document));
     when(organization.getTrustedParty()).thenReturn(Optional.of(trustedParty));
