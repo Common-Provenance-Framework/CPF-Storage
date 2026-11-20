@@ -50,10 +50,12 @@ public class TrustedPartyWebImpl implements TrustedPartyWeb {
   @Override
   public Mono<TrustedParty> getTrustedParty(Optional<String> optTrustedPartyBaseUrl) {
     return this.client
-        .sendGetOneRequest(this.client.trustedParty(optTrustedPartyBaseUrl), "/info", TrustedPartyResponseDTO.class, Map.of())
-        .flatMap(MONO.liftEffectToMono(TrustedPartyFactory.buildUnsafe(
-            this.getTrustedPartyUrlOrDefault(optTrustedPartyBaseUrl),
-            optTrustedPartyBaseUrl.isEmpty())))
+        .sendGetOneRequest(
+            this.client.trustedParty(optTrustedPartyBaseUrl),
+            "/info",
+            TrustedPartyResponseDTO.class,
+            Map.of())
+        .flatMap(MONO.liftEffectToMono(TrustedPartyFactory.buildUnsafe(optTrustedPartyBaseUrl)))
         .doOnSuccess(_ -> LOGGER.trace(LOG_PREFIX + "Trusted Party info object has been fetched from url: '" + this.getTrustedPartyUrlOrDefault(optTrustedPartyBaseUrl) + "'."))
         .doOnError(throwable -> {
           LOGGER.error(LOG_PREFIX
@@ -113,14 +115,12 @@ public class TrustedPartyWebImpl implements TrustedPartyWeb {
           if (throwable instanceof WebClientResponseException wcrException)
             LOGGER.trace(LOG_PREFIX + wcrException.getResponseBodyAsString());
         })
-        .onErrorMap(BadRequest.class, badRequest -> {
-          ErrorResponseDTO response = badRequest.getResponseBodyAs(ErrorResponseDTO.class);
-          return new BadRequestException("TrustedParty responded with status '" + response.status() + "' and message '" + response.message() + "'!");
-        })
-        .onErrorMap(NotFound.class, notFound -> {
-          ErrorResponseDTO response = notFound.getResponseBodyAs(ErrorResponseDTO.class);
-          return new BadRequestException("TrustedParty responded with status '" + response.status() + "' and message '" + response.message() + "'!");
-        })
+        .onErrorMap(error -> error instanceof BadRequest
+            || error instanceof NotFound,
+            error -> {
+              ErrorResponseDTO response = ((WebClientResponseException) error).getResponseBodyAs(ErrorResponseDTO.class);
+              return new BadRequestException("TrustedParty responded with status '" + response.status() + "' and message '" + response.message() + "'!");
+            })
         .onErrorMap(ApplicationExceptionFactory.handleThrowable(
             new InternalApplicationException("Signature has not been verified by TrustedParty at URL '" + getTrustedPartyUrlOrDefault(organization) + "'!")));
   }
@@ -138,6 +138,7 @@ public class TrustedPartyWebImpl implements TrustedPartyWeb {
           LOGGER.error(LOG_PREFIX
               + "Token has not been issued by TrustedParty '" + getTrustedPartyUrlOrDefault(maybeTpUrl) + "'!\n"
               + throwable.getMessage());
+
           if (throwable instanceof WebClientResponseException wcrException)
             LOGGER.trace(LOG_PREFIX + wcrException.getResponseBodyAsString());
         })

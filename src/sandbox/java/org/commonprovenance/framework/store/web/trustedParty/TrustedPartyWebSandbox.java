@@ -78,8 +78,6 @@ class TrustedPartyWebSandbox {
     when(document.getGraph()).thenReturn(graph);
     when(document.getFormat()).thenReturn(GraphFormat.JSON);
 
-    when(trustedParty.getUrl()).thenReturn(Optional.of(trustedPartyUrl));
-
     when(organization.getDocument()).thenReturn(Optional.of(document));
     when(organization.getTrustedParty()).thenReturn(Optional.of(trustedParty));
     when(organization.getIdentifier()).thenReturn(organizationId);
@@ -87,7 +85,7 @@ class TrustedPartyWebSandbox {
     trustedPartyWeb.issueGraphToken(validSignature).apply(organization)
         .doOnNext(data -> {
           System.err.println("..........................");
-          System.err.println("Signature valid: " + data);
+          System.err.println(data);
           System.err.println("..........................");
         })
         .doOnError(throwable -> {
@@ -103,8 +101,6 @@ class TrustedPartyWebSandbox {
   @Test
   void verifySignature() {
     when(document.getGraph()).thenReturn(graph);
-
-    when(trustedParty.getUrl()).thenReturn(Optional.of(trustedPartyUrl));
 
     when(organization.getDocument()).thenReturn(Optional.of(document));
     when(organization.getTrustedParty()).thenReturn(Optional.of(trustedParty));

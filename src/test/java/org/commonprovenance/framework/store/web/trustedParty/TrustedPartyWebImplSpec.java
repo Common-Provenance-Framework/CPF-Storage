@@ -2,7 +2,6 @@ package org.commonprovenance.framework.store.web.trustedParty;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.verify;
@@ -36,6 +35,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
+import org.mockito.invocation.InvocationOnMock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -49,7 +49,7 @@ import reactor.core.publisher.Mono;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("TrustedPartyWeb Spec")
-class TrustedPartyWebSpec {
+class TrustedPartyWebImplSpec {
 
   private static final String DEFAULT_TP_URL = "http://localhost:8020/api/v1";
   private static final String TP_URL = "http://localhost:80/api/v1";
@@ -90,7 +90,7 @@ class TrustedPartyWebSpec {
 
   private TrustedPartyWeb trustedPartyWeb;
   private ListAppender<ILoggingEvent> logAppender;
-  private Logger storeWebLogger;
+  private Logger trustePartyWebLogger;
 
   @BeforeEach
   void setUp() {
@@ -100,16 +100,16 @@ class TrustedPartyWebSpec {
 
   @BeforeEach
   void setUpLogCapture() {
-    storeWebLogger = (Logger) LoggerFactory.getLogger(TrustedPartyWebImpl.class);
-    storeWebLogger.setLevel(Level.TRACE); // success messages are logged at TRACE
+    trustePartyWebLogger = (Logger) LoggerFactory.getLogger(TrustedPartyWebImpl.class);
+    trustePartyWebLogger.setLevel(Level.TRACE); // success messages are logged at TRACE
     logAppender = new ListAppender<>();
     logAppender.start();
-    storeWebLogger.addAppender(logAppender);
+    trustePartyWebLogger.addAppender(logAppender);
   }
 
   @AfterEach
   void tearDownLogCapture() {
-    storeWebLogger.detachAppender(logAppender);
+    trustePartyWebLogger.detachAppender(logAppender);
   }
 
   @Nested
@@ -130,7 +130,6 @@ class TrustedPartyWebSpec {
     private void assertGetTrustedParty(Boolean isDefault) {
       WebClient webClient = isDefault ? defaultTpWebClient : customTpWebClient;
       Optional<String> maybeUrl = isDefault ? Optional.empty() : Optional.of(TP_URL);
-      String expectedUrl = maybeUrl.orElse(DEFAULT_TP_URL);
 
       try (MockedStatic<TrustedPartyFactory> trustedPartyFactory = mockStatic(TrustedPartyFactory.class)) {
 
@@ -138,7 +137,7 @@ class TrustedPartyWebSpec {
           assertEquals(trustedPartyResponseDTO, dto, "Factory should receive the expected DTO");
           return Either.right(trustedParty);
         };
-        trustedPartyFactory.when(() -> TrustedPartyFactory.buildUnsafe(anyString(), anyBoolean()))
+        trustedPartyFactory.when(() -> TrustedPartyFactory.buildUnsafe(any()))
             .thenReturn(factory);
 
         when(client.trustedParty(any())).thenReturn(webClient);
@@ -150,7 +149,7 @@ class TrustedPartyWebSpec {
 
         verify(client).trustedParty(maybeUrl);
         verify(client).sendGetOneRequest(webClient, "/info", TrustedPartyResponseDTO.class, Map.of());
-        trustedPartyFactory.verify(() -> TrustedPartyFactory.buildUnsafe(expectedUrl, isDefault));
+        trustedPartyFactory.verify(() -> TrustedPartyFactory.buildUnsafe(maybeUrl));
       }
     }
 
@@ -188,7 +187,8 @@ class TrustedPartyWebSpec {
         when(trustedParty.getUrlIfNotDefault()).thenReturn(maybeUrl);
 
         when(client.trustedParty(any())).thenAnswer(invocation -> {
-          return ((Optional<String>) invocation.getArgument(0)).isEmpty() ? defaultTpWebClient : customTpWebClient;
+          Optional<String> tpUrl = invocation.getArgument(0);
+          return tpUrl.isEmpty() ? defaultTpWebClient : customTpWebClient;
         });
 
         when(client.sendPostRequest(webClient, "/issueToken", TokenResponseDTO.class, Map.of()))
@@ -241,7 +241,8 @@ class TrustedPartyWebSpec {
         when(trustedParty.getUrlIfNotDefault()).thenReturn(maybeUrl);
 
         when(client.trustedParty(any())).thenAnswer(invocation -> {
-          return ((Optional<String>) invocation.getArgument(0)).isEmpty() ? defaultTpWebClient : customTpWebClient;
+          Optional<String> tpUrl = invocation.getArgument(0);
+          return tpUrl.isEmpty() ? defaultTpWebClient : customTpWebClient;
         });
 
         when(client.sendPostRequest(webClient, "/issueToken", TokenResponseDTO.class, Map.of()))
@@ -293,16 +294,23 @@ class TrustedPartyWebSpec {
         tokenFactory.when(() -> TokenFactory.build(any(TokenResponseDTO.class)))
             .thenReturn(Either.right(token));
 
-        when(metaDocument.getTrustedParty(anyString())).thenReturn(trustedParty);
+        when(metaDocument.getTrustedParty(anyString())).thenAnswer((InvocationOnMock invocation) -> {
+          String tpURL = invocation.getArgument(0);
+
+          assertEquals(tpURL, "http://localhost:8020/api/v1");
+          return trustedParty;
+        });
         when(trustedParty.getIsDefault()).thenReturn(isDefault);
 
         when(client.trustedParty(any())).thenAnswer(invocation -> {
-          return ((Optional<String>) invocation.getArgument(0)).isEmpty() ? defaultTpWebClient : customTpWebClient;
+          Optional<String> tpUrl = invocation.getArgument(0);
+          return tpUrl.isEmpty() ? defaultTpWebClient : customTpWebClient;
         });
 
         when(client.sendPostRequest(webClient, "/issueToken", TokenResponseDTO.class, Map.of()))
             .thenAnswer(_ -> (Function<IssueTokenFormDTO, Mono<TokenResponseDTO>>) form -> {
               assertEquals(issueTokenFormDTO, form, "Request should contain the built token form");
+
               return Mono.just(tokenResponseDTO);
             });
 
@@ -350,7 +358,8 @@ class TrustedPartyWebSpec {
         when(trustedParty.getUrlIfNotDefault()).thenReturn(maybeUrl);
 
         when(client.trustedParty(any())).thenAnswer(invocation -> {
-          return ((Optional<String>) invocation.getArgument(0)).isEmpty() ? defaultTpWebClient : customTpWebClient;
+          Optional<String> tpUrl = invocation.getArgument(0);
+          return tpUrl.isEmpty() ? defaultTpWebClient : customTpWebClient;
         });
         when(client.sendPostRequest(webClient, "/verifySignature", Boolean.class, Map.of()))
             .thenAnswer(_ -> (Function<VerifySignatureFormDTO, Mono<Boolean>>) form -> {

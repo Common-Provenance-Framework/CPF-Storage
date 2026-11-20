@@ -23,5 +23,4 @@ public class RegisterOrganizationFormFactory {
         .map(RegisterOrganizationFormFactory::build)
         .flatMap(EITHER::validateDTO);
   }
-
 }

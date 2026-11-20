@@ -140,10 +140,12 @@ public class ClientReactive implements Client {
 
   private Function<UriBuilder, java.net.URI> buildUriWithParams(String uri, Map<String, String> queryParams) {
     return (UriBuilder uriBuilder) -> {
-      UriBuilder builder = uriBuilder.path(uri);
+      uriBuilder.path(uri);
       Optional.ofNullable(queryParams)
-          .ifPresent(params -> params.forEach(builder::queryParam));
-      return builder.build();
+          .ifPresent(params -> params.entrySet().stream()
+              .sorted(Map.Entry.comparingByKey())
+              .forEachOrdered(entry -> uriBuilder.queryParam(entry.getKey(), entry.getValue())));
+      return uriBuilder.build();
     };
   }
 }

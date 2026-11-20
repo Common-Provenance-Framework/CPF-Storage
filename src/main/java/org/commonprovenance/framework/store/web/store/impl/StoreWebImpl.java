@@ -37,22 +37,17 @@ public class StoreWebImpl implements StoreWeb {
     return (resourcePath.startsWith(this.client.getStoreUrl())
         ? this.client.sendHeadRequest(this.client.store(), this.buildUriPartFromResourcePath(resourcePath), Map.of())
         : this.client.sendHeadRequest(this.client.custom(resourcePath), "", Map.of()))
-        .onErrorResume(NotFound.class, notFound -> {
-          return Mono.error(
-              () -> new NotFoundException("Resource not found at: " + notFound.getRequest().getURI()));
-        })
         .doOnSuccess(_ -> LOGGER.trace(LOG_PREFIX + "Ping Resource at path '" + resourcePath + "' has been passed."))
         .doOnError(throwable -> {
-          if (throwable instanceof NotFoundException notFound)
-            LOGGER.trace(LOG_PREFIX + notFound.getMessage());
-          else
-            LOGGER.error(LOG_PREFIX
-                + "Ping Resource at path '"
-                + resourcePath
-                + "' has been failed!\n"
-                + throwable.getMessage() + "\n"
-                + ((WebClientResponseException) throwable).getResponseBodyAsString());
+          LOGGER.error(LOG_PREFIX
+              + "Ping Resource at path '"
+              + resourcePath
+              + "' has been failed!\n"
+              + throwable.getMessage());
+          if (throwable instanceof WebClientResponseException wcrException)
+            LOGGER.trace(LOG_PREFIX + wcrException.getResponseBodyAsString());
         })
+        .onErrorMap(NotFound.class, notFound -> new NotFoundException("Resource not found at: " + notFound.getRequest().getURI()))
         .onErrorMap(ApplicationExceptionFactory.handleThrowable(new InternalApplicationException("Ping Resource at path '" + resourcePath + "' has been failed!")));
   }
 
@@ -69,23 +64,18 @@ public class StoreWebImpl implements StoreWeb {
             "/token",
             TokenResponseDTO.class,
             Map.of()))
-        .onErrorResume(NotFound.class, notFound -> {
-          return Mono.error(
-              () -> new NotFoundException("Resource not found at: " + notFound.getRequest().getURI()));
-        })
         .flatMap(MONO.liftEffectToMono(TokenFactory::build))
         .doOnSuccess(_ -> LOGGER.trace(LOG_PREFIX + "Token for document at path '" + resourcePath + "' has been fetched."))
         .doOnError(throwable -> {
-          if (throwable instanceof NotFoundException notFound)
-            LOGGER.trace(LOG_PREFIX + notFound.getMessage());
-          else
-            LOGGER.error(LOG_PREFIX
-                + "Token for document at path '"
-                + resourcePath
-                + "' has not been fetched!\n"
-                + throwable.getMessage() + "\n"
-                + ((WebClientResponseException) throwable).getResponseBodyAsString());
+          LOGGER.error(LOG_PREFIX
+              + "Token for document at path '"
+              + resourcePath
+              + "' has not been fetched!\n"
+              + throwable.getMessage());
+          if (throwable instanceof WebClientResponseException wcrException)
+            LOGGER.trace(LOG_PREFIX + wcrException.getResponseBodyAsString());
         })
+        .onErrorMap(NotFound.class, notFound -> new NotFoundException("Resource not found at: " + notFound.getRequest().getURI()))
         .onErrorMap(ApplicationExceptionFactory.handleThrowable(new InternalApplicationException("Token for document at path '" + resourcePath + "' has not been fetched!")));
   }
 

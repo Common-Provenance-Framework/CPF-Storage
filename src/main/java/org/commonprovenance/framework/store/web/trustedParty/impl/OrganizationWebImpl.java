@@ -11,6 +11,7 @@ import org.commonprovenance.framework.store.exceptions.InternalApplicationExcept
 import org.commonprovenance.framework.store.exceptions.NotFoundException;
 import org.commonprovenance.framework.store.exceptions.factory.ApplicationExceptionFactory;
 import org.commonprovenance.framework.store.model.Organization;
+import org.commonprovenance.framework.store.model.TrustedParty;
 import org.commonprovenance.framework.store.model.factory.OrganizationFactory;
 import org.commonprovenance.framework.store.web.client.Client;
 import org.commonprovenance.framework.store.web.trustedParty.OrganizationWeb;
@@ -44,14 +45,13 @@ public class OrganizationWebImpl implements OrganizationWeb {
   @Override
   public Mono<Void> create(Organization organization) {
     Function<Organization, String> getUri = org -> "/organizations/" + organization.getIdentifier();
-
-    return MONO.combineM(
-        Mono.just(organization)
-            .flatMap(MONO.liftEffectToMono(Organization::getTrustedPartyBaseUrl)),
-        Mono.just(organization)
-            .flatMap(MONO.liftEffectToMono(RegisterOrganizationFormFactory::buildSafe)),
-        (optUrl, form) -> Mono.just(form)
-            .flatMap(this.client.sendPostRequest(this.client.trustedParty(optUrl), getUri.apply(organization), Void.class, Map.of())))
+    return Mono.just(organization)
+        .flatMap(MONO.liftEffectToMono(RegisterOrganizationFormFactory::buildSafe))
+        .flatMap(this.client.sendPostRequest(
+            this.client.trustedParty(getTrustedPartyUrl(organization)),
+            getUri.apply(organization),
+            Void.class,
+            Map.of()))
         .doOnSuccess(_ -> LOGGER.trace(LOG_PREFIX
             + "New organization with identifier '"
             + organization.getIdentifier()
@@ -71,13 +71,11 @@ public class OrganizationWebImpl implements OrganizationWeb {
         })
         .onErrorMap(error -> error instanceof Unauthorized
             || error instanceof BadRequest
-            || error instanceof Unauthorized
             || error instanceof Conflict,
             error -> {
               ErrorResponseDTO response = ((WebClientResponseException) error).getResponseBodyAs(ErrorResponseDTO.class);
               return new BadRequestException("TrustedParty responded with status '" + response.status() + "' and message '" + response.message() + "'!");
             })
-
         .onErrorMap(ApplicationExceptionFactory.handleThrowable(
             new InternalApplicationException("New organization with identifier '" + organization.getIdentifier() + "' has not been registered!")));
   }
@@ -86,14 +84,39 @@ public class OrganizationWebImpl implements OrganizationWeb {
   public Mono<Void> updateOrganizationCertificate(Organization organization) {
     Function<Organization, String> getUri = org -> "/organizations/" + organization.getIdentifier() + "/certs";
 
-    return MONO.combineM(
-        MONO.fromEitherOptional(organization.getTrustedPartyBaseUrl()),
-        Mono.just(organization).flatMap(MONO.liftEffectToMono(UpdateOrganizationFormFactory::buildSafe)),
-        (optUrl, form) -> Mono.just(form)
-            .flatMap(this.client.sendPutRequest(this.client.trustedParty(optUrl), getUri.apply(organization), Void.class, Map.of())))
-        .doOnSuccess(_ -> LOGGER.trace(LOG_PREFIX + "Certificates for organization with identifier '" + organization.getIdentifier() + "' has been updated."))
-        .doOnError(throwable -> LOGGER.error(
-            LOG_PREFIX + "Certificates for organization with identifier '" + organization.getIdentifier() + "' has not been updated!\n" + throwable.getMessage()))
+    return Mono.just(organization)
+        .flatMap(MONO.liftEffectToMono(UpdateOrganizationFormFactory::buildSafe))
+        .flatMap(this.client.sendPutRequest(
+            this.client.trustedParty(getTrustedPartyUrl(organization)),
+            getUri.apply(organization),
+            Void.class,
+            Map.of()))
+        .doOnSuccess(_ -> LOGGER.trace(LOG_PREFIX
+            + "Certificates for organization with identifier '"
+            + organization.getIdentifier()
+            + "' has been updated with Trusted Party at url '"
+            + this.getTrustedPartyUrlOrDefault(organization)
+            + "'."))
+        .doOnError(throwable -> {
+          LOGGER.error(LOG_PREFIX
+              + "Certificates for organization with identifier '"
+              + organization.getIdentifier()
+              + "' has not been updated with Trusted Party at url '"
+              + this.getTrustedPartyUrlOrDefault(organization)
+              + "'!\n"
+              + throwable.getMessage());
+          if (throwable instanceof WebClientResponseException wcrException)
+            LOGGER.trace(LOG_PREFIX + wcrException.getResponseBodyAsString());
+        })
+        .onErrorMap(
+            error -> error instanceof BadRequest
+                || error instanceof NotFound
+                || error instanceof Unauthorized
+                || error instanceof Conflict,
+            error -> {
+              ErrorResponseDTO response = ((WebClientResponseException) error).getResponseBodyAs(ErrorResponseDTO.class);
+              return new BadRequestException("TrustedParty responded with status '" + response.status() + "' and message '" + response.message() + "'!");
+            })
         .onErrorMap(ApplicationExceptionFactory.handleThrowable(
             new InternalApplicationException("Certificates for organization with identifier '" + organization.getIdentifier() + "' has not been updated!")));
   }
@@ -102,8 +125,11 @@ public class OrganizationWebImpl implements OrganizationWeb {
   public Mono<Organization> getById(Organization organization) {
     Function<Organization, String> getUri = org -> "/organizations/" + organization.getIdentifier();
 
-    return MONO.fromEitherOptional(organization.getTrustedPartyBaseUrl())
-        .flatMap(optUrl -> this.client.sendGetOneRequest(this.client.trustedParty(optUrl), getUri.apply(organization), OrganizationResponseDTO.class, Map.of()))
+    return this.client.sendGetOneRequest(
+        this.client.trustedParty(getTrustedPartyUrl(organization)),
+        getUri.apply(organization),
+        OrganizationResponseDTO.class,
+        Map.of())
         .flatMap(MONO.liftEffectToMono(OrganizationFactory::buildUnsafe))
         .doOnSuccess(_ -> LOGGER.trace(LOG_PREFIX
             + "Organization with identifier '"
@@ -130,14 +156,13 @@ public class OrganizationWebImpl implements OrganizationWeb {
             new InternalApplicationException("Organization with identifier '" + organization.getIdentifier() + "' has not been fetched!")));
   }
 
-  private String getTrustedPartyUrlOrDefault(Organization organization) {
-    return organization.getTrustedPartyBaseUrl()
-        .map(this::getTrustedPartyUrlOrDefault)
-        .toOption()
-        .get();
+  private Optional<String> getTrustedPartyUrl(Organization organization) {
+    return organization.getTrustedParty()
+        .flatMap(TrustedParty::getUrlIfNotDefault);
   }
 
-  private String getTrustedPartyUrlOrDefault(Optional<String> maybyUrl) {
-    return maybyUrl.orElse(this.client.getDefaultTrustedPartyUrl());
+  private String getTrustedPartyUrlOrDefault(Organization organization) {
+    return getTrustedPartyUrl(organization)
+        .orElse(this.client.getDefaultTrustedPartyUrl());
   }
 }

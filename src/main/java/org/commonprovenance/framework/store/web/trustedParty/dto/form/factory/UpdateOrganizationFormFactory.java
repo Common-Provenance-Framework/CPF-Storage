@@ -13,6 +13,7 @@ public class UpdateOrganizationFormFactory {
 
   public static UpdateOrganizationFormDTO build(Organization organization) {
     return new UpdateOrganizationFormDTO(
+        organization.getIdentifier(),
         organization.getClientCertificate(),
         organization.getIntermediateCertificates());
   }

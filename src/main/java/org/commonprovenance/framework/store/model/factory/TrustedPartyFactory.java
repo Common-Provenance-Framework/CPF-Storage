@@ -3,6 +3,7 @@ package org.commonprovenance.framework.store.model.factory;
 import static org.commonprovenance.framework.store.common.composition.EitherUtils.EITHER;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.UnaryOperator;
 
@@ -55,10 +56,10 @@ public class TrustedPartyFactory {
         .flatMap(EITHER::validateDTO);
   }
 
-  public static <T> Function<T, Either<ApplicationException, TrustedParty>> buildUnsafe(String url, Boolean isDefault) {
+  public static <T> Function<T, Either<ApplicationException, TrustedParty>> buildUnsafe(Optional<String> maybeUrl) {
     return (T value) -> buildUnsafe(value)
-        .map((TrustedParty trustedParty) -> trustedParty.withUrl(url))
-        .map((TrustedParty trustedParty) -> trustedParty.withIsDefault(isDefault))
+        .map((TrustedParty trustedParty) -> trustedParty.withUrl(maybeUrl.orElse(null)))
+        .map((TrustedParty trustedParty) -> trustedParty.withIsDefault(maybeUrl.isEmpty()))
         .flatMap(EITHER::validateDTO);
   }
 

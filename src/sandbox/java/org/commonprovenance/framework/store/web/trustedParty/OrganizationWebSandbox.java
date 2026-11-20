@@ -56,6 +56,9 @@ class OrganizationWebSandbox {
   @Value("${sandbox.client-cert}")
   private String clientCert;
 
+  @Value("${sandbox.client-cert-new}")
+  private String clientCertNew;
+
   @Value("${sandbox.int1-cert}")
   private String int1Cert;
 
@@ -76,13 +79,12 @@ class OrganizationWebSandbox {
 
   @Test
   void create() {
-    when(organization.getTrustedPartyBaseUrl()).thenReturn(Either.right(Optional.empty()));
     when(organization.getIdentifier()).thenReturn(organizationId);
     when(organization.getClientCertificate()).thenReturn(clientCert);
     when(organization.getIntermediateCertificates()).thenReturn(List.of(int2Cert, int1Cert));
 
     organizationWeb.create(organization)
-        .doOnNext(_ -> {
+        .doOnSuccess(_ -> {
           System.out.println("..........................");
           System.out.println("CREATED");
           System.out.println("..........................");
@@ -102,12 +104,11 @@ class OrganizationWebSandbox {
   @Test
   void updateOrganizationCertificate() {
     when(organization.getIdentifier()).thenReturn(organizationId);
-    when(organization.getTrustedPartyBaseUrl()).thenReturn(Either.right(Optional.empty()));
-    when(organization.getClientCertificate()).thenReturn(clientCert);
+    when(organization.getClientCertificate()).thenReturn(clientCertNew);
     when(organization.getIntermediateCertificates()).thenReturn(List.of(int2Cert, int1Cert));
 
     organizationWeb.updateOrganizationCertificate(organization)
-        .doOnNext(_ -> {
+        .doOnSuccess(_ -> {
           System.out.println("..........................");
           System.out.println("UPDATED");
           System.out.println("..........................");
@@ -124,19 +125,8 @@ class OrganizationWebSandbox {
         .block();
   }
 
-  // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  // !!!!!!!!!!!! RETURNS REVOKED CERTIFICATES !!!!!!!!!!!!!!
-  // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
   @Test
   void getById() {
-    when(organization.getTrustedPartyBaseUrl()).thenReturn(Either.right(Optional.empty()));
     when(organization.getIdentifier()).thenReturn(organizationId);
 
     organizationWeb.getById(organization)
