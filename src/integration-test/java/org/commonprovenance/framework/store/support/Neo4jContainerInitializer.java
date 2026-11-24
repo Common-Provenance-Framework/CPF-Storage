@@ -14,8 +14,7 @@ public class Neo4jContainerInitializer
   private static final String NEO4J_PASSWORD = "testpassword";
 
   private static final Neo4jContainer NEO4J = new Neo4jContainer(DockerImageName.parse(NEO4J_IMAGE))
-      .withAdminPassword(NEO4J_PASSWORD)
-      .withReuse(true);
+      .withAdminPassword(NEO4J_PASSWORD);
 
   static {
     NEO4J.start();

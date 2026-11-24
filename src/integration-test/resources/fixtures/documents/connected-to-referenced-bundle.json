@@ -1,0 +1,58 @@
+{
+  "prefix": {
+    "storage": "${documentsUrl}",
+    "meta": "${metaBundlesUrl}",
+    "remote": "${referencedDocumentsUrl}",
+    "remotemeta": "${referencedMetaBundlesUrl}",
+    "cpm": "https://www.commonprovenancemodel.org/cpm-namespace-v1-0/",
+    "ex": "https://example.org/"
+  },
+  "bundle": {
+    "storage:${bundleId}": {
+      "activity": {
+        "ex:mainActivity": {
+          "prov:type": [
+            { "type": "prov:QUALIFIED_NAME", "$": "cpm:mainActivity" }
+          ],
+          "cpm:referencedMetaBundleId": [
+            { "type": "prov:QUALIFIED_NAME", "$": "meta:${metaBundleId}" }
+          ],
+          "cpm:referencedMetaBundleSpecV": [
+            { "type": "xsd:string", "$": "1.0" }
+          ]
+        }
+      },
+      "entity": {
+        "ex:sampleConnector": {
+          "prov:type": [
+            { "type": "prov:QUALIFIED_NAME", "$": "cpm:backwardConnector" }
+          ],
+          "cpm:referencedBundleId": [
+            { "type": "prov:QUALIFIED_NAME", "$": "remote:${referencedBundleId}" }
+          ],
+          "cpm:referencedMetaBundleId": [
+            { "type": "prov:QUALIFIED_NAME", "$": "remotemeta:${referencedMetaBundleId}" }
+          ],
+          "cpm:referencedBundleSpecV": [
+            { "type": "xsd:string", "$": "1.0" }
+          ],
+          "cpm:referencedMetaBundleSpecV": [
+            { "type": "xsd:string", "$": "1.0" }
+          ],
+          "cpm:referencedBundleHashValue": [
+            { "type": "xsd:string", "$": "${referencedBundleHashValue}" }
+          ],
+          "cpm:hashAlg": [
+            { "type": "xsd:string", "$": "SHA256" }
+          ]
+        }
+      },
+      "used": {
+        "_:connectorUsage": {
+          "prov:activity": "ex:mainActivity",
+          "prov:entity": "ex:sampleConnector"
+        }
+      }
+    }
+  }
+}

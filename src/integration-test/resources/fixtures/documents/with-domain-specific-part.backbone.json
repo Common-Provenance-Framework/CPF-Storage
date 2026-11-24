@@ -1,0 +1,33 @@
+{
+  "prefix": {
+    "cpm": "https://www.commonprovenancemodel.org/cpm-namespace-v1-0/",
+    "ex": "https://example.org/",
+    "dct": "http://purl.org/dc/terms/",
+    "meta": "${metaBundlesUrl}",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "storage": "${documentsUrl}",
+    "prov": "http://www.w3.org/ns/prov#"
+  },
+  "bundle": {
+    "storage:${bundleId}": {
+      "entity": {
+        "ex:sampleConnector": {
+          "prov:type": { "type": "prov:QUALIFIED_NAME", "$": "cpm:forwardConnector" }
+        }
+      },
+      "activity": {
+        "ex:mainActivity": {
+          "prov:type": { "type": "prov:QUALIFIED_NAME", "$": "cpm:mainActivity" },
+          "cpm:referencedMetaBundleId": { "type": "prov:QUALIFIED_NAME", "$": "meta:${metaBundleId}" },
+          "cpm:referencedMetaBundleSpecV": "1.0"
+        }
+      },
+      "wasGeneratedBy": {
+        "_:connectorGeneration": {
+          "prov:entity": "ex:sampleConnector",
+          "prov:activity": "ex:mainActivity"
+        }
+      }
+    }
+  }
+}

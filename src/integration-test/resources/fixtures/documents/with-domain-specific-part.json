@@ -1,0 +1,54 @@
+{
+  "prefix": {
+    "storage": "${documentsUrl}",
+    "meta": "${metaBundlesUrl}",
+    "cpm": "https://www.commonprovenancemodel.org/cpm-namespace-v1-0/",
+    "ex": "https://example.org/"
+  },
+  "bundle": {
+    "storage:${bundleId}": {
+      "activity": {
+        "ex:mainActivity": {
+          "prov:type": [
+            { "type": "prov:QUALIFIED_NAME", "$": "cpm:mainActivity" }
+          ],
+          "cpm:referencedMetaBundleId": [
+            { "type": "prov:QUALIFIED_NAME", "$": "meta:${metaBundleId}" }
+          ],
+          "cpm:referencedMetaBundleSpecV": [
+            { "type": "xsd:string", "$": "1.0" }
+          ]
+        },
+        "ex:weighing": {
+          "ex:instrument": [
+            { "type": "xsd:string", "$": "laboratory scale" }
+          ]
+        }
+      },
+      "entity": {
+        "ex:sampleConnector": {
+          "prov:type": [
+            { "type": "prov:QUALIFIED_NAME", "$": "cpm:forwardConnector" }
+          ]
+        },
+        "ex:sample": {
+          "ex:weight": [
+            { "type": "xsd:string", "$": "42 g" }
+          ]
+        }
+      },
+      "wasGeneratedBy": {
+        "_:connectorGeneration": {
+          "prov:entity": "ex:sampleConnector",
+          "prov:activity": "ex:mainActivity"
+        }
+      },
+      "used": {
+        "_:sampleUsage": {
+          "prov:activity": "ex:weighing",
+          "prov:entity": "ex:sample"
+        }
+      }
+    }
+  }
+}
