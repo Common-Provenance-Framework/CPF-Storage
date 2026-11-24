@@ -137,4 +137,9 @@ public class Document extends DTOValidator implements
     return token;
   }
 
+  @Override
+  public String toString() {
+    return "Document [graph=" + graph + ", format=" + format + "]";
+  }
+
 }
