@@ -130,9 +130,6 @@ public class ProvDocumentUtilsDeserializerHadMemberTest {
             && QualifiedName.class.isInstance(e.getType().getFirst().getValue())
             && ((QualifiedName) e.getType().getFirst().getValue()).getLocalPart().equals("Collection"))
         .collect(Collectors.toList());
-
-    System.out.println(collection.size());
-    collection.forEach(c -> System.out.print(c.getId()));
   }
 
   @Test

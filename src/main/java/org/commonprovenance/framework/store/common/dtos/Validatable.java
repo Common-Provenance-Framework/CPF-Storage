@@ -15,10 +15,9 @@ public interface Validatable {
           try {
             field.setAccessible(true);
 
-            if (this instanceof IssueTokenFormDTO itForm)
+            if (field.getName() == "signature" && this instanceof IssueTokenFormDTO itForm)
               if (itForm.graphType() != GraphType.GRAPH)
-                if (itForm.signature() == null || itForm.signature().isBlank())
-                  return "";
+                return "";
 
             if (field.get(this) == null)
               return "Field with name '" + field.getName() + "' can not be null!";

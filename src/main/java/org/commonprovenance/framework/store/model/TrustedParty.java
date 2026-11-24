@@ -153,9 +153,9 @@ public class TrustedParty extends DTOValidator implements
   }
 
   public Optional<String> getUrlIfNotDefault() {
-    return isDefault
+    return getIsDefault()
         ? Optional.empty()
-        : url;
+        : getUrl();
   }
 
   @Override

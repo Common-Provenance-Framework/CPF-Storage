@@ -15,7 +15,6 @@ import org.commonprovenance.framework.store.model.MetaDocument;
 import org.commonprovenance.framework.store.model.Organization;
 import org.commonprovenance.framework.store.model.TrustedParty;
 import org.commonprovenance.framework.store.service.web.trustedParty.TrustedPartyWebService;
-import org.commonprovenance.framework.store.web.trustedParty.CertificateWeb;
 import org.commonprovenance.framework.store.web.trustedParty.OrganizationWeb;
 import org.commonprovenance.framework.store.web.trustedParty.TrustedPartyWeb;
 import org.springframework.stereotype.Service;
@@ -25,15 +24,12 @@ import reactor.core.publisher.Mono;
 @Service
 public class TrustedPartyWebServiceImpl implements TrustedPartyWebService {
   private final OrganizationWeb organizationWeb;
-  private final CertificateWeb certificateWeb;
   private final TrustedPartyWeb trustedPartyWeb;
 
   public TrustedPartyWebServiceImpl(
       OrganizationWeb organizationWeb,
-      CertificateWeb certificateWeb,
       TrustedPartyWeb trustedPartyWeb) {
     this.organizationWeb = organizationWeb;
-    this.certificateWeb = certificateWeb;
     this.trustedPartyWeb = trustedPartyWeb;
 
   }
@@ -53,7 +49,7 @@ public class TrustedPartyWebServiceImpl implements TrustedPartyWebService {
         .flatMap(MONO.makeSureAsync(
             this::organizationIsRegistered,
             org -> new BadRequestException("Organization with identifier '" + org.getIdentifier() + "' has not been registered yet!")))
-        .flatMap(this.certificateWeb::updateOrganizationCertificate);
+        .flatMap(this.organizationWeb::updateOrganizationCertificate);
   }
 
   @Override
