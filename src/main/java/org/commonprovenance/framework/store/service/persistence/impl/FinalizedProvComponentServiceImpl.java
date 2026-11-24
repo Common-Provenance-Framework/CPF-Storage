@@ -76,7 +76,7 @@ public class FinalizedProvComponentServiceImpl implements FinalizedProvComponent
                 .map(Organization::getIdentifier)
                 .flatMap(this.organizationRepository::existsByIdentifier),
             org -> new ConflictException("Organization with identifier '" + org.getIdentifier() + "' has not been registered yet!"))))
-        .delayUntil(this.organizationRepository::save)
+        .delayUntil(this.organizationRepository::update)
         .then();
   }
 

@@ -1,5 +1,7 @@
 package org.commonprovenance.framework.store.persistence.finalizedProvComponent.neo4j.client;
 
+import java.util.List;
+
 import org.commonprovenance.framework.store.persistence.finalizedProvComponent.model.node.OrganizationNode;
 import org.springframework.data.neo4j.repository.ReactiveNeo4jRepository;
 import org.springframework.data.neo4j.repository.query.Query;
@@ -24,6 +26,17 @@ public interface OrganizationNeo4jRepositoryClient extends ReactiveNeo4jReposito
         RETURN organization
       """)
   Flux<OrganizationNode> getByIdentifier(@Param("identifier") String identifier);
+
+  @Query("""
+        MATCH (organization:Organization {identifier: $identifier})
+        SET organization.client_certificate = $clientCertificate,
+            organization.intermediate_certificates = $intermediateCertificates
+        RETURN true
+      """)
+  Mono<Boolean> updateCertificates(
+      @Param("identifier") String identifier,
+      @Param("clientCertificate") String clientCertificate,
+      @Param("intermediateCertificates") List<String> intermediateCertificates);
 
   @Query("""
         MATCH (organization:Organization {identifier: $organizationIdentifier})

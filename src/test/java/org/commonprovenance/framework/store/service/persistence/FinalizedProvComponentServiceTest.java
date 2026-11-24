@@ -73,6 +73,11 @@ class FinalizedProvComponentServiceTest {
     }
 
     @Override
+    public Mono<Void> update(Organization organization) {
+      throw new UnsupportedOperationException("Unimplemented method 'update'");
+    }
+
+    @Override
     public Mono<Void> connectTrusts(Organization organization) {
       // TODO Auto-generated method stub
       throw new UnsupportedOperationException("Unimplemented method 'connectTrusts'");
