@@ -6,6 +6,6 @@ import org.commonprovenance.framework.store.persistence.finalizedProvComponent.m
 
 public interface HasTrustedPartyNodes {
 
-  List<TrustedPartyNode> getTrustedParties();
+  List<TrustedPartyNode> trustedParties();
 
 }

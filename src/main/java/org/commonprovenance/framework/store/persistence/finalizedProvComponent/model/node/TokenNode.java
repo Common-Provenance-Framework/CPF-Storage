@@ -17,44 +17,27 @@ import org.springframework.data.neo4j.core.schema.Node;
 import org.springframework.data.neo4j.core.schema.Relationship;
 
 @Node("Token")
-public class TokenNode implements
+public record TokenNode(
+    @Id @GeneratedValue String id,
+    String jwt,
+    @Relationship(type = "was_issued_by", direction = Relationship.Direction.OUTGOING) List<WasIssuedBy> wasIssuedBy) implements
     HasId,
     HasJwtToken,
     HasTrustedPartyNodes {
-  @Id
-  @GeneratedValue
-  private final String id;
-
-  private final String jwt;
-
-  @Relationship(type = "was_issued_by", direction = Relationship.Direction.OUTGOING)
-  private final List<WasIssuedBy> wasIssuedBy;
-
-  // Constructor for full initialization (used by Neo4j when reading)
   @PersistenceCreator
-  public TokenNode(
-      String id,
-      String jwt,
-      List<WasIssuedBy> wasIssuedBy) {
-    this.id = id;
-    this.jwt = jwt;
-    this.wasIssuedBy = wasIssuedBy;
+  public TokenNode {
   }
 
-  // Constructor for creating new node (id will be generated)
-
   public TokenNode(String jwt) {
-    this.id = null;
-    this.jwt = jwt;
-    this.wasIssuedBy = Collections.emptyList();
+    this(null, jwt, Collections.emptyList());
   }
 
   // Factory methods
   public TokenNode withJwt(String jwtToken) {
     return new TokenNode(
-        this.getId(),
+        this.id(),
         jwtToken,
-        this.getWasIssuedBy());
+        this.wasIssuedBy());
   }
 
   public TokenNode withTrustedParty(Optional<TrustedPartyNode> maybeTrustedPartyNode) {
@@ -67,42 +50,28 @@ public class TokenNode implements
     }
 
     List<WasIssuedBy> updatedWasIssuedBy = Stream.concat(
-        this.getWasIssuedBy().stream(),
+        this.wasIssuedBy().stream(),
         Stream.of(new WasIssuedBy(trustedPartyNode)))
         .collect(Collectors.toList());
 
     return new TokenNode(
-        this.getId(),
-        this.getJwt(),
+        this.id(),
+        this.jwt(),
         updatedWasIssuedBy);
   }
 
   // Wither method for Neo4j to set relationships
   public TokenNode withWasIssuedBy(List<WasIssuedBy> wasIssuedBy) {
     return new TokenNode(
-        this.getId(),
-        this.getJwt(),
+        this.id(),
+        this.jwt(),
         wasIssuedBy);
   }
 
   @Override
-  public String getId() {
-    return this.id;
-  }
-
-  @Override
-  public String getJwt() {
-    return jwt;
-  }
-
-  public List<WasIssuedBy> getWasIssuedBy() {
-    return wasIssuedBy;
-  }
-
-  @Override
-  public List<TrustedPartyNode> getTrustedParties() {
-    return this.getWasIssuedBy().stream()
-        .map(WasIssuedBy::getTrustedParty)
+  public List<TrustedPartyNode> trustedParties() {
+    return this.wasIssuedBy().stream()
+        .map(WasIssuedBy::trustedParty)
         .collect(Collectors.toList());
   }
 

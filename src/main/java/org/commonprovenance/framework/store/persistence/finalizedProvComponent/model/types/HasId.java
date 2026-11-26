@@ -2,6 +2,6 @@ package org.commonprovenance.framework.store.persistence.finalizedProvComponent.
 
 public interface HasId {
 
-  String getId();
+  String id();
 
 }

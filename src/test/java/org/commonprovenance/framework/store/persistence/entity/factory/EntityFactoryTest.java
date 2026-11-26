@@ -43,8 +43,8 @@ class EntityFactoryTest {
         token);
 
     DocumentNode node = DocumentNodeFactory.build(document);
-    assertEquals(testId, node.getIdentifier());
-    assertEquals(base64StringGraph, node.getGraph());
-    assertEquals(format, GraphFormat.from(node.getFormat()).get());
+    assertEquals(testId, node.identifier());
+    assertEquals(base64StringGraph, node.graph());
+    assertEquals(format, GraphFormat.from(node.format()).get());
   }
 }

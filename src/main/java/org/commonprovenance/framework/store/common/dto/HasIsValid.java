@@ -18,7 +18,7 @@ public interface HasIsValid<T extends HasIsValid<T>> {
 
   static <U extends HasIsValid<U>, F extends org.commonprovenance.framework.store.persistence.finalizedProvComponent.model.types.HasIsValid> UnaryOperator<U> addIsValid(F from) {
     return (U to) -> Optional.ofNullable(from)
-        .map(F::getIsValid)
+        .map(F::isValid)
         .map(to::withIsValid)
         .orElse(to);
   }
@@ -35,7 +35,7 @@ public interface HasIsValid<T extends HasIsValid<T>> {
       return Optional.of(has.getIsValid());
 
     if (form instanceof org.commonprovenance.framework.store.persistence.finalizedProvComponent.model.types.HasIsValid has)
-      return Optional.of(has.getIsValid());
+      return Optional.of(has.isValid());
 
     return Optional.empty();
   }

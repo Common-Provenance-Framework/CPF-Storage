@@ -16,7 +16,14 @@ import org.springframework.data.neo4j.core.schema.Node;
 import org.springframework.data.neo4j.core.schema.Property;
 
 @Node("TrustedParty")
-public class TrustedPartyNode implements
+public record TrustedPartyNode(
+    @Id @GeneratedValue String id,
+    String name,
+    @Property("client_certificate") String clientCertificate,
+    String url,
+    @Property("is_checked") Boolean isChecked,
+    @Property("is_valid") Boolean isValid,
+    @Property("is_default") Boolean isDefault) implements
     HasId,
     HasName,
     HasClientCertificate,
@@ -24,44 +31,10 @@ public class TrustedPartyNode implements
     HasIsChecked,
     HasIsValid,
     HasIsDefault {
-  @Id
-  @GeneratedValue
-  private final String id;
-  private final String name;
-
-  @Property("client_certificate")
-  private final String clientCertificate;
-
-  private final String url;
-  @Property("is_checked")
-  private final Boolean isChecked;
-
-  @Property("is_valid")
-  private final Boolean isValid;
-
-  @Property("is_default")
-  private final Boolean isDefault;
-
-  // Constructor for full initialization (used by Neo4j when reading)
   @PersistenceCreator
-  public TrustedPartyNode(
-      String id,
-      String name,
-      String clientCertificate,
-      String url,
-      Boolean isChecked,
-      Boolean isValid,
-      Boolean isDefault) {
-    this.id = id;
-    this.name = name;
-    this.clientCertificate = clientCertificate;
-    this.url = url;
-    this.isChecked = isChecked;
-    this.isValid = isValid;
-    this.isDefault = isDefault;
+  public TrustedPartyNode {
   }
 
-  // Constructor for creating new node (id will be generated)
   public TrustedPartyNode(
       String name,
       String clientCertificate,
@@ -69,13 +42,7 @@ public class TrustedPartyNode implements
       Boolean isChecked,
       Boolean isValid,
       Boolean isDefault) {
-    this.id = null;
-    this.name = name;
-    this.clientCertificate = clientCertificate;
-    this.url = url;
-    this.isChecked = isChecked;
-    this.isValid = isValid;
-    this.isDefault = isDefault;
+    this(null, name, clientCertificate, url, isChecked, isValid, isDefault);
   }
 
   public TrustedPartyNode(
@@ -84,147 +51,95 @@ public class TrustedPartyNode implements
       Boolean isChecked,
       Boolean isValid,
       Boolean isDefault) {
-    this.id = null;
-    this.name = name;
-    this.clientCertificate = clientCertificate;
-    this.url = null;
-    this.isChecked = isChecked;
-    this.isValid = isValid;
-    this.isDefault = isDefault;
-  }
-
-  public TrustedPartyNode withId(String id) {
-    return new TrustedPartyNode(
-        id,
-        this.getName(),
-        this.getClientCertificate(),
-        this.getUrl(),
-        this.getIsChecked(),
-        this.getIsValid(),
-        this.getIsDefault());
+    this(null, name, clientCertificate, null, isChecked, isValid, isDefault);
   }
 
   public TrustedPartyNode withName(String name) {
     return new TrustedPartyNode(
-        this.getId(),
+        this.id(),
         name,
-        this.getClientCertificate(),
-        this.getUrl(),
-        this.getIsChecked(),
-        this.getIsValid(),
-        this.getIsDefault());
+        this.clientCertificate(),
+        this.url(),
+        this.isChecked(),
+        this.isValid(),
+        this.isDefault());
   }
 
   public TrustedPartyNode withClientCertificate(String clientCertificate) {
     return new TrustedPartyNode(
-        this.getId(),
-        this.getName(),
+        this.id(),
+        this.name(),
         clientCertificate,
-        this.getUrl(),
-        this.getIsChecked(),
-        this.getIsValid(),
-        this.getIsDefault());
+        this.url(),
+        this.isChecked(),
+        this.isValid(),
+        this.isDefault());
   }
 
   public TrustedPartyNode withUrl(String url) {
     return new TrustedPartyNode(
-        this.getId(),
-        this.getName(),
-        this.getClientCertificate(),
+        this.id(),
+        this.name(),
+        this.clientCertificate(),
         url,
-        this.getIsChecked(),
-        this.getIsValid(),
-        this.getIsDefault());
+        this.isChecked(),
+        this.isValid(),
+        this.isDefault());
   }
 
   public TrustedPartyNode withUrl(Optional<String> maybeUrl) {
     return new TrustedPartyNode(
-        this.getId(),
-        this.getName(),
-        this.getClientCertificate(),
+        this.id(),
+        this.name(),
+        this.clientCertificate(),
         maybeUrl.orElse(null),
-        this.getIsChecked(),
-        this.getIsValid(),
-        this.getIsDefault());
+        this.isChecked(),
+        this.isValid(),
+        this.isDefault());
   }
 
   public TrustedPartyNode withIsChecked(Boolean isChecked) {
     return new TrustedPartyNode(
-        this.getId(),
-        this.getName(),
-        this.getClientCertificate(),
-        this.getUrl(),
+        this.id(),
+        this.name(),
+        this.clientCertificate(),
+        this.url(),
         isChecked,
-        this.getIsValid(),
-        this.getIsDefault());
+        this.isValid(),
+        this.isDefault());
   }
 
   public TrustedPartyNode withIsValid(Boolean isValid) {
     return new TrustedPartyNode(
-        this.getId(),
-        this.getName(),
-        this.getClientCertificate(),
-        this.getUrl(),
-        this.getIsChecked(),
+        this.id(),
+        this.name(),
+        this.clientCertificate(),
+        this.url(),
+        this.isChecked(),
         isValid,
-        this.getIsDefault());
+        this.isDefault());
   }
 
   public TrustedPartyNode withIsDefault(Boolean isDefault) {
     return new TrustedPartyNode(
-        this.getId(),
-        this.getName(),
-        this.getClientCertificate(),
-        this.getUrl(),
-        this.getIsChecked(),
-        this.getIsValid(),
+        this.id(),
+        this.name(),
+        this.clientCertificate(),
+        this.url(),
+        this.isChecked(),
+        this.isValid(),
         isDefault);
   }
 
   @Override
-  public String getId() {
-    return this.id;
-  }
-
-  @Override
-  public String getName() {
-    return name;
-  }
-
-  @Override
-  public String getClientCertificate() {
-    return clientCertificate;
-  }
-
-  @Override
-  public String getUrl() {
-    return url;
-  }
-
-  @Override
-  public Boolean getIsChecked() {
-    return isChecked;
-  }
-
-  @Override
-  public Boolean getIsValid() {
-    return isValid;
-  }
-
-  @Override
-  public Boolean getIsDefault() {
-    return isDefault;
-  }
-
-  @Override
   public String toString() {
-    return "TrustedPartyNode [id=" + this.id
-        + ", name=" + this.name
-        + ", clientCertificate=" + this.clientCertificate
-        + ", url=" + this.url
-        + ", isChecked=" + this.isChecked
-        + ", isValid=" + this.isValid
-        + ", isDefault=" + this.isDefault + "]";
+    return "TrustedPartyNode [id=" + id
+        + ", name=" + name
+        + ", clientCertificate=" + clientCertificate
+        + ", url=" + url
+        + ", isChecked=" + isChecked
+        + ", isValid=" + isValid
+        + ", isDefault=" + isDefault + "]";
   }
 
 }

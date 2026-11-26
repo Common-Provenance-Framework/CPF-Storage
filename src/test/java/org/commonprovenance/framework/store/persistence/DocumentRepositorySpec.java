@@ -80,9 +80,9 @@ class DocumentRepositorySpec {
         .save(captor.capture());
 
     DocumentNode capturedEntity = captor.getValue();
-    assertTrue(capturedEntity.getIdentifier().equals(TEST_ID_1)
-        && capturedEntity.getGraph().equals(BASE64_STRING_GRAPH_1)
-        && capturedEntity.getFormat().equals(FORMAT_1.toString()),
+    assertTrue(capturedEntity.identifier().equals(TEST_ID_1)
+        && capturedEntity.graph().equals(BASE64_STRING_GRAPH_1)
+        && capturedEntity.format().equals(FORMAT_1.toString()),
         "should be called with exact entity");
   }
 

@@ -6,6 +6,6 @@ import org.commonprovenance.framework.store.persistence.finalizedProvComponent.m
 
 public interface HasDocumentNodes {
 
-  List<DocumentNode> getDocuments();
+  List<DocumentNode> documents();
 
 }

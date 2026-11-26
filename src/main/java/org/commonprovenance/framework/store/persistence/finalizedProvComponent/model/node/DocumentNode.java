@@ -20,87 +20,58 @@ import org.springframework.data.neo4j.core.schema.Node;
 import org.springframework.data.neo4j.core.schema.Relationship;
 
 @Node("Document")
-public class DocumentNode implements
+public record DocumentNode(
+    @Id @GeneratedValue String id,
+    String identifier,
+    String graph,
+    String format,
+    @Relationship(type = "has_token", direction = Relationship.Direction.OUTGOING) List<HasToken> hasToken) implements
     HasId,
     HasIdentifier,
     HasGraph,
     HasFormat,
     HasTokenNodes {
-  @Id
-  @GeneratedValue
-  private final String id;
-
-  private final String identifier;
-  private final String graph;
-  private final String format;
-
-  @Relationship(type = "has_token", direction = Relationship.Direction.OUTGOING)
-  private final List<HasToken> hasToken;
-
-  // Constructor for full initialization (used by Neo4j when reading)
   @PersistenceCreator
-  public DocumentNode(
-      String id,
-      String identifier,
-      String graph,
-      String format,
-      List<HasToken> hasToken) {
-    this.id = id;
-    this.identifier = identifier;
-    this.graph = graph;
-    this.format = format;
-
-    this.hasToken = hasToken;
+  public DocumentNode {
   }
 
-  // Constructor for creating new node (id will be generated)
   public DocumentNode(
       String identifier,
       String graph,
       String format) {
-    this.id = null;
-    this.identifier = identifier;
-    this.graph = graph;
-    this.format = format;
-
-    this.hasToken = Collections.emptyList();
+    this(null, identifier, graph, format, Collections.emptyList());
   }
 
   public DocumentNode(String graph) {
-    this.id = null;
-    this.identifier = null;
-    this.graph = graph;
-    this.format = null;
-
-    this.hasToken = Collections.emptyList();
+    this(null, null, graph, null, Collections.emptyList());
   }
 
   // Factory methods
   public DocumentNode withIdentifier(String identifier) {
     return new DocumentNode(
-        this.getId(),
+        this.id(),
         identifier,
-        this.getGraph(),
-        this.getFormat(),
-        this.getHasToken());
+        this.graph(),
+        this.format(),
+        this.hasToken());
   }
 
   public DocumentNode withGraph(String graph) {
     return new DocumentNode(
-        this.getId(),
-        this.getIdentifier(),
+        this.id(),
+        this.identifier(),
         graph,
-        this.getFormat(),
-        this.getHasToken());
+        this.format(),
+        this.hasToken());
   }
 
-  public DocumentNode withDocumentFormat(GraphFormat format) {
+  public DocumentNode withFormat(GraphFormat format) {
     return new DocumentNode(
-        this.getId(),
-        this.getIdentifier(),
-        this.getGraph(),
+        this.id(),
+        this.identifier(),
+        this.graph(),
         format.toString(),
-        this.getHasToken());
+        this.hasToken());
   }
 
   public DocumentNode withToken(Optional<TokenNode> maybeTokenNode) {
@@ -113,56 +84,32 @@ public class DocumentNode implements
     }
 
     List<HasToken> updatedHasToken = Stream.concat(
-        this.getHasToken().stream(),
+        this.hasToken().stream(),
         Stream.of(new HasToken(tokenNode)))
         .collect(Collectors.toList());
 
     return new DocumentNode(
-        this.getId(),
-        this.getIdentifier(),
-        this.getGraph(),
-        this.getFormat(),
+        this.id(),
+        this.identifier(),
+        this.graph(),
+        this.format(),
         updatedHasToken);
   }
 
   // Wither method for Neo4j to set relationships
   public DocumentNode withHasToken(List<HasToken> hasToken) {
     return new DocumentNode(
-        this.getId(),
-        this.getIdentifier(),
-        this.getGraph(),
-        this.getFormat(),
+        this.id(),
+        this.identifier(),
+        this.graph(),
+        this.format(),
         hasToken);
   }
 
   @Override
-  public String getId() {
-    return this.id;
-  }
-
-  @Override
-  public String getIdentifier() {
-    return this.identifier;
-  }
-
-  @Override
-  public String getGraph() {
-    return this.graph;
-  }
-
-  @Override
-  public String getFormat() {
-    return this.format;
-  }
-
-  public List<HasToken> getHasToken() {
-    return hasToken;
-  }
-
-  @Override
-  public List<TokenNode> getTokens() {
-    return this.getHasToken().stream()
-        .map(HasToken::getToken)
+  public List<TokenNode> tokens() {
+    return this.hasToken().stream()
+        .map(HasToken::token)
         .collect(Collectors.toList());
   }
 

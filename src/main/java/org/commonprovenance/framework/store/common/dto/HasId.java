@@ -38,7 +38,7 @@ public interface HasId<T extends HasId<T>> {
       return Optional.of(has.getId());
 
     if (form instanceof org.commonprovenance.framework.store.persistence.finalizedProvComponent.model.types.HasName has)
-      return Optional.of(has.getName());
+      return Optional.of(has.name());
 
     if (form instanceof org.commonprovenance.framework.store.common.dtos.HasId has)
       return Optional.of(has.id());

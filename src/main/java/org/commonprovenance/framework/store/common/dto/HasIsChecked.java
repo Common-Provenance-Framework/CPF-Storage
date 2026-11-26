@@ -19,7 +19,7 @@ public interface HasIsChecked<T extends HasIsChecked<T>> {
   static <U extends HasIsChecked<U>, F extends org.commonprovenance.framework.store.persistence.finalizedProvComponent.model.types.HasIsChecked> UnaryOperator<U> addIsChecked(
       F from) {
     return (U to) -> Optional.ofNullable(from)
-        .map(F::getIsChecked)
+        .map(F::isChecked)
         .map(to::withIsChecked)
         .orElse(to);
   }
@@ -36,7 +36,7 @@ public interface HasIsChecked<T extends HasIsChecked<T>> {
       return Optional.of(has.getIsChecked());
 
     if (form instanceof org.commonprovenance.framework.store.persistence.finalizedProvComponent.model.types.HasIsChecked has)
-      return Optional.of(has.getIsChecked());
+      return Optional.of(has.isChecked());
 
     return Optional.empty();
   }

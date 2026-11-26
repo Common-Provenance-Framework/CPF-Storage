@@ -31,7 +31,7 @@ public interface HasTokenOptional<T extends HasTokenOptional<T>> {
   static <T extends HasTokenOptional<T>, F extends HasTokenNodes> Function<T, Either<ApplicationException, T>> addToken(F from) {
     return (T to) -> Either.<ApplicationException, F> right(from)
         .flatMap(EITHER.makeSureNotNull(_ -> new InvalidValueException("Form Object can not be null!")))
-        .map(F::getTokens)
+        .map(F::tokens)
         .flatMap(EITHER.<List<TokenNode>> makeSure(
             tokens -> tokens.size() == 1,
             tokens -> new InvalidValueException("Exactly one Token expected, got " + tokens.size() + "!")))

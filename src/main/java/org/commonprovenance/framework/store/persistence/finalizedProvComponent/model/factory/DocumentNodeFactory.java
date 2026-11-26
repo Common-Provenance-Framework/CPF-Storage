@@ -5,7 +5,7 @@ import org.commonprovenance.framework.store.persistence.finalizedProvComponent.m
 
 public class DocumentNodeFactory {
 
-  // TODO:
+  // TODO: Could Fail
   public static DocumentNode build(Document document) {
     return new DocumentNode(
         document.getIdentifier().get(),

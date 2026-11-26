@@ -29,7 +29,7 @@ public interface HasUrlOptional<T extends HasUrlOptional<T>> {
 
   static <U extends HasUrlOptional<U>, F extends org.commonprovenance.framework.store.persistence.finalizedProvComponent.model.types.HasUrl> UnaryOperator<U> addUrl(F from) {
     return (U to) -> Optional.ofNullable(from)
-        .map(F::getUrl)
+        .map(F::url)
         .map(to::withUrl)
         .orElse(to);
   }
@@ -49,7 +49,7 @@ public interface HasUrlOptional<T extends HasUrlOptional<T>> {
       return maybeHas.getUrl();
 
     if (form instanceof org.commonprovenance.framework.store.persistence.finalizedProvComponent.model.types.HasUrl has)
-      return Optional.of(has.getUrl());
+      return Optional.of(has.url());
 
     return Optional.empty();
   }

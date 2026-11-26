@@ -23,7 +23,7 @@ public interface HasClientCertificate<T extends HasClientCertificate<T>> {
   static <U extends HasClientCertificate<U>, F extends org.commonprovenance.framework.store.persistence.finalizedProvComponent.model.types.HasClientCertificate> UnaryOperator<U> addClientCertificate(
       F from) {
     return (U to) -> Optional.ofNullable(from)
-        .map(F::getClientCertificate)
+        .map(F::clientCertificate)
         .map(to::withClientCertificate)
         .orElse(to);
   }
@@ -40,7 +40,7 @@ public interface HasClientCertificate<T extends HasClientCertificate<T>> {
       return Optional.of(has.getClientCertificate());
 
     if (form instanceof org.commonprovenance.framework.store.persistence.finalizedProvComponent.model.types.HasClientCertificate has)
-      return Optional.of(has.getClientCertificate());
+      return Optional.of(has.clientCertificate());
 
     if (form instanceof org.commonprovenance.framework.store.common.dtos.HasClientCertificate has)
       return Optional.of(has.clientCertificate());

@@ -6,6 +6,6 @@ import org.commonprovenance.framework.store.persistence.finalizedProvComponent.m
 
 public interface HasTokenNodes {
 
-  List<TokenNode> getTokens();
+  List<TokenNode> tokens();
 
 }

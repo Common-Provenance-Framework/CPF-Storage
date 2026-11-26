@@ -6,7 +6,8 @@ import org.commonprovenance.framework.store.persistence.finalizedProvComponent.m
 public class OrganizationNodeFactory {
 
   public static OrganizationNode build(Organization organization) {
-    return new OrganizationNode(organization.getIdentifier(),
+    return new OrganizationNode(
+        organization.getIdentifier(),
         organization.getClientCertificate(),
         organization.getIntermediateCertificates());
   }
@@ -20,7 +21,7 @@ public class OrganizationNodeFactory {
   public static OrganizationNode buildWithFullRelations(Organization organization) {
     return build(organization)
         .withTrustedParty(organization.getTrustedParty().map(TrustedPartyNodeFactory::build))
-        .withDocument(organization.getDocument().map(DocumentNodeFactory::buildWithRelations));
+        .withDocument(organization.getDocument().map(DocumentNodeFactory::buildWithFullRelations));
   }
 
 }

@@ -34,7 +34,7 @@ public interface HasIntermediateCertificates<T extends HasIntermediateCertificat
       return has.getIntermediateCertificates();
 
     if (form instanceof org.commonprovenance.framework.store.persistence.finalizedProvComponent.model.types.HasIntermediateCertificates has)
-      return has.getIntermediateCertificates();
+      return has.intermediateCertificates();
 
     if (form instanceof org.commonprovenance.framework.store.common.dtos.HasIntermediateCertificates has)
       return has.intermediateCertificates();

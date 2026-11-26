@@ -22,123 +22,90 @@ import org.springframework.data.neo4j.core.schema.Property;
 import org.springframework.data.neo4j.core.schema.Relationship;
 
 @Node("Organization")
-public class OrganizationNode implements
+public record OrganizationNode(
+    @Id @GeneratedValue String id,
+    String identifier,
+    @Property("client_certificate") String clientCertificate,
+    @Property("intermediate_certificates") List<String> intermediateCertificates,
+    @Relationship(type = "trusts", direction = Relationship.Direction.OUTGOING) List<Trusts> trusts,
+    @Relationship(type = "owns", direction = Relationship.Direction.OUTGOING) List<Owns> owns) implements
     HasId,
     HasIdentifier,
     HasClientCertificate,
     HasIntermediateCertificates,
     HasTrustedPartyNodes,
     HasDocumentNodes {
-  @Id
-  @GeneratedValue
-  private final String id;
-
-  private final String identifier;
-
-  @Property("client_certificate")
-  private final String clientCertificate;
-
-  @Property("intermediate_certificates")
-  private final List<String> intermediateCertificates;
-
-  @Relationship(type = "trusts", direction = Relationship.Direction.OUTGOING)
-  private final List<Trusts> trusts;
-
-  @Relationship(type = "owns", direction = Relationship.Direction.OUTGOING)
-  private final List<Owns> owns;
-
-  // Constructor for full initialization (used by Neo4j when reading)
   @PersistenceCreator
-  public OrganizationNode(
-      String id,
-      String identifier,
-      String clientCertificate,
-      List<String> intermediateCertificates,
-      List<Trusts> trusts,
-      List<Owns> owns) {
-    this.id = id;
-    this.identifier = identifier;
-    this.clientCertificate = clientCertificate;
-    this.intermediateCertificates = intermediateCertificates;
-
-    this.trusts = trusts;
-    this.owns = owns;
+  public OrganizationNode {
   }
 
-  // Constructor for creating new node (id will be generated)
   public OrganizationNode(
       String identifier,
       String clientCertificate,
       List<String> intermediateCertificates) {
-    this.id = null;
-    this.identifier = identifier;
-    this.clientCertificate = clientCertificate;
-    this.intermediateCertificates = intermediateCertificates;
-
-    this.trusts = Collections.emptyList();
-    this.owns = Collections.emptyList();
+    this(null, identifier, clientCertificate, intermediateCertificates, Collections.emptyList(), Collections.emptyList());
   }
 
   // Factory methods
   public OrganizationNode withId(String id) {
     return new OrganizationNode(
         id,
-        this.getIdentifier(),
-        this.getClientCertificate(),
-        this.getIntermediateCertificates(),
-        this.getTrusts(),
-        this.getOwns());
+        this.identifier(),
+        this.clientCertificate(),
+        this.intermediateCertificates(),
+        this.trusts(),
+        this.owns());
 
   }
 
   public OrganizationNode withIdentifier(String identifier) {
     return new OrganizationNode(
-        this.getId(),
+        this.id(),
         identifier,
-        this.getClientCertificate(),
-        this.getIntermediateCertificates(),
-        this.getTrusts(),
-        this.getOwns());
+        this.clientCertificate(),
+        this.intermediateCertificates(),
+        this.trusts(),
+        this.owns());
   }
 
   public OrganizationNode withClientCertificate(String clientCertificate) {
     return new OrganizationNode(
-        this.getId(),
-        this.getIdentifier(),
+        this.id(),
+        this.identifier(),
         clientCertificate,
-        this.getIntermediateCertificates(),
-        this.getTrusts(),
-        this.getOwns());
+        this.intermediateCertificates(),
+        this.trusts(),
+        this.owns());
   }
 
   public OrganizationNode withIntermediateCertificates(List<String> intermediateCertificates) {
     return new OrganizationNode(
-        this.getId(),
-        this.getIdentifier(),
-        this.getClientCertificate(),
+        this.id(),
+        this.identifier(),
+        this.clientCertificate(),
         intermediateCertificates,
-        this.getTrusts(),
-        this.getOwns());
+        this.trusts(),
+        this.owns());
   }
 
   // Wither method for Neo4j to set relationships
   public OrganizationNode withTrusts(List<Trusts> trusts) {
     return new OrganizationNode(
-        this.getId(),
-        this.getIdentifier(),
-        this.getClientCertificate(),
-        this.getIntermediateCertificates(),
+        this.id(),
+        this.identifier(),
+        this.clientCertificate(),
+        this.intermediateCertificates(),
         trusts,
-        this.getOwns());
+        this.owns());
   }
 
   public OrganizationNode withOwns(List<Owns> owns) {
     return new OrganizationNode(
-        this.getId(),
-        this.getIdentifier(),
-        this.getClientCertificate(),
-        this.getIntermediateCertificates(),
-        this.getTrusts(),
+        this.id(),
+        this.identifier(),
+        this.clientCertificate(),
+        this.intermediateCertificates(),
+        this.trusts(),
         owns);
   }
 
@@ -152,17 +119,17 @@ public class OrganizationNode implements
     }
 
     List<Trusts> updatedTrusts = Stream.concat(
-        this.getTrusts().stream(),
+        this.trusts().stream(),
         Stream.of(new Trusts(trustedPartyNode)))
         .collect(Collectors.toList());
 
     return new OrganizationNode(
-        this.getId(),
-        this.getIdentifier(),
-        this.getClientCertificate(),
-        this.getIntermediateCertificates(),
+        this.id(),
+        this.identifier(),
+        this.clientCertificate(),
+        this.intermediateCertificates(),
         updatedTrusts,
-        this.getOwns());
+        this.owns());
   }
 
   public OrganizationNode withDocument(Optional<DocumentNode> maybeDocumentNode) {
@@ -175,58 +142,30 @@ public class OrganizationNode implements
     }
 
     List<Owns> updatedOwns = Stream.concat(
-        this.getOwns().stream(),
+        this.owns().stream(),
         Stream.of(new Owns(documentNode)))
         .collect(Collectors.toList());
 
     return new OrganizationNode(
-        this.getId(),
-        this.getIdentifier(),
-        this.getClientCertificate(),
-        this.getIntermediateCertificates(),
-        this.getTrusts(),
+        this.id(),
+        this.identifier(),
+        this.clientCertificate(),
+        this.intermediateCertificates(),
+        this.trusts(),
         updatedOwns);
   }
 
   @Override
-  public String getId() {
-    return this.id;
-  }
-
-  @Override
-  public String getIdentifier() {
-    return this.identifier;
-  }
-
-  @Override
-  public String getClientCertificate() {
-    return clientCertificate;
-  }
-
-  @Override
-  public List<String> getIntermediateCertificates() {
-    return intermediateCertificates;
-  }
-
-  public List<Trusts> getTrusts() {
-    return trusts;
-  }
-
-  public List<Owns> getOwns() {
-    return owns;
-  }
-
-  @Override
-  public List<TrustedPartyNode> getTrustedParties() {
-    return this.getTrusts().stream()
-        .map(Trusts::getTrustedParty)
+  public List<TrustedPartyNode> trustedParties() {
+    return this.trusts().stream()
+        .map(Trusts::trustedParty)
         .collect(Collectors.toList());
   }
 
   @Override
-  public List<DocumentNode> getDocuments() {
-    return this.getOwns().stream()
-        .map(Owns::getDocument)
+  public List<DocumentNode> documents() {
+    return this.owns().stream()
+        .map(Owns::document)
         .collect(Collectors.toList());
   }
 

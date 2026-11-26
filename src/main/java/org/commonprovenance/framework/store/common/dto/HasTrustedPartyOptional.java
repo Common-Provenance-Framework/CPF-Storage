@@ -38,7 +38,7 @@ public interface HasTrustedPartyOptional<T extends HasTrustedPartyOptional<T>> {
   static <T extends HasTrustedPartyOptional<T>, F extends HasTrustedPartyNodes> Function<T, Either<ApplicationException, T>> addTrustedParty(F from) {
     return (T to) -> Either.<ApplicationException, F> right(from)
         .flatMap(EITHER.makeSureNotNull(_ -> new InvalidValueException("Form Object can not be null!")))
-        .map(F::getTrustedParties)
+        .map(F::trustedParties)
         .flatMap(EITHER.<List<TrustedPartyNode>> makeSure(
             trustedParties -> trustedParties.size() <= 1,
             trustedParties -> new InvalidValueException("Max one TrustedParty expected, got " + trustedParties.size() + "!")))
@@ -52,7 +52,7 @@ public interface HasTrustedPartyOptional<T extends HasTrustedPartyOptional<T>> {
   static <T extends HasTrustedPartyOptional<T>, F extends HasTrustedPartyNodes> Function<T, Either<ApplicationException, T>> addTrustedPartyStrict(F from) {
     return (T to) -> Either.<ApplicationException, F> right(from)
         .flatMap(EITHER.makeSureNotNull(_ -> new InvalidValueException("Form Object can not be null!")))
-        .map(F::getTrustedParties)
+        .map(F::trustedParties)
         .flatMap(EITHER.<List<TrustedPartyNode>> makeSure(
             trustedParties -> trustedParties.size() == 1,
             trustedParties -> new InvalidValueException("Exactly one TrustedParty expected, got " + trustedParties.size() + "!")))

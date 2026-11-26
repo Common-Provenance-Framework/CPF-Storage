@@ -19,7 +19,7 @@ public interface HasIsDefault<T extends HasIsDefault<T>> {
   static <U extends HasIsDefault<U>, F extends org.commonprovenance.framework.store.persistence.finalizedProvComponent.model.types.HasIsDefault> UnaryOperator<U> addIsDefault(
       F from) {
     return (U to) -> Optional.ofNullable(from)
-        .map(F::getIsDefault)
+        .map(F::isDefault)
         .map(to::withIsDefault)
         .orElse(to);
   }
@@ -36,7 +36,7 @@ public interface HasIsDefault<T extends HasIsDefault<T>> {
       return Optional.of(has.getIsDefault());
 
     if (form instanceof org.commonprovenance.framework.store.persistence.finalizedProvComponent.model.types.HasIsDefault has)
-      return Optional.of(has.getIsDefault());
+      return Optional.of(has.isDefault());
 
     return Optional.empty();
   }

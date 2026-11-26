@@ -42,7 +42,7 @@ public interface HasUrl<T extends HasUrl<T>> {
       return has.getUrl();
 
     if (form instanceof org.commonprovenance.framework.store.persistence.finalizedProvComponent.model.types.HasUrl has)
-      return Optional.of(has.getUrl());
+      return Optional.of(has.url());
 
     return Optional.empty();
   }

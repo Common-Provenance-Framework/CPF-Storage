@@ -2,6 +2,6 @@ package org.commonprovenance.framework.store.persistence.finalizedProvComponent.
 
 public interface HasName {
 
-  String getName();
+  String name();
 
 }

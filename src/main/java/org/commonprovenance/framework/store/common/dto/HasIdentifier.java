@@ -46,7 +46,7 @@ public interface HasIdentifier<T extends HasIdentifier<T>> {
               v -> Optional.ofNullable(v));
 
     if (form instanceof org.commonprovenance.framework.store.persistence.finalizedProvComponent.model.types.HasIdentifier has)
-      return Optional.of(has.getIdentifier());
+      return Optional.of(has.identifier());
 
     if (form instanceof org.commonprovenance.framework.store.common.dtos.HasIdentifier has)
       return Optional.of(has.identifier());
