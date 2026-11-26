@@ -230,4 +230,14 @@ public class OrganizationNode implements
         .collect(Collectors.toList());
   }
 
+  @Override
+  public String toString() {
+    return "OrganizationNode [id=" + this.id
+        + ", identifier=" + this.identifier
+        + ", clientCertificate=" + this.clientCertificate
+        + ", intermediateCertificates=" + this.intermediateCertificates
+        + ", trusts=" + this.trusts
+        + ", owns=" + this.owns + "]";
+  }
+
 }

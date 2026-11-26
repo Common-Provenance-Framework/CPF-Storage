@@ -48,4 +48,10 @@ public final class HasToken {
   public TokenNode getToken() {
     return this.token;
   }
+
+  @Override
+  public String toString() {
+    return "HasToken [token=" + this.token + "]";
+  }
+
 }

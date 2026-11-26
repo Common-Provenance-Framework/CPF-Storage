@@ -47,4 +47,10 @@ public final class Trusts {
   public TrustedPartyNode getTrustedParty() {
     return this.trustedParty;
   }
+
+  @Override
+  public String toString() {
+    return "Trusts [trustedParty=" + this.trustedParty + "]";
+  }
+
 }

@@ -216,4 +216,15 @@ public class TrustedPartyNode implements
     return isDefault;
   }
 
+  @Override
+  public String toString() {
+    return "TrustedPartyNode [id=" + this.id
+        + ", name=" + this.name
+        + ", clientCertificate=" + this.clientCertificate
+        + ", url=" + this.url
+        + ", isChecked=" + this.isChecked
+        + ", isValid=" + this.isValid
+        + ", isDefault=" + this.isDefault + "]";
+  }
+
 }

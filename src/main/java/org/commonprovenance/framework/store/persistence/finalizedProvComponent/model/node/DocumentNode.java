@@ -166,4 +166,13 @@ public class DocumentNode implements
         .collect(Collectors.toList());
   }
 
+  @Override
+  public String toString() {
+    return "DocumentNode [id=" + this.id
+        + ", identifier=" + this.identifier
+        + ", graph=" + this.graph
+        + ", format=" + this.format
+        + ", hasToken=" + this.hasToken + "]";
+  }
+
 }

@@ -48,4 +48,10 @@ public final class Owns {
   public DocumentNode getDocument() {
     return this.document;
   }
+
+  @Override
+  public String toString() {
+    return "Owns [document=" + this.document + "]";
+  }
+
 }

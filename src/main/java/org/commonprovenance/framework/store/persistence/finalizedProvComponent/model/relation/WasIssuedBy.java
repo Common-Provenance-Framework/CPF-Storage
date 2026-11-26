@@ -48,4 +48,10 @@ public final class WasIssuedBy {
   public TrustedPartyNode getTrustedParty() {
     return this.trustedParty;
   }
+
+  @Override
+  public String toString() {
+    return "WasIssuedBy [trustedParty=" + this.trustedParty + "]";
+  }
+
 }

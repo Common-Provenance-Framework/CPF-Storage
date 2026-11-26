@@ -106,4 +106,11 @@ public class TokenNode implements
         .collect(Collectors.toList());
   }
 
+  @Override
+  public String toString() {
+    return "TokenNode [id=" + this.id
+        + ", jwt=" + this.jwt
+        + ", wasIssuedBy=" + this.wasIssuedBy + "]";
+  }
+
 }
