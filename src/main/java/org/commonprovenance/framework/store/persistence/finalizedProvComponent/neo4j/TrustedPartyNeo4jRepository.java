@@ -22,18 +22,18 @@ public class TrustedPartyNeo4jRepository implements TrustedPartyRepository {
   private final String LOG_PREFIX = "TrustedPartyNeo4jRepository: ";
   private static final Logger LOGGER = LoggerFactory.getLogger(TrustedPartyNeo4jRepository.class);
 
-  private final TrustedPartyNeo4jRepositoryClient trustedPartyClient;
+  private final TrustedPartyNeo4jRepositoryClient client;
 
   public TrustedPartyNeo4jRepository(
       TrustedPartyNeo4jRepositoryClient trustedPartyClient) {
-    this.trustedPartyClient = trustedPartyClient;
+    this.client = trustedPartyClient;
   }
 
   @Override
   public Mono<Void> create(TrustedParty trustedParty) {
     return Mono.just(trustedParty)
         .map(TrustedPartyNodeFactory::build)
-        .flatMap(trustedPartyClient::save)
+        .flatMap(client::save)
         .then()
         .doOnSuccess(_ -> LOGGER.trace(LOG_PREFIX + "Trusted Party has been saved into DB."))
         .doOnError(throwable -> LOGGER.error(LOG_PREFIX + "Trusted Party has not been saved into DB!\n" + throwable.getMessage()))
@@ -42,7 +42,7 @@ public class TrustedPartyNeo4jRepository implements TrustedPartyRepository {
 
   @Override
   public Mono<TrustedParty> findByName(String name) {
-    return trustedPartyClient.findIdByName(name)
+    return client.findIdByName(name)
         .single()
         .onErrorMap(
             NoSuchElementException.class,
@@ -50,7 +50,7 @@ public class TrustedPartyNeo4jRepository implements TrustedPartyRepository {
         .onErrorMap(
             IndexOutOfBoundsException.class,
             _ -> new ConflictException("There is more then one TrustedParty with name '" + name + "'!"))
-        .flatMap(trustedPartyClient::findById)
+        .flatMap(client::findById)
         .switchIfEmpty(Mono.error(() -> new NotFoundException("TrustedParty with name '" + name + "' has not found!")))
         .map(TrustedPartyFactory::build)
         .doOnSuccess(_ -> LOGGER.trace(LOG_PREFIX + "Trusted Party with name '" + name + "' has been found."))
@@ -65,7 +65,7 @@ public class TrustedPartyNeo4jRepository implements TrustedPartyRepository {
 
   @Override
   public Mono<TrustedParty> findDefault() {
-    return trustedPartyClient.findDefaultId()
+    return client.findDefaultId()
         .single()
         .onErrorMap(
             NoSuchElementException.class,
@@ -73,7 +73,7 @@ public class TrustedPartyNeo4jRepository implements TrustedPartyRepository {
         .onErrorMap(
             IndexOutOfBoundsException.class,
             _ -> new ConflictException("There is more then one default TrustedParty!"))
-        .flatMap(trustedPartyClient::findById)
+        .flatMap(client::findById)
         .switchIfEmpty(Mono.error(() -> new NotFoundException("Default TrustedParty has not been found!")))
         .map(TrustedPartyFactory::build)
         .doOnSuccess(_ -> LOGGER.trace(LOG_PREFIX + "Default TrustedParty has been found."))
@@ -88,7 +88,7 @@ public class TrustedPartyNeo4jRepository implements TrustedPartyRepository {
 
   @Override
   public Mono<TrustedParty> findByOrganizationIdentifier(String organizationIdentifier) {
-    return trustedPartyClient.findByOrganizationIdentifier(organizationIdentifier)
+    return client.findByOrganizationIdentifier(organizationIdentifier)
         .single()
         .onErrorMap(
             NoSuchElementException.class,
@@ -110,7 +110,7 @@ public class TrustedPartyNeo4jRepository implements TrustedPartyRepository {
 
   @Override
   public Mono<String> findUrlByOrganizationIdentifier(String organizationIdentifier) {
-    return trustedPartyClient.findIdByOrganizationIdentifier(organizationIdentifier)
+    return client.findIdByOrganizationIdentifier(organizationIdentifier)
         .single()
         .onErrorMap(
             NoSuchElementException.class,
@@ -118,7 +118,7 @@ public class TrustedPartyNeo4jRepository implements TrustedPartyRepository {
         .onErrorMap(
             IndexOutOfBoundsException.class,
             _ -> new ConflictException("Organization with identifier '" + organizationIdentifier + "' has more then one TrustedParty!"))
-        .flatMap(trustedPartyClient::findUrlById)
+        .flatMap(client::findUrlById)
         .switchIfEmpty(Mono.error(() -> new NotFoundException("Trusted Party URL for organization with identifier '" + organizationIdentifier + "' has not been found!")))
         .doOnSuccess(_ -> LOGGER.trace(LOG_PREFIX + "Trusted Party URL for organization with identifier '" + organizationIdentifier + "' has been found."))
         .doOnError(throwable -> {
