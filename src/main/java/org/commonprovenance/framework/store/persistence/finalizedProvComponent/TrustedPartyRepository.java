@@ -6,7 +6,7 @@ import org.commonprovenance.framework.store.model.TrustedParty;
 import reactor.core.publisher.Mono;
 
 public interface TrustedPartyRepository {
-  Mono<Void> create(TrustedParty trustedParty);
+  Mono<Void> save(TrustedParty trustedParty);
 
   Mono<TrustedParty> findByName(String name);
 

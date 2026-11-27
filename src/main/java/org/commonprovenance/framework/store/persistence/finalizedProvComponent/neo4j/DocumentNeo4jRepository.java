@@ -62,7 +62,6 @@ public class DocumentNeo4jRepository implements DocumentRepository {
             LOGGER.trace(LOG_PREFIX + notFound.getMessage());
           else
             LOGGER.error(LOG_PREFIX + "Search Document with identifier '" + identifier + "' has been failed!\n" + throwable.getMessage());
-
         })
         .onErrorMap(ApplicationExceptionFactory.handleThrowable(new InternalApplicationException("Search Document with identifier '" + identifier + "' has been failed!")));
   }

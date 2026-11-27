@@ -52,7 +52,7 @@ public class FinalizedProvComponentServiceImpl implements FinalizedProvComponent
   @Override
   public Mono<Void> storeTrustedParty(TrustedParty trustedParty) {
     return MONO.<TrustedParty> makeSureNotNullWithMessage("TrustedParty can not be null").apply(trustedParty)
-        .flatMap(this.trustedPartyRepository::create);
+        .flatMap(this.trustedPartyRepository::save);
   }
 
   @Override

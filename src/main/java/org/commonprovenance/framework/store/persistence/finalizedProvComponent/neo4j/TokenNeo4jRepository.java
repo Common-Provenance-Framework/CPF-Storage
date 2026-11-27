@@ -100,7 +100,7 @@ public class TokenNeo4jRepository implements TokenRepository {
         .flatMap(this::getTokenIdByDocumentIdentifier),
         Mono.justOrEmpty(maybeTrustedParty)
             .map(TrustedParty::getId),
-        (tokenId, trustedPartyName) -> this.client.createWasIssuedByRelationship(tokenId, trustedPartyName))
+        this.client::createWasIssuedByRelationship)
         .then();
   }
 

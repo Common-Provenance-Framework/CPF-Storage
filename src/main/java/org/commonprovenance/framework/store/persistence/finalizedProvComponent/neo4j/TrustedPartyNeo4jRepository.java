@@ -30,7 +30,7 @@ public class TrustedPartyNeo4jRepository implements TrustedPartyRepository {
   }
 
   @Override
-  public Mono<Void> create(TrustedParty trustedParty) {
+  public Mono<Void> save(TrustedParty trustedParty) {
     return Mono.just(trustedParty)
         .map(TrustedPartyNodeFactory::build)
         .flatMap(client::save)

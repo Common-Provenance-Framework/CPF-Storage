@@ -118,7 +118,6 @@ public class OrganizationNeo4jRepository implements OrganizationRepository {
             ApplicationExceptionFactory.handleThrowable(new InternalApplicationException("Document existence validation with identifier '" + identifier + "' has been failed!")));
   }
 
-  // TODO: this should be moved into Document
   @Override
   public Function<Document, Mono<Void>> connectOwns(String identifier) {
     return (Document document) -> MONO.combineM(

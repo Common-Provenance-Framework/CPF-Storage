@@ -115,7 +115,7 @@ class FinalizedProvComponentServiceTest {
   private class TrustedPartyRepositoryStub implements TrustedPartyRepository {
 
     @Override
-    public Mono<Void> create(TrustedParty trustedParty) {
+    public Mono<Void> save(TrustedParty trustedParty) {
       // TODO Auto-generated method stub
       throw new UnsupportedOperationException("Unimplemented method 'create'");
     }
